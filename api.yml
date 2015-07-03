@@ -1,0 +1,271 @@
+swagger: '2.0'
+
+#
+# API Information 
+#
+
+info:
+  version: "0.0.1"
+  title: OpenCompany.io Platform API
+  description: |
+    This is some markdown.
+    ## Limits
+    Be nice. If you're sending too many requests too quickly, we'll send back a
+    `503` error code (server unavailable).
+  
+# Host, Base Path, Schemes and Content Types 
+host: api.opencompany.io
+basePath: /v1
+schemes:
+  - https
+produces:
+  - application/vnd.opencompany.company+json;version=1
+  - application/vnd.opencompany.report+json;version=1
+consumes:
+  - application/vnd.opencompany.company+json;version=1
+  - application/vnd.opencompany.report+json;version=1
+
+#
+# Security
+#
+# TBD
+
+#
+# Definitions
+#
+
+definitions:
+  Company:
+    type: object
+    properties:
+      symbol:
+        description: A 1-4 character (letters and numerals) abbreviation used to uniquely identify a particular open company.
+        type: string
+      name:
+        description: The official name of the company (eg. Transparency, LLC)
+        type: string
+      url:
+        description: The website of the company.
+        type: string
+
+  Report:
+    type: object
+    properties:
+      currency:
+        description: ISO 4217 currency code for this report (eg. USD)
+        default: USD
+        type: string
+      headcount:
+        type: object
+        properties:
+          founders:
+            description: The number of founders... 
+            type: number
+            default: 1
+          executives:
+            description: The number of non-founder executives employed at the company.
+            type: number
+            default: 0
+          ft-employees:
+            description: The number of full-time employees at the company.
+            type: number
+            default: 0
+          pt-employees:
+            description: The number of part-time employees at the company.
+            type: number
+            default: 0
+          ft-contractors:
+            description: The number of full-time contractors at the company.
+            type: number
+            default: 0
+          pt-contractors:
+            description: The number of part-time contractors at the company.
+            type: number
+            default: 0
+          comment: 
+            description: An explanation of recent additions or deductions in headcount, and expected short-term hiring plans, import skill-gaps and recruiting efforts.
+            type: string
+      finances:
+        type: object
+        properties:
+          cash:
+            description: Cash in the bank.
+            type: number
+          revenue:
+            description: Revenue during this period from any non-investment source.
+            type: number
+          costs: 
+            description: All costs incurred during this period including payroll and benefits.
+            type: number
+          burn-rate:
+            description: Rate at which cash is being used (negative number if not profitable) or accumulated (positive number if profitable).
+            type: number
+          runway:
+            description: How long the cash in the bank will cover operations at the current level of revenue and costs (if not profitable).
+            type: string
+          comment:
+            description: An explanation of any significant changes in cash on hand, costs or revenue, and guidance on revenue and profitability expectations.
+            type: string
+      compensation:
+        type: object
+        properties:
+          percentage:
+            description: Specify compensation as % of the overall company compensation rather than in currency
+            type: boolean
+            default: false
+          founders:
+            description: All cash compensation to the founders in this period.
+            type: number
+          executives:
+            description: All cash compensation to non-founder executives in this period.
+            type: number
+          employees:
+            description: All cash compensation to employees in this period.
+            type: number
+          contractors:
+            description: All cash compensation to contractors in this period.
+            type: number
+          comment:
+            description: An explanation of any significant changes in compensation costs.
+            type: string
+
+#
+# Parameters
+#
+
+parameters:
+  symbol:
+    name: symbol
+    in: path
+    description: Abbreviation used to uniquely identify an open company.
+    type: string
+    required: true
+  year:
+    name: year
+    description: 4 digit year (eg. 2015).
+    in: path
+    type: number
+    required: true
+  quarter:
+    name: quarter
+    description: |
+     2 digit calender year quarter, either "Q1" (Jan-Mar), "Q2" (Apr-Jun), "Q3" (Jul-Sep) or "Q4" (Oct-Dec).
+    in: path
+    type: string
+    required: true
+
+#
+# Paths
+#
+
+paths:
+
+  # Paths for Company
+
+  /companies/{symbol}:
+    parameters:
+      - $ref: '#/parameters/symbol'
+  
+    get:
+      description: Get a `Company`.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Company'
+        404:
+          description: A `Company` with this symbol does not exist.
+  
+    put:
+      description: Create or update a `Company`.
+      parameters:
+        - name: company
+          in: body
+          description: The `Company`.
+          required: true
+          schema:
+            $ref: '#/definitions/Company'
+      responses:
+        200:
+          description: The `Company` is updated.
+          schema:
+            $ref: '#/definitions/Company'
+
+    patch:
+      description: Partially update a `Company`.
+      parameters:
+        - name: company
+          in: body
+          description: The updated `Company`.
+          required: true
+          schema:
+            $ref: '#/definitions/Company'
+      responses:
+        200:
+          description: The `Company` is updated.
+          schema:
+            $ref: '#/definitions/Company'
+        404:
+          description: A `Company` with this symbol does not exist.
+  
+    delete:
+      description: Delete a `Company`.
+      responses:
+        204:
+          description: The `Company` is deleted.
+          
+  # Paths for Reports
+
+  /companies/{symbol}/{year}/{quarter}:
+    parameters:
+      - $ref: '#/parameters/symbol'
+      - $ref: '#/parameters/year'
+      - $ref: '#/parameters/quarter'
+  
+    get:
+      description: Get a `Report`.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Report'
+        404:
+          description: A `Report` for this `Company` and time period does not exist.
+
+    put:
+      description: Create or update a `Report`.
+      parameters:
+        - name: report
+          in: body
+          description: The `Report`.
+          required: true
+          schema:
+            $ref: '#/definitions/Report'
+      responses:
+        200:
+          description: The `Report` is filed.
+          schema:
+            $ref: '#/definitions/Report'
+
+    patch:
+      description: Partially update a `Report`.
+      parameters:
+        - name: company
+          in: body
+          description: The updated `Report`.
+          required: true
+          schema:
+            $ref: '#/definitions/Report'
+      responses:
+        200:
+          description: The `Report` is updated.
+          schema:
+            $ref: '#/definitions/Report'
+        404:
+          description: A `Report` for this `Company` and time period does not exist.
+
+    delete:
+      description: Delete a `Report`.
+      responses:
+        204:
+          description: The `Report` is deleted.
