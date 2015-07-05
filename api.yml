@@ -213,6 +213,8 @@ paths:
       responses:
         204:
           description: The `Company` is deleted.
+        404:
+          description: A `Company` with this symbol does not exist.
           
   # Paths for Reports
 
@@ -269,3 +271,5 @@ paths:
       responses:
         204:
           description: The `Report` is deleted.
+        404:
+          description: A `Report` for this `Company` and time period does not exist.
