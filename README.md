@@ -25,6 +25,8 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 * [Leiningen](https://github.com/technomancy/leiningen) - Clojure's build and dependency management tool
 * [RethinkDB](http://rethinkdb.com/) - a multi-modal (document, key/value, relational) open source NoSQL database
 
+#### Java
+
 Chances are your system already has Java 7 or 8 installed. You can verify this with:
 
 ```console
@@ -32,6 +34,8 @@ java -version
 ```
 
 If you do not have Java 7 or 8 [download it]((http://www.oracle.com/technetwork/java/javase/downloads/index.html)) and follow the installation instructions.
+
+#### Leiningen
 
 Leiningen is easy to install:
 
@@ -48,12 +52,26 @@ cd open-company-api
 lein deps
 ```
 
+#### RethinkDB
+
 RethinkDB is easy to install with official and community supported packages for most operating systems.
 
 Assuming you are running Mac OS X and are a [Homebrew](http://mxcl.github.com/homebrew/) user, use brew to install RethinkDB:
 
 ```console
 brew update && brew install rethinkdb
+```
+
+Follow the instructions provided by brew to run RethinkDB at statup:
+
+```console
+ln -sfv /usr/local/opt/rethinkdb/*.plist ~/Library/LaunchAgents
+```
+
+And to run RethinkDB now:
+
+```console
+launchctl load ~/Library/LaunchAgents/homebrew.mxcl.rethinkdb.plist
 ```
 
 If you don't use brew, there is a binary package available for Mac OS X from the [Mac download page](http://rethinkdb.com/docs/install/osx/).
