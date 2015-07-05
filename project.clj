@@ -8,6 +8,9 @@
 
   :min-lein-version "2.5.1" ; highest version supported by Travis-CI as of 7/5/2015
 
+  ;; JVM memory
+  :jvm-opts ^:replace ["-Xms512m" "-Xmx2048m" "-server"]
+
   ;; Production dependencies
   :dependencies [
     [org.clojure/clojure "1.7.0"] ; Lisp on the JVM http://clojure.org/documentation
@@ -22,7 +25,8 @@
     [environ "1.0.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.1.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
     [yeller-clojure-client "1.2.1"] ; Library for exception tracking https://github.com/yeller/yeller_clojure
-  ]
+    [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+ ]
 
   ;; Production plugins
   :plugins [
