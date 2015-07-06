@@ -22,8 +22,8 @@ Users of the [OpenCompany.io](https://opencompany.io) platform should get starte
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 
 * [Java 7/8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 7 or 8 JRE is needed to run Clojure
-* [Leiningen](https://github.com/technomancy/leiningen) - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) - a multi-modal (document, key/value, relational) open source NoSQL database
+* [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
+* [RethinkDB](http://rethinkdb.com/) v2.0.3+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -117,7 +117,7 @@ After installing with the binary package:
 
 ##### RethinkDB for Linux
 
-If you run Linux on your development environment you can get a package for you distribution or compile from source. Details are on the [installation page](http://rethinkdb.com/docs/install/).
+If you run Linux on your development environment (good for you, hardcore!) you can get a package for you distribution or compile from source. Details are on the [installation page](http://rethinkdb.com/docs/install/).
 
 ##### RethinkDB for Windows
 
