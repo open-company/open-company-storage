@@ -56,13 +56,15 @@ lein deps
 
 RethinkDB is easy to install with official and community supported packages for most operating systems.
 
+##### RethinkDB for Mac OS X via Brew
+
 Assuming you are running Mac OS X and are a [Homebrew](http://mxcl.github.com/homebrew/) user, use brew to install RethinkDB:
 
 ```console
 brew update && brew install rethinkdb
 ```
 
-Follow the instructions provided by brew to run RethinkDB at statup:
+Follow the instructions provided by brew to run RethinkDB every time at login:
 
 ```console
 ln -sfv /usr/local/opt/rethinkdb/*.plist ~/Library/LaunchAgents
@@ -74,9 +76,50 @@ And to run RethinkDB now:
 launchctl load ~/Library/LaunchAgents/homebrew.mxcl.rethinkdb.plist
 ```
 
+After installing with brew:
+
+* Your RethinkDB binary will be at `/usr/local/bin/rethinkdb`
+* Your RethinkDB data directory will be at `/usr/local/var/rethinkdb`
+* Your RethinkDB log will be at `/usr/local/var/log/rethinkdb/rethinkdb.log`
+* Your RethinkDB launchd file will be at `~/Library/LaunchAgents/homebrew.mxcl.rethinkdb.plist`
+
+##### RethinkDB for Mac OS X (Binary Package)
+
 If you don't use brew, there is a binary package available for Mac OS X from the [Mac download page](http://rethinkdb.com/docs/install/osx/).
 
+After downloading the disk image, mounting it (double click) and running the rethinkdb.pkg installer, you need to manually create the data directory:
+
+```console
+sudo mkdir -p /Library/RethinkDB
+sudo chown <your-own-user-id> /Library/RethinkDB
+mkdir /Library/RethinkDB/data
+```
+
+And you will need to manually create the launchd config file to run RethinkDB every time at login. From within this repo run:
+
+```console
+cp ./opt/com.rethinkdb.server.plist ~/Library/LaunchAgents/com.rethinkdb.server.plist
+```
+
+And to run RethinkDB now:
+
+```console
+launchctl load ~/Library/LaunchAgents/com.rethinkdb.server.plist
+```
+
+After installing with the binary package:
+
+* Your RethinkDB binary will be at `/usr/local/bin/rethinkdb`
+* Your RethinkDB data directory will be at `/Library/RethinkDB/data`
+* Your RethinkDB log will be at `/var/log/rethinkdb.log`
+* Your RethinkDB launchd file will be at `~/Library/LaunchAgents/com.rethinkdb.server.plist`
+
+
+##### RethinkDB for Linux
+
 If you run Linux on your development environment you can get a package for you distribution or compile from source. Details are on the [installation page](http://rethinkdb.com/docs/install/).
+
+##### RethinkDB for Windows
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
