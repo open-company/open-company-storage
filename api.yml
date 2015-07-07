@@ -39,7 +39,7 @@ definitions:
     type: object
     properties:
       symbol:
-        description: A 1-4 character (letters and numerals) abbreviation used to uniquely identify a particular open company.
+        description: A 1-5 character (capital letters and numerals) abbreviation used to uniquely identify a particular open company.
         type: string
       name:
         description: The official name of the company (eg. Transparency, LLC)

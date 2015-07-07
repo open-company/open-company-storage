@@ -1,15 +1,18 @@
 # [OpenCompany.io](https://opencompany.io) Platform API
 
+[![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
+[![Roadmap on Trello](http://img.shields.io/badge/roadmap-trello-blue.svg?style=flat)](https://trello.com/b/3naVWHgZ/open-company-development)
+
 ## Overview
 
 Build your company in the open with transparency for your co-founders, your team of employees and contractors, and your investors. Or open up your company for everyone, your customers and the rest of the startup community.
 
 [OpenCompany.io](https://opencompany.io) is GitHub for the rest of your company:
 
-* Dashboard - An easy tool for founders to provide transparency to their teams and beyond.
-* Founders' Guide - Tools, best practices and insights from open company founders and their companies.
-* Open Company Directory - Founders sharing with their teams and beyond.
-* Community - Spread the word and knowledge and inspire more founders to open up.
+* **Dashboard** - An easy tool for founders to provide transparency to their teams and beyond.
+* **Founders' Guide** - Tools, best practices and insights from open company founders and their companies.
+* **Open Company Directory** - Founders sharing with their teams and beyond.
+* **Community** - Spread the word and knowledge and inspire more founders to open up.
 
 Like the open companies we promote and support, the [OpenCompany.io](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through this platform API.
 
@@ -76,6 +79,12 @@ And to run RethinkDB now:
 launchctl load ~/Library/LaunchAgents/homebrew.mxcl.rethinkdb.plist
 ```
 
+Verify you can access the RethinkDB admin console:
+
+```console
+open http://localhost:8080/
+```
+
 After installing with brew:
 
 * Your RethinkDB binary will be at `/usr/local/bin/rethinkdb`
@@ -107,6 +116,12 @@ And to run RethinkDB now:
 launchctl load ~/Library/LaunchAgents/com.rethinkdb.server.plist
 ```
 
+Verify you can access the RethinkDB admin console:
+
+```console
+open http://localhost:8080/
+```
+
 After installing with the binary package:
 
 * Your RethinkDB binary will be at `/usr/local/bin/rethinkdb`
@@ -122,6 +137,40 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 ##### RethinkDB for Windows
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
+
+## Introduction
+
+You can verify all is well with your RethinkDB instange and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
+
+```console
+open http://localhost:8080/
+```
+
+Click the Data Explorer tab and enter these commands one-by-one, noting the output:
+
+```javascript
+r.dbCreate('opencompany')
+r.db('opencompany').tableCreate('companies')
+r.db('opencompany').table('companies').insert([
+  {symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'},
+  {symbol: 'BUFFR', name: 'Buffer', url: 'https://open.bufferapp.com/'}
+])
+r.db('opencompany').table('companies').count()
+r.db('opencompany').table('companies').filter(r.row('symbol').eq('OPEN'))
+r.dbDrop('opencompany')
+```
+
+You can move that familiarity over into Clojure by running the REPL from within this project:
+
+```console
+lein repl
+```
+
+Then enter these commands one-by-one, noting the output:
+
+```clojure
+(require '[rethinkdb.query :as r])
+```
 
 ## Usage
 
