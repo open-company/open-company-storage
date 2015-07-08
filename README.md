@@ -151,21 +151,21 @@ Click the Data Explorer tab and enter these commands one-by-one, noting the outp
 ```javascript
 
 // Create
-r.dbCreate('opencompany')
-r.db('opencompany').tableCreate('companies')
+r.dbCreate('opencompany');
+r.db('opencompany').tableCreate('companies');
 
 // Insert
 r.db('opencompany').table('companies').insert([
   {symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'},
   {symbol: 'BUFFR', name: 'Buffer', url: 'https://open.bufferapp.com/'}
-])
+]);
 
 // Queries
-r.db('opencompany').table('companies').count()
-r.db('opencompany').table('companies').filter(r.row('symbol').eq('OPEN'))
+r.db('opencompany').table('companies').count();
+r.db('opencompany').table('companies').filter(r.row('symbol').eq('OPEN'));
 
 // Cleanup
-r.dbDrop('opencompany')
+r.dbDrop('opencompany');
 ```
 
 You can move that familiarity over into Clojure by running the REPL from within this project:

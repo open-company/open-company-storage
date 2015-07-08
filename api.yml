@@ -19,11 +19,11 @@ basePath: /v1
 schemes:
   - https
 produces:
-  - application/vnd.opencompany.company+json;version=1
-  - application/vnd.opencompany.report+json;version=1
+  - application/vnd.open-company.company+json;version=1
+  - application/vnd.open-company.report+json;version=1
 consumes:
-  - application/vnd.opencompany.company+json;version=1
-  - application/vnd.opencompany.report+json;version=1
+  - application/vnd.open-company.company+json;version=1
+  - application/vnd.open-company.report+json;version=1
 
 #
 # Security
