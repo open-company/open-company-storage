@@ -105,4 +105,13 @@
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
     "ancient" ["with-profile" "dev" "do" "ancient" ":allow-qualified," "ancient" ":plugins" ":allow-qualified"] ; check for out of date dependencies
   }
+
+  ;; ----- API -----
+
+  :ring {
+    :handler open-company.app/app
+    :reload-paths ["src"] ; work around issue https://github.com/weavejester/lein-ring/issues/68
+  }
+
+  :main open-company.app
 )

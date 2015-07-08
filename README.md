@@ -149,14 +149,22 @@ open http://localhost:8080/
 Click the Data Explorer tab and enter these commands one-by-one, noting the output:
 
 ```javascript
+
+// Create
 r.dbCreate('opencompany')
 r.db('opencompany').tableCreate('companies')
+
+// Insert
 r.db('opencompany').table('companies').insert([
   {symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'},
   {symbol: 'BUFFR', name: 'Buffer', url: 'https://open.bufferapp.com/'}
 ])
+
+// Queries
 r.db('opencompany').table('companies').count()
 r.db('opencompany').table('companies').filter(r.row('symbol').eq('OPEN'))
+
+// Cleanup
 r.dbDrop('opencompany')
 ```
 
@@ -170,6 +178,42 @@ Then enter these commands one-by-one, noting the output:
 
 ```clojure
 (require '[rethinkdb.query :as r])
+(require '[rethinkdb.core :as conn])
+
+;; Create
+(with-open [conn (conn/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+  (r/run (r/db-create "opencompany") conn)
+
+  (-> (r/db "opencompany")
+      (r/table-create "companies")
+      (r/run conn)))
+
+;; Insert
+(with-open [conn (conn/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+  (-> (r/db "opencompany")
+      (r/table "companies")
+      (r/insert [
+        {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"}
+        {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"}        
+      ])
+      (r/run conn)))
+
+;; Queries
+(with-open [conn (conn/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+  (-> (r/db "opencompany")
+      (r/table "companies")
+      (r/count)
+      (r/run conn))
+  (-> (r/db "opencompany")
+      (r/table "companies")
+      (r/filter (r/fn [row]
+        (r/eq "OPEN" (r/get-field row "symbol"))))
+      (r/run conn)))
+
+
+;; Cleanup
+(with-open [conn (conn/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+  (r/run (r/db-drop "opencompany") conn))
 ```
 
 ## Usage
