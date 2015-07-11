@@ -31,10 +31,26 @@
   :respond-with-entity? (by-method {:put true :delete false})
 
   :processable? (by-method {
-    :get true})
+    :get true
+    :put (fn [ctx] (common/check-input (company/valid-company ticker (:data ctx))))})
 
   :handle-ok (by-method {
-    :get (fn [ctx] (render-company (:company ctx)))}))
+    :get (fn [ctx] (render-company (:company ctx)))
+    :put (fn [ctx] (render-company (:company ctx)))})
+
+  ;; Delete a company
+  :delete! (fn [_] (company/delete-company ticker))
+
+  ;; Create or update a company
+  :new? (by-method {:put (not (company/get-company ticker))})
+  :malformed? (by-method {
+    :get false
+    :delete false
+    :put (fn [ctx] (common/malformed-json? ctx))})
+  :can-put-to-missing? (fn [_] true)
+  :conflict? (fn [_] false)
+  :put! (fn [ctx] (company/put-company ticker (:data ctx))))
+
 
 ;; ----- Routes -----
 

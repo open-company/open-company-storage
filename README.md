@@ -215,6 +215,50 @@ Then enter these commands one-by-one, noting the output:
 
 ## Usage
 
+Start a development API server:
+
+```console
+lein run
+```
+
+Create a company with cURL:
+
+```console
+curl -i -X PUT \
+-d "{symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'}" \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company+json;version=1" \
+http://localhost:3000/v1/companies/OPEN
+```
+
+Request the company:
+
+```console
+curl -i -X GET \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies/OPEN
+```
+
+Create a report for the company:
+
+```console
+curl -i -X PUT http://localhost:3000/v1/companies/OPEN/2015/Q2
+```
+
+Request the report:
+
+```console
+curl -i -X GET http://localhost:3000/v1/companies/OPEN/2015/Q2
+```
+
+Delete the company:
+
+```console
+curl -i -X DELETE http://localhost:3000/v1/companies/OPEN
+```
+
 ## License
 
 Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).

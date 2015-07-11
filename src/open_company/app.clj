@@ -12,6 +12,7 @@
 (defroutes routes
   company-routes)
 
+;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (def trace-app
   (if liberator-trace
     (wrap-trace routes :header :ui)
@@ -24,7 +25,7 @@
 
 (defn start [port]
   (run-server app {:port port :join? false})
-  (println (str "\nOpen Company API: running on port - " port ", hot-reload - " hot-reload)))
+  (println (str "\nOpen Company API: running on port - " port ", hot-reload - " hot-reload ", trace - " liberator-trace)))
 
 (defn -main []
   (start web-server-port))

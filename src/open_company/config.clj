@@ -15,4 +15,5 @@
 
 ;; ----- Liberator config -----
 
+;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (defonce liberator-trace (or (env :liberator-trace) false))
