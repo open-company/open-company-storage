@@ -1,6 +1,7 @@
 (ns open-company.resources.company
   (:require [clojure.string :as s]
-            [rethinkdb.query :as r]))
+            [rethinkdb.query :as r]
+            [open-company.config :as c]))
 
 (def company-media-type "application/vnd.open-company.company+json;version=1")
 
@@ -30,20 +31,31 @@
         :else true))))
 
 (defn get-company [ticker]
-  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
-    (first (-> (r/table "companies")
-        (r/filter (r/fn [row]
-        (r/eq ticker (r/get-field row "symbol"))))
+  "Given the ticker symbol of the company, retrieve it from the database, or return nil if it doesn't exist."
+  (with-open [conn (apply r/connect c/db-options)]
+    (first
+      (-> (r/table "companies")
+        (r/filter (r/fn [row] (r/eq ticker (r/get-field row "symbol"))))
         (r/run conn)))))
 
-(defn put-company [ticker company]
-  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+(defn put-company
+  "Given the ticker symbol of the company, create it or update it and return `true`."
+  [ticker company]
+  (< 0 (:inserted
+    (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table "companies")
         (r/insert company)
-        (r/run conn))))
+        (r/run conn))))))
 
-(defn delete-company [ticker]
-  nil)
-
+(defn delete-company
+  "Given the ticker symbol of the company, delete it and all its reports and return `true`."
+  [ticker]
+  (< 0 (:deleted
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table "companies")
+        (r/filter (r/fn [row] (r/eq ticker (r/get-field row "symbol"))))
+        (r/delete)
+        (r/run conn))))))
+  
 (defn report-count [ticker]
   0)

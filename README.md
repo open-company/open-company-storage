@@ -178,16 +178,17 @@ Then enter these commands one-by-one, noting the output:
 
 ```clojure
 (require '[rethinkdb.query :as r])
+(require '[open-company.config :as c])
 
 ;; Create
-(with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+(with-open [conn (apply r/connect c/db-options)]
   (r/run (r/db-create "opencompany") conn)
   (-> (r/db "opencompany")
       (r/table-create "companies")
       (r/run conn)))
 
 ;; Insert
-(with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+(with-open [conn (apply r/connect c/db-options)]
   (-> (r/table "companies")
       (r/insert [
         {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"}
@@ -196,12 +197,12 @@ Then enter these commands one-by-one, noting the output:
       (r/run conn)))
 
 ;; Queries
-(with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+(with-open [conn (apply r/connect c/db-options)]
   (-> (r/table "companies")
       (r/count)
       (r/run conn)))
 
-(with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+(with-open [conn (apply r/connect c/db-options)]
   (-> (r/table "companies")
       (r/filter (r/fn [row]
         (r/eq "OPEN" (r/get-field row "symbol"))))
@@ -209,7 +210,7 @@ Then enter these commands one-by-one, noting the output:
 
 
 ;; Cleanup
-(with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+(with-open [conn (apply r/connect c/db-options)]
   (r/run (r/db-drop "opencompany") conn))
 ```
 

@@ -6,8 +6,11 @@
 ;; ----- RethinkDB config -----
 
 (defonce db-host (or (env :db-host) "localhost"))
-(defonce db-port (or (env :db-host) 28015))
+(defonce db-port (or (env :db-port) 28015))
 (defonce db-name (or (env :db-name) "opencompany"))
+
+(defonce db-map {:host db-host :port db-port :db db-name}) 
+(defonce db-options (flatten (map vector (keys db-map) (vals db-map)))) ; k/v sequence as clj-rethinkdb wants it
 
 ;; ----- Web server config -----
 
