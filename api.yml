@@ -146,10 +146,11 @@ parameters:
     in: path
     type: number
     required: true
-  quarter:
-    name: quarter
+  period:
+    name: period
     description: |
-     2 digit calender year quarter, either "Q1" (Jan-Mar), "Q2" (Apr-Jun), "Q3" (Jul-Sep) or "Q4" (Oct-Dec).
+     2 digit calender year quarter, either "Q1" (Jan-Mar), "Q2" (Apr-Jun), "Q3" (Jul-Sep) or "Q4" (Oct-Dec),
+     or a 2 character month specifier, "M1" (Jan), "M2" (Feb) ... "M12" (Dec)
     in: path
     type: string
     required: true
@@ -218,11 +219,11 @@ paths:
           
   # Paths for Reports
 
-  /companies/{symbol}/{year}/{quarter}:
+  /companies/{symbol}/{year}/{period}:
     parameters:
       - $ref: '#/parameters/symbol'
       - $ref: '#/parameters/year'
-      - $ref: '#/parameters/quarter'
+      - $ref: '#/parameters/period'
   
     get:
       description: Get a `Report`.

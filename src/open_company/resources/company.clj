@@ -35,7 +35,7 @@
   (with-open [conn (apply r/connect c/db-options)]
     (first
       (-> (r/table "companies")
-        (r/filter (r/fn [row] (r/eq ticker (r/get-field row "symbol"))))
+        (r/get-all [ticker] {:index "symbol"})
         (r/run conn)))))
 
 (defn put-company
@@ -53,7 +53,7 @@
   (< 0 (:deleted
     (with-open [conn (apply r/connect c/db-options)]
       (-> (r/table "companies")
-        (r/filter (r/fn [row] (r/eq ticker (r/get-field row "symbol"))))
+        (r/get-all [ticker] {:index "symbol"})
         (r/delete)
         (r/run conn))))))
   

@@ -14,17 +14,13 @@
 ;; ----- Resources -----
 ;; see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-(def company-resource-config {
+(defresource company [ticker]
   :available-charsets [common/UTF8]
   :handle-not-found (fn [_] common/missing-response)
-  ;:handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
-})
-
-(defresource company [ticker]
-  company-resource-config
+  :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
   :available-media-types [company/company-media-type]
   :handle-not-acceptable (fn [_] (common/only-accept 406 company/company-media-type))
-  :allowed-methods [:get :put :patch :delete]
+  :allowed-methods [:get :put :delete]
   :exists? (fn [_] (get-company ticker))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company/company-media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company/company-media-type))

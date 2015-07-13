@@ -180,11 +180,25 @@ Then enter these commands one-by-one, noting the output:
 (require '[rethinkdb.query :as r])
 (require '[open-company.config :as c])
 
-;; Create
+;; Create DB and tables
 (with-open [conn (apply r/connect c/db-options)]
   (r/run (r/db-create "opencompany") conn)
   (-> (r/db "opencompany")
-      (r/table-create "companies")
+      (r/table-create "companies" {:primary-key "symbol"})
+      (r/run conn))
+  (-> (r/db "opencompany")
+      (r/table-create "reports" {:primary-key "symbol-year-period"})
+      (r/run conn)))
+
+;; Create table indexes
+(with-open [conn (apply r/connect c/db-options)]
+  (-> (r/table "reports")
+      (r/index-create "symbol" 
+        (r/fn [row]
+          (r/get-field row :symbol)))
+      (r/run conn))
+  (-> (r/table "reports")
+      (r/index-wait "symbol")
       (r/run conn)))
 
 ;; Insert
@@ -204,10 +218,8 @@ Then enter these commands one-by-one, noting the output:
 
 (with-open [conn (apply r/connect c/db-options)]
   (-> (r/table "companies")
-      (r/filter (r/fn [row]
-        (r/eq "OPEN" (r/get-field row "symbol"))))
+      (r/get-all ["OPEN"] {:index "symbol"})
       (r/run conn)))
-
 
 ;; Cleanup
 (with-open [conn (apply r/connect c/db-options)]
