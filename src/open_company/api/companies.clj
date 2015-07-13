@@ -5,6 +5,19 @@
             [open-company.resources.company :as company]
             [open-company.representations.company :as render]))
 
+;; ----- Responses -----
+
+(defn- company-location-response [company]
+  (common/location-response ["v1" "companies" (:symbol company)] (render/render-company company) company/media-type))
+
+(defn- unprocessable-reason [reason]
+  (case reason
+    :bad-company common/missing-response
+    :no-name (common/unprocessable-entity-response "Company name is required.")
+    :symbol-conflict (common/unprocessable-entity-response "Ticker symbol is already used.")
+    :invalid-slug (common/unprocessable-entity-response "Invalid ticker symbol.")
+    (common/unprocessable-entity-response "Not processable.")))
+
 ;; ----- Get companies -----
 
 (defn- get-company [ticker]
@@ -18,12 +31,12 @@
   :available-charsets [common/UTF8]
   :handle-not-found (fn [_] common/missing-response)
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
-  :available-media-types [company/company-media-type]
-  :handle-not-acceptable (fn [_] (common/only-accept 406 company/company-media-type))
+  :available-media-types [company/media-type]
+  :handle-not-acceptable (fn [_] (common/only-accept 406 company/media-type))
   :allowed-methods [:get :put :delete]
   :exists? (fn [_] (get-company ticker))
-  :known-content-type? (fn [ctx] (common/known-content-type? ctx company/company-media-type))
-  :handle-unsupported-media-type (fn [_] (common/only-accept 415 company/company-media-type))
+  :known-content-type? (fn [ctx] (common/known-content-type? ctx company/media-type))
+  :handle-unsupported-media-type (fn [_] (common/only-accept 415 company/media-type))
   :respond-with-entity? (by-method {:put true :delete false})
 
   :processable? (by-method {
@@ -45,8 +58,8 @@
     :put (fn [ctx] (common/malformed-json? ctx))})
   :can-put-to-missing? (fn [_] true)
   :conflict? (fn [_] false)
-  :put! (fn [ctx] (company/put-company ticker (:data ctx))))
-
+  :put! (fn [ctx] (company/put-company ticker (:data ctx)))
+  :handle-created (fn [ctx] (company-location-response (:company ctx))))
 
 ;; ----- Routes -----
 

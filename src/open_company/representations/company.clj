@@ -7,10 +7,10 @@
   (str "/v1/companies/" (:symbol company)))
 
 (defn- self-link [company]
-  (common/self-link (url company) company/company-media-type))
+  (common/self-link (url company) company/media-type))
 
 (defn- update-link [company]
-  (common/update-link (url company) company/company-media-type))
+  (common/update-link (url company) company/media-type))
 
 (defn- delete-link [company]
   (common/delete-link (url company)))

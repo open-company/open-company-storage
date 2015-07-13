@@ -47,8 +47,8 @@
      (mock/api-request :put (str "/v1/companies/" ticker) {
       :headers {
         :Accept-Charset "utf-8"
-        :Accept company/company-media-type
-        :Content-Type company/company-media-type}
+        :Accept company/media-type
+        :Content-Type company/media-type}
       :body body}))
   ([headers ticker body]
      (mock/api-request :put (str "/v1/companies/" ticker) {
@@ -74,7 +74,7 @@
       ;; Create the company
       (let [response (create-company-with-api TICKER OPEN)]
         (:status response) => 201
-        (mock/response-mime-type response) => company/company-media-type
+        (mock/response-mime-type response) => company/media-type
         (mock/response-location response) => "/v1/companies/OPEN"
         (mock/json? response) => true
         (hateoas/verify-company-links TICKER (:links (mock/body-from-response response))))

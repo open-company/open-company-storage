@@ -8,10 +8,12 @@
     [org.httpkit.server :refer (run-server)]
     [open-company.config :refer (liberator-trace hot-reload web-server-port)]
     [open-company.api.companies :refer (company-routes)]
+    [open-company.api.reports :refer (report-routes)]
     [compojure.route :as route]))
 
 (defroutes routes
-  company-routes)
+  company-routes
+  report-routes)
 
 ;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (def trace-app
