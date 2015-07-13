@@ -3,7 +3,7 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
-            [open-company.representations.company :refer (render-company)]))
+            [open-company.representations.company :as render]))
 
 ;; ----- Get companies -----
 
@@ -24,7 +24,7 @@
   company-resource-config
   :available-media-types [company/company-media-type]
   :handle-not-acceptable (fn [_] (common/only-accept 406 company/company-media-type))
-  :allowed-methods [:get :put :delete]
+  :allowed-methods [:get :put :patch :delete]
   :exists? (fn [_] (get-company ticker))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company/company-media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company/company-media-type))
@@ -35,8 +35,8 @@
     :put (fn [ctx] (common/check-input (company/valid-company ticker (:data ctx))))})
 
   :handle-ok (by-method {
-    :get (fn [ctx] (render-company (:company ctx)))
-    :put (fn [ctx] (render-company (:company ctx)))})
+    :get (fn [ctx] (render/render-company (:company ctx)))
+    :put (fn [ctx] (render/render-company (:company ctx)))})
 
   ;; Delete a company
   :delete! (fn [_] (company/delete-company ticker))

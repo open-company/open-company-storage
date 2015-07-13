@@ -22,9 +22,9 @@
     [compojure "1.3.4"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.13"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [rethinkdb "0.10.1"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    [prismatic/schema "0.4.3"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.1.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
-    [yeller-clojure-client "1.2.1"] ; Library for exception tracking https://github.com/yeller/yeller_clojure
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
  ]
 

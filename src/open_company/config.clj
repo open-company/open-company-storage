@@ -1,11 +1,12 @@
 (ns open-company.config
   "Namespace for the configuration parameters."
-  (:require [environ.core :refer (env)]))
+  (:require [environ.core :refer (env)]
+            [rethinkdb.query :as r]))
 
 ;; ----- RethinkDB config -----
 
 (defonce db-host (or (env :db-host) "localhost"))
-(defonce db-port (or (env :db-host) "28015"))
+(defonce db-port (or (env :db-host) 28015))
 (defonce db-name (or (env :db-name) "opencompany"))
 
 ;; ----- Web server config -----

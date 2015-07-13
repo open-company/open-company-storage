@@ -26,7 +26,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 * [Java 7/8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 7 or 8 JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) v2.0.3+ - a multi-modal (document, key/value, relational) open source NoSQL database
+* [RethinkDB](http://rethinkdb.com/) v2.0.4+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -218,14 +218,14 @@ Then enter these commands one-by-one, noting the output:
 Start a development API server:
 
 ```console
-lein run
+lein start
 ```
 
 Create a company with cURL:
 
 ```console
 curl -i -X PUT \
--d "{symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'}" \
+-d '{"symbol": "OPEN", "name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \

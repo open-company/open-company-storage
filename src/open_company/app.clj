@@ -1,5 +1,6 @@
 (ns open-company.app
   "Namespace for the web application which serves the REST API."
+  (:gen-class)
   (:require
     [liberator.dev :refer (wrap-trace)]
     [ring.middleware.reload :as reload]

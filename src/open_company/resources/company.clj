@@ -1,5 +1,6 @@
 (ns open-company.resources.company
-  (:require [clojure.string :as s]))
+  (:require [clojure.string :as s]
+            [rethinkdb.query :as r]))
 
 (def company-media-type "application/vnd.open-company.company+json;version=1")
 
@@ -29,12 +30,17 @@
         :else true))))
 
 (defn get-company [ticker]
-  (if (= ticker "OPEN") 
-    {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io"}
-    nil))
+  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+    (first (-> (r/table "companies")
+        (r/filter (r/fn [row]
+        (r/eq ticker (r/get-field row "symbol"))))
+        (r/run conn)))))
 
 (defn put-company [ticker company]
-  nil)
+  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "opencompany")]
+    (-> (r/table "companies")
+        (r/insert company)
+        (r/run conn))))
 
 (defn delete-company [ticker]
   nil)
