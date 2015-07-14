@@ -9,7 +9,7 @@
 
 (defn- report-location-response [report]
   (common/location-response ["v1" "companies" (:symbol report) (:year report) (:period report)]
-    (render/render-report) report/media-type))
+    (render/render-report report) report/media-type))
 
 (defn- unprocessable-reason [reason]
   (case reason
@@ -23,8 +23,9 @@
     {:report report}))
 
 (defn- put-report [ticker year period report]
-  (when (report/put-report ticker year period report)
-    {:report report}))
+  (let [full-report (merge report {:symbol ticker :year year :period period})]
+    (when (report/put-report full-report)
+      {:report full-report})))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

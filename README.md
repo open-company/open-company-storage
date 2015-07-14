@@ -242,7 +242,7 @@ Create a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"symbol": "OPEN", "name": "Transparency, LLC", "url": "https://opencompany.io"}' \
+-d '{"name": "Transparency, LLC", "url": "https://opencompany.io"}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
@@ -262,7 +262,7 @@ Update a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"symbol": "OPEN", "name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
+-d '{"name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
@@ -272,7 +272,12 @@ http://localhost:3000/v1/companies/OPEN
 Create a report for the company with cURL:
 
 ```console
-curl -i -X PUT http://localhost:3000/v1/companies/OPEN/2015/Q2
+curl -i -X PUT \
+-d '{"currency": "USD", "headcount": {"founders": 2, "contractors": 1}}' \
+--header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.report+json;version=1" \
+http://localhost:3000/v1/companies/OPEN/2015/Q2
 ```
 
 Request the report with cURL:
@@ -290,7 +295,7 @@ Delete the company with cURL:
 curl -i -X DELETE http://localhost:3000/v1/companies/OPEN
 ```
 
-Try to get the report and the company with cURL:
+Try (and fail) to get the report and the company with cURL:
 
 ```console
 curl -i -X GET \

@@ -25,7 +25,7 @@
         company-name (:name properties)]
       (cond
         (or (not (string? company-name)) (s/blank? company-name)) :no-name
-        (not (= ticker provided-ticker)) :invalid-symbol
+        (and provided-ticker (not (= ticker provided-ticker))) :invalid-symbol
         (not (valid-ticker-symbol? ticker)) :invalid-symbol
         :else true)))
 
