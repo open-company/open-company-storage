@@ -15,7 +15,7 @@
     :bad-company common/missing-response
     :no-name (common/unprocessable-entity-response "Company name is required.")
     :symbol-conflict (common/unprocessable-entity-response "Ticker symbol is already used.")
-    :invalid-slug (common/unprocessable-entity-response "Invalid ticker symbol.")
+    :invalid-symbol (common/unprocessable-entity-response "Invalid ticker symbol.")
     (common/unprocessable-entity-response "Not processable.")))
 
 ;; ----- Actions -----

@@ -155,21 +155,21 @@ Click the Data Explorer tab and enter these commands one-by-one, noting the outp
 ```javascript
 
 // Create
-r.dbCreate('opencompany');
-r.db('opencompany').tableCreate('companies');
+r.dbCreate('open_company_dev');
+r.db('open_company_dev').tableCreate('companies');
 
 // Insert
-r.db('opencompany').table('companies').insert([
+r.db('open_company_dev').table('companies').insert([
   {symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'},
   {symbol: 'BUFFR', name: 'Buffer', url: 'https://open.bufferapp.com/'}
 ]);
 
 // Queries
-r.db('opencompany').table('companies').count();
-r.db('opencompany').table('companies').filter(r.row('symbol').eq('OPEN'));
+r.db('open_company_dev').table('companies').count();
+r.db('open_company_dev').table('companies').filter(r.row('symbol').eq('OPEN'));
 
 // Cleanup
-r.dbDrop('opencompany');
+r.dbDrop('open_company_dev');
 ```
 
 You can move that familiarity over into Clojure by running the REPL from within this project:
@@ -186,11 +186,11 @@ Then enter these commands one-by-one, noting the output:
 
 ;; Create DB and tables
 (with-open [conn (apply r/connect c/db-options)]
-  (r/run (r/db-create "opencompany") conn)
-  (-> (r/db "opencompany")
+  (r/run (r/db-create c/db-name) conn)
+  (-> (r/db c/db-name)
       (r/table-create "companies" {:primary-key "symbol" :durability "hard"})
       (r/run conn))
-  (-> (r/db "opencompany")
+  (-> (r/db c/db-name)
       (r/table-create "reports" {:primary-key "symbol-year-period" :durability "hard"})
       (r/run conn)))
 
@@ -227,7 +227,7 @@ Then enter these commands one-by-one, noting the output:
 
 ;; Cleanup
 (with-open [conn (apply r/connect c/db-options)]
-  (r/run (r/db-drop "opencompany") conn))
+  (r/run (r/db-drop c/db-name) conn))
 ```
 
 ## Usage

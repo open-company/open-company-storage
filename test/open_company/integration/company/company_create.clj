@@ -12,13 +12,13 @@
 ;; The system should store newly created valid companies and handle the following scenarios:
 
 ;; PUT
-;; all good
-;; all good - no ticker symbol in body
-;; all good - unicode in the body
+;; all good - 201 Created
+;; all good, no ticker symbol in body - 201 Created
+;; all good, unicode in the body - 201 Created
 
-;; bad -ticker symbol has invalid characters
-;; bad - ticker symbol is too long
-;; bad - ticker symbol in body is different than the provided URL
+;; bad, ticker symbol has invalid characters
+;; bad, ticker symbol is too long
+;; bad, ticker symbol in body is different than the provided URL
 
 ;; no accept
 ;; no content type
@@ -63,7 +63,7 @@
   (facts "about using the REST API to create valid new companies"
 
     (comment 
-      all good, no slug - 201 Created
+      all good - 201 Created
       curl -i -X PUT \
       -d "{symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'}" \
       --header "Accept: application/vnd.open-company.company+json;version=1" \
