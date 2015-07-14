@@ -39,7 +39,7 @@
         (r/run conn)))))
 
 (defn create-company
-  ""
+  "Given the company property map, create or update the company and return `true` on success."
   [company]
   (< 0 (:inserted
     (with-open [conn (apply r/connect c/db-options)]
@@ -48,14 +48,24 @@
         (r/run conn))))))
 
 (defn update-company
-  ""
-  ([ticker company] nil)
-  ([ticker old-company new-company] nil))
+  "Given the current ticker symbol of the company and an updated company property map, update the company and return `true` on success.
+  TODO: handle case of ticker symbol change."
+  [ticker company]
+  (if (get-company ticker)
+    (< 0 (:replaced
+      (with-open [conn (apply r/connect c/db-options)]
+        (-> (r/table "companies")
+          (r/replace company)
+          (r/run conn)))))
+    false))
 
 (defn put-company
-  "Create or update the company and return `true` on success."
-  [company]
-  nil)
+  "Given the ticker symbol of the company and a company property map, create or update the company and return `true` on success.
+  TODO: handle case of ticker symbol change."
+  [ticker company]
+  (if (get-company ticker)
+    (update-company ticker company)
+    (create-company company)))
 
 (defn delete-company
   "Given the ticker symbol of the company, delete it and all its reports and return `true` on success."
@@ -66,6 +76,3 @@
         (r/get-all [ticker] {:index "symbol"})
         (r/delete)
         (r/run conn))))))
-  
-(defn report-count [ticker]
-  0)

@@ -188,10 +188,10 @@ Then enter these commands one-by-one, noting the output:
 (with-open [conn (apply r/connect c/db-options)]
   (r/run (r/db-create "opencompany") conn)
   (-> (r/db "opencompany")
-      (r/table-create "companies" {:primary-key "symbol"})
+      (r/table-create "companies" {:primary-key "symbol" :durability "hard"})
       (r/run conn))
   (-> (r/db "opencompany")
-      (r/table-create "reports" {:primary-key "symbol-year-period"})
+      (r/table-create "reports" {:primary-key "symbol-year-period" :durability "hard"})
       (r/run conn)))
 
 ;; Create table index

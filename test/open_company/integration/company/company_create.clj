@@ -2,7 +2,8 @@
   (:require [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
-            [open-company.resources.company :as company]))
+            [open-company.resources.company :as company]
+            [open-company.resources.report :as report]))
 
 ;; ----- Test Cases -----
 
@@ -81,4 +82,4 @@
       ;; Get the created company and make sure it's right
       (company/get-company TICKER) => (contains OPEN)
       ;; Reports are empty?
-      (company/report-count TICKER) => 0)))
+      (report/report-count TICKER) => 0)))

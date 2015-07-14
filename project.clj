@@ -75,8 +75,11 @@
         [venantius/ultra "0.3.4"] ; Enhancement's to Leiningen's REPL https://github.com/venantius/ultra
         [venantius/yagni "0.1.1"] ; Dead code finder https://github.com/venantius/yagni
       ]  
-      ;; REPL colors
-      :ultra {:color-scheme :solarized_dark}
+      ;; REPL config
+      :ultra {
+        :color-scheme :solarized_dark
+        :stacktraces  false
+      }
       ;; REPL injections
       :injections [
         (require '[aprint.core :refer (aprint ap)]

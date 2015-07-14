@@ -48,3 +48,10 @@
         (r/get-all [(key-for ticker year period)] {:index primary-key})
         (r/delete)
         (r/run conn))))))
+
+(defn report-count [ticker]
+  (with-open [conn (apply r/connect c/db-options)]
+    (-> (r/table "reports")
+      (r/get-all [ticker] {:index "symbol"})
+      (r/count)
+      (r/run conn))))
