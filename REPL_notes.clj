@@ -18,8 +18,17 @@
 ;; Update a company
 (company/update-company "OPEN" {:name "Transparency, LLC" :symbol "TRAN" :url "https://opencompany.io/"})
 
+;; Create a report
+(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 1}})
+
+;; Get a report
+(report/get-report "OPEN" 2015 "Q2")
+
+;; Delete a report
+(report/delete-report "OPEN" 2015 "Q2")
+
 ;; Delete a company
-(company/delete-company "TRAN")
+(company/delete-company "OPEN")
 
 ;; make a (fake) REST API request
 (api-request :get "/v1/companies/OPEN" {:headers {:Accept (company/media-type)}})

@@ -144,7 +144,7 @@ RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/is
 
 ## Introduction
 
-You can verify all is well with your RethinkDB instange and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
+You can verify all is well with your RethinkDB instance and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
 
 ```console
 open http://localhost:8080/
