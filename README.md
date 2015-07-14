@@ -289,6 +289,12 @@ curl -i -X GET \
 http://localhost:3000/v1/companies/OPEN/2015/Q2
 ```
 
+Delete the report with cURL:
+
+```console
+curl -i -X DELETE http://localhost:3000/v1/companies/OPEN/2015/Q2
+```
+
 Delete the company with cURL:
 
 ```console
