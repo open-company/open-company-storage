@@ -242,7 +242,7 @@ Create a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"symbol": "OPEN", "name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
+-d '{"symbol": "OPEN", "name": "Transparency, LLC", "url": "https://opencompany.io"}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
@@ -255,6 +255,17 @@ Request the company with cURL:
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies/OPEN
+```
+
+Update a company with cURL:
+
+```console
+curl -i -X PUT \
+-d '{"symbol": "OPEN", "name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company+json;version=1" \
 http://localhost:3000/v1/companies/OPEN
 ```
 

@@ -24,6 +24,12 @@
   (if-let [company (company/get-company ticker)]
     {:company company}))
 
+;; ----- Put a company -----
+
+(defn- put-company [ticker company]
+  (when (company/put-company ticker company)
+    {:company company}))
+
 ;; ----- Resources -----
 ;; see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -58,7 +64,7 @@
     :put (fn [ctx] (common/malformed-json? ctx))})
   :can-put-to-missing? (fn [_] true)
   :conflict? (fn [_] false)
-  :put! (fn [ctx] (company/put-company ticker (:data ctx)))
+  :put! (fn [ctx] (put-company ticker (:data ctx)))
   :handle-created (fn [ctx] (company-location-response (:company ctx))))
 
 ;; ----- Routes -----
