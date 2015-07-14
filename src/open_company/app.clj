@@ -3,36 +3,53 @@
   (:gen-class)
   (:require
     [liberator.dev :refer (wrap-trace)]
-    [ring.middleware.reload :as reload]
-    [compojure.core :refer (defroutes ANY)]
+    [raven-clj.ring :refer (wrap-sentry)]
+    [ring.middleware.reload :refer (wrap-reload)]
+    [ring.middleware.cors :refer (wrap-cors)]
     [org.httpkit.server :refer (run-server)]
+    [compojure.core :refer (defroutes ANY)]
     [open-company.config :as c]
     [open-company.api.companies :refer (company-routes)]
-    [open-company.api.reports :refer (report-routes)]
-    [compojure.route :as route]))
+    [open-company.api.reports :refer (report-routes)]))
 
 (defroutes routes
   company-routes
   report-routes)
 
 ;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
-(def trace-app
+(defonce trace-app
   (if c/liberator-trace
     (wrap-trace routes :header :ui)
     routes))
 
-(def app
+(defonce cors-routes
+  ;; Use CORS middleware to support in-browser JavaScript requests.
+  (wrap-cors trace-app #".*"))
+
+(defonce hot-reload-routes
+  ;; Reload changed files without server restart
   (if c/hot-reload
-    (reload/wrap-reload trace-app)
-    trace-app))
+    (wrap-reload #'cors-routes)
+    cors-routes))
+
+(defonce app
+  ;; Use sentry middleware to report runtime errors if we have a raven DSN.
+  (if c/dsn
+    (wrap-sentry hot-reload-routes c/dsn)
+    hot-reload-routes))
 
 (defn start [port]
   (run-server app {:port port :join? false})
-  (println (str "\nOpen Company API: "
-    "running on port - " port
-    ", database - " c/db-name
-    ", hot-reload - " c/hot-reload
-    ", trace - " c/liberator-trace)))
+    (println (str "\n"
+      "====================\n"
+      "| Open Company API |\n"
+      "====================\n\n"
+      "Running on port: " port "\n"
+      "Database: " c/db-name "\n"
+      "Hot-reload: " c/hot-reload "\n"
+      "Trace: " c/liberator-trace "\n"
+      "Sentry: " c/dsn "\n\n"
+      "Ready to serve...\n")))
 
 (defn -main []
   (start c/web-server-port))
