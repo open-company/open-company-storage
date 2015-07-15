@@ -19,8 +19,8 @@
     [ring/ring-devel "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
-    [http-kit "2.1.19"] ; Web Server http://http-kit.org/
-    [compojure "1.3.4"] ; Web routing https://github.com/weavejester/compojure
+    [http-kit "2.1.19"] ; Web server http://http-kit.org/
+    [compojure "1.4.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.13"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [rethinkdb "0.10.1"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "0.4.3"] ; Data validation https://github.com/Prismatic/schema
