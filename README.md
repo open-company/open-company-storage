@@ -5,7 +5,11 @@
 
 ## Overview
 
-Build your company in the open with transparency for your co-founders, your team of employees and contractors, and your investors. Or open up your company for everyone, your customers and the rest of the startup community.
+> A lack of transparency results in distrust and a deep sense of insecurity.
+
+> -- Dalai Lama
+
+Build your company in the open with transparency for your co-founders, your team, and your investors. Or share your company's journey with everyone, your customers and the rest of the startup community too.
 
 [OpenCompany.io](https://opencompany.io) is GitHub for the rest of your company:
 
@@ -26,7 +30,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 * [Java 7/8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 7 or 8 JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) v2.0.3+ - a multi-modal (document, key/value, relational) open source NoSQL database
+* [RethinkDB](http://rethinkdb.com/) v2.0.4+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -140,7 +144,7 @@ RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/is
 
 ## Introduction
 
-You can verify all is well with your RethinkDB instange and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
+You can verify all is well with your RethinkDB instance and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
 
 ```console
 open http://localhost:8080/
@@ -149,15 +153,23 @@ open http://localhost:8080/
 Click the Data Explorer tab and enter these commands one-by-one, noting the output:
 
 ```javascript
-r.dbCreate('opencompany')
-r.db('opencompany').tableCreate('companies')
-r.db('opencompany').table('companies').insert([
+
+// Create
+r.dbCreate('open_company_dev');
+r.db('open_company_dev').tableCreate('companies');
+
+// Insert
+r.db('open_company_dev').table('companies').insert([
   {symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'},
   {symbol: 'BUFFR', name: 'Buffer', url: 'https://open.bufferapp.com/'}
-])
-r.db('opencompany').table('companies').count()
-r.db('opencompany').table('companies').filter(r.row('symbol').eq('OPEN'))
-r.dbDrop('opencompany')
+]);
+
+// Queries
+r.db('open_company_dev').table('companies').count();
+r.db('open_company_dev').table('companies').filter(r.row('symbol').eq('OPEN'));
+
+// Cleanup
+r.dbDrop('open_company_dev');
 ```
 
 You can move that familiarity over into Clojure by running the REPL from within this project:
@@ -170,9 +182,138 @@ Then enter these commands one-by-one, noting the output:
 
 ```clojure
 (require '[rethinkdb.query :as r])
+(require '[open-company.config :as c])
+
+;; Create DB and tables
+(with-open [conn (apply r/connect c/db-options)]
+  (r/run (r/db-create c/db-name) conn)
+  (-> (r/db c/db-name)
+      (r/table-create "companies" {:primary-key "symbol" :durability "hard"})
+      (r/run conn))
+  (-> (r/db c/db-name)
+      (r/table-create "reports" {:primary-key "symbol-year-period" :durability "hard"})
+      (r/run conn)))
+
+;; Create table index
+(with-open [conn (apply r/connect c/db-options)]
+  (-> (r/table "reports")
+      (r/index-create "symbol" 
+        (r/fn [row]
+          (r/get-field row :symbol)))
+      (r/run conn))
+  (-> (r/table "reports")
+      (r/index-wait "symbol")
+      (r/run conn)))
+
+;; Insert some companies
+(with-open [conn (apply r/connect c/db-options)]
+  (-> (r/table "companies")
+      (r/insert [
+        {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"}
+        {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"}        
+      ])
+      (r/run conn)))
+
+;; Query on companies
+(with-open [conn (apply r/connect c/db-options)]
+  (-> (r/table "companies")
+      (r/count)
+      (r/run conn)))
+
+(with-open [conn (apply r/connect c/db-options)]
+  (-> (r/table "companies")
+      (r/get-all ["OPEN"] {:index "symbol"})
+      (r/run conn)))
+
+;; Cleanup
+(with-open [conn (apply r/connect c/db-options)]
+  (r/run (r/db-drop c/db-name) conn))
 ```
 
 ## Usage
+
+Start a development API server:
+
+```console
+lein start
+```
+
+Create a company with cURL:
+
+```console
+curl -i -X PUT \
+-d '{"name": "Transparency, LLC", "url": "https://opencompany.io"}' \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company+json;version=1" \
+http://localhost:3000/v1/companies/OPEN
+```
+
+Request the company with cURL:
+
+```console
+curl -i -X GET \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies/OPEN
+```
+
+Update a company with cURL:
+
+```console
+curl -i -X PUT \
+-d '{"name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company+json;version=1" \
+http://localhost:3000/v1/companies/OPEN
+```
+
+Create a report for the company with cURL:
+
+```console
+curl -i -X PUT \
+-d '{"currency": "USD", "headcount": {"founders": 2, "contractors": 1}}' \
+--header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.report+json;version=1" \
+http://localhost:3000/v1/companies/OPEN/2015/Q2
+```
+
+Request the report with cURL:
+
+```console
+curl -i -X GET \
+--header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies/OPEN/2015/Q2
+```
+
+Delete the report with cURL:
+
+```console
+curl -i -X DELETE http://localhost:3000/v1/companies/OPEN/2015/Q2
+```
+
+Delete the company with cURL:
+
+```console
+curl -i -X DELETE http://localhost:3000/v1/companies/OPEN
+```
+
+Try (and fail) to get the report and the company with cURL:
+
+```console
+curl -i -X GET \
+--header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies/OPEN/2015/Q2
+
+curl -i -X GET \
+--header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies/OPEN
+```
 
 ## License
 
