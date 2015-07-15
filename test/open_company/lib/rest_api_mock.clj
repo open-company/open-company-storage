@@ -5,7 +5,7 @@
             [ring.mock.request :refer (request body content-type header)]
             [cheshire.core :as json]))
 
-(defn- base-mime-type [full-mime-type]
+(defn base-mime-type [full-mime-type]
   (first (s/split full-mime-type #";")))
 
 (defn response-mime-type [response]

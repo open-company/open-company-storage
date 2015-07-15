@@ -74,3 +74,15 @@
         (r/get-all [ticker] {:index "symbol"})
         (r/delete)
         (r/run conn))))))
+
+(defn delete-all!
+  "Use with caution! Returns `true` if successful."
+  []
+  (< 0 (:deleted
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table "reports")
+        (r/delete)
+        (r/run conn))
+      (-> (r/table "companies")
+        (r/delete)
+        (r/run conn))))))

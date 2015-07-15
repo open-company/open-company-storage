@@ -18,9 +18,9 @@
     (check (= rel :link_not_present))))
 
 (defn verify-company-links [ticker links]
-  (check (= (count links) 4))
+  (check (= (count links) 3))
   (let [url (str "/v1/companies/" ticker)]
     (verify-link "self" GET url company-rep/media-type links)
     (verify-link "update" PUT url company-rep/media-type links)
-    (verify-link "partial-update" PATCH url company-rep/media-type links)
+    ;(verify-link "partial-update" PATCH url company-rep/media-type links)
     (verify-link "delete" DELETE url :no links)))
