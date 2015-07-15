@@ -3,6 +3,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.resources.company :as company]
+            [open-company.representations.company :as company-rep]
             [open-company.resources.report :as report]))
 
 ;; ----- Test Cases -----
@@ -48,8 +49,8 @@
      (mock/api-request :put (str "/v1/companies/" ticker) {
       :headers {
         :Accept-Charset "utf-8"
-        :Accept company/media-type
-        :Content-Type company/media-type}
+        :Accept company-rep/media-type
+        :Content-Type company-rep/media-type}
       :body body}))
   ([headers ticker body]
      (mock/api-request :put (str "/v1/companies/" ticker) {
@@ -75,7 +76,7 @@
       ;; Create the company
       (let [response (create-company-with-api TICKER OPEN)]
         (:status response) => 201
-        (mock/response-mime-type response) => company/media-type
+        (mock/response-mime-type response) => company-rep/media-type
         (mock/response-location response) => "/v1/companies/OPEN"
         (mock/json? response) => true
         (hateoas/verify-company-links TICKER (:links (mock/body-from-response response))))

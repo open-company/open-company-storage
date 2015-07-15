@@ -4,8 +4,6 @@
             [open-company.config :as c]
             [open-company.resources.company :as company]))
 
-(def media-type "application/vnd.open-company.report+json;version=1")
-
 (def ^:private primary-key :symbol-year-period)
 
 (defn- key-for 

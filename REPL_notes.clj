@@ -5,6 +5,8 @@
 (require '[open-company.resources.report :as report] :reload)
 
 ;; productive set of development namespaces (REST API)
+(require '[open-company.representations.company :as company-rep] :reload)
+(require '[open-company.representations.report :as report-rep] :reload)
 (require '[ring.mock.request :refer (request body content-type header)])
 (require '[open-company.lib.rest-api-mock :refer (api-request)] :reload)
 (require '[open-company.app :refer (app)] :reload-all)
@@ -31,7 +33,7 @@
 (company/delete-company "OPEN")
 
 ;; make a (fake) REST API request
-(api-request :get "/v1/companies/OPEN" {:headers {:Accept (company/media-type)}})
+(api-request :get "/v1/companies/OPEN" {:headers {:Accept (company-rep/media-type)}})
 
 ;; print last exception
 (print-stack-trace *e)

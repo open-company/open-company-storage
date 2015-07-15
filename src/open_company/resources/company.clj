@@ -3,8 +3,6 @@
             [rethinkdb.query :as r]
             [open-company.config :as c]))
 
-(def media-type "application/vnd.open-company.company+json;version=1")
-
 (defn valid-ticker-symbol? [ticker]
   (let [char-count (count ticker)]
     (and (>= char-count 1) (<= char-count 5))))

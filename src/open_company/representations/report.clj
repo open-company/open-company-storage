@@ -1,16 +1,17 @@
 (ns open-company.representations.report
   (:require [cheshire.core :as json]
-            [open-company.representations.common :as common]
-            [open-company.resources.report :as report]))
+            [open-company.representations.common :as common]))
+
+(def media-type "application/vnd.open-company.report+json;version=1")
 
 (defn- url [report] 
   (str "/v1/companies/" (:symbol report) "/" (:year report) "/" (:period report)))
 
 (defn- self-link [report]
-  (common/self-link (url report) report/media-type))
+  (common/self-link (url report) media-type))
 
 (defn- update-link [report]
-  (common/update-link (url report) report/media-type))
+  (common/update-link (url report) media-type))
 
 (defn- delete-link [report]
   (common/delete-link (url report)))
