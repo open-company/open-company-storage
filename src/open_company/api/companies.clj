@@ -3,12 +3,13 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
-            [open-company.representations.company :as render]))
+            [open-company.representations.company :as company-rep]))
 
 ;; ----- Responses -----
 
 (defn- company-location-response [company]
-  (common/location-response ["v1" "companies" (:symbol company)] (render/render-company company) company/media-type))
+  (common/location-response ["v1" "companies" (:symbol company)]
+    (company-rep/render-company company) company-rep/media-type))
 
 (defn- unprocessable-reason [reason]
   (case reason
@@ -34,9 +35,9 @@
 (defresource company [ticker]
   common/open-company-resource
 
-  :available-media-types [company/media-type]
+  :available-media-types [company-rep/media-type]
   :exists? (fn [_] (get-company ticker))
-  :known-content-type? (fn [ctx] (common/known-content-type? ctx company/media-type))
+  :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
   
   :processable? (by-method {
     :get true
@@ -44,10 +45,10 @@
 
   ;; Handlers
   :handle-ok (by-method {
-    :get (fn [ctx] (render/render-company (:company ctx)))
-    :put (fn [ctx] (render/render-company (:company ctx)))})
-  :handle-not-acceptable (fn [_] (common/only-accept 406 company/media-type))
-  :handle-unsupported-media-type (fn [_] (common/only-accept 415 company/media-type))
+    :get (fn [ctx] (company-rep/render-company (:company ctx)))
+    :put (fn [ctx] (company-rep/render-company (:company ctx)))})
+  :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
+  :handle-unsupported-media-type (fn [_] (common/only-accept 415 company-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
 
   ;; Delete a company

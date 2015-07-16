@@ -3,13 +3,13 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.report :as report]
-            [open-company.representations.report :as render]))
+            [open-company.representations.report :as report-rep]))
 
 ;; ----- Responses -----
 
 (defn- report-location-response [report]
   (common/location-response ["v1" "companies" (:symbol report) (:year report) (:period report)]
-    (render/render-report report) report/media-type))
+    (report-rep/render-report report) report-rep/media-type))
 
 (defn- unprocessable-reason [reason]
   (case reason
@@ -32,9 +32,9 @@
 (defresource report [ticker year period]
   common/open-company-resource
 
-  :available-media-types [report/media-type]
+  :available-media-types [report-rep/media-type]
   :exists? (fn [_] (get-report ticker year period))
-  :known-content-type? (fn [ctx] (common/known-content-type? ctx report/media-type))
+  :known-content-type? (fn [ctx] (common/known-content-type? ctx report-rep/media-type))
 
   :processable? (by-method {
     :get true
@@ -42,10 +42,10 @@
 
   ;; Handlers
   :handle-ok (by-method {
-    :get (fn [ctx] (render/render-report (:report ctx)))
-    :put (fn [ctx] (render/render-report (:report ctx)))})
-  :handle-not-acceptable (fn [_] (common/only-accept 406 report/media-type))
-  :handle-unsupported-media-type (fn [_] (common/only-accept 415 report/media-type))
+    :get (fn [ctx] (report-rep/render-report (:report ctx)))
+    :put (fn [ctx] (report-rep/render-report (:report ctx)))})
+  :handle-not-acceptable (fn [_] (common/only-accept 406 report-rep/media-type))
+  :handle-unsupported-media-type (fn [_] (common/only-accept 415 report-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
 
   ;; Delete a report

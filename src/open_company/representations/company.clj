@@ -1,16 +1,17 @@
 (ns open-company.representations.company
   (:require [cheshire.core :as json]
-            [open-company.representations.common :as common]
-            [open-company.resources.company :as company]))
+            [open-company.representations.common :as common]))
+
+(def media-type "application/vnd.open-company.company+json;version=1")
 
 (defn- url [company] 
   (str "/v1/companies/" (:symbol company)))
 
 (defn- self-link [company]
-  (common/self-link (url company) company/media-type))
+  (common/self-link (url company) media-type))
 
 (defn- update-link [company]
-  (common/update-link (url company) company/media-type))
+  (common/update-link (url company) media-type))
 
 (defn- delete-link [company]
   (common/delete-link (url company)))

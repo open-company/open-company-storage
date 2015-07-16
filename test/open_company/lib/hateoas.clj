@@ -2,7 +2,7 @@
   "Utility functions for testing HATEOAS https://en.wikipedia.org/wiki/HATEOAS"
   (:require [open-company.lib.check :refer (check)]
             [open-company.representations.common :refer (GET POST PUT PATCH DELETE)]
-            [open-company.resources.company :as company]))
+            [open-company.representations.company :as company-rep]))
 
 (defn- find-link [rel links]
   (some (fn [link] (if (= rel (:rel link)) link nil)) links))
@@ -18,9 +18,9 @@
     (check (= rel :link_not_present))))
 
 (defn verify-company-links [ticker links]
-  (check (= (count links) 4))
+  (check (= (count links) 3))
   (let [url (str "/v1/companies/" ticker)]
-    (verify-link "self" GET url company/media-type links)
-    (verify-link "update" PUT url company/media-type links)
-    (verify-link "partial-update" PATCH url company/media-type links)
+    (verify-link "self" GET url company-rep/media-type links)
+    (verify-link "update" PUT url company-rep/media-type links)
+    ;(verify-link "partial-update" PATCH url company-rep/media-type links)
     (verify-link "delete" DELETE url :no links)))

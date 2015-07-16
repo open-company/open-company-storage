@@ -3,8 +3,6 @@
             [rethinkdb.query :as r]
             [open-company.config :as c]))
 
-(def media-type "application/vnd.open-company.company+json;version=1")
-
 (defn valid-ticker-symbol? [ticker]
   (let [char-count (count ticker)]
     (and (>= char-count 1) (<= char-count 5))))
@@ -74,5 +72,17 @@
     (with-open [conn (apply r/connect c/db-options)]
       (-> (r/table "companies")
         (r/get-all [ticker] {:index "symbol"})
+        (r/delete)
+        (r/run conn))))))
+
+(defn delete-all!
+  "Use with caution! Returns `true` if successful."
+  []
+  (< 0 (:deleted
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table "reports")
+        (r/delete)
+        (r/run conn))
+      (-> (r/table "companies")
         (r/delete)
         (r/run conn))))))

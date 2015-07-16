@@ -3,6 +3,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.resources.company :as company]
+            [open-company.representations.company :as company-rep]
             [open-company.resources.report :as report]))
 
 ;; ----- Test Cases -----
@@ -39,17 +40,14 @@
 
 ;; ----- Utilities -----
 
-(defn delete-all-companies []
-  nil)
-
 (defn- create-company-with-api
   "Makes an API request to create the company and returns the response."  
   ([ticker body]
      (mock/api-request :put (str "/v1/companies/" ticker) {
       :headers {
         :Accept-Charset "utf-8"
-        :Accept company/media-type
-        :Content-Type company/media-type}
+        :Accept company-rep/media-type
+        :Content-Type company-rep/media-type}
       :body body}))
   ([headers ticker body]
      (mock/api-request :put (str "/v1/companies/" ticker) {
@@ -57,8 +55,8 @@
         :body body})))
 
 ;; ----- Tests -----
-(with-state-changes [(before :facts (delete-all-companies))
-                     (after :facts (delete-all-companies))]
+(with-state-changes [(before :facts (company/delete-all!))
+                     (after :facts (company/delete-all!))]
 
   (facts "about using the REST API to create valid new companies"
 
@@ -75,7 +73,7 @@
       ;; Create the company
       (let [response (create-company-with-api TICKER OPEN)]
         (:status response) => 201
-        (mock/response-mime-type response) => company/media-type
+        (mock/response-mime-type response) => (mock/base-mime-type company-rep/media-type)
         (mock/response-location response) => "/v1/companies/OPEN"
         (mock/json? response) => true
         (hateoas/verify-company-links TICKER (:links (mock/body-from-response response))))
