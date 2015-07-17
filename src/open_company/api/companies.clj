@@ -38,7 +38,7 @@
   :available-media-types [company-rep/media-type]
   :exists? (fn [_] (get-company ticker))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
-  
+
   :processable? (by-method {
     :get true
     :put (fn [ctx] (common/check-input (company/valid-company ticker (:data ctx))))})

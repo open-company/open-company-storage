@@ -4,7 +4,7 @@
 
 (def media-type "application/vnd.open-company.company+json;version=1")
 
-(defn- url [company] 
+(defn- url [company]
   (str "/v1/companies/" (:symbol company)))
 
 (defn- self-link [company]
@@ -19,7 +19,7 @@
 (defn company-links
   "Add the HATEAOS links to the company"
   [company]
-  (apply array-map (concat (flatten (vec company)) 
+  (apply array-map (concat (flatten (vec company))
     [:links [
       (self-link company)
       (update-link company)

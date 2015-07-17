@@ -5,7 +5,7 @@
 
 (def ^:private primary-key :symbol-year-period)
 
-(defn- key-for 
+(defn- key-for
   ([report] (key-for (:symbol report) (:year report) (:period report)))
   ([ticker year period] (str ticker "-" year "-" period)))
 
@@ -22,7 +22,7 @@
   ([ticker year period properties]
     true))
 
-(defn get-report 
+(defn get-report
   "Given the ticker symbol of the company and the year and period of the report,
   or the primary key, retrieve it from the database, or return nil if it doesn't exist."
   ([ticker year period] (get-report (key-for ticker year period)))

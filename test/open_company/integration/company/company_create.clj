@@ -41,7 +41,7 @@
 ;; ----- Utilities -----
 
 (defn- create-company-with-api
-  "Makes an API request to create the company and returns the response."  
+  "Makes an API request to create the company and returns the response."
   ([ticker body]
      (mock/api-request :put (str "/v1/companies/" ticker) {
       :headers {
@@ -60,7 +60,7 @@
 
   (facts "about using the REST API to create valid new companies"
 
-    (comment 
+    (comment
       all good - 201 Created
       curl -i -X PUT \
       -d "{symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'}" \

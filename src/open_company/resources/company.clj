@@ -46,7 +46,8 @@
         (r/run conn))))))
 
 (defn update-company
-  "Given the current ticker symbol of the company and an updated company property map, update the company and return `true` on success.
+  "Given the current ticker symbol of the company and an updated company property map,
+  update the company and return `true` on success.
   TODO: handle case of ticker symbol change."
   [ticker company]
   (if (get-company ticker)
@@ -58,7 +59,8 @@
     false))
 
 (defn put-company
-  "Given the ticker symbol of the company and a company property map, create or update the company and return `true` on success.
+  "Given the ticker symbol of the company and a company property map, create or update the company
+  and return `true` on success.
   TODO: handle case of ticker symbol change."
   [ticker company]
   (if (get-company ticker)
