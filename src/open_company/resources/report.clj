@@ -1,6 +1,5 @@
 (ns open-company.resources.report
-  (:require [clojure.string :as s]
-            [rethinkdb.query :as r]
+  (:require [rethinkdb.query :as r]
             [open-company.config :as c]
             [open-company.resources.company :as company]))
 
@@ -10,8 +9,9 @@
   ([report] (key-for (:symbol report) (:year report) (:period report)))
   ([ticker year period] (str ticker "-" year "-" period)))
 
-(defn valid-period? [period]
+(defn valid-period?
   "TBD"
+  [period]
   true)
 
 (defn valid-report

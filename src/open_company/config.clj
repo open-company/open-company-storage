@@ -1,7 +1,6 @@
 (ns open-company.config
   "Namespace for the configuration parameters."
-  (:require [environ.core :refer (env)]
-            [rethinkdb.query :as r]))
+  (:require [environ.core :refer (env)]))
 
 ;; ----- RethinkDB config -----
 
