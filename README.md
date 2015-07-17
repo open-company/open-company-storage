@@ -154,29 +154,7 @@ You can verify all is well with your RethinkDB instance and get familiar with Re
 open http://localhost:8080/
 ```
 
-Click the Data Explorer tab and enter these commands one-by-one, noting the output:
-
-```javascript
-
-// Create
-r.dbCreate('open_company_dev');
-r.db('open_company_dev').tableCreate('companies');
-
-// Insert
-r.db('open_company_dev').table('companies').insert([
-  {symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'},
-  {symbol: 'BUFFR', name: 'Buffer', url: 'https://open.bufferapp.com/'}
-]);
-
-// Queries
-r.db('open_company_dev').table('companies').count();
-r.db('open_company_dev').table('companies').filter(r.row('symbol').eq('OPEN'));
-
-// Cleanup
-r.dbDrop('open_company_dev');
-```
-
-You can move that familiarity over into Clojure by running the REPL from within this project:
+Next, you can try some things with Clojure by running the REPL from within this project:
 
 ```console
 lein repl
@@ -187,27 +165,11 @@ Then enter these commands one-by-one, noting the output:
 ```clojure
 (require '[rethinkdb.query :as r])
 (require '[open-company.config :as c])
+(require '[open-company.db.init :as db])
 
-;; Create DB and tables
-(with-open [conn (apply r/connect c/db-options)]
-  (r/run (r/db-create c/db-name) conn)
-  (-> (r/db c/db-name)
-      (r/table-create "companies" {:primary-key "symbol" :durability "hard"})
-      (r/run conn))
-  (-> (r/db c/db-name)
-      (r/table-create "reports" {:primary-key "symbol-year-period" :durability "hard"})
-      (r/run conn)))
 
-;; Create table index
-(with-open [conn (apply r/connect c/db-options)]
-  (-> (r/table "reports")
-      (r/index-create "symbol" 
-        (r/fn [row]
-          (r/get-field row :symbol)))
-      (r/run conn))
-  (-> (r/table "reports")
-      (r/index-wait "symbol")
-      (r/run conn)))
+;; Create DB and tables and indexes
+(db/init)
 
 ;; Insert some companies
 (with-open [conn (apply r/connect c/db-options)]

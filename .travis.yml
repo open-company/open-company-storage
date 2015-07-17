@@ -21,6 +21,7 @@ before_script:
 #     packages:
 #     - rethinkdb
 script:
+- lein2 test!
 - lein2 eastwood
 branches:
   only:
