@@ -1,6 +1,10 @@
 language: clojure
 lein: lein2
-script: ./opt/install-rethinkdb.sh
+sudo: required
+before_script:
+  - "export JAVA_OPTS=-Xmx512m"
+  - "echo $JAVA_OPTS"
+  - ./opt/install-rethinkdb.sh
 # Ideally, this would be: https://github.com/travis-ci/travis-ci/issues/4411 so we could be on new container instance http://docs.travis-ci.com/user/migrating-from-legacy
 # addons:
 #   apt:
