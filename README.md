@@ -4,6 +4,7 @@
 [![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
 [![Roadmap on Trello](http://img.shields.io/badge/roadmap-trello-blue.svg?style=flat)](https://trello.com/b/3naVWHgZ/open-company-development)
 
+
 ## Overview
 
 > A lack of transparency results in distrust and a deep sense of insecurity.
@@ -22,6 +23,7 @@ Build your company in the open with transparency for your co-founders, your team
 Like the open companies we promote and support, the [OpenCompany.io](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through this platform API.
 
 To get started, head to: [OpenCompany.io](https://opencompany.io)
+
 
 ## Local Setup
 
@@ -143,6 +145,7 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
+
 ## Introduction
 
 You can verify all is well with your RethinkDB instance and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
@@ -231,6 +234,7 @@ Then enter these commands one-by-one, noting the output:
   (r/run (r/db-drop c/db-name) conn))
 ```
 
+
 ## Usage
 
 Start a development API server:
@@ -316,6 +320,7 @@ curl -i -X GET \
 http://localhost:3000/v1/companies/OPEN
 ```
 
+
 ## Testing
 
 Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.org/open-company/open-company-api):
@@ -327,6 +332,7 @@ To run the tests locally:
 ```console
 lein test!
 ```
+
 
 ## License
 
