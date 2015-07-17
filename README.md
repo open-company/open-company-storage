@@ -10,7 +10,7 @@
 
 > -- Dalai Lama
 
-Build your company in the open with transparency for your co-founders, your team, and your investors. Or share your company's journey with everyone, your customers and the rest of the startup community too.
+Build your company in the open with transparency for your co-founders, your team, and your investors. Or share your company's journey with everyone, your customers and the rest of the startup community.
 
 [OpenCompany.io](https://opencompany.io) is GitHub for the rest of your company:
 
@@ -21,11 +21,11 @@ Build your company in the open with transparency for your co-founders, your team
 
 Like the open companies we promote and support, the [OpenCompany.io](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through this platform API.
 
-To get started, head to [OpenCompany.io](https://opencompany.io).
+To get started, head to: [OpenCompany.io](https://opencompany.io)
 
 ## Local Setup
 
-Users of the [OpenCompany.io](https://opencompany.io) platform should get started by going to [OpenCompany.io](https://opencompany.io). The following local setup is for developers wanting to work on the platform's API software.
+Users of the [OpenCompany.io](https://opencompany.io) platform should get started by going to [OpenCompany.io](https://opencompany.io). The following local setup is **for developers** wanting to work on the platform's API software.
 
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 
@@ -314,6 +314,18 @@ curl -i -X GET \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 http://localhost:3000/v1/companies/OPEN
+```
+
+## Testing
+
+Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.org/open-company/open-company-api):
+
+[![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
+
+To run the tests locally:
+
+```console
+lein test!
 ```
 
 ## License
