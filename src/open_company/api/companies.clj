@@ -26,9 +26,9 @@
     {:company company}))
 
 (defn- put-company [ticker company]
-  (let [full-company (assoc company :symbol ticker)]
-    (when (company/put-company ticker full-company)
-      {:company full-company})))
+  (let [full-company (assoc company :symbol ticker)
+        company-result (company/put-company ticker full-company)]
+    {:company company-result}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

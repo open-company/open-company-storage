@@ -1,6 +1,7 @@
 (ns open-company.resources.report
   (:require [rethinkdb.query :as r]
             [open-company.config :as c]
+            [open-company.resources.common :as common]
             [open-company.resources.company :as company]))
 
 (def ^:private primary-key :symbol-year-period)
@@ -34,15 +35,11 @@
           (r/run conn))))))
 
 (defn create-report
-  "Given the report property map, create or update the report and return `true` on success.
+  "Given the report property map, create the report returning the property map for the resource or `false`.
   Return `:bad-company` if the company for the report does not exist."
   [report]
   (if (company/get-company (:symbol report))
-    (< 0 (:inserted
-      (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table "reports")
-          (r/insert (assoc report primary-key (key-for report)))
-          (r/run conn)))))
+    (common/create-resource "reports" (assoc report primary-key (key-for report)))
     :bad-company))
 
 (defn update-report

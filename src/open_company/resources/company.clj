@@ -1,7 +1,8 @@
 (ns open-company.resources.company
   (:require [clojure.string :as s]
             [rethinkdb.query :as r]
-            [open-company.config :as c]))
+            [open-company.config :as c]
+            [open-company.resources.common :as common]))
 
 (defn valid-ticker-symbol? [ticker]
   (let [char-count (count ticker)]
@@ -37,13 +38,9 @@
         (r/run conn)))))
 
 (defn create-company
-  "Given the company property map, create or update the company and return `true` on success."
+  "Given the company property map, create the company returning the property map for the resource or `false`."
   [company]
-  (< 0 (:inserted
-    (with-open [conn (apply r/connect c/db-options)]
-    (-> (r/table "companies")
-        (r/insert company)
-        (r/run conn))))))
+  (common/create-resource "companies" company))
 
 (defn update-company
   "Given the current ticker symbol of the company and an updated company property map,

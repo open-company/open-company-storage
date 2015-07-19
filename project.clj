@@ -108,7 +108,7 @@
     "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
     "midje" ["with-profile" "qa" "midje"] ; run all tests
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests
-    "start" ["do" "build," "init-db", "run"] ; start a development server
+    "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
