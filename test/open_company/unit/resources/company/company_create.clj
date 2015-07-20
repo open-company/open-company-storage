@@ -47,12 +47,14 @@
   (facts "about company creation"
 
     (c/create-company r/oc) => (contains r/oc)
+    (c/get-company r/ok) => (contains r/oc)
 
     (facts "and unicode names"
       (doseq [good-name r/names]
         (let [new-oc (assoc r/oc :name good-name)]
           (c/create-company new-oc) => (contains new-oc)
-          (c/delete-company ok))))
+          (c/get-company r/ok) => (contains new-oc)
+          (c/delete-company r/ok))))
 
     (facts "and timestamps"
       (let [company (c/create-company r/oc)
@@ -60,7 +62,7 @@
             updated-at (:updated-at company)
             retrieved-company (c/get-company r/ok)]
         (check/timestamp? created-at) => true
-        (= created-at updated-at) => true
         (check/about-now? created-at) = true
+        (= created-at updated-at) => true
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))))
