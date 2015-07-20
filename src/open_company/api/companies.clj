@@ -1,6 +1,7 @@
 (ns open-company.api.companies
   (:require [compojure.core :refer (defroutes ANY)]
             [liberator.core :refer (defresource by-method)]
+            [liberator.representation :refer (ring-response)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
@@ -13,9 +14,8 @@
 
 (defn- unprocessable-reason [reason]
   (case reason
-    :bad-company common/missing-response
+    :bad-company (common/missing-response)
     :no-name (common/unprocessable-entity-response "Company name is required.")
-    :symbol-conflict (common/unprocessable-entity-response "Ticker symbol is already used.")
     :invalid-symbol (common/unprocessable-entity-response "Invalid ticker symbol.")
     (common/unprocessable-entity-response "Not processable.")))
 

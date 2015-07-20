@@ -13,7 +13,9 @@
 
 (defn- unprocessable-reason [reason]
   (case reason
-    :bad-company common/missing-response
+    :bad-company (common/missing-response "Company not found.")
+    :bad-year (common/missing-response "Invalid report year.")
+    :bad-period (common/missing-response "Invalid report period.")
     (common/unprocessable-entity-response "Not processable.")))
 
 ;; ----- Actions -----

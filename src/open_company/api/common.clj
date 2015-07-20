@@ -12,16 +12,16 @@
 
 ;; ----- Responses -----
 
-(def missing-response
-  (ring-response
-    {:status 404
-     :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
-
-(def missing-company-response
-  (ring-response
-    {:status 404
-     :body "Company not found."
-     :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
+(defn missing-response
+  ([]
+    (ring-response {
+      :status 404
+      :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
+  ([reason]
+    (ring-response {
+      :status 404
+      :body reason
+      :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}})))
 
 (defn unprocessable-entity-response [reason]
   (ring-response

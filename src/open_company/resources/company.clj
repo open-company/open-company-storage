@@ -1,16 +1,21 @@
 (ns open-company.resources.company
   (:require [clojure.string :as s]
+            [defun :refer (defun)]
             [rethinkdb.query :as r]
             [open-company.config :as c]
             [open-company.resources.common :as common]))
 
-(defn valid-ticker-symbol? [ticker]
+;; ----- Validations -----
+
+(defn valid-ticker-symbol? 
+  "Return `true` if the specified ticker symbol is potentially a valid symbol (follows the rules)
+  of an open company, otherwise return `false`."
+  [ticker]
   (let [char-count (count ticker)]
     (and (>= char-count 1) (<= char-count 5))))
 
-(defn valid-company
-  "
-  Given the ticker symbol of a new company, and a map of the new company's properties,
+(defun valid-company
+  "Given the ticker symbol of a new company, and a map of the new company's properties,
   check if the everything is in order to create the new company.
 
   Ensures the name of the company is specified or returns `:no-name`.
@@ -18,15 +23,13 @@
   Ensures the ticker is valid, or returns `:invalid-symbol`.
 
   If everything is OK with the proposed new company, `true` is returned.
-  "
-  [ticker properties]
-    (let [provided-ticker (:symbol properties)
-        company-name (:name properties)]
-      (cond
-        (or (not (string? company-name)) (s/blank? company-name)) :no-name
-        (and provided-ticker (not (= ticker provided-ticker))) :invalid-symbol
-        (not (valid-ticker-symbol? ticker)) :invalid-symbol
-        :else true)))
+
+  TODO: Use prismatic schema to validate company properties."
+  ([ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
+  ([_ properties :guard #(nil? (:name %))] :no-name)
+  ([ticker properties] (if (= ticker (:symbol properties)) true :invalid-symbol)))
+
+;; ----- Company CRUD -----
 
 (defn get-company
   "Given the ticker symbol of the company, retrieve it from the database, or return nil if it doesn't exist."
@@ -50,14 +53,12 @@
   (if-let [original-company (get-company ticker)]
     (common/update-resource "companies" original-company company)))
 
-(defn put-company
+(defun put-company
   "Given the ticker symbol of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of ticker symbol change."
-  [ticker company]
-  (if (get-company ticker)
-    (update-company ticker company)
-    (create-company company)))
+  ([ticker :guard #(get-company %) company] (update-company ticker company))
+  ([_ company] (create-company company)))
 
 (defn delete-company
   "Given the ticker symbol of the company, delete it and all its reports and return `true` on success."
@@ -68,6 +69,8 @@
         (r/get-all [ticker] {:index "symbol"})
         (r/delete)
         (r/run conn))))))
+
+;; ----- Collection of companies -----
 
 (defn delete-all-companies!
   "Use with caution! Returns `true` if successful."
