@@ -45,13 +45,9 @@
 (defn update-report
   "Given the an updated report property map, update the report and return `true` on success."
   [report]
-  (if (get-report (:symbol report) (:year report) (:period report))
-    (< 0 (:replaced
-      (with-open [conn (apply r/connect c/db-options)]
-        (-> (r/table "reports")
-          (r/replace (assoc report primary-key (key-for report)))
-          (r/run conn)))))
-    false))
+  (if-let [original-report (get-report (:symbol report) (:year report) (:period report))]
+    (common/update-resource "reports" original-report (assoc report primary-key (key-for report)))
+    :bad-company))
 
 (defn put-report
   "Given a report property map, create or update the report and return `true` on success."

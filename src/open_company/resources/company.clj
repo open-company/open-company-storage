@@ -47,13 +47,8 @@
   update the company and return `true` on success.
   TODO: handle case of ticker symbol change."
   [ticker company]
-  (if (get-company ticker)
-    (< 0 (:replaced
-      (with-open [conn (apply r/connect c/db-options)]
-        (-> (r/table "companies")
-          (r/replace company)
-          (r/run conn)))))
-    false))
+  (if-let [original-company (get-company ticker)]
+    (common/update-resource "companies" original-company company)))
 
 (defn put-company
   "Given the ticker symbol of the company and a company property map, create or update the company
