@@ -69,7 +69,7 @@
         (r/delete)
         (r/run conn))))))
 
-(defn delete-all!
+(defn delete-all-companies!
   "Use with caution! Returns `true` if successful."
   []
   (< 0 (:deleted

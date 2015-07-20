@@ -55,8 +55,8 @@
         :body body})))
 
 ;; ----- Tests -----
-(with-state-changes [(before :facts (company/delete-all!))
-                     (after :facts (company/delete-all!))]
+(with-state-changes [(before :facts (company/delete-all-companies!))
+                     (after :facts (company/delete-all-companies!))]
 
   (facts "about using the REST API to create valid new companies"
 
