@@ -7,26 +7,29 @@
 
 ;; ----- Validations -----
 
-(defn valid-ticker-symbol? 
+(defun valid-ticker-symbol?
   "Return `true` if the specified ticker symbol is potentially a valid symbol (follows the rules)
   of an open company, otherwise return `false`."
-  [ticker]
-  (let [char-count (count ticker)]
-    (and (>= char-count 1) (<= char-count 5))))
+  ([ticker :guard #(nil? %)] false)
+  ([ticker]
+    (let [clean-ticker (s/trim ticker)
+          char-count (count clean-ticker)]
+      (and (>= char-count 1) (<= char-count 5)))))
 
 (defun valid-company
   "Given the ticker symbol of a new company, and a map of the new company's properties,
   check if the everything is in order to create the new company.
 
-  Ensures the name of the company is specified or returns `:no-name`.
+  Ensures the name of the company is specified or returns `:invalid-name`.
 
   Ensures the ticker is valid, or returns `:invalid-symbol`.
 
   If everything is OK with the proposed new company, `true` is returned.
 
   TODO: Use prismatic schema to validate company properties."
+  ([ticker :guard #(not (string? %)) _] :invalid-symbol)
   ([ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
-  ([_ properties :guard #(nil? (:name %))] :no-name)
+  ([_ properties :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
   ([ticker properties] (if (= ticker (:symbol properties)) true :invalid-symbol)))
 
 ;; ----- Company CRUD -----

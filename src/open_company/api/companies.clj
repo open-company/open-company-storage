@@ -15,7 +15,7 @@
 (defn- unprocessable-reason [reason]
   (case reason
     :bad-company (common/missing-response)
-    :no-name (common/unprocessable-entity-response "Company name is required.")
+    :invalid-name (common/unprocessable-entity-response "Company name is required.")
     :invalid-symbol (common/unprocessable-entity-response "Invalid ticker symbol.")
     (common/unprocessable-entity-response "Not processable.")))
 
