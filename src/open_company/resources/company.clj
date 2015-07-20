@@ -10,7 +10,7 @@
 (defun valid-ticker-symbol?
   "Return `true` if the specified ticker symbol is potentially a valid symbol (follows the rules)
   of an open company, otherwise return `false`."
-  ([ticker :guard #(nil? %)] false)
+  ([_ticker :guard #(nil? %)] false)
   ([ticker]
     (let [clean-ticker (s/trim ticker)
           char-count (count clean-ticker)]
@@ -27,9 +27,9 @@
   If everything is OK with the proposed new company, `true` is returned.
 
   TODO: Use prismatic schema to validate company properties."
-  ([ticker :guard #(not (string? %)) _] :invalid-symbol)
-  ([ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
-  ([_ properties :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
+  ([_ticker :guard #(not (string? %)) _] :invalid-symbol)
+  ([_ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
+  ([_ _properties :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
   ([ticker properties] (if (= ticker (:symbol properties)) true :invalid-symbol)))
 
 ;; ----- Company CRUD -----

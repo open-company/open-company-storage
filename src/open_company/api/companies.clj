@@ -1,7 +1,6 @@
 (ns open-company.api.companies
   (:require [compojure.core :refer (defroutes ANY)]
             [liberator.core :refer (defresource by-method)]
-            [liberator.representation :refer (ring-response)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))

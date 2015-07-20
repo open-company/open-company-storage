@@ -31,9 +31,9 @@
   returning `:bad-company`, `:bad-year` and `bad-period` respectively.
   TODO: Use prismatic schema to validate report properties."
   ([ticker year period] (valid-report ticker year period {}))
-  ([_ year :guard #(not (valid-year? %)) _ _] :bad-year)
-  ([_ _ period :guard #(not (valid-period? %)) _] :bad-period)
-  ([ticker :guard #(not (company/get-company %)) _ _ _] :bad-company)
+  ([_ _year :guard #(not (valid-year? %)) _ _] :bad-year)
+  ([_ _ _period :guard #(not (valid-period? %)) _] :bad-period)
+  ([_ticker :guard #(not (company/get-company %)) _ _ _] :bad-company)
   ([_ _ _ _] true))
 
 ;; ----- Report CRUD -----
