@@ -75,6 +75,15 @@
 
 ;; ----- Collection of companies -----
 
+(defn list-companies
+  "Return a sequence of company property maps with ticker symbols and names, sorted by ticker symbol."
+  []
+  (vec (sort-by :symbol
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table "companies")
+        (r/with-fields ["symbol" "name"])
+        (r/run conn))))))
+
 (defn delete-all-companies!
   "Use with caution! Returns `true` if successful."
   []

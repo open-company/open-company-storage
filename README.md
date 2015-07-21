@@ -174,6 +174,9 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"})
 (company/create-company {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"})
 
+;; List the companies
+(company/list-companies)
+
 ;; Get a company
 (company/get-company "BUFFR")
 
@@ -221,6 +224,14 @@ curl -i -X PUT \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
 http://localhost:3000/v1/companies/OPEN
+```
+
+List the companies with cURL:
+
+```console
+curl -i -X GET \
+--header "Accept-Charset: utf-8" \
+http://localhost:3000/v1/companies
 ```
 
 Request the company with cURL:

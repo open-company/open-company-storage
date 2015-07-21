@@ -5,6 +5,7 @@
             [open-company.resources.report :as report]))
 
 (def media-type "application/vnd.open-company.company+json;version=1")
+(def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
 (defn- url [company]
   (str "/v1/companies/" (:symbol company)))
@@ -23,6 +24,12 @@
     (map
       #(common/link-map "report" common/GET (report-rep/url ticker (:year %) (:period %)) report-rep/media-type)
       (report/list-reports ticker))))
+
+(defn- company-link
+  "Add just a single self HATEAOS link to the company"
+  [company]
+  (apply array-map (concat (flatten (vec company))
+    [:links (flatten [(self-link company)])])))
 
 (defn- company-links
   "Add the HATEAOS links to the company"
@@ -47,3 +54,14 @@
   "Create a JSON representation of a company for the REST API"
   [company]
   (json/generate-string (company-to-json-map company) {:pretty true}))
+
+(defn render-company-list
+  "Create a JSON representation of a group of companies for the REST API"
+  [companies]
+  (json/generate-string {
+    :collection (array-map
+      :version common/json-collection-version
+      :href "/v1/companies"
+      :links [(common/self-link (str "/v1/companies") collection-media-type)]
+      :companies (map company-link companies))}
+    {:pretty true}))
