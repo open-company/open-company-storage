@@ -1,6 +1,8 @@
 (ns open-company.representations.company
   (:require [cheshire.core :as json]
-            [open-company.representations.common :as common]))
+            [open-company.representations.common :as common]
+            [open-company.representations.report :as report-rep]
+            [open-company.resources.report :as report]))
 
 (def media-type "application/vnd.open-company.company+json;version=1")
 
@@ -16,14 +18,21 @@
 (defn- delete-link [company]
   (common/delete-link (url company)))
 
-(defn company-links
+(defn- report-links [company]
+  (let [ticker (:symbol company)]
+    (map
+      #(common/link-map "report" common/GET (report-rep/url ticker (:year %) (:period %)) report-rep/media-type)
+      (report/list-reports ticker))))
+
+(defn- company-links
   "Add the HATEAOS links to the company"
   [company]
   (apply array-map (concat (flatten (vec company))
-    [:links [
+    [:links (flatten [
       (self-link company)
       (update-link company)
-      (delete-link company)]])))
+      (delete-link company)
+      (report-links company)])])))
 
 (defn- company-to-json-map [company]
   ;; Generate JSON from the sorted array map that results from:
