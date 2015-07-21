@@ -1,6 +1,6 @@
 (ns open-company.api.companies
   (:require [defun :refer (defun)]
-            [compojure.core :refer (defroutes ANY)]
+            [compojure.core :refer (defroutes ANY GET)]
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
@@ -64,7 +64,18 @@
   :put! (fn [ctx] (put-company ticker (add-ticker ticker (:data ctx))))
   :handle-created (fn [ctx] (company-location-response (:company ctx))))
 
+(defresource company-list []
+  :available-charsets [common/UTF8]
+  :available-media-types [company-rep/collection-media-type]
+  :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
+  :allowed-methods [:get]
+
+  ;; Get a list of companies
+  :exists? (fn [_] {:companies (company/list-companies)})
+  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx))))
+
 ;; ----- Routes -----
 
 (defroutes company-routes
-  (ANY "/v1/companies/:ticker" [ticker] (company ticker)))
+  (ANY "/v1/companies/:ticker" [ticker] (company ticker))
+  (GET "/v1/companies" [] (company-list)))

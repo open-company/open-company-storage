@@ -83,11 +83,11 @@
 (defn list-reports
   "Given the ticker symbol of a company, return a sequence of report hashes with `:year` and `:period`."
   [ticker]
-  (with-open [conn (apply r/connect c/db-options)]
+  (vec (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table "reports")
       (r/get-all [ticker] {:index "symbol"})
       (r/with-fields ["year" "period"])
-      (r/run conn))))
+      (r/run conn)))))
 
 (defn report-count
   "Given the ticker symbol of a company, return how many reports exist for the company."
