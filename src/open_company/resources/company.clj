@@ -10,7 +10,7 @@
 (defun valid-ticker-symbol?
   "Return `true` if the specified ticker symbol is potentially a valid symbol (follows the rules)
   of an open company, otherwise return `false`."
-  ([_ticker :guard #(nil? %)] false)
+  ([_ticker :guard nil?] false)
   ([ticker]
     (let [clean-ticker (s/trim ticker)
           char-count (count clean-ticker)]
@@ -30,7 +30,7 @@
   ([_ticker :guard #(not (string? %)) _] :invalid-symbol)
   ([_ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
   ([_ _properties :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
-  ([ticker properties] (if (or (nil? (:symbol properties)) (= ticker (:symbol properties))) true :invalid-symbol)))
+  ([ticker properties] (if (= ticker (:symbol properties)) true :invalid-symbol)))
 
 ;; ----- Company CRUD -----
 
@@ -60,7 +60,7 @@
   "Given the ticker symbol of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of ticker symbol change."
-  ([ticker :guard #(get-company %) company] (update-company ticker company))
+  ([ticker :guard get-company company] (update-company ticker company))
   ([_ company] (create-company company)))
 
 (defn delete-company

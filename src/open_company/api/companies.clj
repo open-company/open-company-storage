@@ -1,9 +1,15 @@
 (ns open-company.api.companies
-  (:require [compojure.core :refer (defroutes ANY)]
+  (:require [defun :refer (defun)]
+            [compojure.core :refer (defroutes ANY)]
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
+
+(defun add-ticker
+  "Add the ticker symbol to the company properties if it's missing."
+  ([_ company :guard :symbol] company)
+  ([ticker company] (assoc company :symbol ticker)))
 
 ;; ----- Responses -----
 
@@ -40,7 +46,7 @@
 
   :processable? (by-method {
     :get true
-    :put (fn [ctx] (common/check-input (company/valid-company ticker (:data ctx))))})
+    :put (fn [ctx] (common/check-input (company/valid-company ticker (add-ticker ticker (:data ctx)))))})
 
   ;; Handlers
   :handle-ok (by-method {
@@ -55,7 +61,7 @@
 
   ;; Create or update a company
   :new? (by-method {:put (not (company/get-company ticker))})
-  :put! (fn [ctx] (put-company ticker (:data ctx)))
+  :put! (fn [ctx] (put-company ticker (add-ticker ticker (:data ctx))))
   :handle-created (fn [ctx] (company-location-response (:company ctx))))
 
 ;; ----- Routes -----
