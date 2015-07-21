@@ -71,7 +71,7 @@
 
 (def open-company-resource {
   :available-charsets [UTF8]
-  :handle-not-found (fn [_] missing-response)
+  :handle-not-found (fn [_] (missing-response))
   :allowed-methods [:get :put :delete]
   :respond-with-entity? (by-method {:put true :delete false})
   :malformed? (by-method {

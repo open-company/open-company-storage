@@ -30,7 +30,7 @@
   ([_ticker :guard #(not (string? %)) _] :invalid-symbol)
   ([_ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
   ([_ _properties :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
-  ([ticker properties] (if (= ticker (:symbol properties)) true :invalid-symbol)))
+  ([ticker properties] (if (or (nil? (:symbol properties)) (= ticker (:symbol properties))) true :invalid-symbol)))
 
 ;; ----- Company CRUD -----
 
