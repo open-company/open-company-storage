@@ -1,9 +1,15 @@
 (ns open-company.api.companies
-  (:require [compojure.core :refer (defroutes ANY)]
+  (:require [defun :refer (defun)]
+            [compojure.core :refer (defroutes ANY)]
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
+
+(defun add-ticker
+  "Add the ticker symbol to the company properties if it's missing."
+  ([_ company :guard :symbol] company)
+  ([ticker company] (assoc company :symbol ticker)))
 
 ;; ----- Responses -----
 
@@ -13,9 +19,8 @@
 
 (defn- unprocessable-reason [reason]
   (case reason
-    :bad-company common/missing-response
-    :no-name (common/unprocessable-entity-response "Company name is required.")
-    :symbol-conflict (common/unprocessable-entity-response "Ticker symbol is already used.")
+    :bad-company (common/missing-response)
+    :invalid-name (common/unprocessable-entity-response "Company name is required.")
     :invalid-symbol (common/unprocessable-entity-response "Invalid ticker symbol.")
     (common/unprocessable-entity-response "Not processable.")))
 
@@ -26,9 +31,9 @@
     {:company company}))
 
 (defn- put-company [ticker company]
-  (let [full-company (assoc company :symbol ticker)]
-    (when (company/put-company ticker full-company)
-      {:company full-company})))
+  (let [full-company (assoc company :symbol ticker)
+        company-result (company/put-company ticker full-company)]
+    {:company company-result}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -41,7 +46,7 @@
 
   :processable? (by-method {
     :get true
-    :put (fn [ctx] (common/check-input (company/valid-company ticker (:data ctx))))})
+    :put (fn [ctx] (common/check-input (company/valid-company ticker (add-ticker ticker (:data ctx)))))})
 
   ;; Handlers
   :handle-ok (by-method {
@@ -56,7 +61,7 @@
 
   ;; Create or update a company
   :new? (by-method {:put (not (company/get-company ticker))})
-  :put! (fn [ctx] (put-company ticker (:data ctx)))
+  :put! (fn [ctx] (put-company ticker (add-ticker ticker (:data ctx))))
   :handle-created (fn [ctx] (company-location-response (:company ctx))))
 
 ;; ----- Routes -----

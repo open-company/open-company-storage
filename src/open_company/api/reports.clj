@@ -13,7 +13,9 @@
 
 (defn- unprocessable-reason [reason]
   (case reason
-    :bad-company common/missing-response
+    :bad-company (common/missing-response "Company not found.")
+    :bad-year (common/missing-response "Invalid report year.")
+    :bad-period (common/missing-response "Invalid report period.")
     (common/unprocessable-entity-response "Not processable.")))
 
 ;; ----- Actions -----
@@ -23,9 +25,9 @@
     {:report report}))
 
 (defn- put-report [ticker year period report]
-  (let [full-report (merge report {:symbol ticker :year year :period period})]
-    (when (report/put-report full-report)
-      {:report full-report})))
+  (let [full-report (merge report {:symbol ticker :year year :period period})
+        report-result (report/put-report full-report)]
+      {:report report-result}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

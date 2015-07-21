@@ -31,19 +31,19 @@ Users of the [OpenCompany.io](https://opencompany.io) platform should get starte
 
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 
-* [Java 7/8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 7 or 8 JRE is needed to run Clojure
+* [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8 JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
 * [RethinkDB](http://rethinkdb.com/) v2.0.4+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
-Chances are your system already has Java 7 or 8 installed. You can verify this with:
+Chances are your system already has Java 8 installed. You can verify this with:
 
 ```console
 java -version
 ```
 
-If you do not have Java 7 or 8 [download it]((http://www.oracle.com/technetwork/java/javase/downloads/index.html)) and follow the installation instructions.
+If you do not have Java 8 [download it](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and follow the installation instructions.
 
 #### Leiningen
 
@@ -163,43 +163,50 @@ lein repl
 Then enter these commands one-by-one, noting the output:
 
 ```clojure
-(require '[rethinkdb.query :as r])
-(require '[open-company.config :as c])
 (require '[open-company.db.init :as db])
-
+(require '[open-company.resources.company :as company])
+(require '[open-company.resources.report :as report])
 
 ;; Create DB and tables and indexes
 (db/init)
 
-;; Insert some companies
-(with-open [conn (apply r/connect c/db-options)]
-  (-> (r/table "companies")
-      (r/insert [
-        {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"}
-        {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"}        
-      ])
-      (r/run conn)))
+;; Create some companies
+(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"})
+(company/create-company {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"})
 
-;; Query on companies
-(with-open [conn (apply r/connect c/db-options)]
-  (-> (r/table "companies")
-      (r/count)
-      (r/run conn)))
+;; Get a company
+(company/get-company "BUFFR")
 
-(with-open [conn (apply r/connect c/db-options)]
-  (-> (r/table "companies")
-      (r/get-all ["OPEN"] {:index "symbol"})
-      (r/run conn)))
+;; Update a company
+(company/update-company "OPEN" {:symbol "OPEN" :name "Transparency Inc." :url "https://opencompany.io/"})
+
+;; Create some reports
+(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :currency "USD" :headcount {:founders 2 :contractors 1}})
+(report/create-report {:symbol "BUFFR" :year 2015 :period "M6" :currency "USD" :finances {:cash 2578881 :revenue 550529}})
+
+;; List reports
+(report/list-reports "OPEN")
+
+;; Get a report
+(report/get-report "OPEN" 2015 "Q2")
+
+;; Update a report
+(company/update-company "BUFFR" {:symbol "BUFFR" :year 2015 :period "M6" :currency "USD" :finances {:cash 2578881 :revenue 550529} :headcount {:comment "We’re hiring for 14 (!) different positions"}})
 
 ;; Cleanup
-(with-open [conn (apply r/connect c/db-options)]
-  (r/run (r/db-drop c/db-name) conn))
+(company/delete-all-companies!)
 ```
 
 
 ## Usage
 
-Start a development API server:
+Start a production API server:
+
+```console
+lein start!
+```
+
+Or start a development API server:
 
 ```console
 lein start

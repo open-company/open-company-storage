@@ -7,7 +7,7 @@
 (defmacro check [forms]
   `(assert (is ~forms)))
 
-(defn- time-for [timestamp]
+(defn time-for [timestamp]
   (if (instance? org.joda.time.DateTime timestamp)
     timestamp
     (parse timestamp)))

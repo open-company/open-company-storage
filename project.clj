@@ -13,7 +13,7 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.7.0"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0-alpha2"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.2.2"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [defun "0.2.0-RC"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [ring/ring-devel "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
@@ -27,6 +27,7 @@
     [environ "1.0.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.1.0-alpha2"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+    [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
  ]
 
   ;; Production plugins
@@ -62,7 +63,6 @@
         :hot-reload true ; reload code when changed on the file system
       }
       :dependencies [
-        [print-foo "1.0.2"] ; Old school print debugging https://github.com/danielribeiro/print-foo
         [aprint "0.1.3"] ; Pretty printing in the REPL (aprint thing) https://github.com/razum2um/aprint
         [org.clojure/tools.trace "0.7.8"] ; Tracing macros/fns https://github.com/clojure/tools.trace
       ]
@@ -87,7 +87,6 @@
       :injections [
         (require '[aprint.core :refer (aprint ap)]
                  '[clojure.stacktrace :refer (print-stack-trace)]
-                 '[print.foo :refer :all]
                  '[clj-time.format :as t]
                  '[clojure.string :as s])
       ]
@@ -108,7 +107,7 @@
     "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
     "midje" ["with-profile" "qa" "midje"] ; run all tests
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests
-    "start" ["do" "build," "init-db," "run"] ; start a development server
+    "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters

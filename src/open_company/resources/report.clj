@@ -1,26 +1,42 @@
 (ns open-company.resources.report
-  (:require [rethinkdb.query :as r]
+  (:require [defun :refer (defun)]
+            [rethinkdb.query :as r]
             [open-company.config :as c]
+            [open-company.resources.common :as common]
             [open-company.resources.company :as company]))
 
 (def ^:private primary-key :symbol-year-period)
+
+(def periods #{"Q1" "Q2" "Q3" "Q4"
+               "M1" "M2" "M3" "M4" "M5" "M6" "M7" "M8" "M9" "M10" "M11" "M12"})
 
 (defn- key-for
   ([report] (key-for (:symbol report) (:year report) (:period report)))
   ([ticker year period] (str ticker "-" year "-" period)))
 
-(defn valid-period?
-  "TBD"
-  [period]
-  true)
+;; ----- Validations -----
 
-(defn valid-report
-  "
-  TBD. Use prismatic schema.
-  "
+(defun valid-year?
+  "Return `true` if the specified period is valid, `false` if not."
+  ([year :guard integer?] (and (> year 1900) (< year 3000)))
+  ([year :guard string?] (valid-year? (Integer. (re-find  #"\d+" year)))))
+
+(defn valid-period?
+  "Return `true` if the specified period is valid, `false` if not."
+  [period]
+  (if (periods period) true false))
+
+(defun valid-report
+  "Validate the ticker symbol, year and period of the report
+  returning `:bad-company`, `:bad-year` and `bad-period` respectively.
+  TODO: Use prismatic schema to validate report properties."
   ([ticker year period] (valid-report ticker year period {}))
-  ([ticker year period properties]
-    true))
+  ([_ _year :guard #(not (valid-year? %)) _ _] :bad-year)
+  ([_ _ _period :guard #(not (valid-period? %)) _] :bad-period)
+  ([_ticker :guard #(not (company/get-company %)) _ _ _] :bad-company)
+  ([_ _ _ _] true))
+
+;; ----- Report CRUD -----
 
 (defn get-report
   "Given the ticker symbol of the company and the year and period of the report,
@@ -33,35 +49,24 @@
           (r/get-all [report-key] {:index primary-key})
           (r/run conn))))))
 
-(defn create-report
-  "Given the report property map, create or update the report and return `true` on success.
+(defun create-report
+  "Given the report property map, create the report returning the property map for the resource or `false`.
   Return `:bad-company` if the company for the report does not exist."
-  [report]
-  (if (company/get-company (:symbol report))
-    (< 0 (:inserted
-      (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table "reports")
-          (r/insert (assoc report primary-key (key-for report)))
-          (r/run conn)))))
-    :bad-company))
+  ([report :guard #(company/get-company (:symbol %))]
+    (common/create-resource "reports" (assoc report primary-key (key-for report))))
+  ([_] :bad-company))
 
 (defn update-report
   "Given the an updated report property map, update the report and return `true` on success."
   [report]
-  (if (get-report (:symbol report) (:year report) (:period report))
-    (< 0 (:replaced
-      (with-open [conn (apply r/connect c/db-options)]
-        (-> (r/table "reports")
-          (r/replace (assoc report primary-key (key-for report)))
-          (r/run conn)))))
-    false))
+  (if-let [original-report (get-report (:symbol report) (:year report) (:period report))]
+    (common/update-resource "reports" original-report (assoc report primary-key (key-for report)))
+    :bad-company))
 
-(defn put-report
+(defun put-report
   "Given a report property map, create or update the report and return `true` on success."
-  [report]
-  (if (get-report (key-for report))
-    (update-report report)
-    (create-report report)))
+  ([report :guard #(get-report (key-for %))] (update-report report))
+  ([report] (create-report report)))
 
 (defn delete-report
   "Given the ticker symbol of the company and the year and period of the report, delete the report and return `true`."
@@ -72,6 +77,17 @@
         (r/get-all [(key-for ticker year period)] {:index primary-key})
         (r/delete)
         (r/run conn))))))
+
+;; ----- Collection of reports -----
+
+(defn list-reports
+  "Given the ticker symbol of a company, return a sequence of report hashes with `:year` and `:period`."
+  [ticker]
+  (with-open [conn (apply r/connect c/db-options)]
+    (-> (r/table "reports")
+      (r/get-all [ticker] {:index "symbol"})
+      (r/with-fields ["year" "period"])
+      (r/run conn))))
 
 (defn report-count
   "Given the ticker symbol of a company, return how many reports exist for the company."

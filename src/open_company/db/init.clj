@@ -34,7 +34,7 @@
   [conn table-name index-name]
   (when (not-any? #(= index-name %) (index-list conn table-name))
     (-> (r/table table-name)
-      (r/index-create index-name 
+      (r/index-create index-name
         (r/fn [row]
           (r/get-field row (keyword index-name))))
       (r/run conn))
@@ -42,17 +42,21 @@
       (r/index-wait index-name)
       (r/run conn))))
 
-(defn init []
+(defn init
+  "Create any missing tables and indexes in RethinkDB."
+  []
   (let [db-name c/db-name]
     (println (str "\nOpen Company: Initializing database - " db-name))
     (with-open [conn (apply r/connect c/db-options)]
-      (when (create-database conn db-name) 
-        (do 
+      (when (create-database conn db-name)
+        (do
           (print ".")
           (create-table conn db-name "companies" "symbol") (print ".")
           (create-table conn db-name "reports" "symbol-year-period") (print ".")
           (create-index conn "reports" "symbol") (print ".")
           (println "\nOpen Company: Database initialization complete - " db-name "\n"))))))
 
-(defn -main []
+(defn -main
+  "Initialize the RethinkDB instance."
+  []
   (init))
