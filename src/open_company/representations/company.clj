@@ -25,6 +25,12 @@
       #(common/link-map "report" common/GET (report-rep/url ticker (:year %) (:period %)) report-rep/media-type)
       (report/list-reports ticker))))
 
+(defn- company-link
+  "Add just a single self HATEAOS link to the company"
+  [company]
+  (apply array-map (concat (flatten (vec company))
+    [:links (flatten [(self-link company)])])))
+
 (defn- company-links
   "Add the HATEAOS links to the company"
   [company]
@@ -57,5 +63,5 @@
       :version common/json-collection-version
       :href "/v1/companies"
       :links [(common/self-link (str "/v1/companies") collection-media-type)]
-      :companies companies)}
+      :companies (map company-link companies))}
     {:pretty true}))
