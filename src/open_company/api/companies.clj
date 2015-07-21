@@ -78,4 +78,5 @@
 
 (defroutes company-routes
   (ANY "/v1/companies/:ticker" [ticker] (company ticker))
+  (GET "/v1/companies/" [] (company-list))
   (GET "/v1/companies" [] (company-list)))
