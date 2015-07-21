@@ -4,8 +4,9 @@
 
 (def media-type "application/vnd.open-company.report+json;version=1")
 
-(defn- url [report]
-  (str "/v1/companies/" (:symbol report) "/" (:year report) "/" (:period report)))
+(defn url
+  ([report] (url (:symbol report) (:year report) (:period report)))
+  ([ticker year period] (str "/v1/companies/" ticker "/" year "/" period)))
 
 (defn- self-link [report]
   (common/self-link (url report) media-type))
@@ -16,7 +17,7 @@
 (defn- delete-link [report]
   (common/delete-link (url report)))
 
-(defn report-links
+(defn- report-links
   "Add the HATEAOS links to the report"
   [report]
   (apply array-map (concat (flatten (vec report))
