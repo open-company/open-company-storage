@@ -40,10 +40,7 @@
 
 (defn start [port]
   (run-server app {:port port :join? false})
-    (println (str "\n"
-      "====================\n"
-      "| Open Company API |\n"
-      "====================\n\n"
+    (println (str "\n" (slurp (clojure.java.io/resource "./open_company/assets/ascii_art.txt")) "\n"
       "Running on port: " port "\n"
       "Database: " c/db-name "\n"
       "Hot-reload: " c/hot-reload "\n"
