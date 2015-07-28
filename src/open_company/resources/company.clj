@@ -58,7 +58,7 @@
   "Given the ticker symbol of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of ticker symbol change."
-  ([ticker :guard get-company company] (update-company company))
+  ([_ :guard get-company company] (update-company company))
   ([_ company] (create-company company)))
 
 (defn delete-company
