@@ -13,8 +13,8 @@
 (require '[open-company.app :refer (app)] :reload)
 
 ;; Create a company
-(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io"})
-(company/create-company {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"})
+(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io"}})
+(company/create-company {:symbol "BUFFR" :name "Buffer" :currency "USD" :web {:company "https://open.bufferapp.com/"}})
 
 ;; List companies
 (company/list-companies)
@@ -23,7 +23,7 @@
 (company/get-company "OPEN")
 
 ;; Update a company
-(company/update-company {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"})
+(company/update-company {:symbol "OPEN" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io/"}})
 
 ;; Create a report
 (report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 1}})

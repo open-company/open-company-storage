@@ -171,21 +171,21 @@ Then enter these commands one-by-one, noting the output:
 (db/init)
 
 ;; Create some companies
-(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :url "https://opencompany.io/"})
-(company/create-company {:symbol "BUFFR" :name "Buffer" :url "https://open.bufferapp.com/"})
+(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io/"}})
+(company/create-company {:symbol "BUFFR" :name "Buffer" :currency "USD" :web {:company "https://open.bufferapp.com/"}})
 
 ;; List the companies
 (company/list-companies)
 
 ;; Get a company
-(company/get-company "BUFFR")
+(company/get-company "OPEN")
 
 ;; Update a company
-(company/update-company {:symbol "OPEN" :name "Transparency Inc." :url "https://opencompany.io/"})
+(company/update-company {:symbol "OPEN" :name "Transparency Inc." :currency "USD" :web {:company "https://opencompany.io/"}})
 
 ;; Create some reports
-(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :currency "USD" :headcount {:founders 2 :contractors 1}})
-(report/create-report {:symbol "BUFFR" :year 2015 :period "M6" :currency "USD" :finances {:cash 2578881 :revenue 550529}})
+(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 1}})
+(report/create-report {:symbol "BUFFR" :year 2015 :period "M6" :finances {:cash 2578881 :revenue 550529}})
 
 ;; List reports
 (report/list-reports "OPEN")
@@ -194,7 +194,7 @@ Then enter these commands one-by-one, noting the output:
 (report/get-report "OPEN" 2015 "Q2")
 
 ;; Update a report
-(report/update-report {:symbol "BUFFR" :year 2015 :period "M6" :currency "USD" :finances {:cash 2578881 :revenue 550529} :headcount {:comment "We’re hiring for 14 (!) different positions"}})
+(report/update-report {:symbol "BUFFR" :year 2015 :period "M6" :finances {:cash 2578881 :revenue 550529} :headcount {:comment "We’re hiring for 14 (!) different positions"}})
 
 ;; Cleanup
 (company/delete-all-companies!)
@@ -219,7 +219,7 @@ Create a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"name": "Transparency, LLC", "url": "https://opencompany.io"}' \
+-d '{"name": "Transparency, LLC", "currency": "USD", "web": {"company": "https://opencompany.io"}}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
@@ -247,7 +247,7 @@ Update a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"name": "Transparency, LLC", "url": "https://opencompany.io/"}' \
+-d '{"name": "Transparency, LLC", "currency": "USD", "web": {"company": "https://opencompany.io/"}}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
@@ -258,7 +258,7 @@ Create a report for the company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"currency": "USD", "headcount": {"founders": 2, "contractors": 1}}' \
+-d '{"headcount": {"founders": 2, "contractors": 1}}' \
 --header "Accept: application/vnd.open-company.report+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.report+json;version=1" \
@@ -278,7 +278,7 @@ Update the report with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"currency": "USD", "headcount": {"founders": 2, "contractors": 2}}' \
+-d '{"headcount": {"founders": 2, "contractors": 2}}' \
 --header "Accept: application/vnd.open-company.report+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.report+json;version=1" \

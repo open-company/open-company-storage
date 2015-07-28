@@ -1,0 +1,23 @@
+{
+  "symbol": "OPEN",
+  "name": "The Transparency Project",
+  "stage": "Prototype",
+  "founded": "2015-06",
+  "open-since": "2015-06",
+  "tagline": "Go public day one!",
+  "currency": "USD",
+  "locations": [
+    "Boston, MA",
+    "Chapel Hill, NC",
+    "Florence, Italy"
+  ],
+  "tags": "finance,open source",
+  "contact": "hello@opencompany.io",
+  "description": "Build your company in the open with transparency for your co-founders, your team, and your investors.",
+  "founded": "",
+  "web": {
+    "company": "https://opencompany.io/",
+    "about": "https://opencompany.io/about",
+    "github": "https://github.com/open-company"
+  }
+}

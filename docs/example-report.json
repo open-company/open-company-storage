@@ -2,22 +2,19 @@
   "symbol": "OPEN",
   "year": 2015,
   "period": "Q1",
-  "currency": "USD",
-  "headcount": {
-    "founders": 2,
-    "executives": 0,
-    "ft-employees": 3,
-    "ft-contractors": 0,
-    "pt-employees": 0,
-    "pt-contractors": 2,
-    "comment": "This is a comment."
-  },
   "finances": {
     "cash": 173228,
     "revenue": 2767,
     "costs": 22184,
     "burn-rate": -19417,
-    "runway": "9 months",
+    "comment": "This is a comment."
+  },
+  "headcount": {
+    "founders": 2,
+    "executives": 0,
+    "ft-employees": 3,
+    "pt-employees": 0,
+    "contractors": 1,
     "comment": "This is another comment."
   },
   "compensation": {
