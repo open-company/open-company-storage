@@ -5,6 +5,9 @@
             [open-company.config :as c]
             [open-company.resources.common :as common]))
 
+(def ^:private table-name :companies)
+(def ^:private primary-key :symbol)
+
 ;; ----- Validations -----
 
 (defun valid-ticker-symbol?
@@ -30,68 +33,53 @@
   ([_ticker :guard #(not (string? %)) _] :invalid-symbol)
   ([_ticker :guard #(not (valid-ticker-symbol? %)) _] :invalid-symbol)
   ([_ _properties :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
-  ([ticker properties] (if (= ticker (:symbol properties)) true :invalid-symbol)))
+  ([ticker properties] (if (= ticker (properties primary-key)) true :invalid-symbol)))
 
 ;; ----- Company CRUD -----
 
 (defn get-company
   "Given the ticker symbol of the company, retrieve it from the database, or return nil if it doesn't exist."
   [ticker]
-  (with-open [conn (apply r/connect c/db-options)]
-    (first
-      (-> (r/table "companies")
-        (r/get-all [ticker] {:index "symbol"})
-        (r/run conn)))))
+  (common/read-resource table-name ticker))
 
 (defn create-company
   "Given the company property map, create the company returning the property map for the resource or `false`."
   [company]
-  (common/create-resource "companies" company))
+  (common/create-resource table-name company))
 
 (defn update-company
-  "Given the current ticker symbol of the company and an updated company property map,
-  update the company and return `true` on success.
+  "Given an updated company property map, update the company and return `true` on success.
   TODO: handle case of ticker symbol change."
-  [ticker company]
-  (if-let [original-company (get-company ticker)]
-    (common/update-resource "companies" original-company company)))
+  [company]
+  (if-let [original-company (get-company (company primary-key))]
+    (common/update-resource table-name primary-key original-company company)))
 
 (defun put-company
   "Given the ticker symbol of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of ticker symbol change."
-  ([ticker :guard get-company company] (update-company ticker company))
+  ([ticker :guard get-company company] (update-company company))
   ([_ company] (create-company company)))
 
 (defn delete-company
   "Given the ticker symbol of the company, delete it and all its reports and return `true` on success."
   [ticker]
-  (< 0 (:deleted
-    (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table "companies")
-        (r/get-all [ticker] {:index "symbol"})
-        (r/delete)
-        (r/run conn))))))
+  (common/delete-resource table-name ticker))
 
 ;; ----- Collection of companies -----
 
 (defn list-companies
   "Return a sequence of company property maps with ticker symbols and names, sorted by ticker symbol."
   []
-  (vec (sort-by :symbol
+  (vec (sort-by primary-key
     (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table "companies")
-        (r/with-fields ["symbol" "name"])
+      (-> (r/table table-name)
+        (r/with-fields [primary-key "name"])
         (r/run conn))))))
 
 (defn delete-all-companies!
-  "Use with caution! Returns `true` if successful."
+  "Use with caution! Failure can result in partial deletes of reports and companies. Returns `true` if successful."
   []
-  (< 0 (:deleted
-    (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table "reports")
-        (r/delete)
-        (r/run conn))
-      (-> (r/table "companies")
-        (r/delete)
-        (r/run conn))))))
+  ;; Delete all reports and all companies
+  (common/delete-all-resources! "reports")
+  (common/delete-all-resources! table-name))
