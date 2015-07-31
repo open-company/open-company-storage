@@ -25,7 +25,7 @@
     {:report report}))
 
 (defn- put-report [ticker year period report]
-  (let [full-report (merge report {:symbol ticker :year year :period period})
+  (let [full-report (merge report {:symbol ticker :year (Integer. year) :period period})
         report-result (report/put-report full-report)]
       {:report report-result}))
 
