@@ -10,7 +10,7 @@
 
 (defun url 
   ([ticker :guard string?] (str "/v1/companies/" ticker))
-  ([company] (url (:symbol company))))
+  ([company :guard map?] (url (:symbol company))))
 
 (defn- self-link [company]
   (common/self-link (url company) media-type))
