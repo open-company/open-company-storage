@@ -247,7 +247,7 @@ Update a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"name": "Transparency, LLC", "currency": "USD", "web": {"company": "https://opencompany.io/"}}' \
+-d '{"name": "Transparency, LLC", "currency": "USD", "web": {"about": "https://opencompany.io/about"}}' \
 --header "Accept: application/vnd.open-company.company+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company+json;version=1" \
@@ -278,7 +278,7 @@ Update the report with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"headcount": {"founders": 2, "contractors": 2}}' \
+-d '{"headcount": {"founders": 3}}' \
 --header "Accept: application/vnd.open-company.report+json;version=1" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.report+json;version=1" \

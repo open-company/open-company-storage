@@ -40,21 +40,13 @@
 
   (facts "about using the REST API to create valid new companies"
 
-    (comment
-      all good - 201 Created
-      curl -i -X PUT \
-      -d "{symbol: 'OPEN', name: 'Transparency, LLC', url: 'https://opencompany.io/'}" \
-      --header "Accept: application/vnd.open-company.company+json;version=1" \
-      --header "Accept-Charset: utf-8" \
-      --header "Content-Type: application/vnd.open-company.company+json;version=1" \
-      http://localhost:3000/v1/companies/OPEN
-    )
+    ;; all good - 201 Created
     (fact "when the ticker symbol in the body and the URL match"
       ;; Create the company
       (let [response (mock/put-company-with-api r/TICKER r/OPEN)]
         (:status response) => 201
         (mock/response-mime-type response) => (mock/base-mime-type company-rep/media-type)
-        (mock/response-location response) => "/v1/companies/OPEN"
+        (mock/response-location response) => (company-rep/url r/TICKER)
         (mock/json? response) => true
         (hateoas/verify-company-links r/TICKER (:links (mock/body-from-response response))))
       ;; Get the created company and make sure it's right
