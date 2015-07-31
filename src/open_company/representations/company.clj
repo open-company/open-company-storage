@@ -1,5 +1,6 @@
 (ns open-company.representations.company
-  (:require [cheshire.core :as json]
+  (:require [defun :refer (defun)]
+            [cheshire.core :as json]
             [open-company.representations.common :as common]
             [open-company.representations.report :as report-rep]
             [open-company.resources.report :as report]))
@@ -7,8 +8,9 @@
 (def media-type "application/vnd.open-company.company+json;version=1")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
-(defn- url [company]
-  (str "/v1/companies/" (:symbol company)))
+(defun url 
+  ([ticker :guard string?] (str "/v1/companies/" ticker))
+  ([company] (url (:symbol company))))
 
 (defn- self-link [company]
   (common/self-link (url company) media-type))
