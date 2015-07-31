@@ -9,10 +9,13 @@
 (def long-unicode-name " -tHiS #$is%?-----ελληνικήalso-მივჰხვდემასჩემსაãالزجاجوهذالايؤلمني-slüg♜-♛-☃-✄-✈  - ")
 (def names [ascii-name unicode-name mixed-name long-unicode-name])
 
-(def ok "OPEN")
+(def TICKER "OPEN")
 (def too-long "1234546")
 
 (def bad-symbols [nil "" " " 42 42.7 {} [] #{}])
 (def bad-names bad-symbols)
 
-(def oc {:symbol ok :name "Transparency, LLC" :url "https://opencompany.io/"})
+;; ----- Companies -----
+
+(def OPEN {:symbol TICKER :name "Transparency, LLC" :url "https://opencompany.io/"})
+(def UNI {:symbol TICKER :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC" :url "https://opencompany.io/"})

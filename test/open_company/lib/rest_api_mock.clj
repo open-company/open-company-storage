@@ -1,9 +1,11 @@
 (ns open-company.lib.rest-api-mock
   "Utility functions to help with REST API mock testing."
   (:require [clojure.string :as s]
-            [open-company.app :refer (app)]
+            [defun :refer (defun)]
             [ring.mock.request :refer (request body content-type header)]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [open-company.app :refer (app)]
+            [open-company.representations.company :as company-rep]))
 
 (defn base-mime-type [full-mime-type]
   (first (s/split full-mime-type #";")))
@@ -53,3 +55,24 @@
   "True if the body of the response contains anything."
   [resp-map]
   (not (s/blank? (:body resp-map))))
+
+(defun put-with-api
+  "Makes a mock API request to PUT the resource and returns the response."
+  ([url :guard string? media-type body]
+     (api-request :put url {
+      :headers {
+        :Accept-Charset "utf-8"
+        :Accept media-type
+        :Content-Type media-type}
+      :body body}))
+  ([headers url body]
+     (api-request :put url {
+        :headers headers
+        :body body})))
+
+(defn put-company-with-api
+  "Makes a mock API request to create the company and returns the response."
+  ([ticker body]
+    (put-with-api (str "/v1/companies/" ticker) company-rep/media-type body))
+  ([headers ticker body]
+    (put-with-api headers (str "/v1/companies/" ticker) body)))

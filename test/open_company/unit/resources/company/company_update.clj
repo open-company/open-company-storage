@@ -7,26 +7,26 @@
 
 (with-state-changes [(before :facts (do
                                       (c/delete-all-companies!)
-                                      (c/create-company r/oc)))
+                                      (c/create-company r/OPEN)))
                      (after :facts (c/delete-all-companies!))]
 
   (future-facts "about company update failures")
 
   (facts "about updating companies"
 
-    (let [new-oc (assoc r/oc :name "Transparency, Inc.")]
+    (let [new-oc (assoc r/OPEN :name "Transparency, Inc.")]
       (c/update-company new-oc) => (contains new-oc)
-      (c/get-company r/ok) => (contains new-oc))
+      (c/get-company r/TICKER) => (contains new-oc))
 
     (future-facts "when updating the ticker symbol")
 
     (facts "and timestamps"
       (Thread/sleep 1000) ; delay for 1 second to allow timestamps to differ
-      (let [new-oc (assoc r/oc :name "Transparency, Inc.")
+      (let [new-oc (assoc r/OPEN :name "Transparency, Inc.")
             company (c/update-company new-oc)
             created-at (:created-at company)
             updated-at (:updated-at company)
-            retrieved-company (c/get-company r/ok)]
+            retrieved-company (c/get-company r/TICKER)]
         (check/timestamp? created-at) => true
         (check/timestamp? updated-at) => true
         (= created-at updated-at) => false
