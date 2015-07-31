@@ -26,7 +26,7 @@
 (defun valid-year?
   "Return `true` if the specified period is valid, `false` if not."
   ([year :guard integer?] (and (> year 1900) (< year 3000)))
-  ([year :guard #(and (string? %) (not-a-number? %))] false)
+  ([_year :guard #(and (string? %) (not-a-number? %))] false)
   ([year :guard string?] (valid-year? (Integer. year))))
 
 (defn valid-period?
