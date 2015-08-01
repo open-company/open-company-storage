@@ -33,7 +33,7 @@
 (defn- put-company [ticker company]
   (let [full-company (assoc company :symbol ticker)
         company-result (company/put-company ticker full-company)]
-    {:company company-result}))
+    {:updated-company company-result}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -51,7 +51,7 @@
   ;; Handlers
   :handle-ok (by-method {
     :get (fn [ctx] (company-rep/render-company (:company ctx)))
-    :put (fn [ctx] (company-rep/render-company (:company ctx)))})
+    :put (fn [ctx] (company-rep/render-company (:updated-company ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
@@ -62,7 +62,7 @@
   ;; Create or update a company
   :new? (by-method {:put (not (company/get-company ticker))})
   :put! (fn [ctx] (put-company ticker (add-ticker ticker (:data ctx))))
-  :handle-created (fn [ctx] (company-location-response (:company ctx))))
+  :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
 (defresource company-list []
   :available-charsets [common/UTF8]

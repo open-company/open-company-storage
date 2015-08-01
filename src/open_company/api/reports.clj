@@ -25,9 +25,9 @@
     {:report report}))
 
 (defn- put-report [ticker year period report]
-  (let [full-report (merge report {:symbol ticker :year year :period period})
+  (let [full-report (merge report {:symbol ticker :year (Integer. year) :period period})
         report-result (report/put-report full-report)]
-      {:report report-result}))
+      {:updated-report report-result}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -45,7 +45,7 @@
   ;; Handlers
   :handle-ok (by-method {
     :get (fn [ctx] (report-rep/render-report (:report ctx)))
-    :put (fn [ctx] (report-rep/render-report (:report ctx)))})
+    :put (fn [ctx] (report-rep/render-report (:updated-report ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 report-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 report-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
@@ -56,7 +56,7 @@
   ;; Create or update a report
   :new? (by-method {:put (not (report/get-report ticker year period))})
   :put! (fn [ctx] (put-report ticker year period (:data ctx)))
-  :handle-created (fn [ctx] (report-location-response (:report ctx))))
+  :handle-created (fn [ctx] (report-location-response (:updated-report ctx))))
 
 ;; ----- Routes -----
 

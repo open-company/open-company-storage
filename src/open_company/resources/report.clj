@@ -17,10 +17,17 @@
 
 ;; ----- Validations -----
 
+(defn- not-a-number? 
+  "Return `true` if the string cannot be converted into an integer."
+  [string]
+  (try (Integer. string) false
+    (catch NumberFormatException e true)))
+
 (defun valid-year?
   "Return `true` if the specified period is valid, `false` if not."
   ([year :guard integer?] (and (> year 1900) (< year 3000)))
-  ([year :guard string?] (valid-year? (Integer. (re-find  #"\d+" year)))))
+  ([_year :guard #(and (string? %) (not-a-number? %))] false)
+  ([year :guard string?] (valid-year? (Integer. year))))
 
 (defn valid-period?
   "Return `true` if the specified period is valid, `false` if not."
