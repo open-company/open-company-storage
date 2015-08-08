@@ -8,8 +8,15 @@
 (def ^:private table-name :reports)
 (def ^:private primary-key :symbol-year-period)
 
-(def periods #{"Q1" "Q2" "Q3" "Q4"
-               "M1" "M2" "M3" "M4" "M5" "M6" "M7" "M8" "M9" "M10" "M11" "M12"})
+(defn get-periods [prefix n]
+  (let [r (range 1 (+ n 1))]
+    (into #{} (for [a r] (str prefix a)))))
+
+(def periods (into #{}
+              (concat
+                (get-periods "Q" 4)
+                (get-periods "M" 12)
+                (get-periods "W" 52))))
 
 (defn- key-for
   ([report] (key-for (:symbol report) (:year report) (:period report)))
