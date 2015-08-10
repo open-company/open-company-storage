@@ -8,12 +8,10 @@
 (def ^:private table-name :reports)
 (def ^:private primary-key :symbol-year-period)
 
-(defn get-periods [prefix n]
-  (let [r (range 1 (+ n 1))]
-    (into #{} (for [a r] (str prefix a)))))
+(defn- get-periods [prefix n]
+  (into #{} (map #(str prefix %) (range 1 (+ n 1)))))
 
-(def periods (into #{}
-              (concat
+(def periods (into #{} (concat
                 (get-periods "Q" 4)
                 (get-periods "M" 12)
                 (get-periods "W" 52))))
