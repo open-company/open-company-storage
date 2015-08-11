@@ -4,10 +4,7 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
-            [open-company.representations.company :as company-rep]
-            [open-company.config :as c]
-            [cheshire.core :as json]
-            [raven-clj.core :as raven]))
+            [open-company.representations.company :as company-rep]))
 
 (defun add-ticker
   "Add the ticker symbol to the company properties if it's missing."
@@ -77,28 +74,9 @@
   :exists? (fn [_] {:companies (company/list-companies)})
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx))))
 
-(defresource sentry []
-  :available-charsets [common/UTF8]
-  :available-media-types [company-rep/collection-media-type]
-  :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
-  :allowed-methods [:get]
-
-  ;; Get a list of companies
-  :exists? (fn [_] {:sentry c/dsn})
-  :handle-ok (fn [ctx] 
-                (let [sentry-resp (raven/capture (:sentry ctx) {
-                                :message "Bago test test"
-                                :tags {:version "0.0.1"}
-                                :logger "main-logger"
-                                :extra {
-                                  :my-key 1
-                                  :some-other-value "foo bar"}})]
-                  (json/generate-string {:collection (array-map :sentry (:sentry ctx) :resp sentry-resp)} {:pretty true}))))
-
 ;; ----- Routes -----
 
 (defroutes company-routes
   (ANY "/v1/companies/:ticker" [ticker] (company ticker))
   (GET "/v1/companies/" [] (company-list))
-  (GET "/v1/companies" [] (company-list))
-  (GET "/v1/sentry" [] (sentry)))
+  (GET "/v1/companies" [] (company-list)))
