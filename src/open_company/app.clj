@@ -3,6 +3,7 @@
   (:gen-class)
   (:require
     [liberator.dev :refer (wrap-trace)]
+    [raven-clj.core :as raven]
     [raven-clj.ring :refer (wrap-sentry)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
@@ -33,6 +34,14 @@
     cors-routes))
 
 (defonce app
+  ;; Temp test sentry config
+  (raven/capture c/dsn {
+    :message "Test Exception Message"
+    :tags {:version "0.0.1"}
+    :logger "main-logger"
+    :extra {
+      :my-key 1
+      :some-other-value "foo bar"}})
   ;; Use sentry middleware to report runtime errors if we have a raven DSN.
   (if c/dsn
     (wrap-sentry hot-reload-routes c/dsn)
