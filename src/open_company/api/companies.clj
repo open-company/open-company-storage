@@ -6,7 +6,8 @@
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]
             [open-company.config :as c]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [raven-clj.core :as raven]))
 
 (defun add-ticker
   "Add the ticker symbol to the company properties if it's missing."
@@ -83,7 +84,16 @@
   :allowed-methods [:get]
 
   ;; Get a list of companies
-  :exists? (fn [_] {:sentry c/dsn})
+  :exists? (fn [_] 
+              (when c/dsn
+                (raven/capture c/dsn {
+                  :message "Test Exception Message"
+                  :tags {:version "0.0.1"}
+                  :logger "main-logger"
+                  :extra {
+                    :my-key 1
+                    :some-other-value "foo bar"}}))
+              {:sentry c/dsn})
   :handle-ok (fn [ctx] (json/generate-string {:collection (array-map :sentry (:sentry ctx))} {:pretty true})))
 
 ;; ----- Routes -----
