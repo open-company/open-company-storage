@@ -13,8 +13,7 @@
 
 (def periods (into #{} (concat
                 (get-periods "Q" 4)
-                (get-periods "M" 12)
-                (get-periods "W" 52))))
+                (get-periods "M" 12))))
 
 (defn- key-for
   ([report] (key-for (:symbol report) (:year report) (:period report)))
