@@ -14,7 +14,7 @@
 ;; ----- Responses -----
 
 (defn- company-location-response [company]
-  (common/location-response ["v1" "companies" (:symbol company)]
+  (common/location-response ["companies" (:symbol company)]
     (company-rep/render-company company) company-rep/media-type))
 
 (defn- unprocessable-reason [reason]
@@ -77,6 +77,6 @@
 ;; ----- Routes -----
 
 (defroutes company-routes
-  (ANY "/v1/companies/:ticker" [ticker] (company ticker))
-  (GET "/v1/companies/" [] (company-list))
-  (GET "/v1/companies" [] (company-list)))
+  (ANY "/companies/:ticker" [ticker] (company ticker))
+  (GET "/companies/" [] (company-list))
+  (GET "/companies" [] (company-list)))

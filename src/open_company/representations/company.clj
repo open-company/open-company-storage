@@ -5,11 +5,11 @@
             [open-company.representations.report :as report-rep]
             [open-company.resources.report :as report]))
 
-(def media-type "application/vnd.open-company.company+json;version=1")
+(def media-type "application/vnd.open-company.company.v1+json")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
 (defun url 
-  ([ticker :guard string?] (str "/v1/companies/" ticker))
+  ([ticker :guard string?] (str "/companies/" ticker))
   ([company :guard map?] (url (:symbol company))))
 
 (defn- self-link [company]
@@ -63,7 +63,7 @@
   (json/generate-string {
     :collection (array-map
       :version common/json-collection-version
-      :href "/v1/companies"
-      :links [(common/self-link (str "/v1/companies") collection-media-type)]
+      :href "/companies"
+      :links [(common/self-link (str "/companies") collection-media-type)]
       :companies (map company-link companies))}
     {:pretty true}))

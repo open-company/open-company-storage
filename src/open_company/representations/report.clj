@@ -2,11 +2,11 @@
   (:require [cheshire.core :as json]
             [open-company.representations.common :as common]))
 
-(def media-type "application/vnd.open-company.report+json;version=1")
+(def media-type "application/vnd.open-company.report.v1+json")
 
 (defn url
   ([report] (url (:symbol report) (:year report) (:period report)))
-  ([ticker year period] (str "/v1/companies/" ticker "/" year "/" period)))
+  ([ticker year period] (str "/companies/" ticker "/reports/" year "/" period)))
 
 (defn- self-link [report]
   (common/self-link (url report) media-type))

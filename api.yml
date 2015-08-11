@@ -15,15 +15,15 @@ info:
   
 # Host, Base Path, Schemes and Content Types 
 host: api.opencompany.io
-basePath: /v1
+basePath: /
 schemes:
   - https
 produces:
-  - application/vnd.open-company.company+json;version=1
-  - application/vnd.open-company.report+json;version=1
+  - application/vnd.open-company.company.v1+json
+  - application/vnd.open-company.report.v1+json
 consumes:
-  - application/vnd.open-company.company+json;version=1
-  - application/vnd.open-company.report+json;version=1
+  - application/vnd.open-company.company.v1+json
+  - application/vnd.open-company.report.v1+json
 
 #
 # Security
