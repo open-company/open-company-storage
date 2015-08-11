@@ -219,7 +219,7 @@ paths:
           
   # Paths for Reports
 
-  /companies/{symbol}/{year}/{period}:
+  /companies/{symbol}/reports/{year}/{period}:
     parameters:
       - $ref: '#/parameters/symbol'
       - $ref: '#/parameters/year'
