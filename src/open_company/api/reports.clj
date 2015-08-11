@@ -8,7 +8,7 @@
 ;; ----- Responses -----
 
 (defn- report-location-response [report]
-  (common/location-response ["v1" "companies" (:symbol report) (:year report) (:period report)]
+  (common/location-response ["companies" (:symbol report) "reports" (:year report) (:period report)]
     (report-rep/render-report report) report-rep/media-type))
 
 (defn- unprocessable-reason [reason]
@@ -61,4 +61,4 @@
 ;; ----- Routes -----
 
 (defroutes report-routes
-  (ANY "/v1/companies/:ticker/:year/:period" [ticker year period] (report ticker year period)))
+  (ANY "/companies/:ticker/reports/:year/:period" [ticker year period] (report ticker year period)))

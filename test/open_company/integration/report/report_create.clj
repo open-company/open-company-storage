@@ -51,7 +51,7 @@
       (let [response (mock/put-report-with-api r/TICKER 2015 "Q2" r/OPEN-2015-Q2)]
         (:status response) => 201
         (mock/response-mime-type response) => (mock/base-mime-type report-rep/media-type)
-        (mock/response-location response) => "/v1/companies/OPEN/2015/Q2"
+        (mock/response-location response) => (report-rep/url r/TICKER 2015 "Q2")
         (mock/json? response) => true
         (hateoas/verify-report-links r/TICKER 2015 "Q2" (:links (mock/body-from-response response))))
       ;; Get the created report and make sure it's right

@@ -220,10 +220,10 @@ Create a company with cURL:
 ```console
 curl -i -X PUT \
 -d '{"name": "Transparency, LLC", "currency": "USD", "web": {"company": "https://opencompany.io"}}' \
---header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company+json;version=1" \
-http://localhost:3000/v1/companies/OPEN
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/OPEN
 ```
 
 List the companies with cURL:
@@ -231,16 +231,16 @@ List the companies with cURL:
 ```console
 curl -i -X GET \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/v1/companies
+http://localhost:3000/companies
 ```
 
 Request the company with cURL:
 
 ```console
 curl -i -X GET \
---header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/v1/companies/OPEN
+http://localhost:3000/companies/OPEN
 ```
 
 Update a company with cURL:
@@ -248,10 +248,10 @@ Update a company with cURL:
 ```console
 curl -i -X PUT \
 -d '{"name": "Transparency, LLC", "currency": "USD", "web": {"about": "https://opencompany.io/about"}}' \
---header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company+json;version=1" \
-http://localhost:3000/v1/companies/OPEN
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/OPEN
 ```
 
 Create a report for the company with cURL:
@@ -259,19 +259,19 @@ Create a report for the company with cURL:
 ```console
 curl -i -X PUT \
 -d '{"headcount": {"founders": 2, "contractors": 1}}' \
---header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept: application/vnd.open-company.report.v1+json" \
 --header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.report+json;version=1" \
-http://localhost:3000/v1/companies/OPEN/2015/Q2
+--header "Content-Type: application/vnd.open-company.report.v1+json" \
+http://localhost:3000/companies/OPEN/reports/2015/Q2
 ```
 
 Request the report with cURL:
 
 ```console
 curl -i -X GET \
---header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept: application/vnd.open-company.report.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/v1/companies/OPEN/2015/Q2
+http://localhost:3000/companies/OPEN/reports/2015/Q2
 ```
 
 Update the report with cURL:
@@ -279,36 +279,36 @@ Update the report with cURL:
 ```console
 curl -i -X PUT \
 -d '{"headcount": {"founders": 3}}' \
---header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept: application/vnd.open-company.report.v1+json" \
 --header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.report+json;version=1" \
-http://localhost:3000/v1/companies/OPEN/2015/Q2
+--header "Content-Type: application/vnd.open-company.report.v1+json" \
+http://localhost:3000/companies/OPEN/reports/2015/Q2
 ```
 
 Delete the report with cURL:
 
 ```console
-curl -i -X DELETE http://localhost:3000/v1/companies/OPEN/2015/Q2
+curl -i -X DELETE http://localhost:3000/companies/OPEN/reports/2015/Q2
 ```
 
 Delete the company with cURL:
 
 ```console
-curl -i -X DELETE http://localhost:3000/v1/companies/OPEN
+curl -i -X DELETE http://localhost:3000/companies/OPEN
 ```
 
 Try (and fail) to get the report and the company with cURL:
 
 ```console
 curl -i -X GET \
---header "Accept: application/vnd.open-company.report+json;version=1" \
+--header "Accept: application/vnd.open-company.report.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/v1/companies/OPEN/2015/Q2
+http://localhost:3000/companies/OPEN/reports/2015/Q2
 
 curl -i -X GET \
---header "Accept: application/vnd.open-company.company+json;version=1" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/v1/companies/OPEN
+http://localhost:3000/companies/OPEN
 ```
 
 
