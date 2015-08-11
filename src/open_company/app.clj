@@ -3,7 +3,6 @@
   (:gen-class)
   (:require
     [liberator.dev :refer (wrap-trace)]
-    [raven-clj.core :as raven]
     [raven-clj.ring :refer (wrap-sentry)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
@@ -50,14 +49,4 @@
       "Ready to serve...\n")))
 
 (defn -main []
-  ;; Temp test sentry config
-  (if c/dsn
-    (raven/capture c/dsn {
-      :message "Test Exception Message"
-      :tags {:version "0.0.1"}
-      :logger "main-logger"
-      :extra {
-        :my-key 1
-        :some-other-value "foo bar"}})
-    (println "DSN not defined: " c/dsn))
   (start c/web-server-port))
