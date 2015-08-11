@@ -34,14 +34,6 @@
     cors-routes))
 
 (defonce app
-  ;; Temp test sentry config
-  (raven/capture c/dsn {
-    :message "Test Exception Message"
-    :tags {:version "0.0.1"}
-    :logger "main-logger"
-    :extra {
-      :my-key 1
-      :some-other-value "foo bar"}})
   ;; Use sentry middleware to report runtime errors if we have a raven DSN.
   (if c/dsn
     (wrap-sentry hot-reload-routes c/dsn)
@@ -58,4 +50,14 @@
       "Ready to serve...\n")))
 
 (defn -main []
+  ;; Temp test sentry config
+  (if c/dsn
+    (raven/capture c/dsn {
+      :message "Test Exception Message"
+      :tags {:version "0.0.1"}
+      :logger "main-logger"
+      :extra {
+        :my-key 1
+        :some-other-value "foo bar"}})
+    (println "DSN not defined: " c/dsn))
   (start c/web-server-port))
