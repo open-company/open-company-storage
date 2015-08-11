@@ -84,17 +84,16 @@
   :allowed-methods [:get]
 
   ;; Get a list of companies
-  :exists? (fn [_] 
-              (when c/dsn
-                (raven/capture c/dsn {
-                  :message "Test Exception Message"
-                  :tags {:version "0.0.1"}
-                  :logger "main-logger"
-                  :extra {
-                    :my-key 1
-                    :some-other-value "foo bar"}}))
-              {:sentry c/dsn})
-  :handle-ok (fn [ctx] (json/generate-string {:collection (array-map :sentry (:sentry ctx))} {:pretty true})))
+  :exists? (fn [_] {:sentry c/dsn})
+  :handle-ok (fn [ctx] 
+                (let [sentry-resp (raven/capture (:sentry ctx) {
+                                :message "Bago test test"
+                                :tags {:version "0.0.1"}
+                                :logger "main-logger"
+                                :extra {
+                                  :my-key 1
+                                  :some-other-value "foo bar"}})]
+                  (json/generate-string {:collection (array-map :sentry (:sentry ctx) :resp sentry-resp)} {:pretty true}))))
 
 ;; ----- Routes -----
 
