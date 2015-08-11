@@ -23,4 +23,4 @@
 
 ;; ----- Sentry config -----
 
-(defonce dsn (or (env :dsn) false))
+(defonce dsn (or (env :open-company-sentry-api) false))
