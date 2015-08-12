@@ -42,7 +42,7 @@
 (company/delete-company "BUFFR")
 
 ;; make a (fake) REST API request
-(api-request :get "/v1/companies/OPEN" {:headers {:Accept (company-rep/media-type)}})
+(api-request :get "/companies/OPEN" {:headers {:Accept (company-rep/media-type)}})
 
 ;; print last exception
 (print-stack-trace *e)

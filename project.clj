@@ -25,7 +25,7 @@
     [rethinkdb "0.10.1"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "0.4.3"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.1.0-alpha2"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.1.0"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
  ]
@@ -50,7 +50,7 @@
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
       ]
       :plugins [
-        [lein-midje "3.2-RC1"] ; Example-based testing https://github.com/marick/lein-midje
+        [lein-midje "3.2-RC4"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
       ]
     }
@@ -105,7 +105,7 @@
   :aliases {
     "build" ["do" "clean," "deps," "compile"] ; clean and build code
     "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
-    "midje" ["with-profile" "qa" "midje"] ; run all tests
+    "midje!" ["with-profile" "qa" "midje"] ; run all tests
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests
     "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
