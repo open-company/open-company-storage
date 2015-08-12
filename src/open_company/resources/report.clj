@@ -88,7 +88,7 @@
   [ticker]
   (vec (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
-      (r/get-all [ticker] {:index "symbol"})
+      (r/get-all [ticker] {:index :symbol})
       (r/with-fields ["year" "period"])
       (r/run conn)))))
 
@@ -97,7 +97,7 @@
   [ticker]
   (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
-      (r/get-all [ticker] {:index "symbol"})
+      (r/get-all [ticker] {:index :symbol})
       (r/count)
       (r/run conn))))
 
