@@ -1,5 +1,6 @@
 (ns open-company.resources.report
-  (:require [defun :refer (defun)]
+  (:require [clojure.string :as s]
+            [defun :refer (defun)]
             [rethinkdb.query :as r]
             [open-company.config :as c]
             [open-company.resources.common :as common]
@@ -53,9 +54,11 @@
 (defn get-report
   "Given the ticker symbol of the company and the year and period of the report,
   or the primary key, retrieve it from the database, or return nil if it doesn't exist."
-  ([ticker year period] (get-report (key-for ticker year period)))
-  ([report-key]
-    (common/read-resource table-name report-key)))
+  ([report-key] (get-report (first (s/split report-key #"-")) report-key))
+  ([ticker report-key]
+    (when (company/get-company ticker)
+      (common/read-resource table-name report-key)))
+  ([ticker year period] (get-report ticker (key-for ticker year period))))
 
 (defun create-report
   "Given the report property map, create the report returning the property map for the resource or `false`.
@@ -88,7 +91,7 @@
   [ticker]
   (vec (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
-      (r/get-all [ticker] {:index "symbol"})
+      (r/get-all [ticker] {:index :symbol})
       (r/with-fields ["year" "period"])
       (r/run conn)))))
 
@@ -97,7 +100,7 @@
   [ticker]
   (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
-      (r/get-all [ticker] {:index "symbol"})
+      (r/get-all [ticker] {:index :symbol})
       (r/count)
       (r/run conn))))
 
