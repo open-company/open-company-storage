@@ -24,7 +24,14 @@
 (defn- report-links [company]
   (let [ticker (:symbol company)]
     (map
-      #(common/link-map "report" common/GET (report-rep/url ticker (:year %) (:period %)) report-rep/media-type)
+      #(common/link-map "report"
+                        common/GET
+                        (report-rep/url ticker (:year %) (:period %))
+                        report-rep/media-type
+                        :year
+                        (:year %)
+                        :period
+                        (:period %))
       (report/list-reports ticker))))
 
 (defn- company-link

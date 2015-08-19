@@ -64,16 +64,25 @@
       (throw (RuntimeException. (str "RethinkDB update failure: " update))))))
 
 (defn delete-resource
-  "Given a table name and a primary key value, delete the resource and return `true`."
-  [table-name primary-key]
-  (let [delete (with-open [conn (apply r/connect c/db-options)]
-                (-> (r/table table-name)
-                (r/get primary-key)
-                (r/delete)
-                (r/run conn)))]
-    (if (= 1 (:deleted delete))
-      true
-      (throw (RuntimeException. (str "RethinkDB delete failure: " delete))))))
+  "Delete the specified resource and return `true`."
+  ([table-name key-name key-value]
+    (let [delete (with-open [conn (apply r/connect c/db-options)]
+                  (-> (r/table table-name)
+                  (r/get-all [key-value] {:index key-name})
+                  (r/delete)
+                  (r/run conn)))]
+      (if (= 0 (:errors delete))
+        true
+        (throw (RuntimeException. (str "RethinkDB delete failure: " delete))))))
+  ([table-name primary-key-value]
+    (let [delete (with-open [conn (apply r/connect c/db-options)]
+                  (-> (r/table table-name)
+                  (r/get primary-key-value)
+                  (r/delete)
+                  (r/run conn)))]
+      (if (= 1 (:deleted delete))
+        true
+        (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))))))
 
 ;; ----- Operations on collections of resources -----
 

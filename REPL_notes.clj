@@ -1,6 +1,7 @@
 ;; productive set of development namespaces (Clojure API)
 (require '[rethinkdb.query :as r])
 (require '[open-company.config :as c])
+(require '[open-company.db.init :as db])
 (require '[open-company.resources.common :as common] :reload)
 (require '[open-company.resources.company :as company] :reload)
 (require '[open-company.resources.report :as report] :reload)
@@ -11,6 +12,9 @@
 (require '[ring.mock.request :refer (request body content-type header)])
 (require '[open-company.lib.rest-api-mock :refer (api-request)] :reload)
 (require '[open-company.app :refer (app)] :reload)
+
+;; Init a DB
+(db/init)
 
 ;; Create a company
 (company/create-company {:symbol "OPEN" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io"}})
@@ -33,6 +37,9 @@
 
 ;; Get a report
 (report/get-report "OPEN" 2015 "Q2")
+
+;; List reports
+(report/list-reports "OPEN")
 
 ;; Delete a report
 (report/delete-report "OPEN" 2015 "Q2")

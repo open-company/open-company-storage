@@ -64,6 +64,7 @@
 (defn delete-company
   "Given the ticker symbol of the company, delete it and all its reports and return `true` on success."
   [ticker]
+  (common/delete-resource :reports :symbol ticker)
   (common/delete-resource table-name ticker))
 
 ;; ----- Collection of companies -----
