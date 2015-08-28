@@ -11,14 +11,15 @@
 
 > -- Dalai Lama
 
-Build your company in the open with transparency for your co-founders, your team, and your investors. Or share your company's journey with everyone, your customers and the rest of the startup community.
+Employees and investors, co-founders and execs, they all want more transparency from their startups, but there's no consensus about what it means to be transparent. OpenCompany is a platform that simplifies how key business information is shared with stakeholders.
 
-[OpenCompany.io](https://opencompany.io) is GitHub for the rest of your company:
+When information about growth, finances, ownership and challenges is shared transparently, it inspires new ideas and new levels of stakeholder engagement. OpenCompany makes it easy for founders to engage with employees and investors, creating a sense of ownership and urgency for everyone.
 
-* **Dashboard** - An easy tool for founders to provide transparency to their teams and beyond.
-* **Founders' Guide** - Tools, best practices and insights from open company founders and their companies.
-* **Open Company Directory** - Founders sharing with their teams and beyond.
-* **Community** - Spread the word and knowledge and inspire more founders to open up.
+[OpenCompany.io](https://opencompany.io) is GitHub for the rest of your company.
+
+To maintain transparency, OpenCompany information is always accessible and easy to find. Being able to search or flip through prior updates empowers everyone. Historical context brings new employees and investors up to speed, refreshes memories, and shows how the company is evolving over time.
+
+Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OpenCompany platform turns transparency into a competitive advantage.
 
 Like the open companies we promote and support, the [OpenCompany.io](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through this platform API.
 
@@ -323,6 +324,10 @@ To run the tests locally:
 ```console
 lein test!
 ```
+
+## Participation
+
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/open-company/open-company-api/blob/mainline/CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 
 ## License
