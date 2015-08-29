@@ -74,9 +74,9 @@
         [lein-ancient "0.6.7"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
-        [lein-cljfmt "0.2.0"] ; Code formatting https://github.com/weavejester/cljfmt
+        [lein-cljfmt "0.3.0"] ; Code formatting https://github.com/weavejester/cljfmt
         [venantius/ultra "0.3.4"] ; Enhancement's to Leiningen's REPL https://github.com/venantius/ultra
-        [venantius/yagni "0.1.1"] ; Dead code finder https://github.com/venantius/yagni
+        [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
       ]  
       ;; REPL config
       :ultra {
