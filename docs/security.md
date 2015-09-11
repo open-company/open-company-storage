@@ -1,5 +1,7 @@
 # OpenCompany Security Design
 
+https://slack.zendesk.com/hc/en-us/articles/201314026-Understanding-roles-permissions-inside-Slack
+
 ## Overview
 
 The security design needs to account for 6 things: Registration, Authentication and Authorization for UI and 
