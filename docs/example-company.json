@@ -1,10 +1,14 @@
 {
   "name" : "Buffer",
+  "slug" : "buffer",
   "currency" : "USD",
   
-  "sections" : ["oc:update", "oc:challenges", "oc:growth", "oc:finances", "oc:ownership", "oc:mission", "oc:values"],
+  "created-at" : "2015-09-07T22:14:24Z",
+  "updated-at" : "2015-09-11T22:14:24Z",
+
+  "sections" : ["update", "challenges", "growth", "finances", "ownership", "mission", "values"],
   
-  "oc:update" : {
+  "update" : {
     "title" : "Founder's Update",
     "body" : "<p>...</p>",
     "updated-at" : "2015-09-14T20:49:19Z",
@@ -17,25 +21,25 @@
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:update",
-        "type" : "application/vnd.open-company.section.oc:update.v1+json"
+        "href" : "/companies/buffer/update",
+        "type" : "application/vnd.open-company.section.update.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:update",
-        "type" : "application/vnd.open-company.section.oc:update.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/update",
+        "type" : "application/vnd.open-company.section.update.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:update",
-        "type" : "application/vnd.open-company.section.oc:update.v1+json"
+        "href" : "/companies/buffer/update",
+        "type" : "application/vnd.open-company.section.update.v1+json"
       }
     ]
   },
 
-  "oc:challenges" : {
+  "challenges" : {
     "title" : "Key Challenges",
     "body" : "<p>...</p>",
     "updated-at": "2015-09-14T20:49:19Z",
@@ -48,25 +52,25 @@
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:challenges",
-        "type" : "application/vnd.open-company.section.oc:challenges.v1+json"
+        "href" : "/companies/buffer/challenges",
+        "type" : "application/vnd.open-company.section.challenges.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:challenges",
-        "type" : "application/vnd.open-company.section.oc:challenges.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/challenges",
+        "type" : "application/vnd.open-company.section.challenges.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:challenges",
-        "type" : "application/vnd.open-company.section.oc:challenges.v1+json"
+        "href" : "/companies/buffer/challenges",
+        "type" : "application/vnd.open-company.section.challenges.v1+json"
       }      
     ]
   },
 
-  "oc:finances" : {
+  "finances" : {
     "data" : [
       {
         "period" : "2015-08",
@@ -153,13 +157,13 @@
         {
           "rel" : "self",
           "method" : "GET",
-          "href" : "/companies/buffer/oc:finances/commentary",
+          "href" : "/companies/buffer/finances/commentary",
           "type" : "application/vnd.open-company.commentary.v1+json"
         },
         {
           "rel" : "update",
-          "method" : "POST",
-          "href" : "/companies/buffer/oc:finances/commentary",
+          "method" : "PUT",
+          "href" : "/companies/buffer/finances/commentary",
           "type" : "application/vnd.open-company.commentary.v1+json"
         }
       ]
@@ -168,25 +172,25 @@
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       }
     ]
   },
   
-  "oc:mission" : {
+  "mission" : {
     "title" : "Mission",
     "body" : "<p>...</p>",
     "updated-at" : "2015-09-14T20:49:19Z",
@@ -199,25 +203,25 @@
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:mission",
-        "type" : "application/vnd.open-company.section.oc:mission.v1+json"
+        "href" : "/companies/buffer/mission",
+        "type" : "application/vnd.open-company.section.mission.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:mission",
-        "type" : "application/vnd.open-company.section.oc:mission.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/mission",
+        "type" : "application/vnd.open-company.section.mission.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:mission",
-        "type" : "application/vnd.open-company.section.oc:mission.v1+json"
+        "href" : "/companies/buffer/mission",
+        "type" : "application/vnd.open-company.section.mission.v1+json"
       }
     ]
   },
 
-  "oc:values" : {
+  "values" : {
     "title" : "Values",
     "body" : "<p>...</p>",
     "updated-at" : "2015-09-14T20:49:19Z",
@@ -230,20 +234,20 @@
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:values",
-        "type" : "application/vnd.open-company.section.oc:values.v1+json"
+        "href" : "/companies/buffer/values",
+        "type" : "application/vnd.open-company.section.values.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:values",
-        "type" : "application/vnd.open-company.section.oc:values.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/values",
+        "type" : "application/vnd.open-company.section.values.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:values",
-        "type" : "application/vnd.open-company.section.oc:values.v1+json"
+        "href" : "/companies/buffer/values",
+        "type" : "application/vnd.open-company.section.values.v1+json"
       }
     ]
   },

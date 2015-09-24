@@ -1,10 +1,14 @@
 {
   "name" : "Buffer",
+  "slug" : "buffer",
   "currency" : "USD",
   
-  "sections" : ["oc:finances"],
+  "created-at" : "2015-09-07T22:14:24Z",
+  "updated-at" : "2015-09-11T22:14:24Z",
+
+  "sections" : ["finances"],
   
-  "oc:finances" : {
+  "finances" : {
     "data" : [
       {
         "period" : "2015-08",
@@ -91,13 +95,13 @@
         {
           "rel" : "self",
           "method" : "GET",
-          "href" : "/companies/buffer/oc:finances/commentary",
+          "href" : "/companies/buffer/finances/commentary",
           "type" : "application/vnd.open-company.commentary.v1+json"
         },
         {
           "rel" : "update",
-          "method" : "POST",
-          "href" : "/companies/buffer/oc:finances/commentary",
+          "method" : "PUT",
+          "href" : "/companies/buffer/finances/commentary",
           "type" : "application/vnd.open-company.commentary.v1+json"
         }
       ]
@@ -106,20 +110,20 @@
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       }
     ]
   },
