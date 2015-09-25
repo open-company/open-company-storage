@@ -31,26 +31,16 @@
 (defn- company-links
   "Add the HATEAOS links to the company"
   [company]
-  (apply array-map (concat (flatten (vec company))
-    [:links (flatten [
+  (assoc company :links (flatten [
       (self-link company)
       (update-link company)
       (partial-update-link company)
-      (delete-link company)])])))
-
-(defn- company-to-json-map [company]
-  ;; Generate JSON from the sorted array map that results from:
-  ;; 1) removing unneeded :id key
-  ;; 2) render timestamps as strings
-  ;; 3) adding the HATEAOS links to the array hash
-  (let [company-props (dissoc company :id)]
-    (-> company-props
-      company-links)))
+      (delete-link company)])))
 
 (defn render-company
   "Create a JSON representation of a company for the REST API"
   [company]
-  (json/generate-string (company-to-json-map company) {:pretty true}))
+  (json/generate-string (company-links company) {:pretty true}))
 
 (defn render-company-list
   "Create a JSON representation of a group of companies for the REST API"
