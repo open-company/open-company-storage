@@ -37,12 +37,25 @@
   ([author sections company] (author-for author sections (commentary-for company) company))
   ;; all done!
   ([_author sections :guard empty? commentary-sections :guard empty? company] company)
-  ;; replace the author in the section commentary and recurse to the next section commentary
+  ;; replace the :author in the section commentary and recurse
   ([author _sections :guard empty? commentary-sections company]
     (author-for author [] (rest commentary-sections) (assoc-in company (flatten [(first commentary-sections) :author]) author)))
-    ;; replace the author in the section and recurse with the next section
+  ;; replace the :author in the section and recurse
   ([author sections commentary-sections company]
     (author-for author (rest sections) commentary-sections (assoc-in company [(keyword (first sections)) :author] author))))
+
+(defun- updated-for
+  "Add or replace the :updated-at for each specified section with the specified timestamp for this revision."
+  ;; determine sections with commentary
+  ([timestamp sections company] (updated-for timestamp sections (commentary-for company) company))
+  ;; all done!
+  ([_timestamp sections :guard empty? commentary-sections :guard empty? company] company)
+  ;; replace the :updated-at in the section commentary and recurse
+  ([timestamp sections :guard empty? commentary-sections company]
+    (updated-for timestamp [] (rest commentary-sections) (assoc-in company (flatten [(first commentary-sections) :updated-at]) timestamp)))
+  ;; replace the :updated-at in the section and recurse
+  ([timestamp sections commentary-sections company]
+    (updated-for timestamp (rest sections) commentary-sections (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
 
 ;; ----- Validations -----
 
@@ -82,10 +95,12 @@
   ([company :guard #(and (:name %) (not (:slug %)))] (create-company (assoc company :slug (slug/slugify (:name company)))))
   ;; potentially a valid company
   ([company] 
-    (let [company-with-sections (sections-for company) ;; add/replace the sections
-          company-with-revision-author (author-for stuart (:sections company-with-sections) company-with-sections)] ;; add/replace the revision author
-      (if (true? (valid-company company-with-revision-author))
-        (common/create-resource table-name company-with-revision-author)
+    (let [company-with-sections (sections-for company) ;; add/replace the :sections
+          company-with-revision-author (author-for stuart (:sections company-with-sections) company-with-sections) ;; add/replace the :author
+          timestamp (common/current-timestamp)
+          company-with-updated-at (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
+      (if (true? (valid-company company-with-updated-at))
+        (common/create-resource table-name company-with-updated-at timestamp)
         false))))
 
 (defn update-company

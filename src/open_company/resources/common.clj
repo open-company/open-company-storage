@@ -19,7 +19,7 @@
 
 (def timestamp-format (format/formatters :date-time-no-ms))
 
-(defn- current-timestamp
+(defn current-timestamp
   "ISO 8601 string timestamp for the current time."
   []
   (format/unparse timestamp-format (time/now)))
@@ -28,9 +28,8 @@
 
 (defn create-resource
   "Create a resource in the DB, returning the property map for the resource."
-  [table-name resource]
-  (let [timestamp (current-timestamp)
-        timed-resource (merge resource {
+  [table-name resource timestamp]
+  (let [timed-resource (merge resource {
           :created-at timestamp
           :updated-at timestamp})
         insert (with-open [conn (apply r/connect c/db-options)]

@@ -173,9 +173,13 @@ Then enter these commands one-by-one, noting the output:
 
 ;; Create some companies
 (company/create-company {
+  :name "Blank Inc."
+  :currency "GBP"})
+
+(company/create-company {
   :name "Transparency, LLC"
   :slug "transparency"
-  :currency "USD"
+  :currency "FKP"
   :finances {
     :data [
       {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
@@ -185,6 +189,10 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company {
   :name "Buffer"
   :currency "USD"
+  :update {
+    :title "Founder's Update"
+    :body "It's all good!"
+  }
   :finances {
     :data [
       {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
@@ -199,6 +207,7 @@ Then enter these commands one-by-one, noting the output:
 (company/list-companies)
 
 ;; Get a company
+(company/get-company "blank-inc")
 (company/get-company "transparency")
 (company/get-company "buffer")
 

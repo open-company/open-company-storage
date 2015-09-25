@@ -25,7 +25,7 @@
 (company/create-company {
   :name "Transparency, LLC"
   :slug "transparency"
-  :currency "USD"
+  :currency "FKP"
   :finances {
     :data [
       {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
@@ -35,6 +35,10 @@
 (company/create-company {
   :name "Buffer"
   :currency "USD"
+  :update {
+    :title "Founder's Update"
+    :body "It's all good!"
+  }
   :finances {
     :data [
       {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
