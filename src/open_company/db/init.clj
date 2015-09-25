@@ -51,9 +51,10 @@
       (when (create-database conn db-name)
         (do
           (print ".")
-          (create-table conn db-name "companies" "symbol") (print ".")
-          (create-table conn db-name "reports" "symbol-year-period") (print ".")
-          (create-index conn "reports" "symbol") (print ".")
+          (create-table conn db-name "companies" "slug") (print ".")
+          (create-table conn db-name "sections" "slug") (print ".")
+          (create-index conn "sections" "slug-section") (print ".")
+          (create-index conn "sections" "slug-section-updated-at") (print ".")
           (println "\nOpen Company: Database initialization complete - " db-name "\n"))))))
 
 (defn -main

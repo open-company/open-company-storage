@@ -1,4 +1,4 @@
-(defproject open-company-api "0.0.1-SNAPSHOT"
+(defproject open-company-api "0.0.2-SNAPSHOT"
   :description "OpenCompany.io Platform API"
   :url "https://opencompany.io/"
   :license {
@@ -48,6 +48,7 @@
       :dependencies [
         [midje "1.8-alpha1"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
+        [juxt/iota "0.2.0"] ; testing helpers https://github.com/juxt/iota
       ]
       :plugins [
         [lein-midje "3.2-RC4"] ; Example-based testing https://github.com/marick/lein-midje

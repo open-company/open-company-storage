@@ -35,21 +35,21 @@
 
 ;; ----- Tests -----
 
-(with-state-changes [(before :facts (company/delete-all-companies!))
-                     (after :facts (company/delete-all-companies!))]
+; (with-state-changes [(before :facts (company/delete-all-companies!))
+;                      (after :facts (company/delete-all-companies!))]
 
-  (facts "about using the REST API to create valid new companies"
+;   (facts "about using the REST API to create valid new companies"
 
-    ;; all good - 201 Created
-    (fact "when the ticker symbol in the body and the URL match"
-      ;; Create the company
-      (let [response (mock/put-company-with-api r/TICKER r/OPEN)]
-        (:status response) => 201
-        (mock/response-mime-type response) => (mock/base-mime-type company-rep/media-type)
-        (mock/response-location response) => (company-rep/url r/TICKER)
-        (mock/json? response) => true
-        (hateoas/verify-company-links r/TICKER (:links (mock/body-from-response response))))
-      ;; Get the created company and make sure it's right
-      (company/get-company r/TICKER) => (contains r/OPEN)
-      ;; Reports are empty?
-      (report/report-count r/TICKER) => 0)))
+;     ;; all good - 201 Created
+;     (fact "when the ticker symbol in the body and the URL match"
+;       ;; Create the company
+;       (let [response (mock/put-company-with-api r/TICKER r/OPEN)]
+;         (:status response) => 201
+;         (mock/response-mime-type response) => (mock/base-mime-type company-rep/media-type)
+;         (mock/response-location response) => (company-rep/url r/TICKER)
+;         (mock/json? response) => true
+;         (hateoas/verify-company-links r/TICKER (:links (mock/body-from-response response))))
+;       ;; Get the created company and make sure it's right
+;       (company/get-company r/TICKER) => (contains r/OPEN)
+;       ;; Reports are empty?
+;       (report/report-count r/TICKER) => 0)))

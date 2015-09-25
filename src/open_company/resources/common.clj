@@ -5,6 +5,9 @@
             [rethinkdb.query :as r]
             [open-company.config :as c]))
 
+(def sections #{"update" "challenges" "growth" "finances" "ownership" "mission" "values"})
+(def commentary-sections #{"growth" "finances"})
+
 ;; ----- Properties common to all resources -----
 
 (def

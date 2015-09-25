@@ -10,11 +10,11 @@
     [compojure.core :refer (defroutes ANY)]
     [open-company.config :as c]
     [open-company.api.companies :refer (company-routes)]
-    [open-company.api.reports :refer (report-routes)]))
+    [open-company.api.sections :refer (section-routes)]))
 
 (defroutes routes
   company-routes
-  report-routes)
+  section-routes)
 
 ;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (defonce trace-app

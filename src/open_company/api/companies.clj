@@ -6,10 +6,10 @@
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
 
-(defun add-ticker
-  "Add the ticker symbol to the company properties if it's missing."
-  ([_ company :guard :symbol] company)
-  ([ticker company] (assoc company :symbol ticker)))
+(defun add-slug
+  "Add the slug to the company properties if it's missing."
+  ([_ company :guard :slug] company)
+  ([slug company] (assoc company :slug slug)))
 
 ;; ----- Responses -----
 
@@ -21,32 +21,32 @@
   (case reason
     :bad-company (common/missing-response)
     :invalid-name (common/unprocessable-entity-response "Company name is required.")
-    :invalid-symbol (common/unprocessable-entity-response "Invalid ticker symbol.")
+    :invalid-slug (common/unprocessable-entity-response "Invalid slug.")
     (common/unprocessable-entity-response "Not processable.")))
 
 ;; ----- Actions -----
 
-(defn- get-company [ticker]
-  (if-let [company (company/get-company ticker)]
+(defn- get-company [slug]
+  (if-let [company (company/get-company slug)]
     {:company company}))
 
-(defn- put-company [ticker company]
-  (let [full-company (assoc company :symbol ticker)
-        company-result (company/put-company ticker full-company)]
+(defn- put-company [slug company]
+  (let [full-company (assoc company :slug slug)
+        company-result (company/put-company slug full-company)]
     {:updated-company company-result}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-(defresource company [ticker]
+(defresource company [slug]
   common/open-company-resource
 
   :available-media-types [company-rep/media-type]
-  :exists? (fn [_] (get-company ticker))
+  :exists? (fn [_] (get-company slug))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
   :processable? (by-method {
     :get true
-    :put (fn [ctx] (common/check-input (company/valid-company ticker (add-ticker ticker (:data ctx)))))})
+    :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))})
 
   ;; Handlers
   :handle-ok (by-method {
@@ -57,11 +57,11 @@
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
 
   ;; Delete a company
-  :delete! (fn [_] (company/delete-company ticker))
+  :delete! (fn [_] (company/delete-company slug))
 
   ;; Create or update a company
-  :new? (by-method {:put (not (company/get-company ticker))})
-  :put! (fn [ctx] (put-company ticker (add-ticker ticker (:data ctx))))
+  :new? (by-method {:put (not (company/get-company slug))})
+  :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx))))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
 (defresource company-list []
@@ -77,6 +77,6 @@
 ;; ----- Routes -----
 
 (defroutes company-routes
-  (ANY "/companies/:ticker" [ticker] (company ticker))
+  (ANY "/companies/:slug" [slug] (company slug))
   (GET "/companies/" [] (company-list))
   (GET "/companies" [] (company-list)))

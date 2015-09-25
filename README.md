@@ -35,7 +35,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8 JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) v2.1.2+ - a multi-modal (document, key/value, relational) open source NoSQL database
+* [RethinkDB](http://rethinkdb.com/) v2.1.4+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -167,20 +167,40 @@ Then enter these commands one-by-one, noting the output:
 ```clojure
 (require '[open-company.db.init :as db])
 (require '[open-company.resources.company :as company])
-(require '[open-company.resources.report :as report])
 
 ;; Create DB and tables and indexes
 (db/init)
 
 ;; Create some companies
-(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io/"}})
-(company/create-company {:symbol "BUFFR" :name "Buffer" :currency "USD" :web {:company "https://open.bufferapp.com/"}})
+(company/create-company {
+  :name "Transparency, LLC"
+  :slug "transparency"
+  :currency "USD"
+  :finances {
+    :data [
+      {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+    ]
+  }})
+
+(company/create-company {
+  :name "Buffer"
+  :currency "USD"
+  :finances {
+    :data [
+      {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
+      {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
+    ]
+    :commentary {
+      :body "Good stuff! Revenue is up."
+    }
+  }})
 
 ;; List the companies
 (company/list-companies)
 
 ;; Get a company
-(company/get-company "OPEN")
+(company/get-company "transparency")
+(company/get-company "buffer")
 
 ;; Update a company
 (company/update-company {:symbol "OPEN" :name "Transparency Inc." :currency "USD" :web {:company "https://opencompany.io/"}})

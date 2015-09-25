@@ -40,21 +40,21 @@
 
 ;; ----- Tests -----
 
-(with-state-changes [(before :facts (do (company/delete-all-companies!)(company/create-company r/OPEN)))
-                     (after :facts (company/delete-all-companies!))]
+; (with-state-changes [(before :facts (do (company/delete-all-companies!)(company/create-company r/OPEN)))
+;                      (after :facts (company/delete-all-companies!))]
 
-  (facts "about using the REST API to create valid new reports"
+;   (facts "about using the REST API to create valid new reports"
 
-    ; all good - 201 Created
-    (fact "when the ticker symbol in the body and the URL match"
-      ;; Create the report
-      (let [response (mock/put-report-with-api r/TICKER 2015 "Q2" r/OPEN-2015-Q2)]
-        (:status response) => 201
-        (mock/response-mime-type response) => (mock/base-mime-type report-rep/media-type)
-        (mock/response-location response) => (report-rep/url r/TICKER 2015 "Q2")
-        (mock/json? response) => true
-        (hateoas/verify-report-links r/TICKER 2015 "Q2" (:links (mock/body-from-response response))))
-      ;; Get the created report and make sure it's right
-      (report/get-report r/TICKER 2015 "Q2") => (contains r/OPEN-2015-Q2)
-      ;; There is 1 report?
-      (report/report-count r/TICKER) => 1)))
+;     ; all good - 201 Created
+;     (fact "when the ticker symbol in the body and the URL match"
+;       ;; Create the report
+;       (let [response (mock/put-report-with-api r/TICKER 2015 "Q2" r/OPEN-2015-Q2)]
+;         (:status response) => 201
+;         (mock/response-mime-type response) => (mock/base-mime-type report-rep/media-type)
+;         (mock/response-location response) => (report-rep/url r/TICKER 2015 "Q2")
+;         (mock/json? response) => true
+;         (hateoas/verify-report-links r/TICKER 2015 "Q2" (:links (mock/body-from-response response))))
+;       ;; Get the created report and make sure it's right
+;       (report/get-report r/TICKER 2015 "Q2") => (contains r/OPEN-2015-Q2)
+;       ;; There is 1 report?
+;       (report/report-count r/TICKER) => 1)))
