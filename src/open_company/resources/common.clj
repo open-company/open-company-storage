@@ -13,7 +13,7 @@
 (def
   reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:created-at :updated-at :links})
+  #{:created-at :updated-at :links :revisions})
 
 ;; ----- ISO 8601 timestamp -----
 
@@ -41,12 +41,20 @@
     (throw (RuntimeException. (str "RethinkDB insert failure: " insert))))))
 
 (defn read-resource
-  "Given a table name and a primary key value, delete the resource, retrieve it from the database, or return nil if it doesn't exist."
-  [table-name primary-key]
-  (with-open [conn (apply r/connect c/db-options)]
-    (-> (r/table table-name)
-      (r/get primary-key)
-      (r/run conn))))
+  "Given a table name and a primary key value, retrieve the resource from the database, or return nil if it doesn't exist."
+  [table-name primary-key-value]
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table table-name)
+        (r/get primary-key-value)
+        (r/run conn))))
+
+(defn read-resources
+  "Given a table name, and an index name and value, retrieve the resources from the database."
+  [table-name index-name index-value]
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table table-name)
+        (r/get-all index-value {:index index-name})
+        (r/run conn))))
 
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
