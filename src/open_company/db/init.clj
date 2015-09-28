@@ -31,12 +31,11 @@
 
 (defn create-index
   "Create RethinkDB table index for the specified field if it doesn't exist."
-  [conn table-name index-name fields]
+  [conn table-name index-name]
   (when (not-any? #(= index-name %) (index-list conn table-name))
     (-> (r/table table-name)
       (r/index-create index-name
-        (r/fn [row]
-          (map #(quote (r/get-field row (keyword %))) fields)))
+        (r/fn [row] [(r/get-field row :company-slug) (r/get-field row :section-name)]))
       (r/run conn))
     (-> (r/table table-name)
       (r/index-wait index-name)
@@ -53,7 +52,7 @@
           (print ".")
           (create-table conn db-name "companies" "slug") (print ".")
           (create-table conn db-name "sections" "id") (print ".")
-          ; (create-index conn "sections" "company-slug" ["company-slug"]) (print ".")
+          ; (create-index conn "sections" "company-slug-section-name") (print ".")
           ; (create-index conn "sections" "company-slug-section-name" ["company-slug" "section-name"]) (print ".")
           ; (create-index conn "sections" "company-slug-section-name-updated-at" ["company-slug" "section-name" "updated-at"]) (print ".")
           (println "\nOpen Company: Database initialization complete - " db-name "\n"))))))

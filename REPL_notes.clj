@@ -49,6 +49,8 @@
     }
   }})
 
+(common/create-resource "sections" {:company-slug "blank-inc" :section-name "finances"} (common/current-timestamp))
+
 ;; List companies
 (company/list-companies)
 

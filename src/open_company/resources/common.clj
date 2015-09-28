@@ -53,7 +53,7 @@
   [table-name index-name index-value]
     (with-open [conn (apply r/connect c/db-options)]
       (-> (r/table table-name)
-        (r/get-all index-value {:index index-name})
+        (r/get-all [index-value] {:index index-name})
         (r/run conn))))
 
 (defn update-resource

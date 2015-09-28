@@ -17,8 +17,9 @@
   "Given the slug of the company, a section name, and a specific updated-at timestamp, retrieve the sections from the database.
   TODO:"
   ([id] (common/read-resource table-name id))
-  ([slug section updated-at]
-    nil))
+  ([slug section-name] (common/read-resources "sections" "company-slug-section-name" [slug section-name]))
+  ([slug section-name updated-at]
+    (common/read-resources "sections" "company-slug-section-name-updated-at" [slug section-name updated-at])))
 
 ;; ----- Collection of sections -----
 
