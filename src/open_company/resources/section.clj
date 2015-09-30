@@ -3,8 +3,7 @@
             [defun :refer (defun)]
             [rethinkdb.query :as r]
             [open-company.config :as c]
-            [open-company.resources.common :as common]
-            [open-company.resources.company :as company]))
+            [open-company.resources.common :as common]))
 
 (def table-name :sections)
 (def primary-key :id)
@@ -16,6 +15,14 @@
 (defn get-section
   "Given the id of a section, retrieve the section from the database or return nil."
   [id] (common/read-resource table-name id))
+
+(defn create-section
+  "Given the company slug, section name, and section property map, create the section,
+  returning the property map for the resource or `false`."
+  [company-slug section-name timestamp section]
+  (let [section-with-company (assoc section :company-slug company-slug)
+        section-with-name (assoc section-with-company :section-name section-name)]
+    (common/create-resource table-name section-with-name timestamp)))
 
 ;; ----- Collection of sections -----
 

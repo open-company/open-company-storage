@@ -49,11 +49,6 @@
     }
   }})
 
-(common/create-resource "sections" {:company-slug "blank-inc" :section-name "finances"} (common/current-timestamp))
-
-(section/list-sections "blank-inc")
-(section/list-sections "blank-inc" "finances")
-
 ;; List companies
 (company/list-companies)
 
@@ -63,29 +58,26 @@
 (company/get-company "buffer")
 
 ;; Update a company
-(company/update-company {:slug "transparency" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io/"}})
 
-;; Create a report
-(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 1}})
 
-;; Update a report
-(report/update-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 2}})
-
-;; Get a section
-(section/get-section "buffer" "finance")
+;; Create a section
+(section/create-section "blank-inc" "finances" (common/current-timestamp) {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
 
 ;; List sections
-(report/list-sections "OPEN")
+(section/list-sections "blank-inc")
 
-;; Delete a report
-(report/delete-report "OPEN" 2015 "Q2")
+(section/list-sections "transparency")
+
+(section/list-sections "buffer" "updates")
+(section/list-sections "buffer" "finances")
 
 ;; Delete a company
 (company/delete-company "transparency")
-(company/delete-company "buffer")
+
+(company/delete-all-companies!)
 
 ;; make a (fake) REST API request
-(api-request :get "/companies/OPEN" {:headers {:Accept (company-rep/media-type)}})
+(api-request :get "/companies/buffer" {:headers {:Accept (company-rep/media-type)}})
 
 ;; print last exception
 (print-stack-trace *e)

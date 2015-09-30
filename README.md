@@ -203,7 +203,7 @@ Then enter these commands one-by-one, noting the output:
     }
   }})
 
-;; List the companies
+;; List companies
 (company/list-companies)
 
 ;; Get a company
@@ -212,20 +212,21 @@ Then enter these commands one-by-one, noting the output:
 (company/get-company "buffer")
 
 ;; Update a company
-(company/update-company {:symbol "OPEN" :name "Transparency Inc." :currency "USD" :web {:company "https://opencompany.io/"}})
 
-;; Create some reports
-(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 1}})
-(report/create-report {:symbol "BUFFR" :year 2015 :period "M6" :finances {:cash 2578881 :revenue 550529}})
 
-;; List reports
-(report/list-reports "OPEN")
+;; Create a section
+(section/create-section "blank-inc" "finances" (common/current-timestamp) {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
 
-;; Get a report
-(report/get-report "OPEN" 2015 "Q2")
+;; List sections
+(section/list-sections "blank-inc")
 
-;; Update a report
-(report/update-report {:symbol "BUFFR" :year 2015 :period "M6" :finances {:cash 2578881 :revenue 550529} :headcount {:comment "We’re hiring for 14 (!) different positions"}})
+(section/list-sections "transparency")
+
+(section/list-sections "buffer" "updates")
+(section/list-sections "buffer" "finances")
+
+;; Delete a company
+(company/delete-company "transparency")
 
 ;; Cleanup
 (company/delete-all-companies!)

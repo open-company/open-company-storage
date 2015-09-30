@@ -4,7 +4,8 @@
             [rethinkdb.query :as r]
             [open-company.lib.slugify :as slug]
             [open-company.config :as c]
-            [open-company.resources.common :as common]))
+            [open-company.resources.common :as common]
+            [open-company.resources.section :as section]))
 
 (def table-name :companies)
 (def primary-key :slug)
@@ -85,7 +86,7 @@
   (common/read-resource table-name slug))
 
 (defun create-company
-  "Given the company property map, create the company returning the property map for the resource or `false`.
+  "Given the company property map, create the company, returning the property map for the resource or `false`.
   If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword.
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?"
@@ -94,13 +95,18 @@
   ;; missing a slug, create it from the name
   ([company :guard #(and (:name %) (not (:slug %)))] (create-company (assoc company :slug (slug/slugify (:name company)))))
   ;; potentially a valid company
-  ([company] 
-    (let [company-with-sections (sections-for company) ;; add/replace the :sections
+  ([company]
+    (let [company-with-sections (sections-for company) ;; add/replace the :sections property
           company-with-revision-author (author-for stuart (:sections company-with-sections) company-with-sections) ;; add/replace the :author
           timestamp (common/current-timestamp)
-          company-with-updated-at (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
-      (if (true? (valid-company company-with-updated-at))
-        (common/create-resource table-name company-with-updated-at timestamp)
+          final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
+      (if (true? (valid-company final-company))
+        (do
+          ;; create the sections
+          (doseq [section-name (:sections final-company)]
+            (section/create-section (:slug company) section-name timestamp (get final-company (keyword section-name))))
+          ;; create the company
+          (common/create-resource table-name final-company timestamp))
         false))))
 
 (defn update-company
@@ -121,7 +127,7 @@
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."
   [slug]
-  (common/delete-resource :sections :slug slug)
+  (common/delete-resource section/table-name :company-slug slug)
   (common/delete-resource table-name slug))
 
 ;; ----- Collection of companies -----
@@ -139,5 +145,5 @@
   "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."
   []
   ;; Delete all reports and all companies
-  (common/delete-all-resources! "sections")
+  (common/delete-all-resources! section/table-name)
   (common/delete-all-resources! table-name))
