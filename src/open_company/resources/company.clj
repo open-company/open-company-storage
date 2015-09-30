@@ -4,18 +4,12 @@
             [rethinkdb.query :as r]
             [open-company.lib.slugify :as slug]
             [open-company.config :as c]
-            [open-company.resources.common :as common]
-            [open-company.resources.section :as section]))
+            [open-company.resources.common :as common]))
 
-(def table-name :companies)
+;; ----- RethinkDB metadata -----
+
+(def table-name common/company-table-name)
 (def primary-key :slug)
-
-(def stuart ; temporary hard-coded author
-  {
-    :name "Stuart Levinson"
-    :slack_id "U06SQLDFT"
-    :image "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-  })
 
 ;; ----- Utility functions -----
 
@@ -97,14 +91,17 @@
   ;; potentially a valid company
   ([company]
     (let [company-with-sections (sections-for company) ;; add/replace the :sections property
-          company-with-revision-author (author-for stuart (:sections company-with-sections) company-with-sections) ;; add/replace the :author
+          company-with-revision-author (author-for common/stuart (:sections company-with-sections) company-with-sections) ;; add/replace the :author
           timestamp (common/current-timestamp)
           final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
       (if (true? (valid-company final-company))
         (do
           ;; create the sections
           (doseq [section-name (:sections final-company)]
-            (section/create-section (:slug company) section-name timestamp (get final-company (keyword section-name))))
+            (let [section (get final-company (keyword section-name))
+                  section-with-company (assoc section :company-slug (:slug final-company))
+                  final-section (assoc section-with-company :section-name section-name)]
+              (common/create-resource common/section-table-name final-section timestamp)))
           ;; create the company
           (common/create-resource table-name final-company timestamp))
         false))))
@@ -127,7 +124,7 @@
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."
   [slug]
-  (common/delete-resource section/table-name :company-slug slug)
+  (common/delete-resource common/section-table-name :company-slug slug)
   (common/delete-resource table-name slug))
 
 ;; ----- Collection of companies -----
@@ -145,5 +142,5 @@
   "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."
   []
   ;; Delete all reports and all companies
-  (common/delete-all-resources! section/table-name)
+  (common/delete-all-resources! common/section-table-name)
   (common/delete-all-resources! table-name))

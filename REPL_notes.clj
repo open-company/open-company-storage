@@ -60,8 +60,8 @@
 ;; Update a company
 
 
-;; Create a section
-(section/create-section "blank-inc" "finances" (common/current-timestamp) {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
+;; Create/update a section
+(section/update-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
 
 ;; List sections
 (section/list-sections "blank-inc")

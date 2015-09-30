@@ -5,6 +5,20 @@
             [rethinkdb.query :as r]
             [open-company.config :as c]))
 
+(def stuart ; temporary hard-coded author
+  {
+    :name "Stuart Levinson"
+    :slack_id "U06SQLDFT"
+    :image "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
+  })
+
+;; ----- RethinkDB metadata -----
+
+(def company-table-name "companies")
+(def section-table-name "sections")
+
+;; ----- Section definitions -----
+
 (def sections #{"update" "challenges" "growth" "finances" "ownership" "mission" "values"})
 (def commentary-sections #{"growth" "finances"})
 

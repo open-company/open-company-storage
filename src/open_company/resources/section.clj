@@ -3,12 +3,26 @@
             [defun :refer (defun)]
             [rethinkdb.query :as r]
             [open-company.config :as c]
-            [open-company.resources.common :as common]))
+            [open-company.resources.common :as common]
+            [open-company.resources.company :as company]))
 
-(def table-name :sections)
+;; ----- RethinkDB metadata -----
+
+(def table-name common/section-table-name)
 (def primary-key :id)
 
 ;; ----- Validations -----
+
+(defun valid-section
+  "
+  Validate the company, and section name of the section
+  returning `:bad-company`, `:bad-section-name` respectively.
+  
+  TODO: Use prismatic schema to validate section properties.
+  "
+  ([section :guard #(not (company/get-company (:company-slug %)))] :bad-company)
+  ([section :guard #(not (common/sections (:section-name %)))] :bad-section-name)
+  ([_] true))
 
 ;; ----- Section CRUD -----
 
@@ -16,13 +30,28 @@
   "Given the id of a section, retrieve the section from the database or return nil."
   [id] (common/read-resource table-name id))
 
-(defn create-section
-  "Given the company slug, section name, and section property map, create the section,
-  returning the property map for the resource or `false`."
-  [company-slug section-name timestamp section]
-  (let [section-with-company (assoc section :company-slug company-slug)
-        section-with-name (assoc section-with-company :section-name section-name)]
-    (common/create-resource table-name section-with-name timestamp)))
+(defun update-section
+  "
+  Given the company slug, section name, and section property map, create a new section revision,
+  updating the company with a new revision and  returning the property map for the resource or `false`.
+  
+  If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
+  
+  TODO: author is hard-coded, how will this be passed in from API's auth?
+  TODO: what to use for author when using Clojure API?
+  "
+  ([company-slug section-name section]
+    (update-section (-> section
+      (assoc :company-slug company-slug)
+      (assoc :section-name section-name))))
+  ([section :guard #(not (true? (valid-section %)))] false)
+  ([section]
+    (let [timestamp (common/current-timestamp)]
+      ;; create the new section revision
+      (common/create-resource common/section-table-name section timestamp))
+      ;; update the company
+
+      ))
 
 ;; ----- Collection of sections -----
 
