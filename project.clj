@@ -22,17 +22,17 @@
     [http-kit "2.1.19"] ; Web server http://http-kit.org/
     [compojure "1.4.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.13"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
-    [rethinkdb "0.10.1"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    [rethinkdb "0.11.0-SNAPSHOT"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.0.1"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.1"] ; Get environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.1.2"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.1.4"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
  ]
 
   ;; Production plugins
   :plugins [
-    [lein-ring "0.9.6"] ; Common ring tasks https://github.com/weavejester/lein-ring
+    [lein-ring "0.9.7"] ; Common ring tasks https://github.com/weavejester/lein-ring
     [lein-environ "1.0.1"] ; Get environment settings from different sources https://github.com/weavejester/environ
   ]
 
