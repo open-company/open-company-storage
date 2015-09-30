@@ -1,8 +1,8 @@
 ;; productive set of development namespaces (Clojure API)
 (require '[rethinkdb.query :as r])
 (require '[open-company.config :as c])
-(require '[open-company.db.init :as db])
-(require '[open-company.lib.slugify :as slug])
+(require '[open-company.db.init :as db] :reload)
+(require '[open-company.lib.slugify :as slug] :reload)
 (require '[open-company.resources.common :as common] :reload)
 (require '[open-company.resources.company :as company] :reload)
 (require '[open-company.resources.section :as section] :reload)
@@ -50,6 +50,9 @@
   }})
 
 (common/create-resource "sections" {:company-slug "blank-inc" :section-name "finances"} (common/current-timestamp))
+
+(section/list-sections "blank-inc")
+(section/list-sections "blank-inc" "finances")
 
 ;; List companies
 (company/list-companies)

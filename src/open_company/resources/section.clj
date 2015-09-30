@@ -6,56 +6,28 @@
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]))
 
-(def ^:private table-name :sections)
-(def ^:private primary-key :id)
+(def table-name :sections)
+(def primary-key :id)
 
 ;; ----- Validations -----
 
 ;; ----- Section CRUD -----
 
 (defn get-section
-  "Given the slug of the company, a section name, and a specific updated-at timestamp, retrieve the sections from the database.
-  TODO:"
-  ([id] (common/read-resource table-name id))
-  ([slug section-name] (common/read-resources "sections" "company-slug-section-name" [slug section-name]))
-  ([slug section-name updated-at]
-    (common/read-resources "sections" "company-slug-section-name-updated-at" [slug section-name updated-at])))
+  "Given the id of a section, retrieve the section from the database or return nil."
+  [id] (common/read-resource table-name id))
 
 ;; ----- Collection of sections -----
 
 (defn list-sections
-  "Given the slug of the company, a section name, and an optional since date,
-  return a sequence of section hashes with `:author` and `:updated-at`, ordered descending by update date."
+  "Given the slug of the company, an optional section name, and an optional specific updated-at timestamp,
+  retrieve the sections from the database."
+  ([company-slug] (common/read-resources table-name "company-slug" company-slug))
   ([company-slug section-name]
-    (vec (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table table-name)
-        (r/get-all [[company-slug section-name]] {:index :company-slug-section-name})
-        (r/with-fields ["updated-at" "author"])
-        (r/run conn)))))
-  ([slug section-name since] nil))
-
-(defn section-revision-count
-  "Given slug of a company, and an optional section name, return how many section revisions exist for the section."
-  ([company-slug]
-    (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table table-name)
-        (r/get-all [company-slug] {:index :company-slug})
-        (r/count)
-        (r/run conn))))
-  ([company-slug section-name]
-    (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table table-name)
-        (r/get-all [(s/join [company-slug section-name] "-")] {:index :company-slug-section-name})
-        (r/count)
-        (r/run conn)))))
+    (common/read-resources table-name "company-slug-section-name" [company-slug section-name]))
+  ([slug section-name updated-at]
+    (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at])))
 
 (defn delete-all-sections!
   "Use with caution! Failure can result in partial deletes of just some sections. Returns `true` if successful."
-  ([]
-    (common/delete-all-resources! table-name))
-  ([company-slug]
-    )
-  ([company-slug section-name]
-    )
-  ([company-slug section-name since]
-    ))
+  [] (common/delete-all-resources! table-name))

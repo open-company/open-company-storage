@@ -6,8 +6,8 @@
             [open-company.config :as c]
             [open-company.resources.common :as common]))
 
-(def ^:private table-name :companies)
-(def ^:private primary-key :slug)
+(def table-name :companies)
+(def primary-key :slug)
 
 (def stuart ; temporary hard-coded author
   {
