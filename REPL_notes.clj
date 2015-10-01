@@ -27,6 +27,7 @@
   :slug "transparency"
   :currency "FKP"
   :finances {
+    :title "Finances"
     :data [
       {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
     ]
@@ -40,6 +41,7 @@
     :body "It's all good!"
   }
   :finances {
+    :title "Finances"
     :data [
       {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
       {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}

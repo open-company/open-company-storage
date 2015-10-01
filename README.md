@@ -167,6 +167,7 @@ Then enter these commands one-by-one, noting the output:
 ```clojure
 (require '[open-company.db.init :as db])
 (require '[open-company.resources.company :as company])
+(require '[open-company.resources.section :as section])
 
 ;; Create DB and tables and indexes
 (db/init)
@@ -181,27 +182,29 @@ Then enter these commands one-by-one, noting the output:
   :slug "transparency"
   :currency "FKP"
   :finances {
+    :title "Finances"
     :data [
       {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
     ]
   }})
 
-(company/create-company {
-  :name "Buffer"
-  :currency "USD"
-  :update {
-    :title "Founder's Update"
-    :body "It's all good!"
-  }
-  :finances {
-    :data [
-      {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
-      {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
-    ]
-    :commentary {
-      :body "Good stuff! Revenue is up."
+  (company/create-company {
+    :name "Buffer"
+    :currency "USD"
+    :update {
+      :title "Founder's Update"
+      :body "It's all good!"
     }
-  }})
+    :finances {
+      :title "Finances"
+      :data [
+        {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
+        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
+      ]
+      :commentary {
+        :body "Good stuff! Revenue is up."
+      }
+    }})
 
 ;; List companies
 (company/list-companies)

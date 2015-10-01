@@ -107,8 +107,12 @@
         false))))
 
 (defn update-company
-  "Given an updated company property map, update the company and return `true` on success.
-  TODO: handle case of slug change."
+  "
+  Given an updated company property map, update the company and return `true` on success.
+  
+  TODO: company :sections update if section is being added
+  TODO: handle case of slug change.
+  "
   [company]
   (if-let [original-company (get-company (company primary-key))]
     (common/update-resource table-name primary-key original-company company)))

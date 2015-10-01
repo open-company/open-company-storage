@@ -33,25 +33,33 @@
 (defun update-section
   "
   Given the company slug, section name, and section property map, create a new section revision,
-  updating the company with a new revision and  returning the property map for the resource or `false`.
+  updating the company with a new revision and returning the property map for the resource or `false`.
   
   If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
   
+  TODO: :author and :updated-at for commentary if it's changed
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?
   "
+  ([company-slug section-name section :guard #(not (true? (valid-section %)))] false)
+  ([company-slug section-name :guard #(not (keyword? %)) section]
+    (update-section company-slug (keyword section-name) section))
   ([company-slug section-name section]
-    (update-section (-> section
-      (assoc :company-slug company-slug)
-      (assoc :section-name section-name))))
-  ([section :guard #(not (true? (valid-section %)))] false)
-  ([section]
-    (let [timestamp (common/current-timestamp)]
-      ;; create the new section revision
-      (common/create-resource common/section-table-name section timestamp))
+    (let [timestamp (common/current-timestamp)
+          original-company (company/get-company company-slug)
+          updated-section (-> section
+            (dissoc :id)
+            (assoc :company-slug company-slug)
+            (assoc :section-name section-name)
+            (assoc :author common/stuart)
+            (assoc :updated-at timestamp))
+          updated-company (assoc original-company section-name (-> updated-section
+            (dissoc :company-slug)
+            (dissoc :section-name)))]
       ;; update the company
-
-      ))
+      (company/update-company updated-company)
+      ;; create the new section revision
+      (common/create-resource table-name updated-section timestamp))))
 
 ;; ----- Collection of sections -----
 

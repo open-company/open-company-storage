@@ -73,11 +73,12 @@
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
   update a resource in the DB, returning the property map for the resource."
-  [table-name primary-key-name original-resource new-resource]
-  (let [timestamp (current-timestamp)
-        timed-resource (merge new-resource {
-          :created-at (:created-at original-resource)
-          :updated-at timestamp})
+  ([table-name primary-key-name original-resource new-resource] 
+    (update-resource table-name primary-key-name original-resource new-resource (current-timestamp)))
+  ([table-name primary-key-name original-resource new-resource timestamp]
+    (let [timed-resource (merge new-resource {
+            :created-at (:created-at original-resource)
+            :updated-at timestamp})
         update (with-open [conn (apply r/connect c/db-options)]
                 (-> (r/table table-name)
                 (r/get (original-resource primary-key-name))
@@ -85,7 +86,7 @@
                 (r/run conn)))]
     (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
       timed-resource
-      (throw (RuntimeException. (str "RethinkDB update failure: " update))))))
+      (throw (RuntimeException. (str "RethinkDB update failure: " update)))))))
 
 (defn delete-resource
   "Delete the specified resource and return `true`."
