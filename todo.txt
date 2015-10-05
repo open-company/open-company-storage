@@ -1,0 +1,10 @@
+Section GET retrieval
+  Section routing
+  Section representation
+Section PUT
+Section PATCH
+
+Fix startup issue w/ existing DB
+Output DB version in startup message
+
+Audit TODOS

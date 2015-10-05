@@ -64,8 +64,12 @@
 ;; ----- Collection of sections -----
 
 (defn list-sections
-  "Given the slug of the company, an optional section name, and an optional specific updated-at timestamp,
-  retrieve the sections from the database."
+  "
+  Given the slug of the company, an optional section name, and an optional specific updated-at timestamp,
+  retrieve the sections from the database.
+
+  TODO: order by :updated-at
+  "
   ([company-slug] (common/read-resources table-name "company-slug" company-slug))
   ([company-slug section-name]
     (common/read-resources table-name "company-slug-section-name" [company-slug section-name]))
