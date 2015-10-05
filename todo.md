@@ -1,6 +1,5 @@
+Section representation
 Section GET retrieval
-  Section routing
-  Section representation
 
 Section PUT
 Section PATCH

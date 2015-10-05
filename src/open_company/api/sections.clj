@@ -1,5 +1,5 @@
 (ns open-company.api.sections
-  (:require [compojure.core :refer (routes make-route ANY)]
+  (:require [compojure.core :refer (routes ANY)]
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
@@ -19,11 +19,6 @@
 
 ;; ----- Routes -----
 
-; (defroutes section-routes
-  ; (ANY (str "/companies/:company-slug/:" section-name) [:company-slug :section-name]
-  ;   (section company-slug section-name)))
 (def section-routes
-  ;; https://www.reddit.com/r/Clojure/comments/2rs3ye/problem_defining_routes_dynamically_with_compojure/
-  (apply routes
-    (map (fn [section-name] (make-route :get (str "/companies/:company-slug/:" section-name)
-      section)) (common-res/sections))))
+  (apply routes 
+    (map #(ANY (str "/companies/:company-slug/" %) [company-slug] (section company-slug %)) common-res/sections)))
