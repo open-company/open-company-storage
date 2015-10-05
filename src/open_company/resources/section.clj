@@ -18,6 +18,7 @@
   Validate the company, and section name of the section
   returning `:bad-company`, `:bad-section-name` respectively.
   
+  TODO: take company slug and section name separately and validate they match
   TODO: Use prismatic schema to validate section properties.
   "
   ([section :guard #(and (not (:company-slug %)) (not (company/get-company (:company-slug %))))] :bad-company)
