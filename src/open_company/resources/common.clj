@@ -38,6 +38,13 @@
   []
   (format/unparse timestamp-format (time/now)))
 
+;; ----- Utility functions -----
+
+(defn updated-at-order
+  "Return items in a sequence sorted by their :updated-at key."
+  [coll]
+  (sort #(compare (:updated-at %2) (:updated-at %1)) coll))
+
 ;; ----- Resource CRUD funcitons -----
 
 (defn create-resource

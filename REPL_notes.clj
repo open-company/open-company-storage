@@ -65,6 +65,8 @@
 ;; Create/update a section
 (section/update-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
 
+(section/update-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
+
 ;; List sections
 (section/list-sections "blank-inc")
 

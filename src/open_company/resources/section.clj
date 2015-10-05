@@ -20,7 +20,7 @@
   
   TODO: Use prismatic schema to validate section properties.
   "
-  ([section :guard #(not (company/get-company (:company-slug %)))] :bad-company)
+  ([section :guard #(and (not (:company-slug %)) (not (company/get-company (:company-slug %))))] :bad-company)
   ([section :guard #(not (common/sections (:section-name %)))] :bad-section-name)
   ([_] true))
 
@@ -41,7 +41,6 @@
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?
   "
-  ([company-slug section-name section :guard #(not (true? (valid-section %)))] false)
   ([company-slug section-name :guard #(not (keyword? %)) section]
     (update-section company-slug (keyword section-name) section))
   ([company-slug section-name section]
@@ -56,25 +55,25 @@
           updated-company (assoc original-company section-name (-> updated-section
             (dissoc :company-slug)
             (dissoc :section-name)))]
-      ;; update the company
-      (company/update-company updated-company)
-      ;; create the new section revision
-      (common/create-resource table-name updated-section timestamp))))
+      (if (true? (valid-section updated-section))
+        (do
+          ;; update the company
+          (company/update-company updated-company)
+          ;; create the new section revision
+          (common/create-resource table-name updated-section timestamp))
+        false))))
 
 ;; ----- Collection of sections -----
 
 (defn list-sections
-  "
-  Given the slug of the company, an optional section name, and an optional specific updated-at timestamp,
-  retrieve the sections from the database.
-
-  TODO: order by :updated-at
-  "
-  ([company-slug] (common/read-resources table-name "company-slug" company-slug))
+  "Given the slug of the company, an optional section name, and an optional specific updated-at timestamp,
+  retrieve the sections from the database."
+  ([company-slug] 
+    (common/updated-at-order (common/read-resources table-name "company-slug" company-slug)))
   ([company-slug section-name]
-    (common/read-resources table-name "company-slug-section-name" [company-slug section-name]))
+    (common/updated-at-order (common/read-resources table-name "company-slug-section-name" [company-slug section-name])))
   ([slug section-name updated-at]
-    (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at])))
+    (common/updated-at-order (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
 
 (defn delete-all-sections!
   "Use with caution! Failure can result in partial deletes of just some sections. Returns `true` if successful."
