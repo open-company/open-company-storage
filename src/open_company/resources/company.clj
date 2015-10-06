@@ -143,6 +143,12 @@
   (common/delete-resource common/section-table-name :company-slug slug)
   (common/delete-resource table-name slug))
 
+(defn list-revisions
+  "Given the slug of the company retrieve the timestamps of the revisions from the database."
+  [slug]
+  (common/updated-at-order
+    (common/read-resources common/section-table-name "company-slug" slug [:updated-at :author])))
+
 ;; ----- Collection of companies -----
 
 (defn list-companies

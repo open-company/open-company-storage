@@ -90,8 +90,7 @@
   (common/updated-at-order (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
 
 (defn list-revisions
-  "Given the slug of the company, a section name, and an optional specific updated-at timestamp,
-  retrieve the timestamps of the sections from the database."
+  "Given the slug of the company, and a section name retrieve the timestamps of the section revisions from the database."
   [company-slug section-name]
   (common/updated-at-order
     (common/read-resources table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author])))
