@@ -33,14 +33,13 @@
       (update-link company-slug section-name)
       (partial-update-link company-slug section-name)]))))
 
-(defn- revision-links
+(defn revision-links
   "Add the HATEAOS revision links to the section"
-  [section]
-  (let [company-slug (:company-slug section)
-        section-name (:section-name section)
-        revisions (section/list-revisions company-slug section-name)]
-    (assoc section :revisions (flatten
-      (map #(revision-link company-slug section-name (:updated-at %) (:author %)) revisions)))))
+  ([section] (revision-links (:company-slug section) (:section-name section) section))
+  ([company-slug section-name section]
+  (assoc section :revisions (flatten
+    (map #(revision-link company-slug section-name (:updated-at %) (:author %))
+      (section/list-revisions company-slug (name section-name)))))))
 
 (defn- clean
   "Remove properties of the section that aren't needed in the REST API representation."

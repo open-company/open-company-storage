@@ -1,7 +1,8 @@
 (ns open-company.representations.company
-  (:require [defun :refer (defun)]
+  (:require [defun :refer (defun defun-)]
             [cheshire.core :as json]
             [open-company.representations.common :as common]
+            [open-company.representations.section :as section-rep]
             [open-company.resources.company :as company]))
 
 (def media-type "application/vnd.open-company.company.v1+json")
@@ -42,8 +43,19 @@
       (partial-update-link company)
       (delete-link company)])))
 
+(defun- section-revision-links
+  "Add the HATEOS revision links to each section"
+  ([company] (section-revision-links company (:sections company)))
+  ([company _sections :guard empty?] company)
+  ([company sections]
+    (let [company-slug (:slug company)
+          section-name (keyword (first sections))
+          section (company section-name)]
+      (recur (assoc company section-name (section-rep/revision-links company-slug section-name section))
+        (rest sections)))))
+
 (defn- revision-links
-  "Add the HATEAOS revision links to the section"
+  "Add the HATEAOS revision links to the company"
   [company]
   (let [company-slug (:slug company)
         revisions (company/list-revisions company-slug)]
@@ -55,6 +67,7 @@
   [company]
   (-> company
     (revision-links)
+    (section-revision-links)
     (company-links)
     (json/generate-string {:pretty true})))
 
