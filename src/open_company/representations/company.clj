@@ -26,7 +26,7 @@
   (common/delete-link (url company)))
 
 (defn- revision-link [company updated-at author]
-  (common/revision-link (url company updated-at) author media-type))
+  (common/revision-link (url company updated-at) author updated-at media-type))
 
 (defn- company-link
   "Add just a single self HATEAOS link to the company"

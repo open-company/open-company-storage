@@ -21,7 +21,7 @@
   (common/partial-update-link (url company-slug section-name) media-type))
 
 (defn- revision-link [company-slug section-name updated-at author]
-  (common/revision-link (url company-slug section-name updated-at) author media-type))
+  (common/revision-link (url company-slug section-name updated-at) author updated-at media-type))
 
 (defn section-links
   "Add the HATEAOS links to the section"
