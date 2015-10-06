@@ -68,11 +68,9 @@
 (section/update-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
 
 ;; List sections
-(section/list-sections "blank-inc")
+(section/list-sections "transparency" "update")
 
-(section/list-sections "transparency")
-
-(section/list-sections "buffer" "updates")
+(section/list-sections "buffer" "update")
 (section/list-sections "buffer" "finances")
 
 ;; Delete a company

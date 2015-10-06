@@ -23,3 +23,6 @@
 
 (defn delete-link [url]
   (array-map :rel "delete" :method DELETE :href url))
+
+(defn revision-link [url author media-type]
+  (assoc (link-map "revision" GET url media-type) :author author))

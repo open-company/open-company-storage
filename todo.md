@@ -1,16 +1,18 @@
-Section PATCH
-
-Sort out section mime types (specific per section?)
+GET specific section as-of
+Revisions in company representation
 
 Commentary PUT
 
-Revisions in company representation
-Revisions in section representation
-
-Update README cURL section
-
 Fix startup issue w/ existing DB
 Output DB version in startup message
+
+Sort out section mime types (specific per section?)
+
+Authorship
+
+Collapse near (in time) edits by the same author
+
+Update README cURLs
 
 Prismatic schema validation
   company
@@ -20,3 +22,5 @@ Prismatic schema validation
 Code cleanup with Specter
 
 Audit TODOS
+
+Tests

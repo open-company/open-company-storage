@@ -56,38 +56,45 @@
   TODO: what to use for author when using Clojure API?
   "
   ([company-slug section-name :guard #(not (keyword? %)) section]
-    (update-section company-slug (keyword section-name) section))
+  (update-section company-slug (keyword section-name) section))
+
   ([company-slug section-name section]
-    (let [timestamp (common/current-timestamp)
-          original-company (company/get-company company-slug)
-          clean-section (clean section)
-          updated-section (-> clean-section
-            (assoc :company-slug company-slug)
-            (assoc :section-name section-name)
-            (assoc :author common/stuart)
-            (assoc :updated-at timestamp))
-          updated-company (assoc original-company section-name (-> updated-section
-            (dissoc :company-slug)
-            (dissoc :section-name)))]
-      (if (true? (valid-section company-slug section-name updated-section))
-        (do
-          ;; update the company
-          (company/update-company company-slug updated-company)
-          ;; create the new section revision
-          (common/create-resource table-name updated-section timestamp))
-        false))))
+  (let [timestamp (common/current-timestamp)
+        original-company (company/get-company company-slug)
+        clean-section (clean section)
+        updated-section (-> clean-section
+          (assoc :company-slug company-slug)
+          (assoc :section-name section-name)
+          (assoc :author common/stuart)
+          (assoc :updated-at timestamp))
+        updated-company (assoc original-company section-name (-> updated-section
+          (dissoc :company-slug)
+          (dissoc :section-name)))]
+    (if (true? (valid-section company-slug section-name updated-section))
+      (do
+        ;; update the company
+        (company/update-company company-slug updated-company)
+        ;; create the new section revision
+        (common/create-resource table-name updated-section timestamp))
+      false))))
 
 ;; ----- Collection of sections -----
 
 (defn list-sections
-  "Given the slug of the company, an optional section name, and an optional specific updated-at timestamp,
+  "Given the slug of the company a section name, and an optional specific updated-at timestamp,
   retrieve the sections from the database."
-  ([company-slug] 
-    (common/updated-at-order (common/read-resources table-name "company-slug" company-slug)))
   ([company-slug section-name]
-    (common/updated-at-order (common/read-resources table-name "company-slug-section-name" [company-slug section-name])))
+  (common/updated-at-order (common/read-resources table-name "company-slug-section-name" [company-slug section-name])))
+  
   ([slug section-name updated-at]
-    (common/updated-at-order (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
+  (common/updated-at-order (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
+
+(defn list-revisions
+  "Given the slug of the company, a section name, and an optional specific updated-at timestamp,
+  retrieve the timestamps of the sections from the database."
+  [company-slug section-name]
+  (common/updated-at-order
+    (common/read-resources table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author])))
 
 (defn delete-all-sections!
   "Use with caution! Failure can result in partial deletes of just some sections. Returns `true` if successful."

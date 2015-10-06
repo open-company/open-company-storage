@@ -74,12 +74,18 @@
         (r/run conn))))
 
 (defn read-resources
-  "Given a table name, and an index name and value, retrieve the resources from the database."
-  [table-name index-name index-value]
+  "Given a table name, and an index name and value, and an optional set of fields, retrieve the resources from the database."
+  ([table-name index-name index-value]
     (with-open [conn (apply r/connect c/db-options)]
       (-> (r/table table-name)
         (r/get-all [index-value] {:index index-name})
         (r/run conn))))
+  ([table-name index-name index-value fields]
+    (with-open [conn (apply r/connect c/db-options)]
+      (-> (r/table table-name)
+        (r/get-all [index-value] {:index index-name})
+        (r/pluck fields)
+        (r/run conn)))))
 
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
