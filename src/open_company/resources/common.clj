@@ -24,10 +24,9 @@
 
 ;; ----- Properties common to all resources -----
 
-(def
-  reserved-properties
+(def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:created-at :updated-at :links :revisions})
+  #{:created-at :updated-at :author :links :revisions})
 
 ;; ----- ISO 8601 timestamp -----
 
@@ -44,6 +43,11 @@
   "Return items in a sequence sorted by their :updated-at key."
   [coll]
   (sort #(compare (:updated-at %2) (:updated-at %1)) coll))
+
+(defn clean
+  "Remove any reserved properties from the resource."
+  [resource]
+  (apply dissoc resource reserved-properties))
 
 ;; ----- Resource CRUD funcitons -----
 
@@ -86,7 +90,7 @@
     (let [timed-resource (merge new-resource {
             :created-at (:created-at original-resource)
             :updated-at timestamp})
-        update (with-open [conn (apply r/connect c/db-options)]
+          update (with-open [conn (apply r/connect c/db-options)]
                 (-> (r/table table-name)
                 (r/get (original-resource primary-key-name))
                 (r/replace timed-resource)

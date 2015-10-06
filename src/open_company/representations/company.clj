@@ -7,7 +7,7 @@
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
 (defun url 
-  ([slug :guard string?] (str "/companies/" slug))
+  ([slug :guard string?] (str "/companies/" (name slug)))
   ([company :guard map?] (url (:slug company))))
 
 (defn- self-link [company]

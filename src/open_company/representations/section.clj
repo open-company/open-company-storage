@@ -6,7 +6,7 @@
 
 (defn url 
   [company-slug section-name]
-  (str "/companies/" company-slug "/" section-name))
+  (str "/companies/" (name company-slug) "/" (name section-name)))
 
 (defn- self-link [company-slug section-name]
   (common/self-link (url company-slug section-name) media-type))

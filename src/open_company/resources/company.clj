@@ -11,7 +11,18 @@
 (def table-name common/company-table-name)
 (def primary-key :slug)
 
+;; ----- Metadata -----
+
+(def reserved-properties
+  "Properties of a resource that can't be specified during a create and are ignored during an update."
+  #{:slug})
+
 ;; ----- Utility functions -----
+
+(defn- clean
+  "Remove any reserved properties from the company."
+  [company]
+  (apply dissoc (common/clean company) reserved-properties))
 
 (defn- sections-for
   "Add or replace the :sections vector in the company with the sections this company map contains."
@@ -86,11 +97,12 @@
   TODO: what to use for author when using Clojure API?"
   ;; not a map
   ([company :guard #(not (map? %))] false)
-  ;; missing a slug, create it from the name
-  ([company :guard #(and (:name %) (not (:slug %)))] (create-company (assoc company :slug (slug/slugify (:name company)))))
   ;; potentially a valid company
   ([company]
-    (let [company-with-sections (sections-for company) ;; add/replace the :sections property
+    (let [company-slug (:slug company)
+          clean-company (clean company)
+          slugged-company (if company-slug (assoc clean-company :slug company-slug) (assoc clean-company :slug (slug/slugify (:name company))))
+          company-with-sections (sections-for slugged-company) ;; add/replace the :sections property
           company-with-revision-author (author-for common/stuart (:sections company-with-sections) company-with-sections) ;; add/replace the :author
           timestamp (common/current-timestamp)
           final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
@@ -113,17 +125,17 @@
   TODO: company :sections update if section is being added
   TODO: handle case of slug change.
   "
-  [company]
-  (if-let [original-company (get-company (company primary-key))]
-    (common/update-resource table-name primary-key original-company company)))
+  [slug company]
+  (if-let [original-company (get-company slug)]
+    (common/update-resource table-name primary-key original-company (assoc (clean company) :slug slug))))
 
 (defun put-company
   "Given the slug of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
-  ([_ :guard get-company company] (update-company company))
-  ([_ company] (create-company company)))
+  ([slug :guard get-company company] (update-company slug company))
+  ([slug company] (create-company company)))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."

@@ -9,6 +9,10 @@
 
 ;; ----- Responses -----
 
+(defn- section-location-response [section]
+  (common/location-response ["companies" (:company-slug section) (:section-name section)]
+    (section-rep/render-section section) section-rep/media-type))
+
 (defn- unprocessable-reason [reason]
   (case reason
     :bad-company (common/missing-response)
@@ -22,6 +26,9 @@
   (if-let [section (first (section-res/list-sections company-slug section-name))]
     {:section section}))
 
+(defn- put-section [company-slug section-name section]
+  {:updated-section (section-res/update-section company-slug section-name section)})
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 (defresource section [company-slug section-name]
@@ -31,12 +38,14 @@
   :exists? (fn [_] (get-section company-slug section-name))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
-  ;; TODO: pass company slug and section name separately and validate they match
+  ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
     :get true
-    :put (fn [ctx] (common/check-input (section-res/valid-section (-> (:data ctx)
-                                                                  (assoc :company-slug company-slug)
-                                                                  (assoc :section-name section-name)))))})
+    :put (fn [ctx] (common/check-input
+                      (section-res/valid-section company-slug section-name 
+                        (-> (:data ctx) 
+                          (assoc :company-slug company-slug)
+                          (assoc :section-name section-name)))))})
 
   ;; Handlers
   :handle-ok (by-method {
@@ -46,7 +55,10 @@
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 section-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
 
-  )
+  ;; Create or update a section
+  :new? (by-method {:put (not (seq (section-res/list-sections company-slug section-name)))})
+  :put! (fn [ctx] (put-section company-slug section-name (:data ctx)))
+  :handle-created (fn [ctx] (section-location-response (:updated-section ctx))))
 
 ;; ----- Routes -----
 

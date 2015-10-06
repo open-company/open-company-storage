@@ -291,41 +291,15 @@ curl -i -X PUT \
 http://localhost:3000/companies/OPEN
 ```
 
-Create a report for the company with cURL:
+Create/update a section for the company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"headcount": {"founders": 2, "contractors": 1}}' \
---header "Accept: application/vnd.open-company.report.v1+json" \
+-d '{"body": "It\u0027s all that and a bag of chips.","title": "Founder\u0027s Update"}' \
+--header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.report.v1+json" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
-```
-
-Request the report with cURL:
-
-```console
-curl -i -X GET \
---header "Accept: application/vnd.open-company.report.v1+json" \
---header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
-```
-
-Update the report with cURL:
-
-```console
-curl -i -X PUT \
--d '{"headcount": {"founders": 3}}' \
---header "Accept: application/vnd.open-company.report.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.report.v1+json" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
-```
-
-Delete the report with cURL:
-
-```console
-curl -i -X DELETE http://localhost:3000/companies/OPEN/reports/2015/Q2
+--header "Content-Type: application/vnd.open-company.section.v1+json" \
+http://localhost:3000/companies/OPEN/update
 ```
 
 Delete the company with cURL:
@@ -334,13 +308,13 @@ Delete the company with cURL:
 curl -i -X DELETE http://localhost:3000/companies/OPEN
 ```
 
-Try (and fail) to get the report and the company with cURL:
+Try (and fail) to get the section and the company with cURL:
 
 ```console
 curl -i -X GET \
---header "Accept: application/vnd.open-company.report.v1+json" \
+--header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
+http://localhost:3000/companies/OPEN/update
 
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.company.v1+json" \

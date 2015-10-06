@@ -11,6 +11,19 @@
 (def table-name common/section-table-name)
 (def primary-key :id)
 
+;; ----- Metadata -----
+
+(def reserved-properties
+  "Properties of a resource that can't be specified during a create and are ignored during an update."
+  #{:id :company-slug :section-name})
+
+;; ----- Utility functions -----
+
+(defn- clean
+  "Remove any reserved properties from the section."
+  [section]
+  (apply dissoc (common/clean section) reserved-properties))
+
 ;; ----- Validations -----
 
 (defun valid-section
@@ -21,9 +34,9 @@
   TODO: take company slug and section name separately and validate they match
   TODO: Use prismatic schema to validate section properties.
   "
-  ([section :guard #(and (not (:company-slug %)) (not (company/get-company (:company-slug %))))] :bad-company)
-  ([section :guard #(not (common/sections (:section-name %)))] :bad-section-name)
-  ([_] true))
+  ; ([company-slug section-name section :guard #(or (not (:company-slug %)) (not (company/get-company (:company-slug %))))] :bad-company)
+  ; ([company-slug section-name section :guard #(not (common/sections (:section-name %)))] :bad-section-name)
+  ([_ _ _] true))
 
 ;; ----- Section CRUD -----
 
@@ -47,8 +60,8 @@
   ([company-slug section-name section]
     (let [timestamp (common/current-timestamp)
           original-company (company/get-company company-slug)
-          updated-section (-> section
-            (dissoc :id)
+          clean-section (clean section)
+          updated-section (-> clean-section
             (assoc :company-slug company-slug)
             (assoc :section-name section-name)
             (assoc :author common/stuart)
@@ -56,10 +69,10 @@
           updated-company (assoc original-company section-name (-> updated-section
             (dissoc :company-slug)
             (dissoc :section-name)))]
-      (if (true? (valid-section updated-section))
+      (if (true? (valid-section company-slug section-name updated-section))
         (do
           ;; update the company
-          (company/update-company updated-company)
+          (company/update-company company-slug updated-company)
           ;; create the new section revision
           (common/create-resource table-name updated-section timestamp))
         false))))
