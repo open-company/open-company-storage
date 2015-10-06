@@ -25,7 +25,7 @@
 
 (defn section-links
   "Add the HATEAOS links to the section"
-  ([section] (section-links (:company-slug section) (:section-name section)))
+  ([section] (section-links (:company-slug section) (:section-name section) section))
   ([company-slug section-name section]
   (assoc section :links (flatten [
     (self-link company-slug section-name)
