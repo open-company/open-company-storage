@@ -1,5 +1,3 @@
-Section links in sections in company representation
-
 GET specific section as-of
 GET specific company as-of
 

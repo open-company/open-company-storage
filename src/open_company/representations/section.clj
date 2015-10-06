@@ -23,15 +23,14 @@
 (defn- revision-link [company-slug section-name updated-at author]
   (common/revision-link (url company-slug section-name updated-at) author media-type))
 
-(defn- section-links
+(defn section-links
   "Add the HATEAOS links to the section"
-  [section]
-  (let [company-slug (:company-slug section)
-        section-name (:section-name section)]
-    (assoc section :links (flatten [
-      (self-link company-slug section-name)
-      (update-link company-slug section-name)
-      (partial-update-link company-slug section-name)]))))
+  ([section] (section-links (:company-slug section) (:section-name section)))
+  ([company-slug section-name section]
+  (assoc section :links (flatten [
+    (self-link company-slug section-name)
+    (update-link company-slug section-name)
+    (partial-update-link company-slug section-name)]))))
 
 (defn revision-links
   "Add the HATEAOS revision links to the section"

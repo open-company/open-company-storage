@@ -54,6 +54,17 @@
       (recur (assoc company section-name (section-rep/revision-links company-slug section-name section))
         (rest sections)))))
 
+(defun- section-links
+  "Add the HATEOS links to each section"
+  ([company] (section-links company (:sections company)))
+  ([company _sections :guard empty?] company)
+  ([company sections]
+    (let [company-slug (:slug company)
+          section-name (keyword (first sections))
+          section (company section-name)]
+      (recur (assoc company section-name (section-rep/section-links company-slug section-name section))
+        (rest sections)))))
+
 (defn- revision-links
   "Add the HATEAOS revision links to the company"
   [company]
@@ -69,6 +80,7 @@
     (revision-links)
     (section-revision-links)
     (company-links)
+    (section-links)
     (json/generate-string {:pretty true})))
 
 (defn render-company-list
