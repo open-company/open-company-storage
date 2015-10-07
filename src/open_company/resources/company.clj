@@ -143,8 +143,10 @@
   (common/delete-resource common/section-table-name :company-slug slug)
   (common/delete-resource table-name slug))
 
+;; ----- Company revisions -----
+
 (defn list-revisions
-  "Given the slug of the company retrieve the timestamps of the revisions from the database."
+  "Given the slug of the company retrieve the timestamps and author of the revisions from the database."
   [slug]
   (common/updated-at-order
     (common/read-resources common/section-table-name "company-slug" slug [:updated-at :author])))
@@ -159,6 +161,8 @@
       (-> (r/table table-name)
         (r/with-fields [primary-key "name"])
         (r/run conn))))))
+
+;; ----- Armageddon -----
 
 (defn delete-all-companies!
   "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."

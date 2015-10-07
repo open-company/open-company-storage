@@ -4,6 +4,7 @@
   (:require
     [liberator.dev :refer (wrap-trace)]
     [raven-clj.ring :refer (wrap-sentry)]
+    [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
     [org.httpkit.server :refer (run-server)]
@@ -16,11 +17,15 @@
   company-routes
   section-routes)
 
+(defonce params-routes
+  ;; Parse urlencoded parameters from the query string and form body and add the to the request map
+  (wrap-params routes))
+
 ;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (defonce trace-app
   (if c/liberator-trace
-    (wrap-trace routes :header :ui)
-    routes))
+    (wrap-trace params-routes :header :ui)
+    params-routes))
 
 (defonce cors-routes
   ;; Use CORS middleware to support in-browser JavaScript requests.

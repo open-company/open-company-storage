@@ -1,18 +1,19 @@
-GET specific section as-of
 GET specific company as-of
+Remove RethinkDB calls from company
 
+Commentary links/revisions
 Commentary PUT
 
 Fix startup issue w/ existing DB
 Output DB version in startup message
 
-DB Pooling
+Collapse near (in 24h time) edits by the same author
 
-Sort out section mime types (specific per section?)
+DB Pooling
 
 Authorship
 
-Collapse near (in 24h time) edits by the same author
+Sort out section mime types (specific per section?)
 
 Update README cURLs
 
@@ -21,7 +22,7 @@ Prismatic schema validation
   section
   commentary
 
-Code cleanup with Specter
+Code cleanup with Specter? https://github.com/nathanmarz/specter
 
 Audit TODOS
 
