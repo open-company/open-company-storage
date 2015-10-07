@@ -6,12 +6,12 @@
             [open-company.resources.section :as section]))
 
 (defn- create-database
-  "Create a RethinkDB database, catching the exception for it already existing and returning truthy anyway."
+  "Create a RethinkDB database if it doesn't already exist."
   [conn db-name]
-  (try
-    (r/run (r/db-create db-name) conn)
-    (catch java.lang.Exception e
-      (re-find #" already exists.$" (.getMessage e)))))
+  (if-let [db-list (r/run (r/db-list) conn)]
+    (if (some #(= db-name %) db-list)
+      true ; already exists, return truthy
+      (r/run (r/db-create db-name) conn))))
 
 (defn- table-list
   "Return a sequence of the table names in the RethinkDB."
