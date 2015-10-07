@@ -42,7 +42,7 @@ At anytime a user with write access to the company can invite a user by email ad
 
 ### UI
 
-UI provides an anauthenticated user with the option to "Sign Up".
+UI provides an an authenticated user with the option to "Sign Up".
 
 
 ### API
