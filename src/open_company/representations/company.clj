@@ -8,7 +8,7 @@
 (def media-type "application/vnd.open-company.company.v1+json")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
-(defun url 
+(defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
   ([company :guard map?] (url (name (:slug company))))
   ([company updated-at] (str (url company) "?as-of=" updated-at)))

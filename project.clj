@@ -53,6 +53,7 @@
       :plugins [
         [lein-midje "3.2-RC4"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
+        [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]
     }
 
@@ -69,7 +70,6 @@
       ]
       :plugins [
         [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
-        [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-pprint "1.1.2"] ; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
         [lein-ancient "0.6.8-SNAPSHOT"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient

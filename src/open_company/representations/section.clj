@@ -5,7 +5,7 @@
 
 (def media-type "application/vnd.open-company.section.v1+json")
 
-(defn url 
+(defn url
   ([company-slug section-name]
   (str "/companies/" (name company-slug) "/" (name section-name)))
   ([company-slug section-name updated-at]

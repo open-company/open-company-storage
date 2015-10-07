@@ -31,10 +31,18 @@
     (vec (clojure.set/intersection common/sections (set (map name (keys company)))))))
 
 (defn commentary-for
-  "Return a sequence of the sections that do have commentary in the form [[:section-name :commentary] [:section-name commentary]]"
+  "
+  Return a sequence of the sections that do have commentary in the form:
+
+  [[:section-name :commentary] [:section-name commentary]]
+  "
   [company]
-  (let [possible-sections-with-commentary (clojure.set/intersection common/commentary-sections (set (:sections company)))
-        sections-with-commentary (filter #(get-in company [(keyword %) :commentary]) possible-sections-with-commentary)]
+  (let [possible-sections-with-commentary
+        (clojure.set/intersection common/commentary-sections
+          (set (:sections company)))
+        sections-with-commentary
+          (filter #(get-in company [(keyword %) :commentary])
+            possible-sections-with-commentary)]
     (vec (map #(vec [(keyword %) :commentary]) sections-with-commentary))))
 
 (defun- author-for
@@ -42,26 +50,30 @@
   ;; determine sections with commentary
   ([author sections company] (author-for author sections (commentary-for company) company))
   ;; all done!
-  ([_author sections :guard empty? commentary-sections :guard empty? company] company)
+  ([_author _sections :guard empty? _commentary-sections :guard empty? company] company)
   ;; replace the :author in the section commentary and recurse
   ([author _sections :guard empty? commentary-sections company]
-    (author-for author [] (rest commentary-sections) (assoc-in company (flatten [(first commentary-sections) :author]) author)))
+    (author-for author [] (rest commentary-sections)
+      (assoc-in company (flatten [(first commentary-sections) :author]) author)))
   ;; replace the :author in the section and recurse
   ([author sections commentary-sections company]
-    (author-for author (rest sections) commentary-sections (assoc-in company [(keyword (first sections)) :author] author))))
+    (author-for author (rest sections) commentary-sections
+      (assoc-in company [(keyword (first sections)) :author] author))))
 
 (defun- updated-for
   "Add or replace the :updated-at for each specified section with the specified timestamp for this revision."
   ;; determine sections with commentary
   ([timestamp sections company] (updated-for timestamp sections (commentary-for company) company))
   ;; all done!
-  ([_timestamp sections :guard empty? commentary-sections :guard empty? company] company)
+  ([_timestamp _sections :guard empty? _commentary-sections :guard empty? company] company)
   ;; replace the :updated-at in the section commentary and recurse
-  ([timestamp sections :guard empty? commentary-sections company]
-    (updated-for timestamp [] (rest commentary-sections) (assoc-in company (flatten [(first commentary-sections) :updated-at]) timestamp)))
+  ([timestamp _sections :guard empty? commentary-sections company]
+    (updated-for timestamp [] (rest commentary-sections)
+      (assoc-in company (flatten [(first commentary-sections) :updated-at]) timestamp)))
   ;; replace the :updated-at in the section and recurse
   ([timestamp sections commentary-sections company]
-    (updated-for timestamp (rest sections) commentary-sections (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
+    (updated-for timestamp (rest sections) commentary-sections
+      (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
 
 ;; ----- Validations -----
 
@@ -96,14 +108,18 @@
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?"
   ;; not a map
-  ([company :guard #(not (map? %))] false)
+  ([_company :guard #(not (map? %))] false)
   ;; potentially a valid company
   ([company]
     (let [company-slug (:slug company)
           clean-company (clean company)
-          slugged-company (if company-slug (assoc clean-company :slug company-slug) (assoc clean-company :slug (slug/slugify (:name company))))
+          slugged-company (if company-slug
+                            (assoc clean-company :slug company-slug)
+                            (assoc clean-company :slug (slug/slugify (:name company))))
           company-with-sections (sections-for slugged-company) ;; add/replace the :sections property
-          company-with-revision-author (author-for common/stuart (:sections company-with-sections) company-with-sections) ;; add/replace the :author
+          company-with-revision-author (author-for common/stuart
+                                        (:sections company-with-sections)
+                                        company-with-sections) ;; add/replace the :author
           timestamp (common/current-timestamp)
           final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
       (if (true? (valid-company final-company))
@@ -121,7 +137,7 @@
 (defn update-company
   "
   Given an updated company property map, update the company and return `true` on success.
-  
+
   TODO: company :sections update if section is being added
   TODO: handle case of slug change.
   "
@@ -135,7 +151,7 @@
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
   ([slug :guard get-company company] (update-company slug company))
-  ([slug company] (create-company company)))
+  ([_slug company] (create-company company)))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."

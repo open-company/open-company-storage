@@ -74,16 +74,15 @@
     (println (str "\nOpen Company: Initializing database - " db-name))
     (with-open [conn (apply r/connect c/db-options)]
       (when (create-database conn db-name)
-        (do
-          (create-table conn db-name company/table-name company/primary-key)
-          (print ".")
-          (create-table conn db-name section/table-name section/primary-key)
-          (print ".")
-          (create-index conn section/table-name "company-slug")
-          (print ".")
-          (create-sections-indexes conn)
-          (print ".")
-          (println "\nOpen Company: Database initialization complete - " db-name "\n"))))))
+        (create-table conn db-name company/table-name company/primary-key)
+        (print ".")
+        (create-table conn db-name section/table-name section/primary-key)
+        (print ".")
+        (create-index conn section/table-name "company-slug")
+        (print ".")
+        (create-sections-indexes conn)
+        (print ".")
+        (println "\nOpen Company: Database initialization complete - " db-name "\n")))))
 
 (defn -main
   "Initialize the RethinkDB instance."

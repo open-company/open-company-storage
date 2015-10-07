@@ -29,15 +29,14 @@
   function if the timestamp strings are the same, or if the timestamp in the map (time1) is before
   timestamp2, otherwise return nil.
   "
-  ([time1 :guard map? time2 :guard string?] 
+  ([time1 :guard map? time2 :guard string?]
   (if (= (:updated-at time1) time2)
     (:id time1)
     (time-lte time1 (format/parse common/timestamp-format time2))))
 
   ([time1 time2]
-  (if (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
-    (:id time1)
-    nil)))
+  (when (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
+    (:id time1))))
 
 ;; ----- Validations -----
 
@@ -45,7 +44,7 @@
   "
   Validate the company, and section name of the section
   returning `:bad-company`, `:bad-section-name` respectively.
-  
+
   TODO: take company slug and section name separately and validate they match
   TODO: Use prismatic schema to validate section properties.
   "
@@ -72,10 +71,12 @@
   "Given the slug of the company a section name, and an optional specific updated-at timestamp,
   retrieve the section revisions from the database."
   ([company-slug section-name]
-  (common/updated-at-order (common/read-resources table-name "company-slug-section-name" [company-slug section-name])))
-  
+  (common/updated-at-order
+    (common/read-resources table-name "company-slug-section-name" [company-slug section-name])))
+
   ([slug section-name updated-at]
-  (common/updated-at-order (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
+  (common/updated-at-order
+    (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
 
 ;; ----- Section CRUD -----
 
@@ -85,13 +86,13 @@
   the database at the revision that matches the as-of timestamp or the most recent revision prior to that timestamp.
   Return nil if no section revision exists that satisfies this."
   ([company-slug section-name] (get-section company-slug section-name nil))
-  
+
   ([company-slug section-name _as-of :guard nil?]
   ;; retrieve the id most recent revision of this section
   (if-let [id (:id (first (list-revision-ids company-slug section-name)))]
     ;; retrieve the section by its id
     (common/read-resource table-name id)))
-  
+
   ([company-slug section-name as-of]
   ;; retrieve the id of the section revision that matches the as-of or is the first revision prior to it
   (if-let [id (some #(time-lte % as-of) (list-revision-ids company-slug section-name))]
@@ -102,9 +103,9 @@
   "
   Given the company slug, section name, and section property map, create a new section revision,
   updating the company with a new revision and returning the property map for the resource or `false`.
-  
+
   If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
-  
+
   TODO: :author and :updated-at for commentary if it's changed
   TODO: :author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for :author when using Clojure API?

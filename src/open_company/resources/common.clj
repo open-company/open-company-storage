@@ -66,7 +66,10 @@
     (throw (RuntimeException. (str "RethinkDB insert failure: " insert))))))
 
 (defn read-resource
-  "Given a table name and a primary key value, retrieve the resource from the database, or return nil if it doesn't exist."
+  "
+  Given a table name and a primary key value, retrieve the resource from the database,
+  or return nil if it doesn't exist.
+  "
   [table-name primary-key-value]
   (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
@@ -74,13 +77,16 @@
       (r/run conn))))
 
 (defn read-resources
-  "Given a table name, and an index name and value, and an optional set of fields, retrieve the resources from the database."
+  "
+  Given a table name, and an index name and value, and an optional set of fields, retrieve
+  the resources from the database.
+  "
   ([table-name index-name index-value]
   (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
       (r/get-all [index-value] {:index index-name})
       (r/run conn))))
-  
+
   ([table-name index-name index-value fields]
   (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
@@ -91,9 +97,9 @@
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
   update a resource in the DB, returning the property map for the resource."
-  ([table-name primary-key-name original-resource new-resource] 
+  ([table-name primary-key-name original-resource new-resource]
   (update-resource table-name primary-key-name original-resource new-resource (current-timestamp)))
-  
+
   ([table-name primary-key-name original-resource new-resource timestamp]
   (let [timed-resource (merge new-resource {
           :created-at (:created-at original-resource)
@@ -125,10 +131,9 @@
                 (r/get-all [key-value] {:index key-name})
                 (r/delete)
                 (r/run conn)))]
-    (if (= 0 (:errors delete))
+    (if (zero? (:errors delete))
       true
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))))))
-
 
 ;; ----- Operations on collections of resources -----
 
@@ -139,6 +144,6 @@
                   (-> (r/table table-name)
                     (r/delete)
                     (r/run conn)))]
-    (if (> (:errors delete) 0)
+    (if (pos? (:errors delete))
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))
       true)))

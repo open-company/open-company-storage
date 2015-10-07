@@ -1,5 +1,3 @@
-Output DB version in startup message
-
 Design for commentary history
 
 GET specific company as-of

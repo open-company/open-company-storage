@@ -41,8 +41,8 @@
   :processable? (by-method {
     :get true
     :put (fn [ctx] (common/check-input
-                      (section-res/valid-section company-slug section-name 
-                        (-> (:data ctx) 
+                      (section-res/valid-section company-slug section-name
+                        (-> (:data ctx)
                           (assoc :company-slug company-slug)
                           (assoc :section-name section-name)))))
     :patch (fn [ctx] (common/check-input
@@ -69,6 +69,6 @@
 ;; ----- Routes -----
 
 (def section-routes
-  (apply routes 
+  (apply routes
     (map #(ANY (str "/companies/:company-slug/" %) [company-slug as-of]
       (section company-slug % as-of)) common-res/sections)))
