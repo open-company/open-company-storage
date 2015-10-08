@@ -106,7 +106,7 @@
 
   If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
 
-  TODO: :author and :updated-at for commentary if it's changed
+  TODO: :author and :updated-at for notes if it's changed
   TODO: :author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for :author when using Clojure API?
   "

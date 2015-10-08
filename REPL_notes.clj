@@ -46,7 +46,7 @@
       {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
       {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
     ]
-    :commentary {
+    :notes {
       :body "Good stuff! Revenue is up."
     }
   }})

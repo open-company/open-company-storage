@@ -30,49 +30,49 @@
   (assoc company :sections
     (vec (clojure.set/intersection common/sections (set (map name (keys company)))))))
 
-(defn commentary-for
+(defn notes-for
   "
-  Return a sequence of the sections that do have commentary in the form:
+  Return a sequence of the sections that do have notes in the form:
 
-  [[:section-name :commentary] [:section-name commentary]]
+  [[:section-name :notes] [:section-name :notes]]
   "
   [company]
-  (let [possible-sections-with-commentary
-        (clojure.set/intersection common/commentary-sections
+  (let [possible-sections-with-notes
+        (clojure.set/intersection common/notes-sections
           (set (:sections company)))
-        sections-with-commentary
-          (filter #(get-in company [(keyword %) :commentary])
-            possible-sections-with-commentary)]
-    (vec (map #(vec [(keyword %) :commentary]) sections-with-commentary))))
+        sections-with-notes
+          (filter #(get-in company [(keyword %) :notes])
+            possible-sections-with-notes)]
+    (vec (map #(vec [(keyword %) :notes]) sections-with-notes))))
 
 (defun- author-for
   "Add or replace the :author map for each specified section with the specified author for this revision."
-  ;; determine sections with commentary
-  ([author sections company] (author-for author sections (commentary-for company) company))
+  ;; determine sections with notes
+  ([author sections company] (author-for author sections (notes-for company) company))
   ;; all done!
-  ([_author _sections :guard empty? _commentary-sections :guard empty? company] company)
-  ;; replace the :author in the section commentary and recurse
-  ([author _sections :guard empty? commentary-sections company]
-    (author-for author [] (rest commentary-sections)
-      (assoc-in company (flatten [(first commentary-sections) :author]) author)))
+  ([_author _sections :guard empty? _notes-sections :guard empty? company] company)
+  ;; replace the :author in the section notes and recurse
+  ([author _sections :guard empty? notes-sections company]
+    (author-for author [] (rest notes-sections)
+      (assoc-in company (flatten [(first notes-sections) :author]) author)))
   ;; replace the :author in the section and recurse
-  ([author sections commentary-sections company]
-    (author-for author (rest sections) commentary-sections
+  ([author sections notes-sections company]
+    (author-for author (rest sections) notes-sections
       (assoc-in company [(keyword (first sections)) :author] author))))
 
 (defun- updated-for
   "Add or replace the :updated-at for each specified section with the specified timestamp for this revision."
-  ;; determine sections with commentary
-  ([timestamp sections company] (updated-for timestamp sections (commentary-for company) company))
+  ;; determine sections with notes
+  ([timestamp sections company] (updated-for timestamp sections (notes-for company) company))
   ;; all done!
-  ([_timestamp _sections :guard empty? _commentary-sections :guard empty? company] company)
-  ;; replace the :updated-at in the section commentary and recurse
-  ([timestamp _sections :guard empty? commentary-sections company]
-    (updated-for timestamp [] (rest commentary-sections)
-      (assoc-in company (flatten [(first commentary-sections) :updated-at]) timestamp)))
+  ([_timestamp _sections :guard empty? _notes-sections :guard empty? company] company)
+  ;; replace the :updated-at in the section notes and recurse
+  ([timestamp _sections :guard empty? notes-sections company]
+    (updated-for timestamp [] (rest notes-sections)
+      (assoc-in company (flatten [(first notes-sections) :updated-at]) timestamp)))
   ;; replace the :updated-at in the section and recurse
-  ([timestamp sections commentary-sections company]
-    (updated-for timestamp (rest sections) commentary-sections
+  ([timestamp sections notes-sections company]
+    (updated-for timestamp (rest sections) notes-sections
       (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
 
 ;; ----- Validations -----
