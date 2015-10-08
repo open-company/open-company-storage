@@ -25,5 +25,4 @@
   (array-map :rel "delete" :method DELETE :href url))
 
 (defn revision-link [url updated-at media-type]
-  (-> (link-map "revision" GET url media-type)
-    (assoc :updated-at updated-at)))
+  (assoc (link-map "revision" GET url media-type) :updated-at updated-at))
