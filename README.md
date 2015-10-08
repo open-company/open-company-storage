@@ -214,19 +214,24 @@ Then enter these commands one-by-one, noting the output:
 (company/get-company "transparency")
 (company/get-company "buffer")
 
-;; Update a company
-
-
 ;; Create/update a section
 (section/put-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
-
 (section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
 
-;; Get sections
-(section/get-sections "transparency" "finances")
+;; Get a section
+(section/get-section "transparency" "update")
+(section/get-section "buffer" "update")
+(section/get-section "buffer" "finances")
 
-(section/get-sections "buffer" "updates")
-(section/get-sections "buffer" "finances")
+;; List revisions
+(section/list-revisions "transparency" "update")
+(section/list-revisions "buffer" "update")
+(section/list-revisions "buffer" "finances")
+
+;; Get revisions
+(section/get-revisions "transparency" "update")
+(section/get-revisions "buffer" "update")
+(section/get-revisions "buffer" "finances")
 
 ;; Delete a company
 (company/delete-company "transparency")
