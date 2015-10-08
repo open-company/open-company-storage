@@ -4,8 +4,7 @@
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.resources.company :as company]
-            [open-company.representations.company :as company-rep]
-            [open-company.resources.report :as report]))
+            [open-company.representations.company :as company-rep]))
 
 ;; ----- Test Cases -----
 
