@@ -17,6 +17,15 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/update?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.update.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
@@ -48,6 +57,15 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/challenges?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.challenges.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
@@ -152,22 +170,17 @@
         "name" : "Stuart Levinson",
         "slack_id" : "U06SQLDFT",
         "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      },
-      "links" : [
-        {
-          "rel" : "self",
-          "method" : "GET",
-          "href" : "/companies/buffer/finances/commentary",
-          "type" : "application/vnd.open-company.commentary.v1+json"
-        },
-        {
-          "rel" : "update",
-          "method" : "PUT",
-          "href" : "/companies/buffer/finances/commentary",
-          "type" : "application/vnd.open-company.commentary.v1+json"
-        }
-      ]
+      }
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/finances?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.finances.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
@@ -199,6 +212,15 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/mission?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.mission.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
@@ -230,6 +252,15 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/values?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.values.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
@@ -258,60 +289,35 @@
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-11T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-11T22:14:24Z",
-      "author" : {
-        "name" : "Iacopo Carraro",
-        "slack_id" : "U06STCKLN",
-        "image" : "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0022.png"
-      }
+      "updated-at": "2015-09-11T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-10T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-10T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-10T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-09T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-09T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-09T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-08T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-08T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-08T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-07T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-07T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-07T22:14:24Z"
     }
   ],
 

@@ -20,8 +20,8 @@
 (defn- partial-update-link [company-slug section-name]
   (common/partial-update-link (url company-slug section-name) media-type))
 
-(defn- revision-link [company-slug section-name updated-at author]
-  (common/revision-link (url company-slug section-name updated-at) author updated-at media-type))
+(defn- revision-link [company-slug section-name updated-at]
+  (common/revision-link (url company-slug section-name updated-at) updated-at media-type))
 
 (defn section-links
   "Add the HATEAOS links to the section"
@@ -37,7 +37,7 @@
   ([section] (revision-links (:company-slug section) (:section-name section) section))
   ([company-slug section-name section]
   (assoc section :revisions (flatten
-    (map #(revision-link company-slug section-name (:updated-at %) (:author %))
+    (map #(revision-link company-slug section-name (:updated-at %))
       (section/list-revisions company-slug (name section-name)))))))
 
 (defn- clean
