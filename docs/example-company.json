@@ -1,10 +1,14 @@
 {
   "name" : "Buffer",
+  "slug" : "buffer",
   "currency" : "USD",
   
-  "sections" : ["oc:update", "oc:challenges", "oc:growth", "oc:finances", "oc:ownership", "oc:mission", "oc:values"],
+  "created-at" : "2015-09-07T22:14:24Z",
+  "updated-at" : "2015-09-11T22:14:24Z",
+
+  "sections" : ["update", "challenges", "growth", "finances", "ownership", "mission", "values"],
   
-  "oc:update" : {
+  "update" : {
     "title" : "Founder's Update",
     "body" : "<p>...</p>",
     "updated-at" : "2015-09-14T20:49:19Z",
@@ -13,29 +17,38 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/update?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.update.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:update",
-        "type" : "application/vnd.open-company.section.oc:update.v1+json"
+        "href" : "/companies/buffer/update",
+        "type" : "application/vnd.open-company.section.update.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:update",
-        "type" : "application/vnd.open-company.section.oc:update.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/update",
+        "type" : "application/vnd.open-company.section.update.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:update",
-        "type" : "application/vnd.open-company.section.oc:update.v1+json"
+        "href" : "/companies/buffer/update",
+        "type" : "application/vnd.open-company.section.update.v1+json"
       }
     ]
   },
 
-  "oc:challenges" : {
+  "challenges" : {
     "title" : "Key Challenges",
     "body" : "<p>...</p>",
     "updated-at": "2015-09-14T20:49:19Z",
@@ -44,29 +57,38 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/challenges?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.challenges.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:challenges",
-        "type" : "application/vnd.open-company.section.oc:challenges.v1+json"
+        "href" : "/companies/buffer/challenges",
+        "type" : "application/vnd.open-company.section.challenges.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:challenges",
-        "type" : "application/vnd.open-company.section.oc:challenges.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/challenges",
+        "type" : "application/vnd.open-company.section.challenges.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:challenges",
-        "type" : "application/vnd.open-company.section.oc:challenges.v1+json"
+        "href" : "/companies/buffer/challenges",
+        "type" : "application/vnd.open-company.section.challenges.v1+json"
       }      
     ]
   },
 
-  "oc:finances" : {
+  "finances" : {
     "data" : [
       {
         "period" : "2015-08",
@@ -141,52 +163,47 @@
       "slack_id" : "U06STCKLN",
       "image" : "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0022.png"
     },
-    "commentary" : {
+    "notes" : {
       "body" : "<p>...</p>",
       "updated-at" : "2015-09-14T20:49:19Z",
       "author" : {
         "name" : "Stuart Levinson",
         "slack_id" : "U06SQLDFT",
         "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      },
-      "links" : [
-        {
-          "rel" : "self",
-          "method" : "GET",
-          "href" : "/companies/buffer/oc:finances/commentary",
-          "type" : "application/vnd.open-company.commentary.v1+json"
-        },
-        {
-          "rel" : "update",
-          "method" : "POST",
-          "href" : "/companies/buffer/oc:finances/commentary",
-          "type" : "application/vnd.open-company.commentary.v1+json"
-        }
-      ]
+      }
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/finances?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.finances.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:finances",
-        "type" : "application/vnd.open-company.section.oc:finances.v1+json"
+        "href" : "/companies/buffer/finances",
+        "type" : "application/vnd.open-company.section.finances.v1+json"
       }
     ]
   },
   
-  "oc:mission" : {
+  "mission" : {
     "title" : "Mission",
     "body" : "<p>...</p>",
     "updated-at" : "2015-09-14T20:49:19Z",
@@ -195,29 +212,38 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/mission?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.mission.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:mission",
-        "type" : "application/vnd.open-company.section.oc:mission.v1+json"
+        "href" : "/companies/buffer/mission",
+        "type" : "application/vnd.open-company.section.mission.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:mission",
-        "type" : "application/vnd.open-company.section.oc:mission.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/mission",
+        "type" : "application/vnd.open-company.section.mission.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:mission",
-        "type" : "application/vnd.open-company.section.oc:mission.v1+json"
+        "href" : "/companies/buffer/mission",
+        "type" : "application/vnd.open-company.section.mission.v1+json"
       }
     ]
   },
 
-  "oc:values" : {
+  "values" : {
     "title" : "Values",
     "body" : "<p>...</p>",
     "updated-at" : "2015-09-14T20:49:19Z",
@@ -226,24 +252,33 @@
       "slack_id" : "U06SQLDFT",
       "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
     },
+    "revisions": [
+      {
+        "rel" : "revision",
+        "method": "GET",
+        "href": "/companies/buffer/values?as-of=2015-09-14T20:49:19Z",
+        "type" : "application/vnd.open-company.section.values.v1+json",
+        "updated-at": "2015-09-14T20:49:19Z"
+      }
+    ],
     "links" : [
       {
         "rel" : "self",
         "method" : "GET",
-        "href" : "/companies/buffer/oc:values",
-        "type" : "application/vnd.open-company.section.oc:values.v1+json"
+        "href" : "/companies/buffer/values",
+        "type" : "application/vnd.open-company.section.values.v1+json"
       },
       {
         "rel" : "update",
-        "method" : "POST",
-        "href" : "/companies/buffer/oc:values",
-        "type" : "application/vnd.open-company.section.oc:values.v1+json"
+        "method" : "PUT",
+        "href" : "/companies/buffer/values",
+        "type" : "application/vnd.open-company.section.values.v1+json"
       },
       {
         "rel" : "partial-update",
         "method" : "PATCH",
-        "href" : "/companies/buffer/oc:values",
-        "type" : "application/vnd.open-company.section.oc:values.v1+json"
+        "href" : "/companies/buffer/values",
+        "type" : "application/vnd.open-company.section.values.v1+json"
       }
     ]
   },
@@ -254,60 +289,35 @@
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-11T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-11T22:14:24Z",
-      "author" : {
-        "name" : "Iacopo Carraro",
-        "slack_id" : "U06STCKLN",
-        "image" : "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0022.png"
-      }
+      "updated-at": "2015-09-11T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-10T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-10T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-10T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-09T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-09T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-09T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-08T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-08T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-08T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-07T22:14:24Z",
       "type" : "application/vnd.open-company.v1+json",
-      "updated-at": "2015-09-07T22:14:24Z",
-      "author" : {
-        "name" : "Stuart Levinson",
-        "slack_id" : "U06SQLDFT",
-        "image" : "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
-      }
+      "updated-at": "2015-09-07T22:14:24Z"
     }
   ],
 

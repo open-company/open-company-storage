@@ -4,23 +4,28 @@
   (:require
     [liberator.dev :refer (wrap-trace)]
     [raven-clj.ring :refer (wrap-sentry)]
+    [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
     [org.httpkit.server :refer (run-server)]
     [compojure.core :refer (defroutes ANY)]
     [open-company.config :as c]
     [open-company.api.companies :refer (company-routes)]
-    [open-company.api.reports :refer (report-routes)]))
+    [open-company.api.sections :refer (section-routes)]))
 
 (defroutes routes
   company-routes
-  report-routes)
+  section-routes)
+
+(defonce params-routes
+  ;; Parse urlencoded parameters from the query string and form body and add the to the request map
+  (wrap-params routes))
 
 ;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (defonce trace-app
   (if c/liberator-trace
-    (wrap-trace routes :header :ui)
-    routes))
+    (wrap-trace params-routes :header :ui)
+    params-routes))
 
 (defonce cors-routes
   ;; Use CORS middleware to support in-browser JavaScript requests.
@@ -41,6 +46,7 @@
 (defn start [port]
   (run-server app {:port port :join? false})
     (println (str "\n" (slurp (clojure.java.io/resource "./open_company/assets/ascii_art.txt")) "\n"
+      "API Server\n"
       "Running on port: " port "\n"
       "Database: " c/db-name "\n"
       "Hot-reload: " c/hot-reload "\n"

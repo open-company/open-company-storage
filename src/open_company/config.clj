@@ -9,7 +9,7 @@
 (defonce db-name (or (env :db-name) "open_company"))
 
 (defonce db-map {:host db-host :port db-port :db db-name})
-(defonce db-options (flatten (into [] db-map))) ; k/v sequence as clj-rethinkdb wants it
+(defonce db-options (flatten (vec db-map))) ; k/v sequence as clj-rethinkdb wants it
 
 ;; ----- Web server config -----
 

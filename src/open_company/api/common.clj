@@ -72,11 +72,12 @@
 (def open-company-resource {
   :available-charsets [UTF8]
   :handle-not-found (fn [_] (missing-response))
-  :allowed-methods [:get :put :delete]
-  :respond-with-entity? (by-method {:put true :delete false})
+  :allowed-methods [:get :put :delete :patch]
+  :respond-with-entity? (by-method {:put true :patch true :delete false})
   :malformed? (by-method {
     :get false
     :delete false
-    :put (fn [ctx] (malformed-json? ctx))})
+    :put (fn [ctx] (malformed-json? ctx))
+    :patch (fn [ctx] (malformed-json? ctx))})
   :can-put-to-missing? (fn [_] true)
   :conflict? (fn [_] false)})

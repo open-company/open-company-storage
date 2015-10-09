@@ -1,16 +1,17 @@
 (ns open-company.representations.company
-  (:require [defun :refer (defun)]
+  (:require [defun :refer (defun defun-)]
             [cheshire.core :as json]
             [open-company.representations.common :as common]
-            [open-company.representations.report :as report-rep]
-            [open-company.resources.report :as report]))
+            [open-company.representations.section :as section-rep]
+            [open-company.resources.company :as company]))
 
 (def media-type "application/vnd.open-company.company.v1+json")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
-(defun url 
-  ([ticker :guard string?] (str "/companies/" ticker))
-  ([company :guard map?] (url (:symbol company))))
+(defun url
+  ([slug :guard string?] (str "/companies/" (name slug)))
+  ([company :guard map?] (url (name (:slug company))))
+  ([company updated-at] (str (url company) "?as-of=" updated-at)))
 
 (defn- self-link [company]
   (common/self-link (url company) media-type))
@@ -18,21 +19,14 @@
 (defn- update-link [company]
   (common/update-link (url company) media-type))
 
+(defn- partial-update-link [company]
+  (common/partial-update-link (url company) media-type))
+
 (defn- delete-link [company]
   (common/delete-link (url company)))
 
-(defn- report-links [company]
-  (let [ticker (:symbol company)]
-    (map
-      #(common/link-map "report"
-                        common/GET
-                        (report-rep/url ticker (:year %) (:period %))
-                        report-rep/media-type
-                        :year
-                        (:year %)
-                        :period
-                        (:period %))
-      (report/list-reports ticker))))
+(defn- revision-link [company updated-at]
+  (common/revision-link (url company updated-at) updated-at media-type))
 
 (defn- company-link
   "Add just a single self HATEAOS link to the company"
@@ -43,26 +37,51 @@
 (defn- company-links
   "Add the HATEAOS links to the company"
   [company]
-  (apply array-map (concat (flatten (vec company))
-    [:links (flatten [
+  (assoc company :links (flatten [
       (self-link company)
       (update-link company)
-      (delete-link company)
-      (report-links company)])])))
+      (partial-update-link company)
+      (delete-link company)])))
 
-(defn- company-to-json-map [company]
-  ;; Generate JSON from the sorted array map that results from:
-  ;; 1) removing unneeded :id key
-  ;; 2) render timestamps as strings
-  ;; 3) adding the HATEAOS links to the array hash
-  (let [company-props (dissoc company :id)]
-    (-> company-props
-      company-links)))
+(defun- section-revision-links
+  "Add the HATEOS revision links to each section"
+  ([company] (section-revision-links company (:sections company)))
+  ([company _sections :guard empty?] company)
+  ([company sections]
+    (let [company-slug (:slug company)
+          section-name (keyword (first sections))
+          section (company section-name)]
+      (recur (assoc company section-name (section-rep/revision-links company-slug section-name section))
+        (rest sections)))))
+
+(defun- section-links
+  "Add the HATEOS links to each section"
+  ([company] (section-links company (:sections company)))
+  ([company _sections :guard empty?] company)
+  ([company sections]
+    (let [company-slug (:slug company)
+          section-name (keyword (first sections))
+          section (company section-name)]
+      (recur (assoc company section-name (section-rep/section-links company-slug section-name section))
+        (rest sections)))))
+
+(defn- revision-links
+  "Add the HATEAOS revision links to the company"
+  [company]
+  (let [company-slug (:slug company)
+        revisions (company/list-revisions company-slug)]
+    (assoc company :revisions (flatten
+      (map #(revision-link company-slug (:updated-at %)) revisions)))))
 
 (defn render-company
   "Create a JSON representation of a company for the REST API"
   [company]
-  (json/generate-string (company-to-json-map company) {:pretty true}))
+  (-> company
+    (revision-links)
+    (section-revision-links)
+    (company-links)
+    (section-links)
+    (json/generate-string {:pretty true})))
 
 (defn render-company-list
   "Create a JSON representation of a group of companies for the REST API"

@@ -5,29 +5,56 @@
             [rethinkdb.query :as r]
             [open-company.config :as c]))
 
+(def stuart ; temporary hard-coded author
+  {
+    :name "Stuart Levinson"
+    :slack_id "U06SQLDFT"
+    :image "https://secure.gravatar.com/avatar/6ef85399c45b7affe7fc8fb361a3366f.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F66f9%2Fimg%2Favatars%2Fava_0015.png"
+  })
+
+;; ----- RethinkDB metadata -----
+
+(def company-table-name "companies")
+(def section-table-name "sections")
+
+;; ----- Section definitions -----
+
+(def sections #{"update" "challenges" "growth" "finances" "ownership" "mission" "values"})
+(def notes-sections #{"growth" "finances"})
+
 ;; ----- Properties common to all resources -----
 
-(def
-  reserved-properties
+(def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:created-at :updated-at :links})
+  #{:created-at :updated-at :author :links :revisions})
 
 ;; ----- ISO 8601 timestamp -----
 
 (def timestamp-format (format/formatters :date-time-no-ms))
 
-(defn- current-timestamp
+(defn current-timestamp
   "ISO 8601 string timestamp for the current time."
   []
   (format/unparse timestamp-format (time/now)))
+
+;; ----- Utility functions -----
+
+(defn updated-at-order
+  "Return items in a sequence sorted by their :updated-at key."
+  [coll]
+  (sort #(compare (:updated-at %2) (:updated-at %1)) coll))
+
+(defn clean
+  "Remove any reserved properties from the resource."
+  [resource]
+  (apply dissoc resource reserved-properties))
 
 ;; ----- Resource CRUD funcitons -----
 
 (defn create-resource
   "Create a resource in the DB, returning the property map for the resource."
-  [table-name resource]
-  (let [timestamp (current-timestamp)
-        timed-resource (merge resource {
+  [table-name resource timestamp]
+  (let [timed-resource (merge resource {
           :created-at timestamp
           :updated-at timestamp})
         insert (with-open [conn (apply r/connect c/db-options)]
@@ -39,50 +66,74 @@
     (throw (RuntimeException. (str "RethinkDB insert failure: " insert))))))
 
 (defn read-resource
-  "Given a table name and a primary key value, delete the resource, retrieve it from the database, or return nil if it doesn't exist."
-  [table-name primary-key]
+  "
+  Given a table name and a primary key value, retrieve the resource from the database,
+  or return nil if it doesn't exist.
+  "
+  [table-name primary-key-value]
   (with-open [conn (apply r/connect c/db-options)]
     (-> (r/table table-name)
-      (r/get primary-key)
+      (r/get primary-key-value)
       (r/run conn))))
+
+(defn read-resources
+  "
+  Given a table name, and an index name and value, and an optional set of fields, retrieve
+  the resources from the database.
+  "
+  ([table-name index-name index-value]
+  (with-open [conn (apply r/connect c/db-options)]
+    (-> (r/table table-name)
+      (r/get-all [index-value] {:index index-name})
+      (r/run conn))))
+
+  ([table-name index-name index-value fields]
+  (with-open [conn (apply r/connect c/db-options)]
+    (-> (r/table table-name)
+      (r/get-all [index-value] {:index index-name})
+      (r/pluck fields)
+      (r/run conn)))))
 
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
   update a resource in the DB, returning the property map for the resource."
-  [table-name primary-key-name original-resource new-resource]
-  (let [timestamp (current-timestamp)
-        timed-resource (merge new-resource {
+  ([table-name primary-key-name original-resource new-resource]
+  (update-resource table-name primary-key-name original-resource new-resource (current-timestamp)))
+
+  ([table-name primary-key-name original-resource new-resource timestamp]
+  (let [timed-resource (merge new-resource {
           :created-at (:created-at original-resource)
           :updated-at timestamp})
         update (with-open [conn (apply r/connect c/db-options)]
-                (-> (r/table table-name)
-                (r/get (original-resource primary-key-name))
-                (r/replace timed-resource)
-                (r/run conn)))]
-    (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
-      timed-resource
-      (throw (RuntimeException. (str "RethinkDB update failure: " update))))))
+              (-> (r/table table-name)
+              (r/get (original-resource primary-key-name))
+              (r/replace timed-resource)
+              (r/run conn)))]
+  (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
+    timed-resource
+    (throw (RuntimeException. (str "RethinkDB update failure: " update)))))))
 
 (defn delete-resource
   "Delete the specified resource and return `true`."
-  ([table-name key-name key-value]
-    (let [delete (with-open [conn (apply r/connect c/db-options)]
-                  (-> (r/table table-name)
-                  (r/get-all [key-value] {:index key-name})
-                  (r/delete)
-                  (r/run conn)))]
-      (if (= 0 (:errors delete))
-        true
-        (throw (RuntimeException. (str "RethinkDB delete failure: " delete))))))
   ([table-name primary-key-value]
-    (let [delete (with-open [conn (apply r/connect c/db-options)]
-                  (-> (r/table table-name)
-                  (r/get primary-key-value)
-                  (r/delete)
-                  (r/run conn)))]
-      (if (= 1 (:deleted delete))
-        true
-        (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))))))
+  (let [delete (with-open [conn (apply r/connect c/db-options)]
+                (-> (r/table table-name)
+                (r/get primary-key-value)
+                (r/delete)
+                (r/run conn)))]
+    (if (= 1 (:deleted delete))
+      true
+      (throw (RuntimeException. (str "RethinkDB delete failure: " delete))))))
+
+  ([table-name key-name key-value]
+  (let [delete (with-open [conn (apply r/connect c/db-options)]
+                (-> (r/table table-name)
+                (r/get-all [key-value] {:index key-name})
+                (r/delete)
+                (r/run conn)))]
+    (if (zero? (:errors delete))
+      true
+      (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))))))
 
 ;; ----- Operations on collections of resources -----
 
@@ -93,6 +144,6 @@
                   (-> (r/table table-name)
                     (r/delete)
                     (r/run conn)))]
-    (if (> (:errors delete) 0)
+    (if (pos? (:errors delete))
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))
       true)))

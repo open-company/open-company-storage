@@ -5,8 +5,7 @@
             [ring.mock.request :refer (request body content-type header)]
             [cheshire.core :as json]
             [open-company.app :refer (app)]
-            [open-company.representations.company :as company-rep]
-            [open-company.representations.report :as report-rep]))
+            [open-company.representations.company :as company-rep]))
 
 (defn base-mime-type [full-mime-type]
   (first (s/split full-mime-type #";")))
@@ -77,10 +76,3 @@
     (put-with-api (company-rep/url ticker) company-rep/media-type body))
   ([headers ticker body]
     (put-with-api headers (company-rep/url ticker) body)))
-
-(defn put-report-with-api
-  "Makes a mock API request to create the company and returns the response."
-  ([ticker year period body]
-    (put-with-api (report-rep/url ticker year period) report-rep/media-type body))
-  ([headers ticker year period body]
-    (put-with-api headers (report-rep/url ticker year period) body)))

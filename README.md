@@ -35,7 +35,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8 JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) v2.1.2+ - a multi-modal (document, key/value, relational) open source NoSQL database
+* [RethinkDB](http://rethinkdb.com/) v2.1.4+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -167,36 +167,90 @@ Then enter these commands one-by-one, noting the output:
 ```clojure
 (require '[open-company.db.init :as db])
 (require '[open-company.resources.company :as company])
-(require '[open-company.resources.report :as report])
+(require '[open-company.resources.section :as section])
 
 ;; Create DB and tables and indexes
 (db/init)
 
 ;; Create some companies
-(company/create-company {:symbol "OPEN" :name "Transparency, LLC" :currency "USD" :web {:company "https://opencompany.io/"}})
-(company/create-company {:symbol "BUFFR" :name "Buffer" :currency "USD" :web {:company "https://open.bufferapp.com/"}})
+(company/create-company {
+  :name "Blank Inc."
+  :currency "GBP"})
 
-;; List the companies
+(company/create-company {
+  :name "Transparency, LLC"
+  :slug "transparency"
+  :currency "FKP"
+  :finances {
+    :title "Finances"
+    :data [
+      {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+    ]
+  }})
+
+  (company/create-company {
+    :name "Buffer"
+    :currency "USD"
+    :update {
+      :title "Founder's Update"
+      :body "It's all good!"
+    }
+    :finances {
+      :title "Finances"
+      :data [
+        {:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
+        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
+      ]
+      :notes {
+        :body "Good stuff! Revenue is up."
+      }
+    }})
+
+;; List companies
 (company/list-companies)
 
 ;; Get a company
-(company/get-company "OPEN")
+(company/get-company "blank-inc")
+(company/get-company "transparency")
+(company/get-company "buffer")
 
-;; Update a company
-(company/update-company {:symbol "OPEN" :name "Transparency Inc." :currency "USD" :web {:company "https://opencompany.io/"}})
+;; Create/update a section
+(section/put-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
+(section/put-section "blank-inc" "finances" {:data [
+  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+  :notes {:body "We got our first customer! Revenue FTW!"}})
+(section/put-section "blank-inc" "finances" {:data [
+  {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+  :notes {:body "We got our first customer! Revenue FTW!"}})
+(section/put-section "blank-inc" "finances" {:data [
+  {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
+  {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
+  :notes {:body "We got our second customer! Revenue FTW!"}})
 
-;; Create some reports
-(report/create-report {:symbol "OPEN" :year 2015 :period "Q2" :headcount {:founders 2 :contractors 1}})
-(report/create-report {:symbol "BUFFR" :year 2015 :period "M6" :finances {:cash 2578881 :revenue 550529}})
+(section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
 
-;; List reports
-(report/list-reports "OPEN")
+;; Get a section
+(section/get-section "transparency" "finances")
+(section/get-section "buffer" "update")
+(section/get-section "buffer" "finances")
 
-;; Get a report
-(report/get-report "OPEN" 2015 "Q2")
+;; List revisions
+(section/list-revisions "transparency" "finances")
+(section/list-revisions "buffer" "update")
+(section/list-revisions "buffer" "finances")
 
-;; Update a report
-(report/update-report {:symbol "BUFFR" :year 2015 :period "M6" :finances {:cash 2578881 :revenue 550529} :headcount {:comment "We’re hiring for 14 (!) different positions"}})
+;; Get revisions
+(section/get-revisions "transparency" "finances")
+(section/get-revisions "buffer" "update")
+(section/get-revisions "buffer" "finances")
+
+;; Delete a company
+(company/delete-company "transparency")
 
 ;; Cleanup
 (company/delete-all-companies!)
@@ -219,14 +273,7 @@ lein start
 
 Create a company with cURL:
 
-```console
-curl -i -X PUT \
--d '{"name": "Transparency, LLC", "currency": "USD", "web": {"company": "https://opencompany.io"}}' \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/OPEN
-```
+FIXME: there is no UI yet to do this so you need to create a company with slug `transparency` via repl.
 
 List the companies with cURL:
 
@@ -242,75 +289,58 @@ Request the company with cURL:
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN
+http://localhost:3000/companies/transparency
 ```
 
 Update a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"name": "Transparency, LLC", "currency": "USD", "web": {"about": "https://opencompany.io/about"}}' \
+-d '{"name": "Transparency, LLC", "currency": "EUR" }' \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/OPEN
+http://localhost:3000/companies/transparency
 ```
 
-Create a report for the company with cURL:
+```console
+curl -i -X PATCH \
+-d '{"currency": "FKP" }' \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/transparency
+```
+
+Create/update a section for the company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"headcount": {"founders": 2, "contractors": 1}}' \
---header "Accept: application/vnd.open-company.report.v1+json" \
+-d '{"body": "It\u0027s all that and a bag of chips.","title": "Founder\u0027s Update"}' \
+--header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.report.v1+json" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
-```
-
-Request the report with cURL:
-
-```console
-curl -i -X GET \
---header "Accept: application/vnd.open-company.report.v1+json" \
---header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
-```
-
-Update the report with cURL:
-
-```console
-curl -i -X PUT \
--d '{"headcount": {"founders": 3}}' \
---header "Accept: application/vnd.open-company.report.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.report.v1+json" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
-```
-
-Delete the report with cURL:
-
-```console
-curl -i -X DELETE http://localhost:3000/companies/OPEN/reports/2015/Q2
+--header "Content-Type: application/vnd.open-company.section.v1+json" \
+http://localhost:3000/companies/transparency/update
 ```
 
 Delete the company with cURL:
 
 ```console
-curl -i -X DELETE http://localhost:3000/companies/OPEN
+curl -i -X DELETE http://localhost:3000/companies/transparency
 ```
 
-Try (and fail) to get the report and the company with cURL:
+Try (and fail) to get the section and the company with cURL:
 
 ```console
 curl -i -X GET \
---header "Accept: application/vnd.open-company.report.v1+json" \
+--header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN/reports/2015/Q2
+http://localhost:3000/companies/transparency/update
 
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN
+http://localhost:3000/companies/transparency
 ```
 
 
