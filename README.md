@@ -223,17 +223,17 @@ Then enter these commands one-by-one, noting the output:
 (section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
 
 ;; Get a section
-(section/get-section "transparency" "update")
+(section/get-section "transparency" "finances")
 (section/get-section "buffer" "update")
 (section/get-section "buffer" "finances")
 
 ;; List revisions
-(section/list-revisions "transparency" "update")
+(section/list-revisions "transparency" "finances")
 (section/list-revisions "buffer" "update")
 (section/list-revisions "buffer" "finances")
 
 ;; Get revisions
-(section/get-revisions "transparency" "update")
+(section/get-revisions "transparency" "finances")
 (section/get-revisions "buffer" "update")
 (section/get-revisions "buffer" "finances")
 
@@ -261,14 +261,7 @@ lein start
 
 Create a company with cURL:
 
-```console
-curl -i -X PUT \
--d '{"name": "Transparency, LLC", "currency": "USD", "web": {"company": "https://opencompany.io"}}' \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/OPEN
-```
+FIXME: there is no UI yet to do this so you need to create a company with slug `transparency` via repl.
 
 List the companies with cURL:
 
@@ -284,18 +277,18 @@ Request the company with cURL:
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN
+http://localhost:3000/companies/transparency
 ```
 
 Update a company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"name": "Transparency, LLC", "currency": "USD", "web": {"about": "https://opencompany.io/about"}}' \
+-d '{"name": "Transparency, LLC", "currency": "EUR" }' \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/OPEN
+http://localhost:3000/companies/transparency
 ```
 
 Create/update a section for the company with cURL:
@@ -306,13 +299,13 @@ curl -i -X PUT \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.section.v1+json" \
-http://localhost:3000/companies/OPEN/update
+http://localhost:3000/companies/transparency/update
 ```
 
 Delete the company with cURL:
 
 ```console
-curl -i -X DELETE http://localhost:3000/companies/OPEN
+curl -i -X DELETE http://localhost:3000/companies/transparency
 ```
 
 Try (and fail) to get the section and the company with cURL:
@@ -321,12 +314,12 @@ Try (and fail) to get the section and the company with cURL:
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN/update
+http://localhost:3000/companies/transparency/update
 
 curl -i -X GET \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/OPEN
+http://localhost:3000/companies/transparency
 ```
 
 
