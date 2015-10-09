@@ -38,6 +38,28 @@
   (when (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
     (:id time1))))
 
+(defun update-notes-for
+
+  ;; no notes in this section
+  ([section :guard #(not (:notes %)) _original-section _author _timestamp]
+    section) ; as you were
+
+  ;; no notes should be in this section
+  ([section :guard #(not (common/notes-sections (name (:section-name %)))) _original-section _author _timestamp]
+    section) ; as you were  
+
+  ;; add author and timestamp to notes if notes' :body has been modified
+  ([section original-section author timestamp]
+  (if (= (get-in section [:notes :body]) (get-in original-section [:notes :body]))
+    ;; use the original author and timestamp
+    (-> section
+      (assoc-in [:notes :author] (get-in original-section [:notes :author]))
+      (assoc-in [:notes :updated-at] (get-in original-section [:notes :updated-at])))
+    ;; use the new author and timestamp
+    (-> section
+      (assoc-in [:notes :author] author)
+      (assoc-in [:notes :updated-at] timestamp)))))
+
 ;; ----- Validations -----
 
 (defun valid-section
@@ -121,7 +143,8 @@
           (assoc :company-slug company-slug)
           (assoc :section-name section-name)
           (assoc :author common/stuart)
-          (assoc :updated-at timestamp))
+          (assoc :updated-at timestamp)
+          (update-notes-for (original-company section-name) common/stuart timestamp))
         updated-company (assoc original-company section-name (-> updated-section
           (dissoc :company-slug)
           (dissoc :section-name)))]
