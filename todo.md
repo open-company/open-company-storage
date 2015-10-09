@@ -1,7 +1,5 @@
 Authorship
 
-Preserve created-at on section updates
-
 DB Pooling
 
 GET specific company as-of
@@ -9,9 +7,11 @@ Remove RethinkDB calls from company (only common)
 
 Collapse near (in 24h time) edits by the same author
 
-Sort out section mime types (specific per section?)
+Preserve section's created-at on section updates
 
-Update README cURLs
+Company POST/PUT/PATCH
+
+Sort out section mime types (specific per section?)
 
 Prismatic schema validation
   company

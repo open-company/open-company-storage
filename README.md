@@ -303,6 +303,15 @@ curl -i -X PUT \
 http://localhost:3000/companies/transparency
 ```
 
+```console
+curl -i -X PATCH \
+-d '{"currency": "FKP" }' \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/transparency
+```
+
 Create/update a section for the company with cURL:
 
 ```console
