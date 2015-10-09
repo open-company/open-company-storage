@@ -124,11 +124,13 @@
           (assoc :updated-at timestamp))
         updated-company (assoc original-company section-name (-> updated-section
           (dissoc :company-slug)
-          (dissoc :section-name)))]
+          (dissoc :section-name)))
+        updated-sections (vec (conj (set (:sections updated-company)) (name section-name)))
+        final-company (assoc updated-company :sections updated-sections)]
     (if (true? (valid-section company-slug section-name updated-section))
       (do
         ;; update the company
-        (company/update-company company-slug updated-company)
+        (company/update-company company-slug final-company)
         ;; create the new section revision
         (common/create-resource table-name updated-section timestamp))
       false))))

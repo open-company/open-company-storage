@@ -216,6 +216,10 @@ Then enter these commands one-by-one, noting the output:
 
 ;; Create/update a section
 (section/put-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
+(section/put-section "blank-inc" "finances" {:data [
+  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+  :notes {:body "We got our first customer! Revenue FTW!"}})
 (section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
 
 ;; Get a section
