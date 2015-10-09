@@ -198,7 +198,7 @@ Then enter these commands one-by-one, noting the output:
     :finances {
       :title "Finances"
       :data [
-        {:period "2015-09" :cash 1182329 :revenue 1215 :costs 28019}
+        {:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
         {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
       ]
       :notes {
