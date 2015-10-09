@@ -143,7 +143,11 @@
   "
   [slug company]
   (if-let [original-company (get-company slug)]
-    (common/update-resource table-name primary-key original-company (assoc (clean company) :slug slug))))
+    (let [updated-company (-> company
+                            (clean)
+                            (sections-for)
+                            (assoc :slug slug))]
+      (common/update-resource table-name primary-key original-company updated-company))))
 
 (defun put-company
   "Given the slug of the company and a company property map, create or update the company
