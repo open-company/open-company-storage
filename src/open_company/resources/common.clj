@@ -19,7 +19,7 @@
 
 ;; ----- Section definitions -----
 
-(def sections #{"update" "challenges" "growth" "finances" "ownership" "mission" "values"})
+(def sections #{"update" "challenges" "growth" "finances" "ownership" "mission" "values" "asks" "team" "product"})
 (def notes-sections #{"growth" "finances"})
 
 ;; ----- Properties common to all resources -----
