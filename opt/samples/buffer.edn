@@ -173,10 +173,10 @@
             :slug "dau"
             :value 52229
           }
-        ]}
+        ]
         :commentary {
           :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
-          <a href="">Buffer for Business</a>.</p>
+          <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
           <p>This is exciting as recently we’ve started discussions within the team of doubling down further on
           Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
           even better.</p>"
@@ -394,15 +394,15 @@
       :section {
         :title "Asks"
         :body "<ul>
-          <li>We’re continuing our fast pace of <a href="https://buffer.com/journey">growing the team</a>, and
+          <li>We’re continuing our fast pace of <a href=\"https://buffer.com/journey\">growing the team</a>, and
           we’d love your help to spread the word about all our current open positions.
-          <a href="https://twitter.com/intent/tweet/?text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:&url=https%3A%2F%2Fbufferapp.com%2Fjourney">Tweet</a>
-          or <a href="https://buffer.com/add/?url=https%3A%2F%2Fbuffer.com%2Fjourney&text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:%20&version=2.12.7&placement=hotkey">Buffer</a>.</li>
-          <li><a href="http://www.inc.com/jeff-haden/the-7-million-startup-with-zero-managers.html">The $7 Million
+          <a href=\"https://twitter.com/intent/tweet/?text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:&url=https%3A%2F%2Fbufferapp.com%2Fjourney\">Tweet</a>
+          or <a href=\"https://buffer.com/add/?url=https%3A%2F%2Fbuffer.com%2Fjourney&text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:%20&version=2.12.7&placement=hotkey\">Buffer</a>.</li>
+          <li><a href=\"http://www.inc.com/jeff-haden/the-7-million-startup-with-zero-managers.html\">The $7 Million
           Startup With Zero Managers</a>: We were lucky to have a great writeup about the current state of
           self-management at Buffer on Inc. We’d love you to share the post.
-          <a href="https://twitter.com/intent/tweet?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22">Tweet</a>
-          or <a href="https://buffer.com/add/?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22&version=2.12.9&placement=toolbar">Buffer</a>.</li>
+          <a href=\"https://twitter.com/intent/tweet?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22\">Tweet</a>
+          or <a href=\"https://buffer.com/add/?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22&version=2.12.9&placement=toolbar\">Buffer</a>.</li>
         </ul>"
       }
       :section-name "asks"
@@ -422,9 +422,9 @@
           <ul>
             <li>Our biggest retreat yet, with 31 team members present</li>
             <li>We all flew in from various corners of the world to meet in Iceland</li>
-            <li>We also invited <a href="https://open.bufferapp.com/family-at-buffer/">significant others</a> for the first time ever</li>
+            <li>We also invited <a href=\"https://open.bufferapp.com/family-at-buffer/\">significant others</a> for the first time ever</li>
             <li>It was a fantastic week with a balance of working within our teams, having higher level discussions and activities to bond</li>
-            <li><a href="https://open.bufferapp.com/buffer-retreats/">Read an article about the evolution of the Buffer retreat and our learnings along the way</a></li>
+            <li><a href=\"https://open.bufferapp.com/buffer-retreats/\">Read an article about the evolution of the Buffer retreat and our learnings along the way</a></li>
           </ul>
           <h3>Company Structure</h3>
           <ul>
@@ -432,12 +432,12 @@
             <li>We have now made the transition to working in small teams of 4-5 people</li>
             <li>We are working based on areas of the product, customer segments, and other logical separations</li>
             <li>We have fully reintroduced mentorship as well as higher level strategy roles. We’ve re-established everyone in the team having a weekly 1:1 with someone who has significant experience both in their role and within Buffer and with our culture. Several of us in the team have shifted our focus to solving higher level challenges such as company structure, culture of different areas such as product, happiness and engineering, as well as other strategic tasks.</li>
-            <li><a href="https://open.bufferapp.com/self-management-hierarchy/">Read an article from Leo where he shares all of our mistakes, learnings and new adjustments for self-management at Buffer</a></li>
+            <li><a href=\"https://open.bufferapp.com/self-management-hierarchy/\">Read an article from Leo where he shares all of our mistakes, learnings and new adjustments for self-management at Buffer</a></li>
           </ul>
           <h3>Happiness, Community and Marketing</h3>
           <ul>
             <li>We started to stream some talks from myself and Leo via Periscope and have had a great reception!</li>
-            <li>We paused the blog and worked on many other initiatives, with some <a href="https://blog.bufferapp.com/blog-strategies">great results and learnings</a></li>
+            <li>We paused the blog and worked on many other initiatives, with some <a href=\"https://blog.bufferapp.com/blog-strategies\">great results and learnings</a></li>
             <li>The Happiness team has also transitioned to working in separate areas, giving more ownership and freedom
             to innovate and progress in individual areas (e.g. Awesome Plan customers, Mobile support, Buffer for Business support)</li>
           </ul>"
@@ -457,8 +457,8 @@
         :body "<ul>
           <li>37 total team members</li>
           <li>11 people accepted our offers to join the team in the coming weeks and months</li>
-          <li>We received around <a href="https://open.bufferapp.com/hiring-july-2015/">1,500 applications in July</a></li>
-          <li>We are still growing the team fast, and have <a href="https://buffer.com/journey">13 open roles we are hiring for</a></li>
+          <li>We received around <a href=\"https://open.bufferapp.com/hiring-july-2015/\">1,500 applications in July</a></li>
+          <li>We are still growing the team fast, and have <a href=\"https://buffer.com/journey\">13 open roles we are hiring for</a></li>
           <li>We also intend to put together listings and start inviting applications for an Android Developer and an Executive Assistant during August, bringing our open roles to 15</li>
         </ul>"
       }
@@ -475,9 +475,9 @@
       :section {
         :title "Product"
         :body "<ul>
-          <li>We’ve started an experiment testing allowing people to pay for the <a href="https://buffer.com/awesome">Awesome Plan</a> in Euros</li>
-          <li>We have continued our plan to <a href="https://open.bufferapp.com/retiring-suggestions/">sunset the Suggestions feature</a></li>
-            <li>We’ve made some key speed and reliability improvements to <a href="https://buffer.com/business">Buffer for Business</a></li>
+          <li>We’ve started an experiment testing allowing people to pay for the <a href=\"https://buffer.com/awesome\">Awesome Plan</a> in Euros</li>
+          <li>We have continued our plan to <a href=\"https://open.bufferapp.com/retiring-suggestions/\">sunset the Suggestions feature</a></li>
+            <li>We’ve made some key speed and reliability improvements to <a href=\"https://buffer.com/business\">Buffer for Business</a></li>
           <li>We have started to engage in sales conversations and set up customer success for larger business & enterprise</li>
           <li>We’re in the early stages of experimenting with a progress indicator in the onboarding flow</li>
           <li>We’re exploring ways to allow sharing multiple photos to Twitter and Facebook</li>
@@ -619,8 +619,8 @@
         <p>We’re looking for an in-house finance person, to help us to be more disciplined about
         our finances and be better data-informed across all areas of the company. We’d love your help to
         spread the word on the job listing!
-        <a href="https://twitter.com/intent/tweet?original_referer=https%3A%2F%2Fabout.twitter.com%2Fresources%2Fbuttons&ref_src=twsrc%5Etfw&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&tw_p=tweetbutton&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner">Tweet</a>
-        or <a href="https://buffer.com/add/?id=4ea2549febf4321f&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&count=vertical&placement=button">Buffer</a>.</p>"
+        <a href=\"https://twitter.com/intent/tweet?original_referer=https%3A%2F%2Fabout.twitter.com%2Fresources%2Fbuttons&ref_src=twsrc%5Etfw&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&tw_p=tweetbutton&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner\">Tweet</a>
+        or <a href=\"https://buffer.com/add/?id=4ea2549febf4321f&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&count=vertical&placement=button\">Buffer</a>.</p>"
       }
       :section-name "challenges"
       :author {
