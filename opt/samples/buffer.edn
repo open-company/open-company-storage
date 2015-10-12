@@ -95,7 +95,7 @@
         :slack_id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-08T12:35:19"
+      :timestamp "2015-06-08T12:35:19"
     }
 
     {
@@ -111,7 +111,7 @@
         :slack_id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-22T18:33:41Z"
+      :timestamp "2015-06-22T18:33:41Z"
     }
 
     ;; June update https://open.bufferapp.com/buffer-june-2015/
@@ -298,6 +298,7 @@
     ;; July update https://open.bufferapp.com/buffer-july-2015-investors-report/
     {
       :section {
+        :title "Finances"
         :data[
           {
             :period "2015-06"
@@ -510,6 +511,7 @@
     ;; August Update https://open.bufferapp.com/investors-report-august-2015/
     {
       :section {
+        :title "Finances"
         :data[
           {
             :period "2015-06"
@@ -658,6 +660,7 @@
 
     {
       :section {
+        :title "Update"
         :body "<h3>Happiness: Team growth and new focus areas</h3>
         <p>Three new Happiness Heroes began Buffer Bootcamp in August, which has allowed us to fully
         commit to having several smaller teams working in separate areas. (These areas correspond
@@ -684,6 +687,7 @@
 
     {
       :section {
+        :title "Team"
         :body "<h3>14 open roles</h3>
           <p>We are still growing the team fast and have 14 open roles we are hiring for, including a
           new role: We have started looking for an in-house finance person.</p>
@@ -707,6 +711,7 @@
 
     {
       :section {
+        :title "Product"
         :body "<h3>Buffer for Video and structure changes</h3>
         <p>In the last couple of months, we’ve really shaped our product and engineering organization
         to set us up to move much faster. We’ve successfully split this large team into smaller,
