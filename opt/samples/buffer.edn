@@ -136,65 +136,65 @@
       :timestamp "2015-07-13T12:59:28Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-          }
-        ]
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;       }
+    ;     ]
 
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-        ]
-        :commentary {
-          :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
-          <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
-          <p>This is exciting as recently we’ve started discussions within the team of doubling down further on
-          Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
-          even better.</p>"
-          :author {
-            :name "Joel Gascoigne"
-            :slack_id "123456"
-            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-          }
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :slack_id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-07-13T12:59:29Z"
-    }
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
+    ;       <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
+    ;       <p>This is exciting as recently we’ve started discussions within the team of doubling down further on
+    ;       Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
+    ;       even better.</p>"
+    ;       :author {
+    ;         :name "Joel Gascoigne"
+    ;         :slack_id "123456"
+    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;       }
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :slack_id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-07-13T12:59:29Z"
+    ; }
 
     {
       :section {
@@ -203,7 +203,7 @@
         <p>Building on our self-management learnings, we have started to make some key changes to how we view
         self-management and work together.</p>
         <p>We’re moving away from self-management being synonymous with ’no structure’. We’ve realized that hierarchy
-        and structure are very different things, and structure is key to working efficiently. Some the the changes
+        and structure are very different things, and structure is key to working efficiently. Some of the changes
         that have resulted include:</p>
         <ul>
           <li>A bias towards small teams with clear roles. Small teams can feel more ownership and move fast.</li>
@@ -313,7 +313,7 @@
             :costs 494907
           }
         ]
-        :commentary {
+        :notes {
           :body "<p>At the start of July, we had our 6th team retreat! Despite the substantial cost of
         this and growing the team faster than ever, we are still profitable and the bank balance has
         gone up since last month.</p>
@@ -335,76 +335,76 @@
       :timestamp "2015-08-13T16:26:41Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-          }
-        ]
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-07"
-            :slug "total-registered-users"
-            :value 2592194
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-07"
-            :slug "mau"
-            :value 208667
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-          {
-            :period "2015-07"
-            :slug "dau"
-            :value 51491
-          }
-        ]
-        :commentary {
-          :body "<p>We’re happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
-          which may help us grow a little faster.</p>"
-          :author {
-            :name "Joel Gascoigne"
-            :slack_id "123456"
-            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-          }
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :slack_id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-08-13T16:26:42Z"
-    }
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;       }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>We’re happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
+    ;       which may help us grow a little faster.</p>"
+    ;       :author {
+    ;         :name "Joel Gascoigne"
+    ;         :slack_id "123456"
+    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;       }
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :slack_id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-08-13T16:26:42Z"
+    ; }
 
     {
       :section {
@@ -532,7 +532,7 @@
             :costs 490313
           }
         ]
-        :commentary {
+        :notes {
           :body "<p>We’re delighted to hit almost $7.5M in annual recurring revenue and be fast moving
           towards the big $10M ARR milestone.</p>
           <p>As a company, we’re starting to feel that some of our recent team growth and structure adjustments
@@ -553,91 +553,91 @@
       :timestamp "2015-09-18T18:33:41Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-          }
-        ]
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-07"
-            :slug "total-registered-users"
-            :value 2592194
-          }
-          {
-            :period "2015-08"
-            :slug "total-registered-users"
-            :value 2673418
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-07"
-            :slug "mau"
-            :value 208667
-          }
-          {
-            :period "2015-08"
-            :slug "mau"
-            :value 211520
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-          {
-            :period "2015-07"
-            :slug "dau"
-            :value 51491
-          }
-          {
-            :period "2015-08"
-            :slug "dau"
-            :value 50489
-          }
-        ]
-        :commentary {
-          :body "<p>As a company, we’re starting to feel that some of our recent team growth
-          and structure adjustments in the last few months are starting to take effect.</p>"
-          :author {
-            :name "Joel Gascoigne"
-            :slack_id "123456"
-            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-          }
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :slack_id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-09-18T18:33:42Z"
-    }
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;       }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "total-registered-users"
+    ;         :value 2673418
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "mau"
+    ;         :value 211520
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "dau"
+    ;         :value 50489
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>As a company, we’re starting to feel that some of our recent team growth
+    ;       and structure adjustments in the last few months are starting to take effect.</p>"
+    ;       :author {
+    ;         :name "Joel Gascoigne"
+    ;         :slack_id "123456"
+    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;       }
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :slack_id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-09-18T18:33:42Z"
+    ; }
 
     {
       :section {
@@ -649,7 +649,7 @@
         <a href=\"https://twitter.com/intent/tweet?original_referer=https%3A%2F%2Fabout.twitter.com%2Fresources%2Fbuttons&ref_src=twsrc%5Etfw&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&tw_p=tweetbutton&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner\">Tweet</a>
         or <a href=\"https://buffer.com/add/?id=4ea2549febf4321f&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&count=vertical&placement=button\">Buffer</a>.</p>"
       }
-      :section-name "challenges"
+      :section-name "asks"
       :author {
         :name "Joel Gascoigne"
         :slack_id "123456"
