@@ -19,10 +19,9 @@
   ([company-slug sections]
   (let [section (first sections)
         section-name (:section-name section)
-        timestamp (:timestamp section)
-        clean-section (dissoc section :section-name :timestamp)]
+        timestamp (:timestamp section)]
     (println (str "Creating section '" section-name "' at: " timestamp))
-    (section/put-section company-slug section-name clean-section timestamp)
+    (section/put-section company-slug section-name (:section section) timestamp)
     (import-sections company-slug (rest sections)))))
 
 ;; ----- Company import -----
