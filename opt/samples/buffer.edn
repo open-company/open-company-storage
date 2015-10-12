@@ -375,7 +375,7 @@
             :slug "dau"
             :value 51491
           }
-        ]}
+        ]
         :commentary {
           :body "<p>We’re happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
           which may help us grow a little faster.</p>"
@@ -597,7 +597,7 @@
             :slug "dau"
             :value 50489
           }
-        ]}
+        ]
         :commentary {
           :body "<p>As a company, we’re starting to feel that some of our recent team growth
           and structure adjustments in the last few months are starting to take effect.</p>"
