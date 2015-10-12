@@ -3,6 +3,7 @@
     :slug "buffer"
     :name "Buffer"
     :currency "USD"
+    :timestamp "2015-07-13T12:59:28Z"
   }
   :sections [
 
@@ -10,7 +11,7 @@
     {
       :section {
         :title "Values"
-        :body {
+        :body
           "<h3>1. Choose positivity</h3>
           <ul>
             <li>You strive to approach things in a positive and optimistic way</li>
@@ -24,7 +25,7 @@
             <li>You take pride in opportunities to share our beliefs, failures, strengths and decisions</li>
             <li>You use transparency as a tool to help others</li>
             <li>You always state your thoughts immediately and with honesty</li>
-            <li>You share early in the decision process, to avoid "big revelations"</li>
+            <li>You share early in the decision process, to avoid \"big revelations\"</li>
           </ul>
           <h3>3. Focus on self-improvement</h3>
           <ul>
@@ -87,7 +88,6 @@
             <li>You strive to provide the best solution, even if that means foregoing profit</li>
             <li>You get excited about opportunities to help others</li>
           </ul>"
-        }
       }
       :section-name "values"
       :author {
@@ -180,6 +180,11 @@
           <p>This is exciting as recently we’ve started discussions within the team of doubling down further on
           Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
           even better.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
         }
       }
       :section-name "growth"
@@ -313,6 +318,11 @@
         gone up since last month.</p>
           <p>We are very happy with this slack we have and the health of the business, and at the same
           time we would like to grow the team faster and continue filling validated roles.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
         }
       }
       :section-name "finances"
@@ -379,6 +389,11 @@
         :commentary {
           :body "<p>We’re happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
           which may help us grow a little faster.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
         }
       }
       :section-name "growth"
@@ -520,6 +535,11 @@
           towards the big $10M ARR milestone.</p>
           <p>As a company, we’re starting to feel that some of our recent team growth and structure adjustments
           in the last few months are starting to take effect.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
         }
       }
       :section-name "finances"
@@ -601,6 +621,11 @@
         :commentary {
           :body "<p>As a company, we’re starting to feel that some of our recent team growth
           and structure adjustments in the last few months are starting to take effect.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
         }
       }
       :section-name "growth"
