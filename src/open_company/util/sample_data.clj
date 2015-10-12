@@ -19,7 +19,6 @@
   ([company-slug sections]
   (let [section (first sections)
         section-name (:section-name section)
-        author (:author section)
         timestamp (:timestamp section)
         clean-section (dissoc section :section-name :timestamp)]
     (println (str "Creating section '" section-name "' at: " timestamp))

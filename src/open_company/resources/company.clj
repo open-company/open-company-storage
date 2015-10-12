@@ -108,10 +108,10 @@
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?"
 
-  ([company] (create-company (common/current-timestamp)))
+  ([company] (create-company company (common/current-timestamp)))
   
   ;; not a map
-  ([_company :guard #(not (map? %)) timestamp] false)
+  ([_company :guard #(not (map? %)) _timestamp] false)
   
   ;; potentially a valid company
   ([company timestamp]

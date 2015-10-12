@@ -133,9 +133,9 @@
   TODO: what to use for :author when using Clojure API?
   "
   ([company-slug section-name section] (put-section company-slug section-name section (common/current-timestamp)))
-  
+
   ([company-slug section-name :guard #(not (keyword? %)) section timestamp]
-  (put-section company-slug (keyword section-name) section))
+  (put-section company-slug (keyword section-name) section timestamp))
 
   ([company-slug section-name section timestamp]
   (let [original-company (company/get-company company-slug)
