@@ -1,0 +1,745 @@
+{
+  :company {
+    :slug "buffer"
+    :name "Buffer"
+    :currency "USD"
+    :timestamp "2015-07-13T12:59:28Z"
+  }
+  :sections [
+
+    ;; Initial
+    {
+      :section {
+        :title "Values"
+        :body
+          "<h3>1. Choose positivity</h3>
+          <ul>
+            <li>You strive to approach things in a positive and optimistic way</li>
+            <li>You avoid criticizing or condemning team members or users</li>
+            <li>You avoid complaining</li>
+            <li>You let the other person save face, even if they are clearly wrong</li>
+            <li>You are deliberate about giving genuine appreciation</li>
+          </ul>
+          <h3>2. Default to transparency</h3>
+          <ul>
+            <li>You take pride in opportunities to share our beliefs, failures, strengths and decisions</li>
+            <li>You use transparency as a tool to help others</li>
+            <li>You always state your thoughts immediately and with honesty</li>
+            <li>You share early in the decision process, to avoid \"big revelations\"</li>
+          </ul>
+          <h3>3. Focus on self-improvement</h3>
+          <ul>
+            <li>You are conscious of your current level of productivity and happiness, and make continual change to grow</li>
+            <li>You have a higher expectation of yourself, than Buffer does of you</li>
+            <li>You regularly and deliberately do things that make you feel uncomfortable</li>
+            <li>You practice activities and develop habits that improve your mind and your body</li>
+          </ul>
+          <h3>4. Be a \"no-ego\" Doer</h3>
+          <ul>
+            <li>You don't attach your personal self to ideas</li>
+            <li>You let others have your best ideas</li>
+            <li>You approach new ideas thinking \"what can we do right now?\"</li>
+            <li>You are humble</li>
+            <li>You always ship code the moment it is better than what is live on our site - no matter what</li>
+          </ul>
+          <h3>5. Listen First, Then Listen More</h3>
+          <ul>
+            <li>You seek first to understand, then to be understood</li>
+            <li>You focus on listening rather than responding</li>
+            <li>You take the approach that everything is a hypothesis and you could be wrong</li>
+            <li>You are suggestive rather than instructive, replacing phrases such as 'certainly','undoubtedly',
+            etc with 'perhaps', 'I think', 'my intuition right now'</li>
+          </ul>
+          <h3>6. Have a Bias Towards Clarity</h3>
+          <ul>
+            <li>You talk, code, design and write in a clear way instead of being clever</li>
+            <li>You over-communicate, repeating things more times than you would intuitively</li>
+            <li>You use more words to explain, even if it feels obvious already</li>
+            <li>You don't make assumptions, you instead ask that extra question to have the full picture</li>
+          </ul>
+          <h3>7. Make Time to Reflect</h3>
+          <ul>
+            <li>You deliberately find time for reflection, because that's where your life-changing adjustments come from</li>
+            <li>You have a calm approach to discussions and ponder points in your own time</li>
+            <li>You find time to jump out of the trenches into the higher level thinking that will move the needle</li>
+            <li>You understand the value of patience and treat it as a muscle which needs practice to grow</li>
+          </ul>
+          <h3>8. Live Smarter, Not Harder</h3>
+          <ul>
+            <li>You value waking up fresh over working that extra hour</li>
+            <li>You always aim to be fully engaged in an activity, or resting</li>
+            <li>You single task your way through the day</li>
+            <li>You are at the top of your game, as you focus on expanding capacity of your mental, physical, emotional and spiritual energy</li>
+            <li>You choose to be at the single place on Earth where you are the happiest, and most productive, and you are not afraid to find out where that is</li>
+          </ul>
+          <h3>9. Show Gratitude</h3>
+          <ul>
+            <li>You regularly stop and are grateful for your circumstances</li>
+            <li>You are grateful for the work co-workers do to push the company forward and help you move faster</li>
+            <li>You approach customer conversations with humility and the knowledge that it's a privilege to
+            serve these people</li>
+            <li>You have gratitude for platforms, tools and open source that laid the foundation for the possibility
+            of the company: \"If I have seen further it is by standing on the shoulders of giants\" - Isaac Newton</li>
+          </ul>
+          <h3>10. Do the Right Thing</h3>
+          <ul>
+            <li>You choose what's best for customers and the company in the long-term</li>
+            <li>You correct the mistake even when no one would notice</li>
+            <li>You strive to provide the best solution, even if that means foregoing profit</li>
+            <li>You get excited about opportunities to help others</li>
+          </ul>"
+      }
+      :section-name "values"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-06-08T12:35:19Z"
+    }
+
+    {
+      :section {
+        :title "Mission"
+        :body "Our vision at Buffer is to build the simplest and most powerful social media tool, and to set the bar
+        for great customer support. In addition to these product and service goals, we have a focus on building one
+        of the most unique and fulfilling workplaces that exist, by rethinking a lot of traditional practices."
+      }
+      :section-name "mission"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-06-22T18:33:41Z"
+    }
+
+    ;; June update https://open.bufferapp.com/buffer-june-2015/
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-06"
+            :cash 2578881
+            :revenue 550529
+            :costs 238715
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-07-13T12:59:28Z"
+    }
+
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;       }
+    ;     ]
+
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
+    ;       <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
+    ;       <p>This is exciting as recently we've started discussions within the team of doubling down further on
+    ;       Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
+    ;       even better.</p>"
+    ;       :author {
+    ;         :name "Joel Gascoigne"
+    ;         :slack_id "123456"
+    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;       }
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :slack_id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-07-13T12:59:29Z"
+    ; }
+
+    {
+      :section {
+        :title "Update"
+        :body "<h3>Key changes to self-management at Buffer</h3>
+        <p>Building on our self-management learnings, we have started to make some key changes to how we view
+        self-management and work together.</p>
+        <p>We're moving away from self-management being synonymous with 'no structure'. We've realized that hierarchy
+        and structure are very different things, and structure is key to working efficiently. Some of the changes
+        that have resulted include:</p>
+        <ul>
+          <li>A bias towards small teams with clear roles. Small teams can feel more ownership and move fast.</li>
+          <li>Embracing the idea of higher level work as a separate task carried out by people, rather than spread
+          across everyone.</li>
+          <li>Starting up mentorship again, through regular 1:1s. 1:1s are a great way to maintain help and
+          guidance, without managers.</li>
+        </ul>
+        <p>To tie all this together, we have started to develop our own internal tool to help us organize ourselves
+        and create visibility to the roles people have. Here are a few screenshots (still very much a work
+        in progress):<p>
+        <img src=\"https://open.bufferapp.com/wp-content/uploads/2015/07/HQ2.png\">
+        <br>
+        <img src=\"https://open.bufferapp.com/wp-content/uploads/2015/07/HQ1.png\">"
+      }
+      :section-name "update"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-07-13T12:59:31Z"
+    }
+
+    {
+      :section {
+        :title "Asks"
+        :body "<p>I'm trying to learn how companies structure product, design and front-end development (CSS).
+        These seem like overlapping areas, and could easily be 3 people, or could be one person who has ability
+        in all areas. With 1 person rather than 3, it feels possible to move much faster.</p>
+        <p>I'm keen to learn how other companies balance expertise and specialization vs speed. If you have any
+        thoughts here or know someone who might have thoughts (maybe a founder, CPO or product people), I'd love
+        to hear from you! Thanks.</p>"
+      }
+      :section-name "asks"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-07-13T12:59:32Z"
+    }
+
+    {
+      :section {
+        :title "Team"
+        :body "<h3>Fastest-ever growth and hiring push</h3>
+        <ul>
+          <li>34 fully on board team members.</li>
+          <li>2 new people finished bootcamp and fully joined the team:
+          <a href=\"https://open.bufferapp.com/kat-zien-has-joined-buffer-as-a-back-end-developer/\">Kat</a>
+          (Engineer) and Danny (Happiness Hero).
+          <li>6 people have accepted offers to join the team in the coming weeks/months (3 Product Creators,
+            2 Engineers, 1 Community Champion). This will make us 40 people.
+          <li>We're hiring for <a href=\"https://buffer.com/journey\">14 (!) different positions</a>
+        </ul>"
+      }
+      :section-name "team"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-07-13T12:59:33Z"
+    }
+
+    {
+      :section {
+        :title "Product"
+        :body "<h3>Pinterest, Pablo improvements</h3>
+        <ul>
+          <li>We soft-launched improvements to our Pinterest scheduling capabilities, including letting you
+          pick an image from the page.</li>
+          <li>We made improvements to <a href=\"https://buffer.com/pablo\">Pablo</a>, our super-fast image creation
+          tool. A key one is that you can select text from a page and right click > Create Image with Pablo in
+          order to create an image with the selected quote over the top like so:
+          <img src=\"https://open.bufferapp.com/wp-content/uploads/2015/07/right-click-with-Pablo1.png\"></li>
+          <li>We're very close to rolling out the ability to schedule new 'Retweet with Comment' Tweets using
+          Buffer.</li>
+        </ul>"
+      }
+      :section-name "product"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-07-13T12:59:34Z"
+    }
+
+
+    ;; July update https://open.bufferapp.com/buffer-july-2015-investors-report/
+    {
+      :section {
+        :title "Finances"
+        :data[
+          {
+            :period "2015-06"
+            :cash 2578881
+            :revenue 550529
+            :costs 238715
+          }
+          {
+            :period "2015-07"
+            :cash 2655505
+            :revenue 571532
+            :costs 494907
+          }
+        ]
+        :notes {
+          :body "<p>At the start of July, we had our 6th team retreat! Despite the substantial cost of
+        this and growing the team faster than ever, we are still profitable and the bank balance has
+        gone up since last month.</p>
+          <p>We are very happy with this slack we have and the health of the business, and at the same
+          time we would like to grow the team faster and continue filling validated roles.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
+        }
+      }
+      :section-name "finances"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-08-13T16:26:41Z"
+    }
+
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;       }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
+    ;       which may help us grow a little faster.</p>"
+    ;       :author {
+    ;         :name "Joel Gascoigne"
+    ;         :slack_id "123456"
+    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;       }
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :slack_id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-08-13T16:26:42Z"
+    ; }
+
+    {
+      :section {
+        :title "Asks"
+        :body "<ul>
+          <li>We're continuing our fast pace of <a href=\"https://buffer.com/journey\">growing the team</a>, and
+          we'd love your help to spread the word about all our current open positions.
+          <a href=\"https://twitter.com/intent/tweet/?text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:&url=https%3A%2F%2Fbufferapp.com%2Fjourney\">Tweet</a>
+          or <a href=\"https://buffer.com/add/?url=https%3A%2F%2Fbuffer.com%2Fjourney&text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:%20&version=2.12.7&placement=hotkey\">Buffer</a>.</li>
+          <li><a href=\"http://www.inc.com/jeff-haden/the-7-million-startup-with-zero-managers.html\">The $7 Million
+          Startup With Zero Managers</a>: We were lucky to have a great writeup about the current state of
+          self-management at Buffer on Inc. We'd love you to share the post.
+          <a href=\"https://twitter.com/intent/tweet?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22\">Tweet</a>
+          or <a href=\"https://buffer.com/add/?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22&version=2.12.9&placement=toolbar\">Buffer</a>.</li>
+        </ul>"
+      }
+      :section-name "asks"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-08-13T16:26:43Z"
+    }
+
+    {
+      :section {
+        :title "Update"
+        :body "
+          <h3>Retreat</h3>
+          <ul>
+            <li>Our biggest retreat yet, with 31 team members present</li>
+            <li>We all flew in from various corners of the world to meet in Iceland</li>
+            <li>We also invited <a href=\"https://open.bufferapp.com/family-at-buffer/\">significant others</a> for the first time ever</li>
+            <li>It was a fantastic week with a balance of working within our teams, having higher level discussions and activities to bond</li>
+            <li><a href=\"https://open.bufferapp.com/buffer-retreats/\">Read an article about the evolution of the Buffer retreat and our learnings along the way</a></li>
+          </ul>
+          <h3>Company Structure</h3>
+          <ul>
+            <li>Last month we mentioned a shift towards adding more structure and making roles and commitments explicit</li>
+            <li>We have now made the transition to working in small teams of 4-5 people</li>
+            <li>We are working based on areas of the product, customer segments, and other logical separations</li>
+            <li>We have fully reintroduced mentorship as well as higher level strategy roles. We've re-established everyone in the team having a weekly 1:1 with someone who has significant experience both in their role and within Buffer and with our culture. Several of us in the team have shifted our focus to solving higher level challenges such as company structure, culture of different areas such as product, happiness and engineering, as well as other strategic tasks.</li>
+            <li><a href=\"https://open.bufferapp.com/self-management-hierarchy/\">Read an article from Leo where he shares all of our mistakes, learnings and new adjustments for self-management at Buffer</a></li>
+          </ul>
+          <h3>Happiness, Community and Marketing</h3>
+          <ul>
+            <li>We started to stream some talks from myself and Leo via Periscope and have had a great reception!</li>
+            <li>We paused the blog and worked on many other initiatives, with some <a href=\"https://blog.bufferapp.com/blog-strategies\">great results and learnings</a></li>
+            <li>The Happiness team has also transitioned to working in separate areas, giving more ownership and freedom
+            to innovate and progress in individual areas (e.g. Awesome Plan customers, Mobile support, Buffer for Business support)</li>
+          </ul>"
+      }
+      :section-name "update"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-08-13T16:26:44Z"
+    }
+
+    {
+      :section {
+        :title "Team"
+        :body "<ul>
+          <li>37 total team members</li>
+          <li>11 people accepted our offers to join the team in the coming weeks and months</li>
+          <li>We received around <a href=\"https://open.bufferapp.com/hiring-july-2015/\">1,500 applications in July</a></li>
+          <li>We are still growing the team fast, and have <a href=\"https://buffer.com/journey\">13 open roles we are hiring for</a></li>
+          <li>We also intend to put together listings and start inviting applications for an Android Developer and an Executive Assistant during August, bringing our open roles to 15</li>
+        </ul>"
+      }
+      :section-name "team"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-08-13T16:26:45Z"
+    }
+
+    {
+      :section {
+        :title "Product"
+        :body "<ul>
+          <li>We've started an experiment testing allowing people to pay for the <a href=\"https://buffer.com/awesome\">Awesome Plan</a> in Euros</li>
+          <li>We have continued our plan to <a href=\"https://open.bufferapp.com/retiring-suggestions/\">sunset the Suggestions feature</a></li>
+            <li>We've made some key speed and reliability improvements to <a href=\"https://buffer.com/business\">Buffer for Business</a></li>
+          <li>We have started to engage in sales conversations and set up customer success for larger business & enterprise</li>
+          <li>We're in the early stages of experimenting with a progress indicator in the onboarding flow</li>
+          <li>We're exploring ways to allow sharing multiple photos to Twitter and Facebook</li>
+        </ul>"
+      }
+      :section-name "product"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-08-13T16:26:46Z"
+    }
+
+    ;; August Update https://open.bufferapp.com/investors-report-august-2015/
+    {
+      :section {
+        :title "Finances"
+        :data[
+          {
+            :period "2015-06"
+            :cash 2578881
+            :revenue 550529
+            :costs 238715
+          }
+          {
+            :period "2015-07"
+            :cash 2655505
+            :revenue 571532
+            :costs 494907
+          }
+          {
+            :period "2015-08"
+            :cash 2789388
+            :revenue 624196
+            :costs 490313
+          }
+        ]
+        :notes {
+          :body "<p>We're delighted to hit almost $7.5M in annual recurring revenue and be fast moving
+          towards the big $10M ARR milestone.</p>
+          <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
+          in the last few months are starting to take effect.</p>"
+          :author {
+            :name "Joel Gascoigne"
+            :slack_id "123456"
+            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+          }
+        }
+      }
+      :section-name "finances"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-09-18T18:33:41Z"
+    }
+
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;       }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "total-registered-users"
+    ;         :value 2673418
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "mau"
+    ;         :value 211520
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "dau"
+    ;         :value 50489
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>As a company, we're starting to feel that some of our recent team growth
+    ;       and structure adjustments in the last few months are starting to take effect.</p>"
+    ;       :author {
+    ;         :name "Joel Gascoigne"
+    ;         :slack_id "123456"
+    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;       }
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :slack_id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-09-18T18:33:42Z"
+    ; }
+
+    {
+      :section {
+        :title "Asks"
+        :body "<h3>Share our finance position</h3>
+        <p>We're looking for an in-house finance person, to help us to be more disciplined about
+        our finances and be better data-informed across all areas of the company. We'd love your help to
+        spread the word on the job listing!
+        <a href=\"https://twitter.com/intent/tweet?original_referer=https%3A%2F%2Fabout.twitter.com%2Fresources%2Fbuttons&ref_src=twsrc%5Etfw&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&tw_p=tweetbutton&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner\">Tweet</a>
+        or <a href=\"https://buffer.com/add/?id=4ea2549febf4321f&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&count=vertical&placement=button\">Buffer</a>.</p>"
+      }
+      :section-name "asks"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-09-18T18:33:43Z"
+    }
+
+    {
+      :section {
+        :title "Update"
+        :body "<h3>Happiness: Team growth and new focus areas</h3>
+        <p>Three new Happiness Heroes began Buffer Bootcamp in August, which has allowed us to fully
+        commit to having several smaller teams working in separate areas. (These areas correspond
+        to different Buffer plans and platforms, like paying customers, customers using Buffer's
+        free plan, or those reaching out from the mobile app.)</p>
+        <p>We're working on improving our numbers by bringing down the average response times in
+        September. We have also started exploring a customer success focus for our Enterprise customers.</p>
+        <ul>
+          <li>Conversations: 9,063 (+22%)</li>
+          <li>Customer happiness percentage: 94%</li>
+          <li>34% of emails got a reply within 1 hour</li>
+          <li>55% of emails got a reply within 6 hours</li>
+          <li>55% of Tweets got a reply within 15 minutes</li>
+        </ul>"
+      }
+      :section-name "update"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-09-18T18:33:44Z"
+    }
+
+    {
+      :section {
+        :title "Team"
+        :body "<h3>14 open roles</h3>
+          <p>We are still growing the team fast and have 14 open roles we are hiring for, including a
+          new role: We have started looking for an in-house finance person.</p>
+          <p>We received around 1,500 applications in August. (July and August tend to be slower in
+          terms of applications, we are excited for September.)</p>
+          <p>We will pass 50 people by the next update!</p>
+          <ul>
+            <li>42 total team members</li>
+            <li>5 new team members during August</li>
+            <li>8 more people will start or have started during September</li>
+          </ul>"
+      }
+      :section-name "team"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-09-18T18:33:45Z"
+    }
+
+    {
+      :section {
+        :title "Product"
+        :body "<h3>Buffer for Video and structure changes</h3>
+        <p>In the last couple of months, we've really shaped our product and engineering organization
+        to set us up to move much faster. We've successfully split this large team into smaller,
+        4-6 person teams that are able to work autonomously and move fast.</p>
+        <p>We still have some roles where a single person needs to be working across several teams, and
+        a key hiring goal is for us to reach a point where everyone working on products at Buffer is
+        focused on a single area. This will help us to move much faster in the future. All of these
+        changes and our increased pace are starting to be noticed. Here's a great note we received
+        from a customer recently:</p>
+        <p><em>\"I'm very surprised! In the last 5 days you add two great features to Buffer. First the
+        ability to post videos simultaneously to various accounts and second we now can upload
+        thumbnail images to the links we share thru Buffer in Facebook and LinkedIn. I just want to
+        say thanks cause I feel heard. And I hope you keep hearing us.\"</em></p>
+        <ul>
+          <li>We launched <a href=\"https://buffer.com/video\">Buffer for Video</a> and it got a
+          <a href=\"http://www.producthunt.com/tech/buffer-for-video\">great reception from the community</a>.</li>
+          <li>We've validated product/market fit for our <a href=\"https://buffer.com/optimal-scheduling?utm_campaign=schedule_tab\">optimal scheduling tool</a>.</li>
+          <li>A new version of <a href=\"https://buffer.com/pablo\">Pablo</a> will launch very soon.</li>
+        </ul>"
+      }
+      :section-name "product"
+      :author {
+        :name "Joel Gascoigne"
+        :slack_id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-09-18T18:33:46Z"
+    }
+
+  ]
+}

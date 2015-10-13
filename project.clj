@@ -28,6 +28,7 @@
     [com.taoensso/timbre "4.1.4"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
+    [org.clojure/tools.cli "0.3.3"] ; command-line parsing https://github.com/clojure/tools.cli
  ]
 
   ;; Production plugins

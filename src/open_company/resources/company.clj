@@ -107,10 +107,14 @@
   If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword.
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?"
+
+  ([company] (create-company company (common/current-timestamp)))
+  
   ;; not a map
-  ([_company :guard #(not (map? %))] false)
+  ([_company :guard #(not (map? %)) _timestamp] false)
+  
   ;; potentially a valid company
-  ([company]
+  ([company timestamp]
     (let [company-slug (:slug company)
           clean-company (clean company)
           slugged-company (if company-slug
@@ -120,7 +124,6 @@
           company-with-revision-author (author-for common/stuart
                                         (:sections company-with-sections)
                                         company-with-sections) ;; add/replace the :author
-          timestamp (common/current-timestamp)
           final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
       (if (true? (valid-company final-company))
         (do
