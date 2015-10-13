@@ -30,7 +30,7 @@
   (let [company (:company data)
         slug (:slug company)
         delete (:delete options)]
-    (when delete
+    (when (and delete (company/get-company slug))
       (println (str "Deleting company '" slug "'."))
       (company/delete-company slug))
     (when-not delete

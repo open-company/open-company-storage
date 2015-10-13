@@ -177,7 +177,7 @@
     ;     :notes {
     ;       :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
     ;       <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
-    ;       <p>This is exciting as recently we’ve started discussions within the team of doubling down further on
+    ;       <p>This is exciting as recently we've started discussions within the team of doubling down further on
     ;       Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
     ;       even better.</p>"
     ;       :author {
@@ -202,7 +202,7 @@
         :body "<h3>Key changes to self-management at Buffer</h3>
         <p>Building on our self-management learnings, we have started to make some key changes to how we view
         self-management and work together.</p>
-        <p>We’re moving away from self-management being synonymous with ’no structure’. We’ve realized that hierarchy
+        <p>We're moving away from self-management being synonymous with 'no structure'. We've realized that hierarchy
         and structure are very different things, and structure is key to working efficiently. Some of the changes
         that have resulted include:</p>
         <ul>
@@ -231,11 +231,11 @@
     {
       :section {
         :title "Asks"
-        :body "<p>I’m trying to learn how companies structure product, design and front-end development (CSS).
+        :body "<p>I'm trying to learn how companies structure product, design and front-end development (CSS).
         These seem like overlapping areas, and could easily be 3 people, or could be one person who has ability
         in all areas. With 1 person rather than 3, it feels possible to move much faster.</p>
-        <p>I’m keen to learn how other companies balance expertise and specialization vs speed. If you have any
-        thoughts here or know someone who might have thoughts (maybe a founder, CPO or product people), I’d love
+        <p>I'm keen to learn how other companies balance expertise and specialization vs speed. If you have any
+        thoughts here or know someone who might have thoughts (maybe a founder, CPO or product people), I'd love
         to hear from you! Thanks.</p>"
       }
       :section-name "asks"
@@ -258,7 +258,7 @@
           (Engineer) and Danny (Happiness Hero).
           <li>6 people have accepted offers to join the team in the coming weeks/months (3 Product Creators,
             2 Engineers, 1 Community Champion). This will make us 40 people.
-          <li>We’re hiring for <a href=\"https://buffer.com/journey\">14 (!) different positions</a>
+          <li>We're hiring for <a href=\"https://buffer.com/journey\">14 (!) different positions</a>
         </ul>"
       }
       :section-name "team"
@@ -281,7 +281,7 @@
           tool. A key one is that you can select text from a page and right click > Create Image with Pablo in
           order to create an image with the selected quote over the top like so:
           <img src=\"https://open.bufferapp.com/wp-content/uploads/2015/07/right-click-with-Pablo1.png\"></li>
-          <li>We’re very close to rolling out the ability to schedule new ‘Retweet with Comment’ Tweets using
+          <li>We're very close to rolling out the ability to schedule new 'Retweet with Comment' Tweets using
           Buffer.</li>
         </ul>"
       }
@@ -388,7 +388,7 @@
     ;       }
     ;     ]
     ;     :notes {
-    ;       :body "<p>We’re happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
+    ;       :body "<p>We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
     ;       which may help us grow a little faster.</p>"
     ;       :author {
     ;         :name "Joel Gascoigne"
@@ -410,13 +410,13 @@
       :section {
         :title "Asks"
         :body "<ul>
-          <li>We’re continuing our fast pace of <a href=\"https://buffer.com/journey\">growing the team</a>, and
-          we’d love your help to spread the word about all our current open positions.
+          <li>We're continuing our fast pace of <a href=\"https://buffer.com/journey\">growing the team</a>, and
+          we'd love your help to spread the word about all our current open positions.
           <a href=\"https://twitter.com/intent/tweet/?text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:&url=https%3A%2F%2Fbufferapp.com%2Fjourney\">Tweet</a>
           or <a href=\"https://buffer.com/add/?url=https%3A%2F%2Fbuffer.com%2Fjourney&text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:%20&version=2.12.7&placement=hotkey\">Buffer</a>.</li>
           <li><a href=\"http://www.inc.com/jeff-haden/the-7-million-startup-with-zero-managers.html\">The $7 Million
           Startup With Zero Managers</a>: We were lucky to have a great writeup about the current state of
-          self-management at Buffer on Inc. We’d love you to share the post.
+          self-management at Buffer on Inc. We'd love you to share the post.
           <a href=\"https://twitter.com/intent/tweet?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22\">Tweet</a>
           or <a href=\"https://buffer.com/add/?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22&version=2.12.9&placement=toolbar\">Buffer</a>.</li>
         </ul>"
@@ -447,7 +447,7 @@
             <li>Last month we mentioned a shift towards adding more structure and making roles and commitments explicit</li>
             <li>We have now made the transition to working in small teams of 4-5 people</li>
             <li>We are working based on areas of the product, customer segments, and other logical separations</li>
-            <li>We have fully reintroduced mentorship as well as higher level strategy roles. We’ve re-established everyone in the team having a weekly 1:1 with someone who has significant experience both in their role and within Buffer and with our culture. Several of us in the team have shifted our focus to solving higher level challenges such as company structure, culture of different areas such as product, happiness and engineering, as well as other strategic tasks.</li>
+            <li>We have fully reintroduced mentorship as well as higher level strategy roles. We've re-established everyone in the team having a weekly 1:1 with someone who has significant experience both in their role and within Buffer and with our culture. Several of us in the team have shifted our focus to solving higher level challenges such as company structure, culture of different areas such as product, happiness and engineering, as well as other strategic tasks.</li>
             <li><a href=\"https://open.bufferapp.com/self-management-hierarchy/\">Read an article from Leo where he shares all of our mistakes, learnings and new adjustments for self-management at Buffer</a></li>
           </ul>
           <h3>Happiness, Community and Marketing</h3>
@@ -491,12 +491,12 @@
       :section {
         :title "Product"
         :body "<ul>
-          <li>We’ve started an experiment testing allowing people to pay for the <a href=\"https://buffer.com/awesome\">Awesome Plan</a> in Euros</li>
+          <li>We've started an experiment testing allowing people to pay for the <a href=\"https://buffer.com/awesome\">Awesome Plan</a> in Euros</li>
           <li>We have continued our plan to <a href=\"https://open.bufferapp.com/retiring-suggestions/\">sunset the Suggestions feature</a></li>
-            <li>We’ve made some key speed and reliability improvements to <a href=\"https://buffer.com/business\">Buffer for Business</a></li>
+            <li>We've made some key speed and reliability improvements to <a href=\"https://buffer.com/business\">Buffer for Business</a></li>
           <li>We have started to engage in sales conversations and set up customer success for larger business & enterprise</li>
-          <li>We’re in the early stages of experimenting with a progress indicator in the onboarding flow</li>
-          <li>We’re exploring ways to allow sharing multiple photos to Twitter and Facebook</li>
+          <li>We're in the early stages of experimenting with a progress indicator in the onboarding flow</li>
+          <li>We're exploring ways to allow sharing multiple photos to Twitter and Facebook</li>
         </ul>"
       }
       :section-name "product"
@@ -533,9 +533,9 @@
           }
         ]
         :notes {
-          :body "<p>We’re delighted to hit almost $7.5M in annual recurring revenue and be fast moving
+          :body "<p>We're delighted to hit almost $7.5M in annual recurring revenue and be fast moving
           towards the big $10M ARR milestone.</p>
-          <p>As a company, we’re starting to feel that some of our recent team growth and structure adjustments
+          <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
           in the last few months are starting to take effect.</p>"
           :author {
             :name "Joel Gascoigne"
@@ -621,7 +621,7 @@
     ;       }
     ;     ]
     ;     :notes {
-    ;       :body "<p>As a company, we’re starting to feel that some of our recent team growth
+    ;       :body "<p>As a company, we're starting to feel that some of our recent team growth
     ;       and structure adjustments in the last few months are starting to take effect.</p>"
     ;       :author {
     ;         :name "Joel Gascoigne"
@@ -643,8 +643,8 @@
       :section {
         :title "Asks"
         :body "<h3>Share our finance position</h3>
-        <p>We’re looking for an in-house finance person, to help us to be more disciplined about
-        our finances and be better data-informed across all areas of the company. We’d love your help to
+        <p>We're looking for an in-house finance person, to help us to be more disciplined about
+        our finances and be better data-informed across all areas of the company. We'd love your help to
         spread the word on the job listing!
         <a href=\"https://twitter.com/intent/tweet?original_referer=https%3A%2F%2Fabout.twitter.com%2Fresources%2Fbuttons&ref_src=twsrc%5Etfw&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&tw_p=tweetbutton&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner\">Tweet</a>
         or <a href=\"https://buffer.com/add/?id=4ea2549febf4321f&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&count=vertical&placement=button\">Buffer</a>.</p>"
@@ -666,7 +666,7 @@
         commit to having several smaller teams working in separate areas. (These areas correspond
         to different Buffer plans and platforms, like paying customers, customers using Buffer's
         free plan, or those reaching out from the mobile app.)</p>
-        <p>We’re working on improving our numbers by bringing down the average response times in
+        <p>We're working on improving our numbers by bringing down the average response times in
         September. We have also started exploring a customer success focus for our Enterprise customers.</p>
         <ul>
           <li>Conversations: 9,063 (+22%)</li>
@@ -713,22 +713,22 @@
       :section {
         :title "Product"
         :body "<h3>Buffer for Video and structure changes</h3>
-        <p>In the last couple of months, we’ve really shaped our product and engineering organization
-        to set us up to move much faster. We’ve successfully split this large team into smaller,
+        <p>In the last couple of months, we've really shaped our product and engineering organization
+        to set us up to move much faster. We've successfully split this large team into smaller,
         4-6 person teams that are able to work autonomously and move fast.</p>
         <p>We still have some roles where a single person needs to be working across several teams, and
         a key hiring goal is for us to reach a point where everyone working on products at Buffer is
         focused on a single area. This will help us to move much faster in the future. All of these
-        changes and our increased pace are starting to be noticed. Here’s a great note we received
+        changes and our increased pace are starting to be noticed. Here's a great note we received
         from a customer recently:</p>
-        <p><em>\"I’m very surprised! In the last 5 days you add two great features to Buffer. First the
+        <p><em>\"I'm very surprised! In the last 5 days you add two great features to Buffer. First the
         ability to post videos simultaneously to various accounts and second we now can upload
         thumbnail images to the links we share thru Buffer in Facebook and LinkedIn. I just want to
         say thanks cause I feel heard. And I hope you keep hearing us.\"</em></p>
         <ul>
           <li>We launched <a href=\"https://buffer.com/video\">Buffer for Video</a> and it got a
           <a href=\"http://www.producthunt.com/tech/buffer-for-video\">great reception from the community</a>.</li>
-          <li>We’ve validated product/market fit for our <a href=\"https://buffer.com/optimal-scheduling?utm_campaign=schedule_tab\">optimal scheduling tool</a>.</li>
+          <li>We've validated product/market fit for our <a href=\"https://buffer.com/optimal-scheduling?utm_campaign=schedule_tab\">optimal scheduling tool</a>.</li>
           <li>A new version of <a href=\"https://buffer.com/pablo\">Pablo</a> will launch very soon.</li>
         </ul>"
       }
