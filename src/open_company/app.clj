@@ -55,4 +55,4 @@
       "Ready to serve...\n")))
 
 (defn -main []
-  (start c/web-server-port))
+  (start c/api-server-port))
