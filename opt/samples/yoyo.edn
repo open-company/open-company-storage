@@ -1,0 +1,227 @@
+;; Sample finances data, a made up startup that's sometimes profitable and sometimes not
+{
+  :company {
+    :slug "yoyo"
+    :name "YoYo"
+    :currency "USD"
+    :timestamp "2015-03-01T12:59:28Z"
+  }
+  :sections [
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-03"
+            :cash 146321
+            :revenue 9856
+            :costs 10457
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Yasmin Young"
+        :slack_id "234567"
+        :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+      }
+      :timestamp "2015-04-13T12:59:28Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-03"
+            :cash 146321
+            :revenue 9856
+            :costs 10457
+          }
+          {
+            :period "2015-04"
+            :cash 148630
+            :revenue 12544
+            :costs 10235
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Yasmin Young"
+        :slack_id "234567"
+        :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+      }
+      :timestamp "2015-05-11T12:59:28Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-03"
+            :cash 146321
+            :revenue 9856
+            :costs 10457
+          }
+          {
+            :period "2015-04"
+            :cash 148630
+            :revenue 12544
+            :costs 10235
+          }
+          {
+            :period "2015-06"
+            :cash 146162
+            :revenue 10189
+            :costs 12657
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Yasmin Young"
+        :slack_id "234567"
+        :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+      }
+      :timestamp "2015-06-09T12:59:28Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-03"
+            :cash 146321
+            :revenue 9856
+            :costs 10457
+          }
+          {
+            :period "2015-04"
+            :cash 148630
+            :revenue 12544
+            :costs 10235
+          }
+          {
+            :period "2015-06"
+            :cash 146162
+            :revenue 10189
+            :costs 12657
+          }
+          {
+            :period "2015-07"
+            :cash 149651
+            :revenue 13566
+            :costs 10077
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Yasmin Young"
+        :slack_id "234567"
+        :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+      }
+      :timestamp "2015-07-05T12:59:28Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-03"
+            :cash 146321
+            :revenue 9856
+            :costs 10457
+          }
+          {
+            :period "2015-04"
+            :cash 148630
+            :revenue 12544
+            :costs 10235
+          }
+          {
+            :period "2015-06"
+            :cash 146162
+            :revenue 10189
+            :costs 12657
+          }
+          {
+            :period "2015-07"
+            :cash 149651
+            :revenue 13566
+            :costs 10077
+          }
+          {
+            :period "2015-08"
+            :cash 145518
+            :revenue 9255
+            :costs 13388
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Yasmin Young"
+        :slack_id "234567"
+        :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+      }
+      :timestamp "2015-09-12T12:59:28Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-03"
+            :cash 146321
+            :revenue 9856
+            :costs 10457
+          }
+          {
+            :period "2015-04"
+            :cash 148630
+            :revenue 12544
+            :costs 10235
+          }
+          {
+            :period "2015-06"
+            :cash 146162
+            :revenue 10189
+            :costs 12657
+          }
+          {
+            :period "2015-07"
+            :cash 149651
+            :revenue 13566
+            :costs 10077
+          }
+          {
+            :period "2015-08"
+            :cash 145518
+            :revenue 9255
+            :costs 13388
+          }
+          {
+            :period "2015-09"
+            :cash 151290
+            :revenue 15991
+            :costs 10219
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Yasmin Young"
+        :slack_id "234567"
+        :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+      }
+      :timestamp "2015-10-14T12:59:28Z"
+    }    
+  ]
+}
