@@ -109,10 +109,10 @@
   TODO: what to use for author when using Clojure API?"
 
   ([company] (create-company company (common/current-timestamp)))
-  
+
   ;; not a map
   ([_company :guard #(not (map? %)) _timestamp] false)
-  
+
   ;; potentially a valid company
   ([company timestamp]
     (let [company-slug (:slug company)

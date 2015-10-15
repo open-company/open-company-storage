@@ -13,9 +13,9 @@
 ;; ----- Sections import -----
 
 (defun- import-sections
-  
+
   ([_company-slug _sections :guard empty?] (println "\nImport complete!\n"))
-  
+
   ([company-slug sections]
   (let [section (first sections)
         section-name (:section-name section)

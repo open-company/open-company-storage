@@ -46,7 +46,7 @@
 
   ;; no notes should be in this section
   ([section :guard #(not (common/notes-sections (name (:section-name %)))) _original-section _author _timestamp]
-    section) ; as you were  
+    section) ; as you were
 
   ;; add author and timestamp to notes if notes' :body has been modified
   ([section original-section author timestamp]
