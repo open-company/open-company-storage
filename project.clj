@@ -45,6 +45,7 @@
         :db-name "open_company_qa"
         :liberator-trace false
         :hot-reload false
+        :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
         [midje "1.8-alpha1"] ; Example-based testing https://github.com/marick/Midje
@@ -64,6 +65,7 @@
         :db-name "open_company_dev"
         :liberator-trace true ; liberator debug data in HTTP response headers
         :hot-reload true ; reload code when changed on the file system
+        :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
       }
       :dependencies [
         [aprint "0.1.3"] ; Pretty printing in the REPL (aprint thing) https://github.com/razum2um/aprint
