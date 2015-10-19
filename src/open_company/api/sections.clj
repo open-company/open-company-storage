@@ -37,6 +37,8 @@
   :exists? (fn [_] (get-section company-slug section-name as-of))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
+  :allowed? (fn [ctx] (common/authorize company-slug (:jwtoken ctx)))
+
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
     :get true

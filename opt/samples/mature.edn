@@ -23,7 +23,7 @@
       :section-name "finances"
       :author {
         :name "Orin Oldin"
-        :slack_id "345678"
+        :user-id "345678"
         :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
       }
       :timestamp "2015-06-13T12:59:28Z"
@@ -50,7 +50,7 @@
       :section-name "finances"
       :author {
         :name "Orin Oldin"
-        :slack_id "345678"
+        :user-id "345678"
         :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
       }
       :timestamp "2015-07-04T12:59:28Z"
@@ -83,7 +83,7 @@
       :section-name "finances"
       :author {
         :name "Orin Oldin"
-        :slack_id "345678"
+        :user-id "345678"
         :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
       }
       :timestamp "2015-08-06T12:59:28Z"
@@ -122,7 +122,7 @@
       :section-name "finances"
       :author {
         :name "Orin Oldin"
-        :slack_id "345678"
+        :user-id "345678"
         :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
       }
       :timestamp "2015-09-09T12:59:28Z"
@@ -167,7 +167,7 @@
       :section-name "finances"
       :author {
         :name "Orin Oldin"
-        :slack_id "345678"
+        :user-id "345678"
         :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
       }
       :timestamp "2015-10-13T12:59:28Z"

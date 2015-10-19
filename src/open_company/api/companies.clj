@@ -44,6 +44,8 @@
   :exists? (fn [_] (get-company slug))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
+  :allowed? (fn [ctx] (common/authorize slug (:jwtoken ctx)))
+
   :processable? (by-method {
     :get true
     :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))})

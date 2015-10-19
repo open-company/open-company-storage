@@ -93,7 +93,7 @@
       :section-name "values"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-06-08T12:35:19Z"
@@ -109,7 +109,7 @@
       :section-name "mission"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-06-22T18:33:41Z"
@@ -131,7 +131,7 @@
       :section-name "finances"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:28Z"
@@ -183,7 +183,7 @@
     ;       even better.</p>"
     ;       :author {
     ;         :name "Joel Gascoigne"
-    ;         :slack_id "123456"
+    ;         :user-id "123456"
     ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;       }
     ;     }
@@ -191,7 +191,7 @@
     ;   :section-name "growth"
     ;   :author {
     ;     :name "Joel Gascoigne"
-    ;     :slack_id "123456"
+    ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
     ;   :timestamp "2015-07-13T12:59:29Z"
@@ -223,7 +223,7 @@
       :section-name "update"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:31Z"
@@ -242,7 +242,7 @@
       :section-name "asks"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:32Z"
@@ -265,7 +265,7 @@
       :section-name "team"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:33Z"
@@ -289,7 +289,7 @@
       :section-name "product"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:34Z"
@@ -322,7 +322,7 @@
           time we would like to grow the team faster and continue filling validated roles.</p>"
           :author {
             :name "Joel Gascoigne"
-            :slack_id "123456"
+            :user-id "123456"
             :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
           }
         }
@@ -330,7 +330,7 @@
       :section-name "finances"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:41Z"
@@ -393,7 +393,7 @@
     ;       which may help us grow a little faster.</p>"
     ;       :author {
     ;         :name "Joel Gascoigne"
-    ;         :slack_id "123456"
+    ;         :user-id "123456"
     ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;       }
     ;     }
@@ -401,7 +401,7 @@
     ;   :section-name "growth"
     ;   :author {
     ;     :name "Joel Gascoigne"
-    ;     :slack_id "123456"
+    ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
     ;   :timestamp "2015-08-13T16:26:42Z"
@@ -425,7 +425,7 @@
       :section-name "asks"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:43Z"
@@ -462,7 +462,7 @@
       :section-name "update"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:44Z"
@@ -482,7 +482,7 @@
       :section-name "team"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:45Z"
@@ -503,7 +503,7 @@
       :section-name "product"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:46Z"
@@ -540,7 +540,7 @@
           in the last few months are starting to take effect.</p>"
           :author {
             :name "Joel Gascoigne"
-            :slack_id "123456"
+            :user-id "123456"
             :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
           }
         }
@@ -548,7 +548,7 @@
       :section-name "finances"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:41Z"
@@ -626,7 +626,7 @@
     ;       and structure adjustments in the last few months are starting to take effect.</p>"
     ;       :author {
     ;         :name "Joel Gascoigne"
-    ;         :slack_id "123456"
+    ;         :user-id "123456"
     ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;       }
     ;     }
@@ -634,7 +634,7 @@
     ;   :section-name "growth"
     ;   :author {
     ;     :name "Joel Gascoigne"
-    ;     :slack_id "123456"
+    ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
     ;   :timestamp "2015-09-18T18:33:42Z"
@@ -653,7 +653,7 @@
       :section-name "asks"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:43Z"
@@ -680,7 +680,7 @@
       :section-name "update"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:44Z"
@@ -704,7 +704,7 @@
       :section-name "team"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:45Z"
@@ -736,7 +736,7 @@
       :section-name "product"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:46Z"

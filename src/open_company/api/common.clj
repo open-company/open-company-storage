@@ -11,6 +11,22 @@
 (def malformed true)
 (def good-json false)
 
+;; ----- Utility functions -----
+
+(defn- name-for
+  "Replace :name in the map with :real-name if it's not blank."
+  [user]
+  (if (s/blank? (:real-name user))
+    user
+    (assoc user :name (:real-name user))))
+
+(defn- author-for
+  "Extract the :avatar, :user-id and :name (author fields) from the JWToken claims."
+  [user]
+  (-> user
+    (name-for)
+    (select-keys [:avatar :user-id :name])))
+
 ;; ----- Responses -----
 
 (defn missing-response
@@ -27,7 +43,7 @@
 (defn missing-authentication-response []
   (ring-response {
     :status 401
-    :body "Not authorized. Provide a JWToken in Authorization header."
+    :body "Not authorized. Provide a Bearer JWToken in the Authorization header."
     :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
 
 (defn unprocessable-entity-response [reason]
@@ -74,7 +90,7 @@
 (defn check-input [check]
   (if (= check true) true [false {:reason check}]))
 
-(defn authorized?
+(defn authenticate
   "
   Check for the presence and validity of a JWToken in the Authorization header.
   
@@ -87,10 +103,22 @@
       (if (jwt/check-token jwtoken) {:jwtoken jwtoken} false))
     false))
 
+(defn authorize
+  "
+  If a user is authorized to this company, add full details to the Liberator context at :user
+  and authorship properties at :author.
+  "
+  [company-slug jwtoken]
+  ; TODO - authorize user to the company
+  (let [decoded (jwt/decode jwtoken)
+        user (:claims decoded)
+        author (author-for user)]
+    {:user user :author author}))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 (def authenticated-resource {
-  :authorized? (fn [ctx] (authorized? (get-in ctx [:request :headers])))
+  :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers])))
   :handle-unauthorized (fn [_] (missing-authentication-response))})
 
 (def open-company-resource (merge authenticated-resource {

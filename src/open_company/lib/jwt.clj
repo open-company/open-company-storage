@@ -2,14 +2,6 @@
   (:require [clj-jwt.core :refer :all]
             [open-company.config :as config]))
 
-(defn generate
-  "Get a JSON Web Token from a payload"
-  [payload]
-  (-> payload
-      jwt
-      (sign :HS256 config/passphrase)
-      to-str))
-
 (defn check-token
   "Verify a JSON Web Token"
   [token]

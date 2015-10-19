@@ -23,7 +23,7 @@
       :section-name "finances"
       :author {
         :name "Yasmin Young"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
       :timestamp "2015-04-13T12:59:28Z"
@@ -50,7 +50,7 @@
       :section-name "finances"
       :author {
         :name "Yasmin Young"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
       :timestamp "2015-05-11T12:59:28Z"
@@ -83,7 +83,7 @@
       :section-name "finances"
       :author {
         :name "Yasmin Young"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
       :timestamp "2015-06-09T12:59:28Z"
@@ -122,7 +122,7 @@
       :section-name "finances"
       :author {
         :name "Yasmin Young"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
       :timestamp "2015-07-05T12:59:28Z"
@@ -167,7 +167,7 @@
       :section-name "finances"
       :author {
         :name "Yasmin Young"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
       :timestamp "2015-09-12T12:59:28Z"
@@ -218,7 +218,7 @@
       :section-name "finances"
       :author {
         :name "Yasmin Young"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
       :timestamp "2015-10-14T12:59:28Z"

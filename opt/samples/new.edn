@@ -23,7 +23,7 @@
       :section-name "finances"
       :author {
         :name "Nick Newsome"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
       }
       :timestamp "2015-06-13T12:59:28Z"
@@ -50,7 +50,7 @@
       :section-name "finances"
       :author {
         :name "Nick Newsome"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
       }
       :timestamp "2015-07-04T12:59:28Z"
@@ -83,7 +83,7 @@
       :section-name "finances"
       :author {
         :name "Nick Newsome"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
       }
       :timestamp "2015-08-06T12:59:28Z"
@@ -122,7 +122,7 @@
       :section-name "finances"
       :author {
         :name "Nick Newsome"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
       }
       :timestamp "2015-09-09T12:59:28Z"
@@ -167,7 +167,7 @@
       :section-name "finances"
       :author {
         :name "Nick Newsome"
-        :slack_id "234567"
+        :user-id "234567"
         :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
       }
       :timestamp "2015-10-13T12:59:28Z"
