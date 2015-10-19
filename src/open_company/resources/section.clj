@@ -129,23 +129,26 @@
   If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
 
   TODO: :author and :updated-at for notes if it's changed
-  TODO: :author is hard-coded, how will this be passed in from API's auth?
-  TODO: what to use for :author when using Clojure API?
   "
-  ([company-slug section-name section] (put-section company-slug section-name section (common/current-timestamp)))
+  ([company-slug section-name section author]
+    (put-section company-slug section-name section author (common/current-timestamp)))
 
-  ([company-slug section-name :guard #(not (keyword? %)) section timestamp]
-  (put-section company-slug (keyword section-name) section timestamp))
 
-  ([company-slug section-name section timestamp]
+  ([company-slug section-name section :guard #(not (map? %)) author timestamp] false)
+  ([company-slug section-name section author :guard #(not (map? %)) timestamp] false)
+
+  ([company-slug section-name :guard #(not (keyword? %)) section author timestamp]
+  (put-section company-slug (keyword section-name) section author timestamp))
+
+  ([company-slug section-name section author timestamp]
   (let [original-company (company/get-company company-slug)
         clean-section (clean section)
         updated-section (-> clean-section
           (assoc :company-slug company-slug)
           (assoc :section-name section-name)
-          (assoc :author common/stuart)
+          (assoc :author author)
           (assoc :updated-at timestamp)
-          (update-notes-for (original-company section-name) common/stuart timestamp))
+          (update-notes-for (original-company section-name) author timestamp))
         updated-company (assoc original-company section-name (-> updated-section
           (dissoc :company-slug)
           (dissoc :section-name)))]

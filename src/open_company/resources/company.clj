@@ -145,7 +145,7 @@
   TODO: company :sections update if section is being added
   TODO: handle case of slug change.
   "
-  [slug company author]
+  [slug company]
   (if-let [original-company (get-company slug)]
     (let [updated-company (-> company
                             (clean)
@@ -158,7 +158,7 @@
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
-  ([slug :guard get-company company author] (update-company slug company author))
+  ([slug :guard get-company company _author] (update-company slug company))
   ([_slug company author] (create-company company author)))
 
 (defn delete-company

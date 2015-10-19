@@ -5,13 +5,6 @@
             [rethinkdb.query :as r]
             [open-company.config :as c]))
 
-(def stuart ; temporary hard-coded author
-  {
-    :name "Stuart Levinson"
-    :user-id "U06SQLDFT"
-    :image "https://avatars.slack-edge.com/2015-10-16/12647678369_79b4fbf15439d29d5457_192.jpg"
-  })
-
 ;; ----- RethinkDB metadata -----
 
 (def company-table-name "companies")
