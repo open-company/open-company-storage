@@ -65,6 +65,8 @@
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
 (defresource company-list []
+  common/authenticated-resource
+
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/collection-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)

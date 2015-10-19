@@ -1,9 +1,10 @@
 (ns open-company.api.common
   (:require [taoensso.timbre :refer (debug info warn error fatal spy)]
-            [clojure.string :refer (join split)]
+            [clojure.string :as s]
             [cheshire.core :as json]
             [liberator.representation :refer (ring-response)]
-            [liberator.core :refer (by-method)]))
+            [liberator.core :refer (by-method)]
+            [open-company.lib.jwt :as jwt]))
 
 (def UTF8 "utf-8")
 
@@ -23,6 +24,12 @@
       :body reason
       :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}})))
 
+(defn missing-authentication-response []
+  (ring-response {
+    :status 401
+    :body "Not authorized. Provide a JWToken in Authorization header."
+    :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
+
 (defn unprocessable-entity-response [reason]
   (ring-response
     {:status 422
@@ -38,7 +45,7 @@
 (defn location-response [path-parts body media-type]
   (ring-response
     {:body body
-     :headers {"Location" (format "/%s" (join "/" path-parts))
+     :headers {"Location" (format "/%s" (s/join "/" path-parts))
                "Content-Type" (format "%s;charset=%s" media-type UTF8)}}))
 
 ;; ----- Validations -----
@@ -61,15 +68,32 @@
 (defn known-content-type?
   [ctx content-type]
   (if-let [request-type (get-in ctx [:request :headers "content-type"])]
-    (= (first (split content-type #";")) (first (split request-type #";")))
+    (= (first (s/split content-type #";")) (first (s/split request-type #";")))
     true))
 
 (defn check-input [check]
   (if (= check true) true [false {:reason check}]))
 
+(defn authorized?
+  "
+  Check for the presence and validity of a JWToken in the Authorization header.
+  
+  Return false if the header isn't present or valid, otherwise return a map to
+  add the JWToken to the Liberator context.
+  "
+  [headers]
+  (if-let [authorization (or (headers "Authorization") (headers "authorization"))]
+    (let [jwtoken (last (s/split authorization #" "))]
+      (if (jwt/check-token jwtoken) {:jwtoken jwtoken} false))
+    false))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-(def open-company-resource {
+(def authenticated-resource {
+  :authorized? (fn [ctx] (authorized? (get-in ctx [:request :headers])))
+  :handle-unauthorized (fn [_] (missing-authentication-response))})
+
+(def open-company-resource (merge authenticated-resource {
   :available-charsets [UTF8]
   :handle-not-found (fn [_] (missing-response))
   :allowed-methods [:get :put :delete :patch]
@@ -80,4 +104,4 @@
     :put (fn [ctx] (malformed-json? ctx))
     :patch (fn [ctx] (malformed-json? ctx))})
   :can-put-to-missing? (fn [_] true)
-  :conflict? (fn [_] false)})
+  :conflict? (fn [_] false)}))

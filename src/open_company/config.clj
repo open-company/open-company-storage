@@ -24,3 +24,7 @@
 ;; ----- Sentry -----
 
 (defonce dsn (or (env :open-company-sentry-api) false))
+
+;; ----- JWT -----
+
+(defonce passphrase (env :open-company-auth-passphrase))
