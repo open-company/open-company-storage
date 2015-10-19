@@ -73,7 +73,7 @@
             :costs 10235
           }
           {
-            :period "2015-06"
+            :period "2015-05"
             :cash 146162
             :revenue 10189
             :costs 12657
@@ -106,13 +106,13 @@
             :costs 10235
           }
           {
-            :period "2015-06"
+            :period "2015-05"
             :cash 146162
             :revenue 10189
             :costs 12657
           }
           {
-            :period "2015-07"
+            :period "2015-06"
             :cash 149651
             :revenue 13566
             :costs 10077
@@ -145,19 +145,19 @@
             :costs 10235
           }
           {
-            :period "2015-06"
+            :period "2015-05"
             :cash 146162
             :revenue 10189
             :costs 12657
           }
           {
-            :period "2015-07"
+            :period "2015-06"
             :cash 149651
             :revenue 13566
             :costs 10077
           }
           {
-            :period "2015-08"
+            :period "2015-07"
             :cash 145518
             :revenue 9255
             :costs 13388
@@ -170,7 +170,7 @@
         :slack_id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
-      :timestamp "2015-09-12T12:59:28Z"
+      :timestamp "2015-08-12T12:59:28Z"
     }
 
     {
@@ -190,25 +190,25 @@
             :costs 10235
           }
           {
-            :period "2015-06"
+            :period "2015-05"
             :cash 146162
             :revenue 10189
             :costs 12657
           }
           {
-            :period "2015-07"
+            :period "2015-06"
             :cash 149651
             :revenue 13566
             :costs 10077
           }
           {
-            :period "2015-08"
+            :period "2015-07"
             :cash 145518
             :revenue 9255
             :costs 13388
           }
           {
-            :period "2015-09"
+            :period "2015-08"
             :cash 151290
             :revenue 15991
             :costs 10219
@@ -221,7 +221,7 @@
         :slack_id "234567"
         :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
       }
-      :timestamp "2015-10-14T12:59:28Z"
+      :timestamp "2015-09-14T12:59:28Z"
     }    
   ]
 }
