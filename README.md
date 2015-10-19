@@ -177,7 +177,7 @@ Then enter these commands one-by-one, noting the output:
 
 (def author {
     :user-id "123456"
-    :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
+    :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
     :name "Wile E. Coyote"
   })
 

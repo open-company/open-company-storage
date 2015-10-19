@@ -21,11 +21,12 @@
     (assoc user :name (:real-name user))))
 
 (defn- author-for
-  "Extract the :avatar, :user-id and :name (author fields) from the JWToken claims."
+  "Extract the :avatar/:image, :user-id and :name (author fields) from the JWToken claims."
   [user]
   (-> user
     (name-for)
-    (select-keys [:avatar :user-id :name])))
+    (select-keys [:avatar :user-id :name])
+    (clojure.set/rename-keys {:avatar :image})))
 
 ;; ----- Responses -----
 
