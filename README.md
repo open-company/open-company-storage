@@ -172,10 +172,18 @@ Then enter these commands one-by-one, noting the output:
 ;; Create DB and tables and indexes
 (db/init)
 
+
 ;; Create some companies
+
+(def author {
+    :user-id "123456"
+    :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
+    :name "Wile E. Coyote"
+  })
+
 (company/create-company {
   :name "Blank Inc."
-  :currency "GBP"})
+  :currency "GBP"} author)
 
 (company/create-company {
   :name "Transparency, LLC"
@@ -186,7 +194,7 @@ Then enter these commands one-by-one, noting the output:
     :data [
       {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
     ]
-  }})
+  }} author)
 
   (company/create-company {
     :name "Buffer"
@@ -204,7 +212,7 @@ Then enter these commands one-by-one, noting the output:
       :notes {
         :body "Good stuff! Revenue is up."
       }
-    }})
+    }} author)
 
 ;; List companies
 (company/list-companies)
