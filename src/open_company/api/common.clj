@@ -94,7 +94,7 @@
 (defn authenticate
   "
   Check for the presence and validity of a JWToken in the Authorization header.
-  
+
   Return false if the header isn't present or valid, otherwise return a map to
   add the JWToken to the Liberator context.
   "

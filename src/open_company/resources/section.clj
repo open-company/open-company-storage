@@ -134,8 +134,8 @@
     (put-section company-slug section-name section author (common/current-timestamp)))
 
 
-  ([company-slug section-name section :guard #(not (map? %)) author timestamp] false)
-  ([company-slug section-name section author :guard #(not (map? %)) timestamp] false)
+  ([_company-slug _section-name _section :guard #(not (map? %)) _author _timestamp] false)
+  ([_company-slug _section-name _section _author :guard #(not (map? %)) _timestamp] false)
 
   ([company-slug section-name :guard #(not (keyword? %)) section author timestamp]
   (put-section company-slug (keyword section-name) section author timestamp))
