@@ -343,6 +343,23 @@ curl -i -X GET \
 http://localhost:3000/companies/transparency
 ```
 
+## Import sample data
+
+To import sample data from an edn file run:
+```console
+lein run -m open-company.util.sample-data -- ./opt/samples/buffer.edn
+```
+
+use `-d` to erase the company before starting the process like this:
+```console
+lein run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
+```
+
+To add sample data on a production environment use the `prod` profile:
+```console
+lein with-profile prod run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
+```
+
 
 ## Testing
 
