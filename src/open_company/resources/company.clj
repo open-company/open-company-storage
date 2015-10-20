@@ -108,20 +108,21 @@
   TODO: author is hard-coded, how will this be passed in from API's auth?
   TODO: what to use for author when using Clojure API?"
 
-  ([company] (create-company company (common/current-timestamp)))
+  ([company author] (create-company company author (common/current-timestamp)))
 
   ;; not a map
-  ([_company :guard #(not (map? %)) _timestamp] false)
+  ([_company :guard #(not (map? %)) _author _timestamp] false)
+  ([_company _author :guard #(not (map? %)) _timestamp] false)
 
   ;; potentially a valid company
-  ([company timestamp]
+  ([company author timestamp]
     (let [company-slug (:slug company)
           clean-company (clean company)
           slugged-company (if company-slug
                             (assoc clean-company :slug company-slug)
                             (assoc clean-company :slug (slug/slugify (:name company))))
           company-with-sections (sections-for slugged-company) ;; add/replace the :sections property
-          company-with-revision-author (author-for common/stuart
+          company-with-revision-author (author-for author
                                         (:sections company-with-sections)
                                         company-with-sections) ;; add/replace the :author
           final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
@@ -157,8 +158,8 @@
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
-  ([slug :guard get-company company] (update-company slug company))
-  ([_slug company] (create-company company)))
+  ([slug :guard get-company company _author] (update-company slug company))
+  ([_slug company author] (create-company company author)))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."

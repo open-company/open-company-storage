@@ -19,9 +19,10 @@
   ([company-slug sections]
   (let [section (first sections)
         section-name (:section-name section)
-        timestamp (:timestamp section)]
-    (println (str "Creating section '" section-name "' at: " timestamp))
-    (section/put-section company-slug section-name (:section section) timestamp)
+        timestamp (:timestamp section)
+        author (:author section)]
+    (println (str "Creating section '" section-name "' at " timestamp " by " (:name author) "."))
+    (section/put-section company-slug section-name (:section section) author timestamp)
     (import-sections company-slug (rest sections)))))
 
 ;; ----- Company import -----
@@ -29,15 +30,16 @@
 (defn import-company [options data]
   (let [company (:company data)
         slug (:slug company)
-        delete (:delete options)]
+        delete (:delete options)
+        author (:author company)]
     (when (and delete (company/get-company slug))
       (println (str "Deleting company '" slug "'."))
       (company/delete-company slug))
     (when-not delete
       (when (company/get-company slug)
         (exit 1 (str "A company for '" slug "' already exists. Use the -d flag to delete the company on import."))))
-    (println (str "Creating company '" slug "'."))
-    (company/create-company (dissoc company :timestamp) (:timestamp company))
+    (println (str "Creating company '" slug "' by " (:name author)"."))
+    (company/create-company (dissoc company :author :timestamp) author (:timestamp company))
     (import-sections slug (:sections data))))
 
 ;; ----- CLI -----

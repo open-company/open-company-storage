@@ -29,6 +29,7 @@
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; command-line parsing https://github.com/clojure/tools.cli
+    [clj-jwt "0.1.1"] ; Clojure library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
  ]
 
   ;; Production plugins
@@ -45,9 +46,10 @@
         :db-name "open_company_qa"
         :liberator-trace false
         :hot-reload false
+        :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.8-alpha1"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.8-beta1"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
         [juxt/iota "0.2.0"] ; testing helpers https://github.com/juxt/iota
       ]
@@ -64,6 +66,7 @@
         :db-name "open_company_dev"
         :liberator-trace true ; liberator debug data in HTTP response headers
         :hot-reload true ; reload code when changed on the file system
+        :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
       }
       :dependencies [
         [aprint "0.1.3"] ; Pretty printing in the REPL (aprint thing) https://github.com/razum2um/aprint

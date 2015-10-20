@@ -172,10 +172,18 @@ Then enter these commands one-by-one, noting the output:
 ;; Create DB and tables and indexes
 (db/init)
 
+
 ;; Create some companies
+
+(def author {
+    :user-id "123456"
+    :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
+    :name "Wile E. Coyote"
+  })
+
 (company/create-company {
   :name "Blank Inc."
-  :currency "GBP"})
+  :currency "GBP"} author)
 
 (company/create-company {
   :name "Transparency, LLC"
@@ -186,7 +194,7 @@ Then enter these commands one-by-one, noting the output:
     :data [
       {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
     ]
-  }})
+  }} author)
 
   (company/create-company {
     :name "Buffer"
@@ -204,7 +212,7 @@ Then enter these commands one-by-one, noting the output:
       :notes {
         :body "Good stuff! Revenue is up."
       }
-    }})
+    }} author)
 
 ;; List companies
 (company/list-companies)
@@ -215,24 +223,24 @@ Then enter these commands one-by-one, noting the output:
 (company/get-company "buffer")
 
 ;; Create/update a section
-(section/put-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]})
+(section/put-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
 (section/put-section "blank-inc" "finances" {:data [
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-  :notes {:body "We got our first customer! Revenue FTW!"}})
+  :notes {:body "We got our first customer! Revenue FTW!"}} author)
 (section/put-section "blank-inc" "finances" {:data [
   {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-  :notes {:body "We got our first customer! Revenue FTW!"}})
+  :notes {:body "We got our first customer! Revenue FTW!"}} author)
 (section/put-section "blank-inc" "finances" {:data [
   {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
   {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
-  :notes {:body "We got our second customer! Revenue FTW!"}})
+  :notes {:body "We got our second customer! Revenue FTW!"}} author)
 
-(section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."})
+(section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."} author)
 
 ;; Get a section
 (section/get-section "transparency" "finances")

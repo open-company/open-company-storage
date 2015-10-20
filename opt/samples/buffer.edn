@@ -5,6 +5,11 @@
     :name "Buffer"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28Z"
+    :author {
+      :name "Joel Gascoigne"
+      :user-id "123456"
+      :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    }
   }
   :sections [
 
@@ -93,7 +98,7 @@
       :section-name "values"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-06-08T12:35:19Z"
@@ -109,7 +114,7 @@
       :section-name "mission"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-06-22T18:33:41Z"
@@ -131,7 +136,7 @@
       :section-name "finances"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:28Z"
@@ -145,16 +150,19 @@
     ;         :slug "total-registered-users"
     ;         :name "Total registered users"
     ;         :interval "monthly"
+    ;         :target "high"
     ;       }
     ;       {
     ;         :slug "mau"
     ;         :name "Monthly active users"
     ;         :interval "monthly"
+    ;         :target "high"
     ;       }
     ;       {
     ;         :slug "dau"
     ;         :name "Average daily active users"
     ;         :interval "monthly"
+    ;         :target "high"
     ;       }
     ;     ]
 
@@ -181,17 +189,12 @@
     ;       <p>This is exciting as recently we've started discussions within the team of doubling down further on
     ;       Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
     ;       even better.</p>"
-    ;       :author {
-    ;         :name "Joel Gascoigne"
-    ;         :slack_id "123456"
-    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-    ;       }
     ;     }
     ;   }
     ;   :section-name "growth"
     ;   :author {
     ;     :name "Joel Gascoigne"
-    ;     :slack_id "123456"
+    ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
     ;   :timestamp "2015-07-13T12:59:29Z"
@@ -223,7 +226,7 @@
       :section-name "update"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:31Z"
@@ -242,7 +245,7 @@
       :section-name "asks"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:32Z"
@@ -265,7 +268,7 @@
       :section-name "team"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:33Z"
@@ -289,7 +292,7 @@
       :section-name "product"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-07-13T12:59:34Z"
@@ -316,21 +319,16 @@
         ]
         :notes {
           :body "<p>At the start of July, we had our 6th team retreat! Despite the substantial cost of
-        this and growing the team faster than ever, we are still profitable and the bank balance has
-        gone up since last month.</p>
+          this and growing the team faster than ever, we are still profitable and the bank balance has
+          gone up since last month.</p>
           <p>We are very happy with this slack we have and the health of the business, and at the same
           time we would like to grow the team faster and continue filling validated roles.</p>"
-          :author {
-            :name "Joel Gascoigne"
-            :slack_id "123456"
-            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-          }
         }
       }
       :section-name "finances"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:41Z"
@@ -344,16 +342,19 @@
     ;         :slug "total-registered-users"
     ;         :name "Total registered users"
     ;         :interval "monthly"
+    ;         :target "high"
     ;       }
     ;       {
     ;         :slug "mau"
     ;         :name "Monthly active users"
     ;         :interval "monthly"
+    ;         :target "high"
     ;       }
     ;       {
     ;         :slug "dau"
     ;         :name "Average daily active users"
     ;         :interval "monthly"
+    ;         :target "high"
     ;       }
     ;     ]
     ;     :data [
@@ -391,17 +392,12 @@
     ;     :notes {
     ;       :body "<p>We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
     ;       which may help us grow a little faster.</p>"
-    ;       :author {
-    ;         :name "Joel Gascoigne"
-    ;         :slack_id "123456"
-    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-    ;       }
     ;     }
     ;   }
     ;   :section-name "growth"
     ;   :author {
     ;     :name "Joel Gascoigne"
-    ;     :slack_id "123456"
+    ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
     ;   :timestamp "2015-08-13T16:26:42Z"
@@ -425,7 +421,7 @@
       :section-name "asks"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:43Z"
@@ -462,7 +458,7 @@
       :section-name "update"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:44Z"
@@ -482,7 +478,7 @@
       :section-name "team"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:45Z"
@@ -503,7 +499,7 @@
       :section-name "product"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-08-13T16:26:46Z"
@@ -538,17 +534,12 @@
           towards the big $10M ARR milestone.</p>
           <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
           in the last few months are starting to take effect.</p>"
-          :author {
-            :name "Joel Gascoigne"
-            :slack_id "123456"
-            :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-          }
         }
       }
       :section-name "finances"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:41Z"
@@ -624,17 +615,12 @@
     ;     :notes {
     ;       :body "<p>As a company, we're starting to feel that some of our recent team growth
     ;       and structure adjustments in the last few months are starting to take effect.</p>"
-    ;       :author {
-    ;         :name "Joel Gascoigne"
-    ;         :slack_id "123456"
-    ;         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-    ;       }
     ;     }
     ;   }
     ;   :section-name "growth"
     ;   :author {
     ;     :name "Joel Gascoigne"
-    ;     :slack_id "123456"
+    ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
     ;   :timestamp "2015-09-18T18:33:42Z"
@@ -653,7 +639,7 @@
       :section-name "asks"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:43Z"
@@ -680,7 +666,7 @@
       :section-name "update"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:44Z"
@@ -704,7 +690,7 @@
       :section-name "team"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:45Z"
@@ -736,7 +722,7 @@
       :section-name "product"
       :author {
         :name "Joel Gascoigne"
-        :slack_id "123456"
+        :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
       :timestamp "2015-09-18T18:33:46Z"

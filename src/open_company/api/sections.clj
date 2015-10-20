@@ -25,8 +25,8 @@
   (if-let [section (section-res/get-section company-slug section-name as-of)]
     {:section section}))
 
-(defn- put-section [company-slug section-name section]
-  {:updated-section (section-res/put-section company-slug section-name section)})
+(defn- put-section [company-slug section-name section author]
+  {:updated-section (section-res/put-section company-slug section-name section author)})
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -36,6 +36,8 @@
   :available-media-types [section-rep/media-type]
   :exists? (fn [_] (get-section company-slug section-name as-of))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
+
+  :allowed? (fn [ctx] (common/authorize company-slug (:jwtoken ctx)))
 
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
@@ -62,8 +64,8 @@
 
   ;; Create or update a section
   :new? (by-method {:put (not (seq (section-res/list-revisions company-slug section-name)))})
-  :put! (fn [ctx] (put-section company-slug section-name (:data ctx)))
-  :patch! (fn [ctx] (put-section company-slug section-name (merge (:section ctx) (:data ctx))))
+  :put! (fn [ctx] (put-section company-slug section-name (:data ctx) (:author ctx)))
+  :patch! (fn [ctx] (put-section company-slug section-name (merge (:section ctx) (:data ctx)) (:author ctx)))
   :handle-created (fn [ctx] (section-location-response (:updated-section ctx))))
 
 ;; ----- Routes -----
