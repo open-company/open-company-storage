@@ -3,9 +3,12 @@
             [open-company.lib.pool :refer (start with-resource stop)]))
 
 (def counter (atom 0))
-(def closed (atom []))
 
+;; simple init function that makes each resource a unique ascending int
 (def init (fn [] (swap! counter inc)))
+
+;; simple close function that can keep track of what was closed
+(def closed (atom []))
 (def close (fn [res] (swap! closed conj res)))
 
 (facts "about resource pools"
@@ -54,7 +57,7 @@
 
   (facts "when using resources"
 
-    (fact "provide 2, then no more"
+    (fact "it provides 2 resources, then no more"
 
       (reset! counter 0)
 
@@ -69,7 +72,7 @@
               res => nil
               (:resources @pool) => (just [{:id 0, :resource 1, :busy true} {:id 1, :resource 2, :busy true}]))))))
 
-    (fact "grow from 2 to 4, then no more"
+    (fact "it grows from 2 to 4, then no more"
 
       (reset! counter 0)
 
@@ -101,7 +104,7 @@
                     {:id 2, :resource 3, :busy true}
                     {:id 3, :resource 4, :busy true}])))))))))
 
-    (fact "provide the same resource sequentially"
+    (fact "it provides the same resource sequentially"
 
       (reset! counter 0)
 
@@ -139,7 +142,7 @@
 
     (stop (start 2 4 init nil)) => nil
 
-    (fact "calls close for each initiated resource"
+    (fact "it calls close for each initially initiated resource"
 
       (reset! counter 0)
 
@@ -153,7 +156,7 @@
         (provided
           (close 4) => true :times 0))
 
-    (fact "calls close for each used resource"
+    (fact "it calls close for each eventually initiated resource"
 
       (reset! counter 0)
       (reset! closed [])
