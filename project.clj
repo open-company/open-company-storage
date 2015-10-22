@@ -51,10 +51,10 @@
       :dependencies [
         [midje "1.8-beta1"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [juxt/iota "0.2.0"] ; testing helpers https://github.com/juxt/iota
+        [juxt/iota "0.2.1"] ; testing helpers https://github.com/juxt/iota
       ]
       :plugins [
-        [lein-midje "3.2-RC4"] ; Example-based testing https://github.com/marick/lein-midje
+        [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]
