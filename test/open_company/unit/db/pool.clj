@@ -1,0 +1,113 @@
+(ns open-company.unit.db.pool
+  (:require [midje.sweet :refer :all]
+            [open-company.db.pool :as pool]))
+
+(def counter (atom 0))
+
+;; simple init function that makes each resource a unique ascending int
+(def init (fn [] (swap! counter inc)))
+
+(def rethinkdb-connection-keys #{:ch :db :in :loops :out :pub :r-ch :socket :token :waiting})
+
+(facts "about resource pools"
+
+  (facts "when failing to start resource pools"
+
+    ;; Pool size not positive
+    (pool/start* 0 0 init) => (throws AssertionError)
+
+    ;; Pool size not sane
+    (pool/start* 5 3 init) => (throws AssertionError)
+
+    ;; No init
+    (pool/start* 3 3 nil) => (throws AssertionError))
+
+  (facts "when starting resource pools"
+
+    (reset! counter 0)
+
+    (pool/start* 3 5 init) =>
+      {:connections #{
+        {:id 0 :connection 1}
+        {:id 1 :connection 2}
+        {:id 2 :connection 3}
+      }
+      :high 5
+      :low 3
+      :init init}
+
+    (reset! counter 0)
+
+    (pool/start* 5 5 init) =>
+      {:connections #{
+        {:id 0 :connection 1}
+        {:id 1 :connection 2}
+        {:id 2 :connection 3}
+        {:id 3 :connection 4}
+        {:id 4 :connection 5}
+      }
+      :high 5
+      :low 5
+      :init init})
+
+  (facts "when using resources"
+
+    (fact "it provides 2 resources, then no more"
+
+      (pool/start 2 2)
+
+      (pool/with-connection [conn]
+        (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+        (pool/with-connection [conn]
+          (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+          (pool/with-connection [conn]
+            conn => nil)))) ; no more connections
+  
+
+    (fact "it grows from 2 to 4, then no more"
+
+      (pool/start 2 4)
+
+      (pool/with-connection [conn]
+        (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+        (pool/with-connection [conn]
+          (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+          (pool/with-connection [conn]
+            (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+            (pool/with-connection [conn]
+              (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+              (pool/with-connection [conn]
+                conn => nil)))))) ; no more connections
+
+    (fact "it provides the same resource sequentially"
+
+      (reset! counter 0)
+      (reset! pool/rethinkdb-pool (pool/start* 2 4 init))
+
+      (pool/with-connection [res]
+        res => 1
+        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
+
+      (pool/with-connection [res]
+        res => 1
+        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
+
+      (pool/with-connection [res]
+        res => 1
+        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
+
+      (pool/with-connection [res]
+        res => 1
+        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
+        (pool/with-connection [res]
+          res => 2
+          (:connections @pool/rethinkdb-pool) =>
+            (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}])))
+
+      (pool/with-connection [res]
+        res => 1
+        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
+        (pool/with-connection [res]
+          res => 2
+          (:connections @pool/rethinkdb-pool) =>
+            (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}]))))))

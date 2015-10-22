@@ -166,11 +166,13 @@ Then enter these commands one-by-one, noting the output:
 
 ```clojure
 (require '[open-company.db.init :as db])
+(require '[open-company.db.pool :as pool] :reload)
 (require '[open-company.resources.company :as company])
 (require '[open-company.resources.section :as section])
 
 ;; Create DB and tables and indexes
 (db/init)
+(pool/start)
 
 
 ;; Create some companies
