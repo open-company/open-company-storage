@@ -110,6 +110,7 @@
     "build" ["do" "clean," "deps," "compile"] ; clean and build code
     "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
     "midje!" ["with-profile" "qa" "midje"] ; run all tests
+    "autotest" ["with-profile" "qa" "midje" ":autotest"] ; watch for code changes and run affected tests
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests
     "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
