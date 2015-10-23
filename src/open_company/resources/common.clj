@@ -3,7 +3,6 @@
   (:require [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
-            [open-company.config :as c]
             [open-company.db.pool :as pool]))
 
 ;; ----- RethinkDB metadata -----
