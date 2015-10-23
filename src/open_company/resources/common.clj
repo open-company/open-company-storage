@@ -79,7 +79,7 @@
     (-> (r/table table-name)
       (r/with-fields fields)
       (r/run conn))))
-  
+
   ([table-name index-name index-value]
   (pool/with-connection [conn]
     (-> (r/table table-name)

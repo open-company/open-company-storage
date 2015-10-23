@@ -67,12 +67,12 @@
   [[original-section updated-section]]
   (let [original-time (format/parse common/timestamp-format (:updated-at original-section))
         update-time (format/parse common/timestamp-format (:updated-at updated-section))
-        time-limit (t/plus original-time (t/days 1))
+        time-limit (t/plus original-time (t/minutes c/collapse-edit-time))
         original-note-stamp (get-in original-section [:notes :updated-at])
         original-note-time (if original-note-stamp (format/parse common/timestamp-format original-note-stamp))
         update-note-stamp (get-in original-section [:notes :updated-at])
         update-note-time (if update-note-stamp (format/parse common/timestamp-format update-note-stamp))
-        note-time-limit (if original-note-time (t/plus original-note-time (t/days 1)))]
+        note-time-limit (if original-note-time (t/plus original-note-time (t/minutes c/collapse-edit-time)))]
     (cond
       ;; the section time difference is greater than the time limit gap allowed
       (not (t/within? (t/interval original-time time-limit) update-time)) true
@@ -81,7 +81,7 @@
       ;; only one note time is nil
       (or (not (nil? original-note-time)) (not (nil? update-note-time))) true
       ;; the note time difference is greater than the time limit gap allowed
-      (not (t/within? (t/interval original-note-time note-time-limit) update-note-time)) true      
+      (not (t/within? (t/interval original-note-time note-time-limit) update-note-time)) true
       ;; both section and note times are within limits
       :else false)))
 
@@ -139,7 +139,7 @@
 (defun- revise-or-update
 
   ; this is the first time for the section, so create it
-  ([[nil updated-section] timestamp] 
+  ([[nil updated-section] timestamp]
     (println "\n\nfirst\n\n")
     (common/create-resource table-name updated-section timestamp))
 
@@ -154,7 +154,7 @@
     (common/create-resource table-name updated-section timestamp))
 
   ; it's both the same author and less than the allowed time, so just update the current revision
-  ([[original-section updated-section] timestamp]
+  ([[_original-section _updated-section] _timestamp]
     (println "\n\nUpdate!\n\n")))
 
 ;; ----- Section CRUD -----

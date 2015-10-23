@@ -2,7 +2,11 @@
   (:require [midje.sweet :refer :all]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
-            [open-company.resources.company :as c]))
+            [open-company.resources.company :as c]
+            [open-company.db.pool :as pool]))
+
+(reset! pool/rethinkdb-pool nil)
+(pool/start 1 1)
 
 (future-facts "about revising sections"
 

@@ -9,67 +9,70 @@
 
 (def rethinkdb-connection-keys #{:ch :db :in :loops :out :pub :r-ch :socket :token :waiting})
 
-(facts "about resource pools"
+(defn reset-pool [new-pool] (reset! pool/rethinkdb-pool new-pool))
 
-  (facts "when failing to start resource pools"
+(with-state-changes [(before :facts (reset-pool nil))]
 
-    ;; Pool size not positive
-    (pool/start* 0 0 init) => (throws AssertionError)
+  (facts "about resource pools"
 
-    ;; Pool size not sane
-    (pool/start* 5 3 init) => (throws AssertionError)
+    (facts "when failing to start resource pools"
 
-    ;; No init
-    (pool/start* 3 3 nil) => (throws AssertionError))
+      ;; Pool size not positive
+      (pool/start* 0 0 init) => (throws AssertionError)
 
-  (facts "when starting resource pools"
+      ;; Pool size not sane
+      (pool/start* 5 3 init) => (throws AssertionError)
 
-    (reset! counter 0)
+      ;; No init
+      (pool/start* 3 3 nil) => (throws AssertionError))
 
-    (pool/start* 3 5 init) =>
-      {:connections #{
-        {:id 0 :connection 1}
-        {:id 1 :connection 2}
-        {:id 2 :connection 3}
-      }
-      :high 5
-      :low 3
-      :init init}
+    (with-state-changes [(before :facts (reset! counter 0))]
 
-    (reset! counter 0)
+      (facts "when starting resource pools"
 
-    (pool/start* 5 5 init) =>
-      {:connections #{
-        {:id 0 :connection 1}
-        {:id 1 :connection 2}
-        {:id 2 :connection 3}
-        {:id 3 :connection 4}
-        {:id 4 :connection 5}
-      }
-      :high 5
-      :low 5
-      :init init})
+        (fact "pool starts at low size, not high size"
 
-  (facts "when using resources"
+          (pool/start* 3 5 init) =>
+            {:connections #{
+              {:id 0 :connection 1}
+              {:id 1 :connection 2}
+              {:id 2 :connection 3}
+            }
+            :high 5
+            :low 3
+            :init init})
 
-    (fact "it provides 2 resources, then no more"
+        (fact "pool knows when low and high size are the same"
 
-      (pool/start 2 2)
+          (pool/start* 5 5 init) =>
+            {:connections #{
+              {:id 0 :connection 1}
+              {:id 1 :connection 2}
+              {:id 2 :connection 3}
+              {:id 3 :connection 4}
+              {:id 4 :connection 5}
+            }
+            :high 5
+            :low 5
+            :init init})))
 
-      (pool/with-connection [conn]
-        (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+    (facts "when using resources"
+
+      (fact "it provides 2 resources, then no more"
+
+        (pool/start 2 2)
+
         (pool/with-connection [conn]
           (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
           (pool/with-connection [conn]
-            conn => nil)))) ; no more connections
-  
+            (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+            (pool/with-connection [conn]
+              conn => nil)))) ; no more connections
 
-    (fact "it grows from 2 to 4, then no more"
+      (fact "it grows from 2 to 4, then no more"
 
-      (pool/start 2 4)
+        (pool/start 2 4)
 
-      (pool/with-connection [conn]
-        (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
         (pool/with-connection [conn]
           (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
           (pool/with-connection [conn]
@@ -77,37 +80,41 @@
             (pool/with-connection [conn]
               (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
               (pool/with-connection [conn]
-                conn => nil)))))) ; no more connections
+                (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+                (pool/with-connection [conn]
+                  conn => nil))))))))) ; no more connections
 
-    (fact "it provides the same resource sequentially"
+(facts "about resource pools"
 
-      (reset! counter 0)
-      (reset! pool/rethinkdb-pool (pool/start* 2 4 init))
+  (fact "it provides the same resource sequentially"
 
+    (reset! counter 0)
+    (reset-pool (pool/start* 2 4 init))
+
+    (pool/with-connection [res]
+      res => 1
+      (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])))
+
+    (pool/with-connection [res]
+      res => 1
+      (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
+
+    (pool/with-connection [res]
+      res => 1
+      (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
+
+    (pool/with-connection [res]
+      res => 1
+      (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
       (pool/with-connection [res]
-        res => 1
-        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
+        res => 2
+        (:connections @pool/rethinkdb-pool) =>
+          (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}])))
 
+    (pool/with-connection [res]
+      res => 1
+      (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
       (pool/with-connection [res]
-        res => 1
-        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
-
-      (pool/with-connection [res]
-        res => 1
-        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
-
-      (pool/with-connection [res]
-        res => 1
-        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
-        (pool/with-connection [res]
-          res => 2
-          (:connections @pool/rethinkdb-pool) =>
-            (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}])))
-
-      (pool/with-connection [res]
-        res => 1
-        (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
-        (pool/with-connection [res]
-          res => 2
-          (:connections @pool/rethinkdb-pool) =>
-            (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}]))))))
+        res => 2
+        (:connections @pool/rethinkdb-pool) =>
+          (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}]))))

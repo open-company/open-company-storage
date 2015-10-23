@@ -75,10 +75,17 @@
 ;; ----- External API -----
 
 (defn start
+  "Start a connection pool. Uses pool size from the config or optionally passed in
+  `low` and `high` pool size. Returns `:ok` if pool starts, or `:started` if the
+  pool was already started."
   ([] (start config/db-pool-size config/db-pool-size))
   ([low high]
-    (reset! rethinkdb-pool (start* low high init-connection))
-    :ok))
+    (if (nil? @rethinkdb-pool)
+      (do
+        (reset! rethinkdb-pool (start* low high init-connection))
+        :ok)
+      :started)))
+
 
 (defmacro with-connection
   "Get a connection from a pool, bind it to connection, so you can use it in body,
