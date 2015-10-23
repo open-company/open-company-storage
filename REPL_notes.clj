@@ -2,6 +2,7 @@
 (require '[rethinkdb.query :as r])
 (require '[open-company.config :as c])
 (require '[open-company.db.init :as db] :reload)
+(require '[open-company.db.pool :as pool] :reload)
 (require '[open-company.lib.slugify :as slug] :reload)
 (require '[open-company.resources.common :as common] :reload)
 (require '[open-company.resources.company :as company] :reload)

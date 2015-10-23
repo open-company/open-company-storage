@@ -1,9 +1,7 @@
 (ns open-company.resources.company
   (:require [clojure.string :as s]
             [defun :refer (defun defun-)]
-            [rethinkdb.query :as r]
             [open-company.lib.slugify :as slug]
-            [open-company.config :as c]
             [open-company.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----
@@ -181,10 +179,7 @@
   "Return a sequence of company property maps with slugs and names, sorted by slug."
   []
   (vec (sort-by primary-key
-    (with-open [conn (apply r/connect c/db-options)]
-      (-> (r/table table-name)
-        (r/with-fields [primary-key "name"])
-        (r/run conn))))))
+    (common/read-resources table-name [primary-key "name"]))))
 
 ;; ----- Armageddon -----
 

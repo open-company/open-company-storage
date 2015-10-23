@@ -1,4 +1,4 @@
-(ns open-company.unit.slugify
+(ns open-company.unit.lib.slugify
   (:require [midje.sweet :refer :all]
             [open-company.lib.slugify :refer (slugify max-slug-length)]))
 
