@@ -2,6 +2,7 @@
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
             [defun :refer (defun-)]
+            [open-company.db.pool :as pool]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section])
   (:gen-class))
@@ -70,6 +71,7 @@
        (s/join \newline errors)))
 
 (defn -main [& args]
+  (pool/start)
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
     ;; Handle help and error conditions
     (cond
