@@ -98,6 +98,7 @@
 (defn get-company
   "Given the slug of the company, retrieve it from the database, or return nil if it doesn't exist."
   [slug]
+  {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
 (defun create-company
@@ -144,6 +145,7 @@
   TODO: handle case of slug change.
   "
   [slug company]
+  {:pre [(string? slug) (map? company)]}
   (if-let [original-company (get-company slug)]
     (let [updated-company (-> company
                             (clean)
@@ -162,14 +164,20 @@
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."
   [slug]
-  (common/delete-resource common/section-table-name :company-slug slug)
-  (common/delete-resource table-name slug))
+  {:pre [(string? slug)]}
+  (try
+    (common/delete-resource common/section-table-name :company-slug slug)
+    (catch java.lang.RuntimeException e)) ; it's OK if there is nothing to delete
+  (try
+    (common/delete-resource table-name slug)
+    (catch java.lang.RuntimeException e))) ; it's OK if there is nothing to delete
 
 ;; ----- Company revisions -----
 
 (defn list-revisions
   "Given the slug of the company retrieve the timestamps and author of the revisions from the database."
   [slug]
+  {:pre [(string? slug)]}
   (common/updated-at-order
     (common/read-resources common/section-table-name "company-slug" slug [:updated-at :author])))
 

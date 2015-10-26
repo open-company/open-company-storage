@@ -9,50 +9,46 @@
 (def long-unicode " -tHiS #$is%?-----ελληνικήalso-მივჰხვდემასჩემსაãالزجاجوهذالايؤلمني-slüg♜-♛-☃-✄-✈  - ")
 (def names [ascii unicode mixed-ascii-unicode long-unicode])
 
-(def TICKER "OPEN")
+(def slug "open")
 (def too-long "1234546")
 
 (def bad-symbols [nil "" " " 42 42.7 {} [] #{}])
 (def bad-names bad-symbols)
 
+;; ----- Authors -----
+
+(def coyote {
+  :user-id "123456"
+  :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
+  :name "Wile E. Coyote"})
+
+(def camus {
+  :user-id "234567"
+  :image "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
+  :name "Albert Camus"})
+
 ;; ----- Companies -----
 
-(def OPEN {
-  :symbol TICKER
+(def open {
+  :slug slug
   :name "Transparency, LLC"
-  :currency "USD"
-  :web {:company "https://opencompany.io/"}})
+  :currency "USD"})
 
 (def UNI {
-  :symbol TICKER
+  :symbol slug
   :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
-  :currency "USD"
-  :web {:company "https://opencompany.io/"}})
+  :currency "FKP"})
 
-;; ----- Reports -----
+;; ----- Sections -----
 
-(def OPEN-2015-Q2 {
-  :symbol "OPEN"
-  :year 2015
-  :period "Q2"
-  :finances {
-    :cash 173228
-    :revenue 2767
-    :costs 22184
-    :comment "This is a comment."
-  }
-  :headcount {
-    :founders 2
-    :ft-employees 3
-    :pt-employees 0
-    :contractors 1
-    :comment "This is another comment."
-  }
-  :compensation {
-    :percentage false
-    :founders 6357
-    :employees 5899
-    :contractors 2582
-    :comment "More comments for you."
-  }
-})
+(def text-section-1 {
+  :title "Text Section 1"
+  :body "<p>This is a test.</p>"})
+
+(def text-section-2 {
+  :title "Text Section 2"
+  :body "<p>This is also a test.</p>"})
+
+(def text-section-3 {
+  :title "Text Section 3"
+  :body "<p>Yes, another test.</p>"})
