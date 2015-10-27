@@ -91,4 +91,4 @@
 
    :output-fn timbre/default-output-fn ; (fn [data]) -> string
 
-   :appenders {:spit (appenders/spit-appender {:fname "./logs/oc-api.log"})}})
+   :appenders {:spit (appenders/spit-appender {:fname "/tmp/oc-api.log"})}})
