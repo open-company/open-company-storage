@@ -12,7 +12,20 @@
 
 ;; ----- Section definitions -----
 
-(def sections #{"update" "challenges" "growth" "finances" "ownership" "mission" "values" "asks" "team" "product"})
+(def sections #{
+  "update"
+  "growth"
+  "finances"
+  "challenges" 
+  "asks"
+  "product"
+  "marketing"
+  "customer-service"
+  "team"
+  "diversity"
+  "ownership"
+  "mission"
+  "values"})
 (def notes-sections #{"growth" "finances"})
 
 ;; ----- Properties common to all resources -----
