@@ -142,73 +142,78 @@
       :timestamp "2015-07-13T12:59:28Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "arr"
-            :name "Annual recurring revenue"
-            :interval "monthly"
-            :unit "USD"
-            :target "high"
-          }
-        ]
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "arr"
+    ;         :name "Annual recurring revenue"
+    ;         :interval "monthly"
+    ;         :unit "USD"
+    ;         :target "high"
+    ;       }
+    ;     ]
 
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-        ]
-        :notes {
-          :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
-          <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
-          <p>This is exciting as recently we've started discussions within the team of doubling down further on
-          Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
-          even better.</p>"
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-07-13T12:59:29Z"
-    }
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "arr"
+    ;         :value 6610000
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>The change in trajectory around October 2013 is most likely attributable to us launching
+    ;       <a href=\"https://buffer.com/business\">Buffer for Business</a>.</p>
+    ;       <p>This is exciting as recently we've started discussions within the team of doubling down further on
+    ;       Buffer for Business and creating a dedicated product/engineering team to serve those customer problems
+    ;       even better.</p>"
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :user-id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-07-13T12:59:29Z"
+    ; }
 
     {
       :section {
@@ -344,85 +349,95 @@
       :timestamp "2015-08-13T16:26:41Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "arr"
-            :name "Annual recurring revenue"
-            :interval "monthly"
-            :unit "USD"
-            :target "high"
-          }
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "arr"
+    ;         :name "Annual recurring revenue"
+    ;         :interval "monthly"
+    ;         :unit "USD"
+    ;         :target "high"
+    ;       }
 
-        ]
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-07"
-            :slug "total-registered-users"
-            :value 2592194
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-07"
-            :slug "mau"
-            :value 208667
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-          {
-            :period "2015-07"
-            :slug "dau"
-            :value 51491
-          }
-        ]
-        :notes {
-          :body "<p>We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
-          which may help us grow a little faster.</p>"
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-08-13T16:26:42Z"
-    }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "arr"
+    ;         :value 6610000
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "arr"
+    ;         :value 6860000
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
+    ;       which may help us grow a little faster.</p>"
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :user-id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-08-13T16:26:42Z"
+    ; }
 
     {
       :section {
@@ -566,99 +581,114 @@
       :timestamp "2015-09-18T18:33:41Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "arr"
-            :name "Annual recurring revenue"
-            :interval "monthly"
-            :unit "USD"
-            :target "high"
-          }
-        ]
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-07"
-            :slug "total-registered-users"
-            :value 2592194
-          }
-          {
-            :period "2015-08"
-            :slug "total-registered-users"
-            :value 2673418
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-07"
-            :slug "mau"
-            :value 208667
-          }
-          {
-            :period "2015-08"
-            :slug "mau"
-            :value 211520
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-          {
-            :period "2015-07"
-            :slug "dau"
-            :value 51491
-          }
-          {
-            :period "2015-08"
-            :slug "dau"
-            :value 50489
-          }
-        ]
-        :notes {
-          :body "<p>As a company, we're starting to feel that some of our recent team growth
-          and structure adjustments in the last few months are starting to take effect.</p>"
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-09-18T18:33:42Z"
-    }
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "arr"
+    ;         :name "Annual recurring revenue"
+    ;         :interval "monthly"
+    ;         :unit "USD"
+    ;         :target "high"
+    ;       }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "total-registered-users"
+    ;         :value 2673418
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "mau"
+    ;         :value 211520
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "dau"
+    ;         :value 50489
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "arr"
+    ;         :value 6610000
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "arr"
+    ;         :value 6860000
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "arr"
+    ;         :value 7490000
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>As a company, we're starting to feel that some of our recent team growth
+    ;       and structure adjustments in the last few months are starting to take effect.</p>"
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :user-id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-09-18T18:33:42Z"
+    ; }
 
     {
       :section {
@@ -821,116 +851,136 @@
       :timestamp "2015-10-23T11:21:40Z"
     }
 
-    {
-      :section {
-        :title "Key metrics"
-        :metrics [
-          {
-            :slug "total-registered-users"
-            :name "Total registered users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "monthly"
-            :unit "users"
-            :target "high"
-          }
-          {
-            :slug "arr"
-            :name "Annual recurring revenue"
-            :interval "monthly"
-            :unit "USD"
-            :target "high"
-          }
-        ]
-        :data [
-          {
-            :period "2015-06"
-            :slug "total-registered-users"
-            :value 2511292
-          }
-          {
-            :period "2015-07"
-            :slug "total-registered-users"
-            :value 2592194
-          }
-          {
-            :period "2015-08"
-            :slug "total-registered-users"
-            :value 2673418
-          }
+    ; {
+    ;   :section {
+    ;     :title "Key metrics"
+    ;     :metrics [
+    ;       {
+    ;         :slug "total-registered-users"
+    ;         :name "Total registered users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "mau"
+    ;         :name "Monthly active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "dau"
+    ;         :name "Average daily active users"
+    ;         :interval "monthly"
+    ;         :unit "users"
+    ;         :target "high"
+    ;       }
+    ;       {
+    ;         :slug "arr"
+    ;         :name "Annual recurring revenue"
+    ;         :interval "monthly"
+    ;         :unit "USD"
+    ;         :target "high"
+    ;       }
+    ;     ]
+    ;     :data [
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "total-registered-users"
+    ;         :value 2511292
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "total-registered-users"
+    ;         :value 2592194
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "total-registered-users"
+    ;         :value 2673418
+    ;       }
 
-          {
-            :period "2015-09"
-            :slug "total-registered-users"
-            :value 2757998
-          }
-          {
-            :period "2015-06"
-            :slug "mau"
-            :value 206464
-          }
-          {
-            :period "2015-07"
-            :slug "mau"
-            :value 208667
-          }
-          {
-            :period "2015-08"
-            :slug "mau"
-            :value 211520
-          }
-          {
-            :period "2015-09"
-            :slug "mau"
-            :value 219744
-          }
-          {
-            :period "2015-06"
-            :slug "dau"
-            :value 52229
-          }
-          {
-            :period "2015-07"
-            :slug "dau"
-            :value 51491
-          }
-          {
-            :period "2015-08"
-            :slug "dau"
-            :value 50489
-          }
-          {
-            :period "2015-09"
-            :slug "dau"
-            :value 54357
-          }
-        ]
-        :notes {
-          :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
-          is lower than our recent months, however it’s a number we’re happy about for generally our lowest growth month of the year.</p>
-          <p>Our current YoY MRR growth stands at around 80%, a number we’d like to grow.</p>"
-        }
-      }
-      :section-name "growth"
-      :author {
-        :name "Joel Gascoigne"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-10-23T11:21:39Z"
-    }
+    ;       {
+    ;         :period "2015-09"
+    ;         :slug "total-registered-users"
+    ;         :value 2757998
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "mau"
+    ;         :value 206464
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "mau"
+    ;         :value 208667
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "mau"
+    ;         :value 211520
+    ;       }
+    ;       {
+    ;         :period "2015-09"
+    ;         :slug "mau"
+    ;         :value 219744
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "dau"
+    ;         :value 52229
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "dau"
+    ;         :value 51491
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "dau"
+    ;         :value 50489
+    ;       }
+    ;       {
+    ;         :period "2015-09"
+    ;         :slug "dau"
+    ;         :value 54357
+    ;       }
+    ;       {
+    ;         :period "2015-06"
+    ;         :slug "arr"
+    ;         :value 6610000
+    ;       }
+    ;       {
+    ;         :period "2015-07"
+    ;         :slug "arr"
+    ;         :value 6860000
+    ;       }
+    ;       {
+    ;         :period "2015-08"
+    ;         :slug "arr"
+    ;         :value 7490000
+    ;       }
+    ;       {
+    ;         :period "2015-09"
+    ;         :slug "arr"
+    ;         :value 7730000
+    ;       }
+    ;     ]
+    ;     :notes {
+    ;       :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
+    ;       is lower than our recent months, however it’s a number we’re happy about for generally our lowest growth month of the year.</p>
+    ;       <p>Our current YoY MRR growth stands at around 80%, a number we’d like to grow.</p>"
+    ;     }
+    ;   }
+    ;   :section-name "growth"
+    ;   :author {
+    ;     :name "Joel Gascoigne"
+    ;     :user-id "123456"
+    ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+    ;   }
+    ;   :timestamp "2015-10-23T11:21:39Z"
+    ; }
 
     {
       :section {
@@ -939,6 +989,7 @@
           <p>We are still growing the team fast and have <a href=\"https://buffer.com/journey\">17 open roles we are hiring for</a>,
           including new roles like <a href=\"https://buffer.com/journey/social-media-manager\">Social Media Manager</a> and
           <a href=\"https://buffer.com/journey/customer-hero\">Customer Hero</a>.</p>
+          <img src=\"https://open.buffer.com/wp-content/uploads/2015/10/hiring-open-roles.png\">
           <p>We received over <a href=\"https://open.buffer.com/september-2015-hiring/\">1,500 applications</a> in September, on-par
           with the volume of application we have seen thus far.</p>
           <ul>
@@ -1013,7 +1064,34 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-18T18:33:44Z"
+      :timestamp "2015-10-23T11:21:36Z"
+    }
+
+    {
+      :section {
+        :title "Marketing"
+        :body "<h3>New metrics focus</h3>
+        <p>Thanks to great help from the data team, we built a series of
+        <a href=\"https://open.buffer.com/remote-work-tools/\">Looker dashboards</a> to fully track the metrics
+        and conversions from our marketing efforts. Feels like we’re in a great place to move ahead with some new
+        experiments in October and see if we can move the needle.</p>
+        <p>We are also celebrating one new full-time team member,
+        <a href=\"https://twitter.com/sosandrine\">Sandrine Sahakians</a>, as our new multimedia producer.
+        Welcome, Sandrine! :)</p>
+        <ul>
+          <li>3,496 signups via blogs (comparison data coming next month!)</li>
+          <li>227 upgrades via blogs</li>
+          <li>1,019,848 visits to the blogs</li>
+        <ul>
+        <img src=\"https://open.buffer.com/wp-content/uploads/2015/10/Looker-marketing.png\">"
+      }
+      :section-name "marketing"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-10-23T11:21:35Z"
     }
   ]
 }
