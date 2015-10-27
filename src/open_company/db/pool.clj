@@ -90,12 +90,13 @@
   "Get a connection from a pool, bind it to connection, so you can use it in body,
    after body finish, the connection will be returned to the pool."
   [[connection] & body]
-  (trace "Starting DB pool connection macro.")
-  (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start))
-  `(let [[new-pool# connection#] (get-connection (deref rethinkdb-pool))]
-     (reset! rethinkdb-pool new-pool#)
-     (try
-      (let [~connection (:connection connection#)]
-        (do ~@body))
-      (finally
-        (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) connection#))))))
+  `(do 
+    (trace "Starting DB pool connection macro.")
+    (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start))
+    (let [[new-pool# connection#] (get-connection (deref rethinkdb-pool))]
+      (reset! rethinkdb-pool new-pool#)
+      (try
+        (let [~connection (:connection connection#)]
+          (do ~@body))
+        (finally
+          (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) connection#)))))))
