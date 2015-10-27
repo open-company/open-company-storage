@@ -45,17 +45,16 @@
     hot-reload-routes))
 
 (defn start [port]
-  (let [db-pool-result (pool/start)]
-    (run-server app {:port port :join? false})
-    (println (str "\n" (slurp (clojure.java.io/resource "./open_company/assets/ascii_art.txt")) "\n"
-      "API Server\n"
-      "Running on port: " port "\n"
-      "Database: " c/db-name "\n"
-      "Database pool (" c/db-pool-size "): " db-pool-result "\n"
-      "Hot-reload: " c/hot-reload "\n"
-      "Trace: " c/liberator-trace "\n"
-      "Sentry: " c/dsn "\n\n"
-      "Ready to serve...\n"))))
+  (run-server app {:port port :join? false})
+  (println (str "\n" (slurp (clojure.java.io/resource "./open_company/assets/ascii_art.txt")) "\n"
+    "API Server\n"
+    "Running on port: " port "\n"
+    "Database: " c/db-name "\n"
+    "Database pool: " c/db-pool-size "\n"
+    "Hot-reload: " c/hot-reload "\n"
+    "Trace: " c/liberator-trace "\n"
+    "Sentry: " c/dsn "\n\n"
+    "Ready to serve...\n")))
 
 (defn -main []
   (start c/api-server-port))

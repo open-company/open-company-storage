@@ -84,6 +84,7 @@
   "Get a connection from a pool, bind it to connection, so you can use it in body,
    after body finish, the connection will be returned to the pool."
   [[connection] & body]
+  (when (nil? @rethinkdb-pool) (start))
   `(let [[new-pool# connection#] (get-connection (deref rethinkdb-pool))]
      (reset! rethinkdb-pool new-pool#)
      (try
