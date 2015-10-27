@@ -77,7 +77,7 @@
   The `example-config` source code contains further settings and details.
   See also `set-config!`, `merge-config!`, `set-level!`."
 
-  {:level :trace  ; e/o #{:trace :debug :info :warn :error :fatal :report}
+  {:level :info  ; e/o #{:trace :debug :info :warn :error :fatal :report}
 
    ;; Control log filtering by namespaces/patterns. Useful for turning off
    ;; logging in noisy libraries, etc.:
