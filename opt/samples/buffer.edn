@@ -800,7 +800,7 @@
         <p>We reached the 50 team members mark in September! This feels like a big milestone and a special moment to reflect on.</p>
         <p>For me, the most exciting part of this is that 50 people are able to join our journey of working as a fully distributed
         team, where you choose to live and work from the place which makes you happiest and most productive.</p>
-        <p>We’ve had several examples of teammates moving or traveling to find their happy place, or being able to move easily to help
+        <p>We've had several examples of teammates moving or traveling to find their happy place, or being able to move easily to help
         and be with their significant other for studies or a job move.</p>"
       }
       :section-name "update"
@@ -969,8 +969,8 @@
     ;     ]
     ;     :notes {
     ;       :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
-    ;       is lower than our recent months, however it’s a number we’re happy about for generally our lowest growth month of the year.</p>
-    ;       <p>Our current YoY MRR growth stands at around 80%, a number we’d like to grow.</p>"
+    ;       is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
+    ;       <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
     ;     }
     ;   }
     ;   :section-name "growth"
@@ -1012,9 +1012,9 @@
         :title "Product"
         :body "<h3>New features and experiments</h3>
         <p>Our <a href=\"https://open.buffer.com/product-team-evolution/\">product teams</a> are working together more
-        closely than ever before, and as a result we’ve been moving quickly with new features and experiments! In September
+        closely than ever before, and as a result we've been moving quickly with new features and experiments! In September
         we adjusted Buffer for Business trials from 7 days to 30 days to allow us longer to help those in trial find value
-        from Buffer. We’re also working on a new landing page to clarify the positioning of Buffer clearly as a
+        from Buffer. We're also working on a new landing page to clarify the positioning of Buffer clearly as a
         software-as-a-service product for small businesses.</p>
         <p>Also, lots of new team members! We are so excited to have recently added to our team
         <a href=\"https://twitter.com/_pioul\">Philippe Masset</a> as a developer,
@@ -1029,7 +1029,7 @@
           <li>Launched the ability to
           <a href=\"https://blog.bufferapp.com/new-in-buffer-custom-thumbnail-images-retweet-with-comment\">share
           multiple photos in a single post</a></li>
-          <li>A new \"calendar view\" feature is now in beta—here’s a look
+          <li>A new \"calendar view\" feature is now in beta - here's a look
           <img src=\"https://open.buffer.com/wp-content/uploads/2015/10/calendar-view-beta.png\">
           </li>
         </ul>"
@@ -1073,7 +1073,7 @@
         :body "<h3>New metrics focus</h3>
         <p>Thanks to great help from the data team, we built a series of
         <a href=\"https://open.buffer.com/remote-work-tools/\">Looker dashboards</a> to fully track the metrics
-        and conversions from our marketing efforts. Feels like we’re in a great place to move ahead with some new
+        and conversions from our marketing efforts. Feels like we're in a great place to move ahead with some new
         experiments in October and see if we can move the needle.</p>
         <p>We are also celebrating one new full-time team member,
         <a href=\"https://twitter.com/sosandrine\">Sandrine Sahakians</a>, as our new multimedia producer.
