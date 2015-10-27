@@ -10,7 +10,6 @@
     [org.httpkit.server :refer (run-server)]
     [compojure.core :refer (defroutes ANY)]
     [open-company.config :as c]
-    [open-company.db.pool :as pool]
     [open-company.api.companies :refer (company-routes)]
     [open-company.api.sections :refer (section-routes)]))
 
