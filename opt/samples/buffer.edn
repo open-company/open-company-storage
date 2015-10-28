@@ -4,7 +4,7 @@
     :slug "buffer"
     :name "Buffer"
     :currency "USD"
-    :timestamp "2015-07-13T12:59:28Z"
+    :timestamp "2015-07-13T12:59:28.000Z"
     :author {
       :name "Joel Gascoigne"
       :user-id "123456"
@@ -101,7 +101,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-06-08T12:35:19Z"
+      :timestamp "2015-06-08T12:35:19.000Z"
     }
 
     {
@@ -117,7 +117,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-06-22T18:33:41Z"
+      :timestamp "2015-06-22T18:33:41.000Z"
     }
 
     ;; June update https://open.bufferapp.com/buffer-june-2015/
@@ -139,7 +139,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-07-13T12:59:28Z"
+      :timestamp "2015-07-13T12:59:28.000Z"
     }
 
     ; {
@@ -212,7 +212,7 @@
     ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
-    ;   :timestamp "2015-07-13T12:59:29Z"
+    ;   :timestamp "2015-07-13T12:59:29.000Z"
     ; }
 
     {
@@ -244,7 +244,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-07-13T12:59:31Z"
+      :timestamp "2015-07-13T12:59:31.000Z"
     }
 
     {
@@ -263,7 +263,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-07-13T12:59:32Z"
+      :timestamp "2015-07-13T12:59:32.000Z"
     }
 
     {
@@ -286,7 +286,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-07-13T12:59:33Z"
+      :timestamp "2015-07-13T12:59:33.000Z"
     }
 
     {
@@ -310,7 +310,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-07-13T12:59:34Z"
+      :timestamp "2015-07-13T12:59:34.000Z"
     }
 
 
@@ -346,7 +346,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-08-13T16:26:41Z"
+      :timestamp "2015-08-13T16:26:41.000Z"
     }
 
     ; {
@@ -436,7 +436,7 @@
     ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
-    ;   :timestamp "2015-08-13T16:26:42Z"
+    ;   :timestamp "2015-08-13T16:26:42.000Z"
     ; }
 
     {
@@ -460,7 +460,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-08-13T16:26:43Z"
+      :timestamp "2015-08-13T16:26:43.000Z"
     }
 
     {
@@ -497,7 +497,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-08-13T16:26:44Z"
+      :timestamp "2015-08-13T16:26:44.000Z"
     }
 
     {
@@ -517,7 +517,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-08-13T16:26:45Z"
+      :timestamp "2015-08-13T16:26:45.000Z"
     }
 
     {
@@ -538,7 +538,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-08-13T16:26:46Z"
+      :timestamp "2015-08-13T16:26:46.000Z"
     }
 
     ;; August Update https://open.bufferapp.com/investors-report-august-2015/
@@ -578,7 +578,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-18T18:33:41Z"
+      :timestamp "2015-09-18T18:33:41.000Z"
     }
 
     ; {
@@ -687,7 +687,7 @@
     ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
-    ;   :timestamp "2015-09-18T18:33:42Z"
+    ;   :timestamp "2015-09-18T18:33:42.000Z"
     ; }
 
     {
@@ -706,7 +706,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-18T18:33:43Z"
+      :timestamp "2015-09-18T18:33:43.000Z"
     }
 
     {
@@ -733,7 +733,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-18T18:33:44Z"
+      :timestamp "2015-09-18T18:33:44.000Z"
     }
 
     {
@@ -757,7 +757,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-18T18:33:45Z"
+      :timestamp "2015-09-18T18:33:45.000Z"
     }
 
     {
@@ -789,7 +789,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-09-18T18:33:46Z"
+      :timestamp "2015-09-18T18:33:46.000Z"
     }
 
     ;; September Update https://open.buffer.com/the-50-teammates-milestone-buffers-september-investors-report/
@@ -809,7 +809,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-23T11:21:41Z"
+      :timestamp "2015-10-23T11:21:41.000Z"
     }
 
     {
@@ -848,7 +848,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-23T11:21:40Z"
+      :timestamp "2015-10-23T11:21:40.000Z"
     }
 
     ; {
@@ -979,7 +979,7 @@
     ;     :user-id "123456"
     ;     :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     ;   }
-    ;   :timestamp "2015-10-23T11:21:39Z"
+    ;   :timestamp "2015-10-23T11:21:39.000Z"
     ; }
 
     {
@@ -1004,7 +1004,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-23T11:21:38Z"
+      :timestamp "2015-10-23T11:21:38.000Z"
     }
 
     {
@@ -1040,7 +1040,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-23T11:21:37Z"
+      :timestamp "2015-10-23T11:21:37.000Z"
     }
 
     {
@@ -1064,7 +1064,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-23T11:21:36Z"
+      :timestamp "2015-10-23T11:21:36.000Z"
     }
 
     {
@@ -1091,7 +1091,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-10-23T11:21:35Z"
+      :timestamp "2015-10-23T11:21:35.000Z"
     }
 
     {
@@ -1109,7 +1109,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
       }
-      :timestamp "2015-08-24T16:11:12Z"
+      :timestamp "2015-08-24T16:11:12.000Z"
     }
   ]
 }

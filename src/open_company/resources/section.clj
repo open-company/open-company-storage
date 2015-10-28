@@ -79,7 +79,7 @@
       ;; both note times are nil
       (and (nil? original-note-time) (nil? update-note-time)) false
       ;; only one note time is nil
-      (or (not (nil? original-note-time)) (not (nil? update-note-time))) true
+      (or (nil? original-note-time) (nil? update-note-time)) true
       ;; the note time difference is greater than the time limit gap allowed
       (not (t/within? (t/interval original-note-time note-time-limit) update-note-time)) true
       ;; both section and note times are within limits
@@ -140,22 +140,18 @@
 
   ; this is the first time for the section, so create it
   ([[nil updated-section] timestamp]
-    (println "\n\nfirst\n\n")
     (common/create-resource table-name updated-section timestamp))
 
   ; it's been more than the allowed time since the last revision, so create a new revision
   ([[_original-section updated-section] :guard revision-time-gt? timestamp]
-    (println "\n\ntime!\n\n")
     (common/create-resource table-name updated-section timestamp))
 
   ; it's a different author than the last revision, so create a new revision
   ([[_original-section updated-section] :guard different-author? timestamp]
-    (println "\n\nauthor!\n\n")
     (common/create-resource table-name updated-section timestamp))
 
   ; it's both the same author and less than the allowed time, so just update the current revision
   ([[original-section updated-section] timestamp]
-    (println "\n\nUpdate!\n\n")
     (common/update-resource table-name primary-key original-section updated-section timestamp)))
 
 ;; ----- Section CRUD -----
@@ -186,7 +182,7 @@
 
   If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
 
-  TODO: :author and :updated-at for notes if it's changed
+  TODO: only :author and :updated-at for notes if it's what has changed
   "
   ([company-slug section-name section author]
     (put-section company-slug section-name section author (common/current-timestamp)))
