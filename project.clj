@@ -51,7 +51,6 @@
       :dependencies [
         [midje "1.8-beta1"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [juxt/iota "0.2.1"] ; testing helpers https://github.com/juxt/iota
       ]
       :plugins [
         [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje

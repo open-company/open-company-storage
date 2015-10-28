@@ -43,11 +43,11 @@
 
   ;; no notes in this section
   ([section :guard #(not (:notes %)) _original-section _author _timestamp]
-    section) ; as you were
+  section) ; as you were
 
   ;; no notes should be in this section
   ([section :guard #(not (common/notes-sections (name (:section-name %)))) _original-section _author _timestamp]
-    section) ; as you were
+  section) ; as you were
 
   ;; add author and timestamp to notes if notes' :body has been modified
   ([section original-section author timestamp]
@@ -154,8 +154,9 @@
     (common/create-resource table-name updated-section timestamp))
 
   ; it's both the same author and less than the allowed time, so just update the current revision
-  ([[_original-section _updated-section] _timestamp]
-    (println "\n\nUpdate!\n\n")))
+  ([[original-section updated-section] timestamp]
+    (println "\n\nUpdate!\n\n")
+    (common/update-resource table-name primary-key original-section updated-section timestamp)))
 
 ;; ----- Section CRUD -----
 

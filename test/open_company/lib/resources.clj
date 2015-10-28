@@ -49,6 +49,58 @@
   :title "Text Section 2"
   :body "<p>This is also a test.</p>"})
 
-(def text-section-3 {
-  :title "Text Section 3"
-  :body "<p>Yes, another test.</p>"})
+(def finances-section-1 {
+  :title "Finances Section 1"
+  :data [
+    {
+      :period "2015-06"
+      :cash 42
+      :revenue 1
+      :costs 1
+    }]})
+
+(def finances-section-2 {
+  :title "Finances Section 2"
+  :data [
+    {
+      :period "2015-06"
+      :cash 42
+      :revenue 1
+      :costs 1
+    }
+    {
+      :period "2015-07"
+      :cash 42
+      :revenue 7
+      :costs 7
+    }]})
+
+(def finances-notes-section-1 {
+  :title "Finances with Notes Section 1"
+  :data [
+    {
+      :period "2015-06"
+      :cash 42
+      :revenue 1
+      :costs 1
+    }]
+    :notes {
+      :body "1 dollar."}})
+
+(def finances-notes-section-2 {
+  :title "Finances with Notes Section 2"
+  :data [
+    {
+      :period "2015-06"
+      :cash 42
+      :revenue 1
+      :costs 1
+    }
+    {
+      :period "2015-07"
+      :cash 42
+      :revenue 7
+      :costs 7
+    }]
+    :notes {
+      :body "7 dollars."}})

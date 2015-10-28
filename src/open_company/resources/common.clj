@@ -23,7 +23,7 @@
 
 ;; ----- ISO 8601 timestamp -----
 
-(def timestamp-format (format/formatters :date-time-no-ms))
+(def timestamp-format (format/formatters :date-time))
 
 (defn current-timestamp
   "ISO 8601 string timestamp for the current time."
