@@ -13,7 +13,8 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.8.0-beta1"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0-beta2"] ; Lisp on the JVM http://clojure.org/documentation
+    ; --- DO NOT UPDATE CORE.MATCH, it breaks RethinkDB drivers https://github.com/apa512/clj-rethinkdb/issues/60
     [org.clojure/core.match "0.2.2"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [ring/ring-devel "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
@@ -49,7 +50,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.8-beta1"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.8"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
         [juxt/iota "0.2.1"] ; testing helpers https://github.com/juxt/iota
       ]
