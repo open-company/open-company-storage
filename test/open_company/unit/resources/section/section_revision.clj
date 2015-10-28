@@ -49,7 +49,7 @@
     
       (facts "when the prior revision of the section DOESN'T have notes"
 
-        (fact "when the update of the section DOES have a note"
+        (fact "creates a new revision when the update of the section DOES have a note"
           (s/put-section r/slug "finances" r/finances-notes-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
                 updated-at (:updated-at section)
@@ -66,7 +66,7 @@
             (:updated-at notes) => updated-at)
           (count (s/get-revisions r/slug "finances")) => 2)
 
-        (fact "when the update of the section is by a different author"
+        (fact "creates a new revision when the update of the section is by a different author"
           (s/put-section r/slug "finances" r/finances-section-2 r/camus)
           (let [section (s/get-section r/slug "finances")
                 updated-at (:updated-at section)
@@ -79,7 +79,7 @@
             (= updated-at created-at) => true)
           (count (s/get-revisions r/slug "finances")) => 2)
 
-        (fact "when the update of the section is over the time limit"
+        (fact "creates a new revision when the update of the section is over the time limit"
           (postdate r/slug "finances") ; long enough ago to trigger a new revision
           (s/put-section r/slug "finances" r/finances-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
@@ -93,7 +93,7 @@
             (= updated-at created-at) => true)
           (count (s/get-revisions r/slug "finances")) => 2)
 
-        (fact "when the update of the section is by the same author and is under the time limit"
+        (fact "updates existing revision when the update of the section is by the same author & is under the time limit"
           (check/delay-secs 1) ; not long enough to trigger a new revision
           (s/put-section r/slug "finances" r/finances-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
@@ -111,7 +111,7 @@
 
       (facts "when the prior revision of the section DOES have notes"
 
-        (fact "when the update of the section DOESN'T have a note"
+        (fact "creates a new revision when the update of the section DOESN'T have a note"
           (s/put-section r/slug "finances" r/finances-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
                 updated-at (:updated-at section)
@@ -125,7 +125,7 @@
             (= updated-at created-at) => true)
           (count (s/get-revisions r/slug "finances")) => 2)
 
-        (fact "when the update of the section is by a different author"
+        (fact "creates a new revision when the update of the section is by a different author"
           (s/put-section r/slug "finances" r/finances-notes-section-2 r/camus)
           (let [section (s/get-section r/slug "finances")
                 updated-at (:updated-at section)
@@ -142,7 +142,7 @@
             (:updated-at notes) => updated-at)
           (count (s/get-revisions r/slug "finances")) => 2)
 
-        (fact "when the update of the section is over the time limit"
+        (fact "creates a new revision when the update of the section is over the time limit"
           (postdate r/slug "finances") ; long enough ago to trigger a new revision
           (s/put-section r/slug "finances" r/finances-notes-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
@@ -160,11 +160,12 @@
             (:updated-at notes) => updated-at)
           (count (s/get-revisions r/slug "finances")) => 2)
 
-        (future-fact "when the update of the section's note is by a different author")
+        (future-fact "creates a new revision when the update of the section's note is by a different author")
 
-        (future-fact "when the update of the section's note is over the time limit")
+        (future-fact "creates a new revision when the update of the section's note is over the time limit")
 
-        (fact "when the update of the section & its note were by the same author & under the time limit"
+        (fact "updates the existing revision when the update of the section & its note were by the same author &
+          are under the time limit"
           (check/delay-secs 1) ; not long enough to trigger a new revision
           (s/put-section r/slug "finances" r/finances-notes-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
