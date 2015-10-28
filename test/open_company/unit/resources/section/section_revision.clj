@@ -63,7 +63,7 @@
 
         (future-fact "when the update of the section is over the time limit")
 
-        (future-fact "when the update of the section is by the same author and is under the time limit"
+        (fact "when the update of the section is by the same author and is under the time limit"
           (check/delay-secs 1)
           (s/put-section r/slug "finances" r/finances-section-2 r/coyote)
           (let [section (s/get-section r/slug "finances")
