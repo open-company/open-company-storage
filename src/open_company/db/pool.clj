@@ -6,7 +6,10 @@
 
   Inspired by: https://github.com/robertluo/clj-poolman"
   (:require [rethinkdb.query :as r]
+            [taoensso.timbre :as timbre :refer (trace debug info warn error fatal)]
             [open-company.config :as config]))
+
+(timbre/set-config! config/log-config)
 
 (def rethinkdb-pool (atom nil))
 
@@ -47,6 +50,7 @@
   "Low level function for getting process. Use with-connection macro instead."
   [{:keys [init high connections] :as pool}]
   ;; Get a connection that's not busy if we can
+  (trace "Getting DB pool connection from pool size" (count (:connections pool)) "of" high "." )
   (let [free-connections (remove :busy connections) ; all non-busy connections
         connection (if (seq free-connections) ; if there are some
                     (first free-connections) ; get the first one
@@ -61,6 +65,7 @@
                 (assoc pool :connections connections)
                 pool)]
     ;; return the new state of the pool, and the connection we got (if any)
+    (trace "Using connection: " connection)
     [pool connection]))
 
 (defn release-connection
@@ -80,21 +85,21 @@
   pool was already started."
   ([] (start config/db-pool-size config/db-pool-size))
   ([low high]
-    (if (nil? @rethinkdb-pool)
-      (do
-        (reset! rethinkdb-pool (start* low high init-connection))
-        :ok)
-      :started)))
-
+    (info "Starting DB pool with low:" low " high:" high)
+    (reset! rethinkdb-pool (start* low high init-connection))
+    :ok))
 
 (defmacro with-connection
   "Get a connection from a pool, bind it to connection, so you can use it in body,
    after body finish, the connection will be returned to the pool."
   [[connection] & body]
-  `(let [[new-pool# connection#] (get-connection (deref rethinkdb-pool))]
-     (reset! rethinkdb-pool new-pool#)
-     (try
-      (let [~connection (:connection connection#)]
-        (do ~@body))
-      (finally
-        (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) connection#))))))
+  `(do 
+    (trace "Starting DB pool connection macro.")
+    (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start))
+    (let [[new-pool# connection#] (get-connection (deref rethinkdb-pool))]
+      (reset! rethinkdb-pool new-pool#)
+      (try
+        (let [~connection (:connection connection#)]
+          (do ~@body))
+        (finally
+          (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) connection#)))))))

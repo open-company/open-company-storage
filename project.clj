@@ -13,9 +13,10 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.8.0-beta1"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0-beta2"] ; Lisp on the JVM http://clojure.org/documentation
+    ; --- DO NOT UPDATE CORE.MATCH, it breaks RethinkDB drivers https://github.com/apa512/clj-rethinkdb/issues/60
     [org.clojure/core.match "0.2.2"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
-    [defun "0.2.0"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
+    [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [ring/ring-devel "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
@@ -23,7 +24,7 @@
     [compojure "1.4.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.13"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
-    [prismatic/schema "1.0.1"] ; Data validation https://github.com/Prismatic/schema
+    [prismatic/schema "1.0.2"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.1"] ; Get environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.1.4"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
@@ -49,7 +50,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.8-beta1"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.8"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
       ]
       :plugins [
