@@ -30,11 +30,11 @@
 (defun before?
   "Simple wrapper around clj-time.core/before? that handles type checking and time parsing.
   True if the first timestamp is before the second."
-  
+
   ([timestamp1 :guard string? timestamp2] (before? (f/parse timestamp1) timestamp2))
-  
+
   ([timestamp1 timestamp2 :guard string?] (before? timestamp1 (f/parse timestamp2)))
-  
+
   ([timestamp1 :guard #(instance? org.joda.time.DateTime %) timestamp2 :guard #(instance? org.joda.time.DateTime %)]
   (if (= timestamp1 timestamp2)
     false

@@ -46,7 +46,7 @@
         (count (s/get-revisions r/slug "update")) => 1)
 
     (with-state-changes [(before :facts (s/put-section r/slug "finances" r/finances-section-1 r/coyote))]
-    
+
       (facts "when the prior revision of the section DOESN'T have notes"
 
         (fact "creates a new revision when the update of the section DOES have a note"

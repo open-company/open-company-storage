@@ -16,7 +16,7 @@
   "update"
   "growth"
   "finances"
-  "challenges" 
+  "challenges"
   "asks"
   "product"
   "marketing"
