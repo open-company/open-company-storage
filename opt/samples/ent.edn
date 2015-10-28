@@ -1,0 +1,181 @@
+;; Sample finances data, a made up older startup that's post-revenue but not profitable
+{
+  :company {
+    :slug "ent-inc"
+    :name "Enterprise Inc."
+    :currency "USD"
+    :timestamp "2015-05-01T12:59:28.000Z"
+    :author {
+      :name "Orin Oldin"
+      :user-id "345678"
+      :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
+    }
+  }
+  :sections [
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-05"
+            :cash 25486744
+            :revenue 497639
+            :costs 1128754
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Orin Oldin"
+        :user-id "345678"
+        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
+      }
+      :timestamp "2015-06-13T12:59:28.000Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-05"
+            :cash 25486744
+            :revenue 497639
+            :costs 1128754
+          }
+          {
+            :period "2015-06"
+            :cash 24678388
+            :revenue 506231
+            :costs 1314587
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Orin Oldin"
+        :user-id "345678"
+        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
+      }
+      :timestamp "2015-07-04T12:59:28.000Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-05"
+            :cash 25486744
+            :revenue 497639
+            :costs 1128754
+          }
+          {
+            :period "2015-06"
+            :cash 24678388
+            :revenue 506231
+            :costs 1314587
+          }
+          {
+            :period "2015-07"
+            :cash 23802795
+            :revenue 365008
+            :costs 1240601
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Orin Oldin"
+        :user-id "345678"
+        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
+      }
+      :timestamp "2015-08-06T12:59:28.000Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-05"
+            :cash 25486744
+            :revenue 497639
+            :costs 1128754
+          }
+          {
+            :period "2015-06"
+            :cash 24678388
+            :revenue 506231
+            :costs 1314587
+          }
+          {
+            :period "2015-07"
+            :cash 23802795
+            :revenue 365008
+            :costs 1240601
+          }
+          {
+            :period "2015-08"
+            :cash 23073720
+            :revenue 656221
+            :costs 1385296
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Orin Oldin"
+        :user-id "345678"
+        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
+      }
+      :timestamp "2015-09-09T12:59:28.000Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data [
+          {
+            :period "2015-05"
+            :cash 25486744
+            :revenue 497639
+            :costs 1128754
+          }
+          {
+            :period "2015-06"
+            :cash 24678388
+            :revenue 506231
+            :costs 1314587
+          }
+          {
+            :period "2015-07"
+            :cash 23802795
+            :revenue 365008
+            :costs 1240601
+          }
+          {
+            :period "2015-08"
+            :cash 23073720
+            :revenue 656221
+            :costs 1385296
+          }
+          {
+            :period "2015-09"
+            :cash 22404967
+            :revenue 710095
+            :costs 1378848
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Orin Oldin"
+        :user-id "345678"
+        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
+      }
+      :timestamp "2015-10-13T12:59:28.000Z"
+    }
+  ]
+}
