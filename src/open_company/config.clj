@@ -32,6 +32,10 @@
 
 (defonce passphrase (env :open-company-auth-passphrase))
 
+;; ----- OpenCompany -----
+
+(defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; in minutes
+
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 
 (def log-config

@@ -2,6 +2,7 @@
   (:require [clj-time.core :as t]
             [clj-time.format :as format]
             [defun :refer (defun defun-)]
+            [open-company.config :as c]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]))
 
@@ -42,11 +43,11 @@
 
   ;; no notes in this section
   ([section :guard #(not (:notes %)) _original-section _author _timestamp]
-    section) ; as you were
+  section) ; as you were
 
   ;; no notes should be in this section
   ([section :guard #(not (common/notes-sections (name (:section-name %)))) _original-section _author _timestamp]
-    section) ; as you were
+  section) ; as you were
 
   ;; add author and timestamp to notes if notes' :body has been modified
   ([section original-section author timestamp]
@@ -59,6 +60,40 @@
     (-> section
       (assoc-in [:notes :author] author)
       (assoc-in [:notes :updated-at] timestamp)))))
+
+(defn- revision-time-gt?
+  "Compare the section's and notes original and updated `:updated-at`s, returning `true` if they
+  are within bounds and false if they aren't."
+  [[original-section updated-section]]
+  (let [original-time (format/parse common/timestamp-format (:updated-at original-section))
+        update-time (format/parse common/timestamp-format (:updated-at updated-section))
+        time-limit (t/plus original-time (t/minutes c/collapse-edit-time))
+        original-note-stamp (get-in original-section [:notes :updated-at])
+        original-note-time (if original-note-stamp (format/parse common/timestamp-format original-note-stamp))
+        update-note-stamp (get-in original-section [:notes :updated-at])
+        update-note-time (if update-note-stamp (format/parse common/timestamp-format update-note-stamp))
+        note-time-limit (if original-note-time (t/plus original-note-time (t/minutes c/collapse-edit-time)))]
+    (cond
+      ;; the section time difference is greater than the time limit gap allowed
+      (not (t/within? (t/interval original-time time-limit) update-time)) true
+      ;; both note times are nil
+      (and (nil? original-note-time) (nil? update-note-time)) false
+      ;; only one note time is nil
+      (or (nil? original-note-time) (nil? update-note-time)) true
+      ;; the note time difference is greater than the time limit gap allowed
+      (not (t/within? (t/interval original-note-time note-time-limit) update-note-time)) true
+      ;; both section and note times are within limits
+      :else false)))
+
+(defn- different-author?
+  "Compare the section's and notes original and updated authors' `:user-id`7s, returning `true` if they
+  both match and false if they don't."
+  [[original-section updated-section]]
+  (not (and
+    (= (get-in original-section [:author :user-id])
+       (get-in updated-section [:author :user-id]))
+    (= (get-in original-section [:notes :author :user-id])
+       (get-in updated-section [:notes :author :user-id])))))
 
 ;; ----- Validations -----
 
@@ -100,6 +135,25 @@
   (common/updated-at-order
     (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
 
+
+(defun- revise-or-update
+
+  ; this is the first time for the section, so create it
+  ([[nil updated-section] timestamp]
+    (common/create-resource table-name updated-section timestamp))
+
+  ; it's been more than the allowed time since the last revision, so create a new revision
+  ([[_original-section updated-section] :guard revision-time-gt? timestamp]
+    (common/create-resource table-name updated-section timestamp))
+
+  ; it's a different author than the last revision, so create a new revision
+  ([[_original-section updated-section] :guard different-author? timestamp]
+    (common/create-resource table-name updated-section timestamp))
+
+  ; it's both the same author and less than the allowed time, so just update the current revision
+  ([[original-section updated-section] timestamp]
+    (common/update-resource table-name primary-key original-section updated-section timestamp)))
+
 ;; ----- Section CRUD -----
 
 (defun get-section
@@ -128,7 +182,7 @@
 
   If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
 
-  TODO: :author and :updated-at for notes if it's changed
+  TODO: only :author and :updated-at for notes if it's what has changed
   "
   ([company-slug section-name section author]
     (put-section company-slug section-name section author (common/current-timestamp)))
@@ -142,6 +196,7 @@
 
   ([company-slug section-name section author timestamp]
   (let [original-company (company/get-company company-slug)
+        original-section (get-section company-slug section-name)
         clean-section (clean section)
         updated-section (-> clean-section
           (assoc :company-slug company-slug)
@@ -156,8 +211,8 @@
       (do
         ;; update the company
         (company/update-company company-slug updated-company)
-        ;; create the new section revision
-        (common/create-resource table-name updated-section timestamp))
+        ;; create a new section revision or update the latest section
+        (revise-or-update [original-section updated-section] timestamp))
       false))))
 
 ;; ----- Armageddon -----

@@ -16,7 +16,7 @@
   "update"
   "growth"
   "finances"
-  "challenges" 
+  "challenges"
   "asks"
   "product"
   "marketing"
@@ -36,7 +36,7 @@
 
 ;; ----- ISO 8601 timestamp -----
 
-(def timestamp-format (format/formatters :date-time-no-ms))
+(def timestamp-format (format/formatters :date-time))
 
 (defn current-timestamp
   "ISO 8601 string timestamp for the current time."
@@ -92,7 +92,7 @@
     (-> (r/table table-name)
       (r/with-fields fields)
       (r/run conn))))
-  
+
   ([table-name index-name index-value]
   (pool/with-connection [conn]
     (-> (r/table table-name)
@@ -114,6 +114,7 @@
 
   ([table-name primary-key-name original-resource new-resource timestamp]
   (let [timed-resource (merge new-resource {
+          primary-key-name (original-resource primary-key-name)
           :created-at (:created-at original-resource)
           :updated-at timestamp})
         update (pool/with-connection [conn]
