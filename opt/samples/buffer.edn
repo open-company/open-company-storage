@@ -10,7 +10,6 @@
       :user-id "123456"
       :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     }
-    :categories ["progress" "company"]
     :sections {
       :progress ["update" "finances" "growth" "team" "product" "marketing" "customer-service" "help"]
       :company ["diversity" "values"]
