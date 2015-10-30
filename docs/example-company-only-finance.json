@@ -6,7 +6,8 @@
   "created-at" : "2015-09-07T22:14:24Z",
   "updated-at" : "2015-09-11T22:14:24Z",
 
-  "sections" : ["finances"],
+  "categories": ["progress", "company"],
+  "sections" : {"progress": ["finances"], "company": []},
   
   "finances" : {
     "data" : [
