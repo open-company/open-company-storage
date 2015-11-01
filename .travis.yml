@@ -7,9 +7,9 @@ lein: lein2
 # and could take advantage of dependency caching
 sudo: required
 before_script:
-  - "export JAVA_OPTS=-Xmx512m"
-  - "echo $JAVA_OPTS"
-  - ./opt/install-rethinkdb.sh
+- "export JAVA_OPTS=-Xmx512m"
+- "echo $JAVA_OPTS"
+- ./opt/install-rethinkdb.sh
 # sudo: false
 # cache:
 #   directories:
