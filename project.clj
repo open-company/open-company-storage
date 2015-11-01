@@ -68,9 +68,6 @@
         :hot-reload true ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
       }
-      :dependencies [
-        [aprint "0.1.3"] ; Pretty printing in the REPL (aprint thing) https://github.com/razum2um/aprint
-      ]
       :plugins [
         [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
@@ -78,24 +75,23 @@
         [lein-ancient "0.6.8-SNAPSHOT"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
-        [venantius/ultra "0.3.4"] ; Enhancement's to Leiningen's REPL https://github.com/venantius/ultra
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
       ]  
-      ;; REPL config
-      :ultra {
-        :color-scheme :solarized_dark
-        :stacktraces  false
-      }
+    }]
+    :repl [:dev {
+      :dependencies [
+        [org.clojure/tools.nrepl "0.2.12"] ; Network REPL https://github.com/clojure/tools.nrepl
+        [aprint "0.1.3"] ; Pretty printing in the REPL (aprint ...) https://github.com/razum2um/aprint
+      ]
       ;; REPL injections
       :injections [
         (require '[aprint.core :refer (aprint ap)]
                  '[clojure.stacktrace :refer (print-stack-trace)]
-                 '[clj-time.core :as t]
-                 '[clj-time.format :as format]
+                 '[clojure.test :refer :all]
+                 '[clj-time.format :as t]
                  '[clojure.string :as s])
       ]
     }]
-
     ;; Production environment
     :prod {
       :env {
@@ -114,6 +110,7 @@
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests
     "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
+    "repl" ["with-profile" "repl" "repl"]
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
     "ancient" ["ancient" ":all" ":allow-qualified"] ; check for out of date dependencies
