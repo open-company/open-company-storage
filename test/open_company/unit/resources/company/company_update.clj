@@ -3,7 +3,14 @@
             [clj-time.core :as t]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
+            [open-company.lib.db :as db]
             [open-company.resources.company :as c]))
+
+;; ----- Startup -----
+
+; (db/test-startup)
+
+;; ----- Tests -----
 
 ; (with-state-changes [(before :facts (do
 ;                                       (c/delete-all-companies!)

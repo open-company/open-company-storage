@@ -10,22 +10,36 @@
 (def company-table-name "companies")
 (def section-table-name "sections")
 
-;; ----- Section definitions -----
+;; ----- Category/Section definitions -----
 
-(def sections #{
-  "update"
-  "growth"
-  "finances"
-  "challenges"
-  "asks"
-  "product"
-  "marketing"
-  "customer-service"
-  "team"
-  "diversity"
-  "ownership"
-  "mission"
-  "values"})
+;; Categories in default order
+(def categories ["progress" "company"])
+
+;; Sections of the category, in default order
+(def ordered-sections {
+  "progress" [
+    "update"
+    "growth"
+    "finances"
+    "challenges"
+    "team"
+    "product"
+    "customer-service"
+    "marketing"
+    "press"
+    "business development"
+    "sales"
+    "help"
+  ]
+  "company" [
+    "diversity"
+    "mission"
+    "values"]})
+
+;; All possible sections as a set
+(def sections (set (flatten (vals ordered-sections))))
+
+;; A set of all sections that can contain notes
 (def notes-sections #{"growth" "finances"})
 
 ;; ----- Properties common to all resources -----

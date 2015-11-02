@@ -45,7 +45,7 @@
 
 (defun- section-revision-links
   "Add the HATEOS revision links to each section"
-  ([company] (section-revision-links company (:sections company)))
+  ([company] (section-revision-links company (flatten (vals (:sections company)))))
   ([company _sections :guard empty?] company)
   ([company sections]
     (let [company-slug (:slug company)
@@ -56,7 +56,7 @@
 
 (defun- section-links
   "Add the HATEOS links to each section"
-  ([company] (section-links company (:sections company)))
+  ([company] (section-links company (flatten (vals (:sections company)))))
   ([company _sections :guard empty?] company)
   ([company sections]
     (let [company-slug (:slug company)

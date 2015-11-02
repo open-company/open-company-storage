@@ -4,6 +4,7 @@
             [clj-time.format :as f]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
+            [open-company.lib.db :as db]
             [open-company.config :as config]
             [open-company.resources.common :as common]
             [open-company.resources.company :as c]
@@ -12,8 +13,7 @@
 
 ;; ----- Startup -----
 
-(reset! pool/rethinkdb-pool nil)
-(pool/start 1 1)
+(db/test-startup)
 
 ;; ----- Utility functions -----
 

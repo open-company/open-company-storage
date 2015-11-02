@@ -3,6 +3,7 @@
             [clojure.tools.cli :refer (parse-opts)]
             [defun :refer (defun-)]
             [open-company.db.pool :as pool]
+            [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section])
   (:gen-class))
@@ -14,8 +15,8 @@
 ;; ----- Sections import -----
 
 (defun- import-sections
-
-  ([_company-slug _sections :guard empty?] (println "\nImport complete!\n"))
+  "Add each section to the company recursively."
+  ([_company-slug _sections :guard empty?] true)
 
   ([company-slug sections]
   (let [section (first sections)
@@ -25,6 +26,13 @@
     (println (str "Creating section '" section-name "' at " timestamp " by " (:name author) "."))
     (section/put-section company-slug section-name (:section section) author timestamp)
     (import-sections company-slug (rest sections)))))
+
+(defn- import-sections-map
+  "Update the company with the specified slug with the specified :sections map."
+  [slug sections]
+  (println (str "Updating company sections for '" slug "'."))
+  (if-let [original-company (common/read-resource company/table-name slug)]
+    (common/update-resource company/table-name :slug original-company (assoc original-company :sections sections))))
 
 ;; ----- Company import -----
 
@@ -40,8 +48,10 @@
       (when (company/get-company slug)
         (exit 1 (str "A company for '" slug "' already exists. Use the -d flag to delete the company on import."))))
     (println (str "Creating company '" slug "' by " (:name author)"."))
-    (company/create-company (dissoc company :author :timestamp) author (:timestamp company))
-    (import-sections slug (:sections data))))
+    (company/create-company (dissoc company :author :timestamp :sections) author (:timestamp company))
+    (import-sections slug (:sections data))
+    (import-sections-map slug (:sections company)))
+  (println "\nImport complete!\n"))
 
 ;; ----- CLI -----
 

@@ -2,10 +2,18 @@
   (:require [midje.sweet :refer :all]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
+            [open-company.lib.db :as db]
+            [open-company.resources.common :as common]
             [open-company.resources.company :as c]))
 
-; (with-state-changes [(before :facts (c/delete-all-companies!))
-;                      (after :facts (c/delete-all-companies!))]
+;; ----- Startup -----
+
+(db/test-startup)
+
+;; ----- Tests -----
+
+(with-state-changes [(before :facts (c/delete-all-companies!))
+                     (after :facts (c/delete-all-companies!))]
 
 ;   (fact "about validity checks of a valid new companies"
 ;     (c/valid-company r/TICKER r/OPEN) => true)
@@ -44,25 +52,46 @@
 
 ;     (future-fact "when a ticker symbol is already used"))
 
-  ; (facts "about company creation"
+  (facts "about company creation"
 
-  ;   (c/create-company r/OPEN) => (contains r/OPEN)
-  ;   (c/get-company r/TICKER) => (contains r/OPEN)
+    (facts "it returns the company after successful creation"
+      (c/create-company r/open r/coyote) => (contains r/open)
+      (c/get-company r/slug) => (contains r/open))
 
-  ;   (facts "and unicode names"
-  ;     (doseq [good-name r/names]
-  ;       (let [new-oc (assoc r/OPEN :name good-name)]
-  ;         (c/create-company new-oc) => (contains new-oc)
-  ;         (c/get-company r/TICKER) => (contains new-oc)
-  ;         (c/delete-company r/TICKER))))
+    (facts "it accepts unicode company names"
+      (doseq [good-name r/names]
+        (let [new-oc (assoc r/open :name good-name)]
+          (c/create-company new-oc r/coyote) => (contains new-oc)
+          (c/get-company r/slug) => (contains new-oc)
+          (c/delete-company r/slug))))
 
-  ;   (facts "and timestamps"
-  ;     (let [company (c/create-company r/OPEN)
-  ;           created-at (:created-at company)
-  ;           updated-at (:updated-at company)
-  ;           retrieved-company (c/get-company r/TICKER)]
-  ;       (check/timestamp? created-at) => true
-  ;       (check/about-now? created-at) = true
-  ;       (= created-at updated-at) => true
-  ;       (= created-at (:created-at retrieved-company)) => true
-  ;       (= updated-at (:updated-at retrieved-company)) => true))))
+    (facts "it creates timestamps"
+      (let [company (c/create-company r/open r/coyote)
+            created-at (:created-at company)
+            updated-at (:updated-at company)
+            retrieved-company (c/get-company r/slug)]
+        (check/timestamp? created-at) => true
+        (check/about-now? created-at) = true
+        (= created-at updated-at) => true
+        (= created-at (:created-at retrieved-company)) => true
+        (= updated-at (:updated-at retrieved-company)) => true))
+
+    (fact "it returns the pre-defined categories"
+      (:categories (c/create-company r/open r/coyote)) => (contains common/categories))
+
+    (facts "it returns the sections in the company in the pre-defined order"
+      (:sections (c/create-company r/open r/coyote)) => {"progress" [] "company" []}
+      (c/delete-company r/slug)
+      (:sections (c/create-company (assoc r/open :update {}) r/coyote)) => {"progress" ["update"] "company" []}
+      (c/delete-company r/slug)
+      (:sections (c/create-company (assoc r/open :values {}) r/coyote)) => {"progress" [] "company" ["values"]}
+      (c/delete-company r/slug)
+      (:sections (c/create-company
+        (-> r/open
+          (assoc :mission {})
+          (assoc :press {})
+          (assoc :help {})
+          (assoc :challenges {})
+          (assoc :diversity {})
+          (assoc :update {}))
+        r/coyote)) => {"progress" ["update" "challenges" "press" "help"] "company" ["diversity" "mission"]})))

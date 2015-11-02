@@ -22,11 +22,35 @@
   [company]
   (apply dissoc (common/clean company) reserved-properties))
 
-(defn- sections-for
-  "Add or replace the :sections vector in the company with the sections this company map contains."
+(defn- categories-for
+  "Add or replace the :categories vector in the company with the definitive initial list of categories."
   [company]
-  (assoc company :sections
-    (vec (clojure.set/intersection common/sections (set (map name (keys company)))))))
+  (assoc company :categories common/categories))
+
+(defn- section-list
+  ""
+  [company]
+  (set (clojure.set/intersection common/sections (set (map name (keys company))))))
+
+(defun- sections-for
+  "Add or replace the :sections vector in the company with the sections of all possible sections that
+  this company map actually contains."
+
+  ; init
+  ([company] (sections-for company (keys common/ordered-sections) (section-list company) {}))
+
+  ; no more categories
+  ([company _categories :guard empty? _sections section-matches] (assoc company :sections section-matches)) ; all done
+
+  ; section matches per category
+  ([company categories sections section-matches]
+  (let [category-name (first categories)
+        category-sections (common/ordered-sections category-name)
+        matches-for-category (filter #(some sections [%]) category-sections)]
+    (sections-for company
+      (rest categories)
+      sections
+      (assoc section-matches category-name (vec matches-for-category))))))
 
 (defn notes-for
   "
@@ -120,15 +144,17 @@
           slugged-company (if company-slug
                             (assoc clean-company :slug company-slug)
                             (assoc clean-company :slug (slug/slugify (:name company))))
-          company-with-sections (sections-for slugged-company) ;; add/replace the :sections property
+          company-with-categories (categories-for slugged-company) ;; add/replace the :categories property
+          company-with-sections (sections-for company-with-categories) ;; add/replace the :sections property
+          sections (flatten (vals (:sections company-with-sections)))
           company-with-revision-author (author-for author
-                                        (:sections company-with-sections)
+                                        sections
                                         company-with-sections) ;; add/replace the :author
-          final-company (updated-for timestamp (:sections company-with-revision-author) company-with-revision-author)]
+          final-company (updated-for timestamp sections company-with-revision-author)]
       (if (true? (valid-company final-company))
         (do
           ;; create the sections
-          (doseq [section-name (:sections final-company)]
+          (doseq [section-name sections]
             (let [section (get final-company (keyword section-name))
                   section-with-company (assoc section :company-slug (:slug final-company))
                   final-section (assoc section-with-company :section-name section-name)]
