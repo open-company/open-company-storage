@@ -1,4 +1,4 @@
-# [OpenCompany.io](https://opencompany.io) Platform API
+# [OpenCompany](https://opencompany.io) Platform API
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
