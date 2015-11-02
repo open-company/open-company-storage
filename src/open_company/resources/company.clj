@@ -40,7 +40,7 @@
   ([company] (sections-for company (keys common/ordered-sections) (section-list company) {}))
   
   ; no more categories
-  ([company categories :guard empty? sections section-matches] (assoc company :sections section-matches)) ; all done
+  ([company _categories :guard empty? _sections section-matches] (assoc company :sections section-matches)) ; all done
 
   ; section matches per category
   ([company categories sections section-matches]
