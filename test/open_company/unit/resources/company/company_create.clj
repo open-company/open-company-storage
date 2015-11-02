@@ -2,8 +2,15 @@
   (:require [midje.sweet :refer :all]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
+            [open-company.lib.db :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as c]))
+
+;; ----- Startup -----
+
+(db/test-startup)
+
+;; ----- Tests -----
 
 (with-state-changes [(before :facts (c/delete-all-companies!))
                      (after :facts (c/delete-all-companies!))]

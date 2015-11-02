@@ -38,7 +38,7 @@
 
   ; init
   ([company] (sections-for company (keys common/ordered-sections) (section-list company) {}))
-  
+
   ; no more categories
   ([company _categories :guard empty? _sections section-matches] (assoc company :sections section-matches)) ; all done
 
@@ -51,7 +51,7 @@
       (rest categories)
       sections
       (assoc section-matches category-name (vec matches-for-category))))))
-  
+
 (defn notes-for
   "
   Return a sequence of the sections that do have notes in the form:
