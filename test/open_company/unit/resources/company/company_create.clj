@@ -88,10 +88,10 @@
       (c/delete-company r/slug)
       (:sections (c/create-company
         (-> r/open
-          (assoc :mission {}) 
-          (assoc :press {}) 
-          (assoc :help {}) 
-          (assoc :challenges {}) 
-          (assoc :diversity {}) 
-          (assoc :update {})) 
+          (assoc :mission {})
+          (assoc :press {})
+          (assoc :help {})
+          (assoc :challenges {})
+          (assoc :diversity {})
+          (assoc :update {}))
         r/coyote)) => {"progress" ["update" "challenges" "press" "help"] "company" ["diversity" "mission"]})))
