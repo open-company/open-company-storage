@@ -9,6 +9,10 @@
             [open-company.resources.section :as section])
   (:gen-class))
 
+(defn exit [status msg]
+  (println msg)
+  (System/exit status))
+
 ;; ----- Sections import -----
 
 (defun- import-sections
@@ -76,10 +80,6 @@
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
        (s/join \newline errors)))
-
-(defn exit [status msg]
-  (println msg)
-  (System/exit status))
 
 (defn -main [& args]
   (pool/start)
