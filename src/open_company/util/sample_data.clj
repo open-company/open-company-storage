@@ -1,4 +1,5 @@
 (ns open-company.util.sample-data
+  "Commandline client to import sample data into OpenCompany."
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
             [defun :refer (defun-)]
@@ -7,10 +8,6 @@
             [open-company.resources.company :as company]
             [open-company.resources.section :as section])
   (:gen-class))
-
-(defn exit [status msg]
-  (println msg)
-  (System/exit status))
 
 ;; ----- Sections import -----
 
@@ -79,6 +76,10 @@
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
        (s/join \newline errors)))
+
+(defn exit [status msg]
+  (println msg)
+  (System/exit status))
 
 (defn -main [& args]
   (pool/start)
