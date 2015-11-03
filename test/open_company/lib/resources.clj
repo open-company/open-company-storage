@@ -23,7 +23,7 @@
   :name "Wile E. Coyote"})
 
 (def camus {
-  :user-id "234567"
+  :user-id "1-4-1960"
   :image "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
   :name "Albert Camus"})
 

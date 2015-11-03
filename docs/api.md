@@ -27,7 +27,10 @@ returns: `application/vnd.open-company.company.v1+json`
 
 ### Updating a company:
 
+Companies can be updated by following the company's `update` or `partial-update` link, eg:
+
 ```
+PUT /companies/<slug>
 PATCH /companies/<slug>
 ```
 accepts: `application/vnd.open-company.company.v1+json`
@@ -50,6 +53,8 @@ Note-worthy: `PATCH`ing `sections` and sending a new section at the same time to
 
 ### Removing a company:
 
+Companies can be updated by following the company's `delete` link, eg:
+
 ```
 DELETE /companies/<slug>
 ```
@@ -61,8 +66,18 @@ TBD what this means. All the implications.
 
 ### Getting a section:
 
+Sections can be retrieved by following the section's `self` link, eg:
+
 ```
 GET /companies/<slug>/<section-name>
+```
+returns: `application/vnd.open-company.section.v1+json`
+
+### Getting a section revision:
+
+Prior revisions of a section can be retrieved by following the revision's `revision` link , eg:
+
+```
 GET /companies/<slug>/<section-name>?as-of=<timestamp>
 ```
 returns: `application/vnd.open-company.section.v1+json`
@@ -73,7 +88,10 @@ returns: `application/vnd.open-company.section.v1+json`
 
 ### Revising a section:
 
+Sections can be revised by following the section's `update` or `partial-update` link, eg:
+
 ```
+PUT /companies/<slug>/<section-name>
 PATCH /companies/<slug>/<section-name>
 ```
 accepts: `application/vnd.open-company.section.v1+json`
