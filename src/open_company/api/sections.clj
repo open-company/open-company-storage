@@ -73,4 +73,4 @@
 (def section-routes
   (apply routes
     (map #(ANY (str "/companies/:company-slug/" %) [company-slug as-of]
-      (section company-slug % as-of)) common-res/sections)))
+      (section company-slug % as-of)) (map name common-res/sections))))

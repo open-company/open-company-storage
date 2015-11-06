@@ -105,9 +105,7 @@
   TODO: take company slug and section name separately and validate they match
   TODO: Use prismatic schema to validate section properties.
   "
-  ; ([company-slug section-name section :guard #(or (not (:company-slug %)) (not (company/get-company (:company-slug %))))] :bad-company)
-  ; ([company-slug section-name section :guard #(not (common/sections (:section-name %)))] :bad-section-name)
-  ([_ _ _] true))
+  ([_company-slug _section-name _section] true))
 
 ;; ----- Section revisions -----
 
