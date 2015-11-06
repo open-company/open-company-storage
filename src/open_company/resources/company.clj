@@ -13,7 +13,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:slug})
+  #{:slug :categories})
 
 ;; ----- Utility functions -----
 
@@ -23,18 +23,17 @@
   (apply dissoc (common/clean company) reserved-properties))
 
 (defn- categories-for
-  "Add or replace the :categories vector in the company with the definitive initial list of categories."
+  "Add the :categories vector in the company with the definitive initial list of categories."
   [company]
   (assoc company :categories common/categories))
 
 (defn- section-list
-  ""
+  "Return the set of section names that are contained in the provided company."
   [company]
-  (set (clojure.set/intersection common/sections (set (map name (keys company))))))
+  (set (clojure.set/intersection common/sections (set (keys company)))))
 
 (defun- sections-for
-  "Add or replace the :sections vector in the company with the sections of all possible sections that
-  this company map actually contains."
+  "Add a :sections vector in the new company with the sections that this company map actually contains."
 
   ; init
   ([company] (sections-for company (keys common/ordered-sections) (section-list company) {}))
@@ -52,7 +51,21 @@
       sections
       (assoc section-matches category-name (vec matches-for-category))))))
 
-(defn notes-for
+(defn- remove-sections
+  "Remove any sections from the company that are not in the :sections property"
+  [company]
+  (let [sections (set (map keyword (flatten (vals (:sections company)))))]
+    (apply dissoc company (clojure.set/difference (section-list company) sections))))
+
+(defn sections-with
+  "Add the provided section name to the end of the correct category, unless it's already in the category."
+  [sections section-name]
+  (if ((set (map keyword (flatten (vals sections)))) (keyword section-name))
+    sections ; already contains the section-name
+    (let [category-name (common/category-for section-name)] ; get the category for this section name
+      (update-in sections [category-name] conj section-name)))) ; add the section name to the category
+
+(defn- notes-for
   "
   Return a sequence of the sections that do have notes in the form:
 
@@ -167,7 +180,6 @@
   "
   Given an updated company property map, update the company and return `true` on success.
 
-  TODO: company :sections update if section is being added
   TODO: handle case of slug change.
   "
   [slug company]
@@ -175,7 +187,8 @@
   (if-let [original-company (get-company slug)]
     (let [updated-company (-> company
                             (clean)
-                            (sections-for)
+                            (categories-for)
+                            (remove-sections)
                             (assoc :slug slug))]
       (common/update-resource table-name primary-key original-company updated-company))))
 

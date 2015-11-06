@@ -174,15 +174,18 @@ Then enter these commands one-by-one, noting the output:
 
 ;; Create some companies
 
-(def author {
+(def author
+  {
     :user-id "123456"
     :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
     :name "Wile E. Coyote"
   })
 
-(company/create-company {
-  :name "Blank Inc."
-  :currency "GBP"} author)
+(company/create-company
+  {
+    :name "Blank Inc."
+    :currency "GBP"
+  } author)
 
 (company/create-company {
   :name "Transparency, LLC"
@@ -195,7 +198,8 @@ Then enter these commands one-by-one, noting the output:
     ]
   }} author)
 
-  (company/create-company {
+(company/create-company
+  {
     :name "Buffer"
     :currency "USD"
     :update {
@@ -211,7 +215,8 @@ Then enter these commands one-by-one, noting the output:
       :notes {
         :body "Good stuff! Revenue is up."
       }
-    }} author)
+    }
+  } author)
 
 ;; List companies
 (company/list-companies)
@@ -222,39 +227,39 @@ Then enter these commands one-by-one, noting the output:
 (company/get-company "buffer")
 
 ;; Create/update a section
-(section/put-section "blank-inc" "finances" {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
-(section/put-section "blank-inc" "finances" {:data [
+(section/put-section "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
+(section/put-section "blank-inc" :finances {:data [
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
   :notes {:body "We got our first customer! Revenue FTW!"}} author)
-(section/put-section "blank-inc" "finances" {:data [
+(section/put-section "blank-inc" :finances {:data [
   {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
   :notes {:body "We got our first customer! Revenue FTW!"}} author)
-(section/put-section "blank-inc" "finances" {:data [
+(section/put-section "blank-inc" :finances {:data [
   {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
   {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
   :notes {:body "We got our second customer! Revenue FTW!"}} author)
 
-(section/put-section "buffer" "update" {:title "Founder's Update" :body "It's all meh."} author)
+(section/put-section "buffer" :update {:title "Founder's Update" :body "It's all meh."} author)
 
 ;; Get a section
-(section/get-section "transparency" "finances")
-(section/get-section "buffer" "update")
-(section/get-section "buffer" "finances")
+(section/get-section "transparency" :finances)
+(section/get-section "buffer" :update)
+(section/get-section "buffer" :finances)
 
 ;; List revisions
-(section/list-revisions "transparency" "finances")
-(section/list-revisions "buffer" "update")
-(section/list-revisions "buffer" "finances")
+(section/list-revisions "transparency" :finances)
+(section/list-revisions "buffer" :update)
+(section/list-revisions "buffer" :finances)
 
 ;; Get revisions
-(section/get-revisions "transparency" "finances")
-(section/get-revisions "buffer" "update")
-(section/get-revisions "buffer" "finances")
+(section/get-revisions "transparency" :finances)
+(section/get-revisions "buffer" :update)
+(section/get-revisions "buffer" :finances)
 
 ;; Delete a company
 (company/delete-company "transparency")
@@ -280,12 +285,13 @@ lein start
 
 Create a company with cURL:
 
-FIXME: there is no UI yet to do this so you need to create a company with slug `transparency` via repl.
+FIXME: there is no UI yet to do this so you need to create a company via the REPL or CLI import tool.
 
 List the companies with cURL:
 
 ```console
 curl -i -X GET \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept-Charset: utf-8" \
 http://localhost:3000/companies
 ```
@@ -294,57 +300,67 @@ Request the company with cURL:
 
 ```console
 curl -i -X GET \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/transparency
+http://localhost:3000/companies/buffer
 ```
 
 Update a company with cURL:
 
 ```console
-curl -i -X PUT \
--d '{"name": "Transparency, LLC", "currency": "EUR" }' \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/transparency
-```
-
-```console
 curl -i -X PATCH \
 -d '{"currency": "FKP" }' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/transparency
+http://localhost:3000/companies/buffer
 ```
 
-Create/update a section for the company with cURL:
+Revise a section for the company with cURL:
 
 ```console
 curl -i -X PUT \
 -d '{"body": "It\u0027s all that and a bag of chips.","title": "Founder\u0027s Update"}' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.section.v1+json" \
-http://localhost:3000/companies/transparency/update
+http://localhost:3000/companies/buffer/update
+```
+
+Reorder a company's sections with cURL:
+
+```console
+curl -i -X PATCH \
+-d '{"sections": {"progress": ["finances", "growth", "team", "product", "marketing", "customer-service", "help", "update"], "company": ["values", "diversity"]}}' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/buffer
 ```
 
 Delete the company with cURL:
 
 ```console
-curl -i -X DELETE http://localhost:3000/companies/transparency
+curl -i -X DELETE 
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
+http://localhost:3000/companies/transparency
 ```
 
 Try (and fail) to get the section and the company with cURL:
 
 ```console
 curl -i -X GET \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
 http://localhost:3000/companies/transparency/update
 
 curl -i -X GET \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 http://localhost:3000/companies/transparency
@@ -362,7 +378,14 @@ use `-d` to erase the company before starting the process like this:
 lein run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
 ```
 
-To add sample data on a production environment use the `prod` profile:
+To add sample data on a production environment, specify the production database name:
+
+```console
+DB_NAME="open_company" lein run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
+```
+
+or
+
 ```console
 lein with-profile prod run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
 ```
