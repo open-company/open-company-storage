@@ -11,8 +11,8 @@
       :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
     }
     :sections {
-      "progress" ["finances"]
-      "company" []
+      :progress ["finances"]
+      :company []
     }
   }
   :sections [

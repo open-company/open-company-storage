@@ -80,11 +80,11 @@
       (:categories (c/create-company r/open r/coyote)) => (contains common/categories))
 
     (facts "it returns the sections in the company in the pre-defined order"
-      (:sections (c/create-company r/open r/coyote)) => {"progress" [] "company" []}
+      (:sections (c/create-company r/open r/coyote)) => {:progress [] :company []}
       (c/delete-company r/slug)
-      (:sections (c/create-company (assoc r/open :update {}) r/coyote)) => {"progress" ["update"] "company" []}
+      (:sections (c/create-company (assoc r/open :update {}) r/coyote)) => {:progress [:update] :company []}
       (c/delete-company r/slug)
-      (:sections (c/create-company (assoc r/open :values {}) r/coyote)) => {"progress" [] "company" ["values"]}
+      (:sections (c/create-company (assoc r/open :values {}) r/coyote)) => {:progress [] :company [:values]}
       (c/delete-company r/slug)
       (:sections (c/create-company
         (-> r/open
@@ -94,4 +94,4 @@
           (assoc :challenges {})
           (assoc :diversity {})
           (assoc :update {}))
-        r/coyote)) => {"progress" ["update" "challenges" "press" "help"] "company" ["diversity" "mission"]})))
+        r/coyote)) => {:progress [:update :challenges :press :help] :company [:diversity :mission]})))

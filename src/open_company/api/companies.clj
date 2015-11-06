@@ -31,9 +31,12 @@
     {:company company}))
 
 (defn- put-company [slug company author]
-  (let [full-company (assoc company :slug slug)
-        company-result (company/put-company slug full-company author)]
-    {:updated-company company-result}))
+  (let [full-company (assoc company :slug slug)]
+    {:updated-company (company/put-company slug full-company author)}))
+
+(defn- patch-company [slug company-updates author]
+  (if-let [company (company/get-company slug)]
+    {:updated-company (company/put-company slug (merge company company-updates) author)}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -48,12 +51,14 @@
 
   :processable? (by-method {
     :get true
-    :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))})
+    :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))
+    :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers
   :handle-ok (by-method {
     :get (fn [ctx] (company-rep/render-company (:company ctx)))
-    :put (fn [ctx] (company-rep/render-company (:updated-company ctx)))})
+    :put (fn [ctx] (company-rep/render-company (:updated-company ctx)))
+    :patch (fn [ctx] (company-rep/render-company (:updated-company ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
@@ -64,6 +69,7 @@
   ;; Create or update a company
   :new? (by-method {:put (not (company/get-company slug))})
   :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:author ctx)))
+  :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:author ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
 (defresource company-list []

@@ -13,34 +13,40 @@
 ;; ----- Category/Section definitions -----
 
 ;; Categories in default order
-(def categories ["progress" "company"])
+(def categories [:progress :company])
 
 ;; Sections of the category, in default order
 (def ordered-sections {
-  "progress" [
-    "update"
-    "growth"
-    "finances"
-    "challenges"
-    "team"
-    "product"
-    "customer-service"
-    "marketing"
-    "press"
-    "business development"
-    "sales"
-    "help"
+  :progress [
+    :update
+    :growth
+    :finances
+    :challenges
+    :team
+    :product
+    :customer-service
+    :marketing
+    :press
+    :business-development
+    :sales
+    :help
+    :kudos
   ]
-  "company" [
-    "diversity"
-    "mission"
-    "values"]})
+  :company [
+    :diversity
+    :mission
+    :values]})
 
 ;; All possible sections as a set
 (def sections (set (flatten (vals ordered-sections))))
 
 ;; A set of all sections that can contain notes
-(def notes-sections #{"growth" "finances"})
+(def notes-sections #{:growth :finances})
+
+(defn category-for
+  "Return the category name for the provided section-name."
+  [section-name]
+  (some #(if ((set (ordered-sections %)) (keyword section-name)) % false) (keys ordered-sections)))
 
 ;; ----- Properties common to all resources -----
 

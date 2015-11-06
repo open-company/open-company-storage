@@ -46,7 +46,7 @@
   section) ; as you were
 
   ;; no notes should be in this section
-  ([section :guard #(not (common/notes-sections (name (:section-name %)))) _original-section _author _timestamp]
+  ([section :guard #(not (common/notes-sections (:section-name %))) _original-section _author _timestamp]
   section) ; as you were
 
   ;; add author and timestamp to notes if notes' :body has been modified
@@ -105,9 +105,7 @@
   TODO: take company slug and section name separately and validate they match
   TODO: Use prismatic schema to validate section properties.
   "
-  ; ([company-slug section-name section :guard #(or (not (:company-slug %)) (not (company/get-company (:company-slug %))))] :bad-company)
-  ; ([company-slug section-name section :guard #(not (common/sections (:section-name %)))] :bad-section-name)
-  ([_ _ _] true))
+  ([_company-slug _section-name _section] true))
 
 ;; ----- Section revisions -----
 
@@ -204,7 +202,9 @@
           (assoc :author author)
           (assoc :updated-at timestamp)
           (update-notes-for (original-company section-name) author timestamp))
-        updated-company (assoc original-company section-name (-> updated-section
+        updated-sections (company/sections-with (:sections original-company) section-name)
+        sectioned-company (assoc original-company :sections updated-sections)
+        updated-company (assoc sectioned-company section-name (-> updated-section
           (dissoc :company-slug)
           (dissoc :section-name)))]
     (if (true? (valid-section company-slug section-name updated-section))

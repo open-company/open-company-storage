@@ -7,6 +7,9 @@
             [open-company.app :refer (app)]
             [open-company.representations.company :as company-rep]))
 
+;; JWToken for use with QA profile
+(def jwtoken "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.hmOdqQ0f-ZWlckVZ0RS2QjL4j1616fHiZL3fzuD5tdI")
+
 (defn base-mime-type [full-mime-type]
   (first (s/split full-mime-type #";")))
 
@@ -26,14 +29,20 @@
 
 (defn api-request
   "Pretends to execute a REST API request using ring mock."
-  [method url options]
+
+  ([url] (api-request :get url))
+
+  ([method url] (api-request method url {}))
+
+  ([method url options]
   (let [initial-request (request method url)
         headers (:headers options)
         headers-charset (if (:skip-charset options) headers (merge {:Accept-Charset "utf-8"} headers))
-        headers-request (apply-headers initial-request headers-charset)
+        headers-auth (if (:skip-auth options) headers (merge {:Authorization jwtoken} headers))
+        headers-request (apply-headers initial-request headers-auth)
         body-value (:body options)
         body-request (if (:skip-body options) headers-request (body headers-request (json/generate-string body-value)))]
-    (app body-request)))
+    (app body-request))))
 
 (defn body-from-response
   "Return just the parsed JSON body from an API REST response, or return the raw result
