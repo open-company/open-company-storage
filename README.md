@@ -342,6 +342,18 @@ curl -i -X PATCH \
 http://localhost:3000/companies/buffer
 ```
 
+Remove a section from a company sections with cURL:
+
+```console
+curl -i -X PATCH \
+-d '{"sections": {"progress": ["finances", "growth", "team", "product", "customer-service", "help", "update"], "company": ["values", "diversity"]}}' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/buffer
+```
+
 Delete the company with cURL:
 
 ```console
