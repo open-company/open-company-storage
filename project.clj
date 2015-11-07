@@ -50,7 +50,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.8.1"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.8.2"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
       ]
       :plugins [
