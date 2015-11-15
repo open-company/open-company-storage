@@ -8,8 +8,7 @@
             [open-company.config :as config]
             [open-company.resources.common :as common]
             [open-company.resources.company :as c]
-            [open-company.resources.section :as s]
-            [open-company.db.pool :as pool]))
+            [open-company.resources.section :as s]))
 
 ;; ----- Startup -----
 
