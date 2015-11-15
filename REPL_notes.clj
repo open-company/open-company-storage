@@ -9,6 +9,7 @@
 (require '[open-company.resources.section :as section] :reload)
 
 ;; productive set of development namespaces (REST API)
+(require '[cheshire.core :as json])
 (require '[open-company.representations.company :as company-rep] :reload)
 (require '[open-company.representations.section :as section-rep] :reload)
 (require '[ring.mock.request :refer (request body content-type header)])
