@@ -103,7 +103,7 @@
           (:values body) => (contains r/text-section-1)
           ;; verify the new set
           (:sections db-company) => new-set
-          (:update db-company) => (contains r/text-section-1)          
+          (:update db-company) => (contains r/text-section-1)
           (:finances db-company) => (contains r/finances-section-1)
           (:team db-company) => nil
           (:help db-company) => (contains r/text-section-1)

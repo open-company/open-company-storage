@@ -140,9 +140,7 @@
 
 (defun create-company
   "Given the company property map, create the company, returning the property map for the resource or `false`.
-  If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword.
-  TODO: author is hard-coded, how will this be passed in from API's auth?
-  TODO: what to use for author when using Clojure API?"
+  If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword."
 
   ([company author] (create-company company author (common/current-timestamp)))
 
@@ -152,27 +150,25 @@
 
   ;; potentially a valid company
   ([company author timestamp]
-    (let [company-slug (:slug company)
-          clean-company (clean company)
-          slugged-company (if company-slug
-                            (assoc clean-company :slug company-slug)
-                            (assoc clean-company :slug (slug/slugify (:name company))))
-          company-with-categories (categories-for slugged-company) ;; add/replace the :categories property
-          company-with-sections (sections-for company-with-categories) ;; add/replace the :sections property
-          sections (flatten (vals (:sections company-with-sections)))
-          company-with-revision-author (author-for author
-                                        sections
-                                        company-with-sections) ;; add/replace the :author
-          final-company (updated-for timestamp sections company-with-revision-author)]
+    (let [company-slug (or (:slug company) (slug/slugify (:name company)))
+          interim-company (-> company
+                            (clean) ;; remove disallowed properties
+                            (assoc :slug company-slug)
+                            (categories-for) ;; add/replace the :categories property
+                            (sections-for)) ;; add/replace the :sections property
+          section-names (flatten (vals (:sections interim-company)))
+          final-company (->> interim-company
+                          (author-for author section-names) ;; add/replace the :author in the sections
+                          (updated-for timestamp section-names))] ;; add/replace the :updated-at in the sections
       (if (true? (valid-company final-company))
         (do
-          ;; create the sections
-          (doseq [section-name sections]
-            (let [section (get final-company (keyword section-name))
-                  section-with-company (assoc section :company-slug (:slug final-company))
-                  final-section (assoc section-with-company :section-name section-name)]
-              (common/create-resource common/section-table-name final-section timestamp)))
-          ;; create the company
+          ;; create the each section in the DB
+          (doseq [section-name section-names]
+            (let [section (-> (get final-company (keyword section-name))
+                              (assoc :company-slug (:slug final-company))
+                              (assoc :section-name section-name))]
+              (common/create-resource common/section-table-name section timestamp)))
+          ;; create the company in the DB
           (common/create-resource table-name final-company timestamp))
         false))))
 
@@ -206,10 +202,10 @@
   {:pre [(string? slug)]}
   (try
     (common/delete-resource common/section-table-name :company-slug slug)
-    (catch java.lang.RuntimeException e)) ; it's OK if there is nothing to delete
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no sections to delete
   (try
     (common/delete-resource table-name slug)
-    (catch java.lang.RuntimeException e))) ; it's OK if there is nothing to delete
+    (catch java.lang.RuntimeException e))) ; it's OK if there is no company to delete
 
 ;; ----- Company revisions -----
 
@@ -233,6 +229,6 @@
 (defn delete-all-companies!
   "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."
   []
-  ;; Delete all reports and all companies
+  ;; Delete all sections and all companies
   (common/delete-all-resources! common/section-table-name)
   (common/delete-all-resources! table-name))
