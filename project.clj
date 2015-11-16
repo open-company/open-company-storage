@@ -13,9 +13,9 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.8.0-beta2"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0-RC1"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
-    [org.clojure/core.async "0.2.371"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
+    [org.clojure/core.async "0.2.374"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [ring/ring-devel "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
@@ -55,7 +55,7 @@
       ]
       :plugins [
         [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
-        [jonase/eastwood "0.2.1"] ; Clojure linter https://github.com/jonase/eastwood
+        [jonase/eastwood "0.2.2"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]
     }
@@ -72,7 +72,7 @@
         [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-pprint "1.1.2"] ; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
-        [lein-ancient "0.6.8-SNAPSHOT"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
+        [lein-ancient "0.6.8"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
