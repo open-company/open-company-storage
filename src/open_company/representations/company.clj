@@ -7,10 +7,12 @@
 
 (def media-type "application/vnd.open-company.company.v1+json")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
+(def section-list-media-type "application/vnd.open-company.section-list.v1+json")
 
 (defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
   ([company :guard map?] (url (name (:slug company))))
+  ([company :section-list] (str (url company) "/sections/new"))
   ([company updated-at] (str (url company) "?as-of=" updated-at)))
 
 (defn- self-link [company]
@@ -28,6 +30,9 @@
 (defn- revision-link [company updated-at]
   (common/revision-link (url company updated-at) updated-at media-type))
 
+(defn- section-list-link [company]
+  (common/link-map "section-list" common/GET (url company :section-list) section-list-media-type))
+
 (defn- company-link
   "Add just a single self HATEAOS link to the company"
   [company]
@@ -41,7 +46,8 @@
       (self-link company)
       (update-link company)
       (partial-update-link company)
-      (delete-link company)])))
+      (delete-link company)
+      (section-list-link company)])))
 
 (defun- sections
   "Get a representation of each section for the REST API"
