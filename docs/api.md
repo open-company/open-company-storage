@@ -41,6 +41,7 @@ Note-worthy: `PATCH`ing just `sections` property to change order of sections
 Note-worthy: `PATCH`ing just `sections` property to remove a sections
 
 Note-worthy: `PATCH`ing `sections` and sending a new section at the same time to add a new section, eg.:
+
 ```json
 {
   "sections" : {"progress": ["update", "challenges", "help", "growth", "finances"], "company": ["mission", "values"]},

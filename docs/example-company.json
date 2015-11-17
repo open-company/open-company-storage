@@ -336,6 +336,12 @@
       "type" : "application/vnd.open-company.company.v1+json"
     },
     {
+      "rel" : "partial-update",
+      "method" : "PATCH",
+      "href" : "/companies/buffer",
+      "type" : "application/vnd.open-company.company.v1+json"
+    },
+    {
       "rel" : "delete",
       "method" : "DELETE",
       "href" : "/companies/buffer"
