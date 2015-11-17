@@ -12,7 +12,7 @@
 (defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
   ([company :guard map?] (url (name (:slug company))))
-  ([company :section-list] (str (url company) "/sections/new"))
+  ([company :section-list] (str (url company) "/section/new"))
   ([company updated-at] (str (url company) "?as-of=" updated-at)))
 
 (defn- self-link [company]
