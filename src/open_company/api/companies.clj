@@ -4,9 +4,13 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
-            [open-company.representations.company :as company-rep]))
+            [open-company.representations.company :as company-rep]
+            [cheshire.core :as json]))
 
-(defonce sections (slurp (clojure.java.io/resource "./open_company/assets/sections.json")))
+;; Round-trip it through Cheshire to ensure the embedded HTML gets encodedod or  the client has issues parsing it
+(defonce sections (json/generate-string
+                    (json/decode
+                      (slurp (clojure.java.io/resource "./open_company/assets/sections.json"))) {:pretty true}))
 
 (defun add-slug
   "Add the slug to the company properties if it's missing."
