@@ -199,15 +199,6 @@
         },
 
         {
-          "name": "sales",
-          "title": "Sales",
-          "description": "",
-          "body": "",
-          "image": "url",
-          "core": false
-        },
-
-        {
           "name": "business-development",
           "title": "Business Development",
           "description": "",
