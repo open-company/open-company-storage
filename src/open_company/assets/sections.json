@@ -154,7 +154,7 @@
         {
           "name": "product",
           "title": "Product",
-          "description": "Product update",
+          "description": "Product release and roadmap update",
           "body": "<p><em>What tests have you run to validate your product? What did you learn? What's
           shipped and how has the roadmap changed? How is the product performing? What's not working? What's
           the evidence you are making something some people love?</em></p>",
@@ -165,8 +165,10 @@
         {
           "name": "customer-service",
           "title": "Customer Service",
-          "description": "",
-          "body": "",
+          "description": "Customer service update",
+          "body": "<p><em>What issues are customers having with your product? How are your service metrics and
+          SLA's performing? How are customer service costs and support metrics trending? What new content
+          and policies have been created to improve customer success?</em></p>",
           "image": "url",
           "core": false
         },
@@ -183,7 +185,7 @@
         {
           "name": "press",
           "title": "Press",
-          "description": "Notable press mentions and PR activities",
+          "description": "Press mentions and PR activities",
           "body": "<p><em>List any notable press mentions since the last update. Provide an update on PR activities.</em></p>",
           "image": "url",
           "core": false
@@ -192,8 +194,8 @@
         {
           "name": "sales",
           "title": "Sales",
-          "description": "",
-          "body": "",
+          "description": "Notable sales activity and wins and losses",
+          "body": "<p><em>Did you close any notable sales? What opportunities are in the pipeline?</em></p>",
           "image": "url",
           "core": false
         },
@@ -201,8 +203,8 @@
         {
           "name": "business-development",
           "title": "Business Development",
-          "description": "",
-          "body": "",
+          "description": "Notable partnership activity and new deals",
+          "body": "<p><em>Did you close any notable deals / partnerships? What opportunities are in the pipeline?</em></p>",
           "image": "url",
           "core": false
         },
@@ -210,7 +212,7 @@
         {
           "name": "help",
           "title": "How You Can Help",
-          "description": "",
+          "description": "Ask company stakeholders for help and ideas",
           "body": "<p><em>Where do you need the most help from your team and investors?</em></p>",
           "image": "url",
           "core": false
@@ -219,7 +221,7 @@
         {
           "name": "kudos",
           "title": "Kudos",
-          "description": "Celebrate great actions to help the company",
+          "description": "Celebrate great actions that helped the company",
           "body": "<p><em>Who went above and beyond to help the company? What did they do?</em></p>",
           "image": "url",
           "core": false
