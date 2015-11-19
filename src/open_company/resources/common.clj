@@ -13,7 +13,7 @@
 ;; ----- Category/Section definitions -----
 
 ;; Categories in default order
-(def categories [:progress :company :financial])
+(def categories [:progress :financial :company])
 
 ;; Sections of the category, in default order
 (def ordered-sections {
@@ -32,17 +32,18 @@
     :help
     :kudos
   ]
+  :financial [
+      :finances
+      :compensation
+      :ownership
+  ]
   :company [
     :diversity
     :values
     :privacy
     :mission
   ]
-  :financial [
-      :finances
-      :compensation
-      :ownership
-  ]})
+})
 
 ;; All possible sections as a set
 (def sections (set (flatten (vals ordered-sections))))
