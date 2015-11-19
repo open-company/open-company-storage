@@ -10,7 +10,7 @@
 ;; Round-trip it through Cheshire to ensure the embedded HTML gets encodedod or the client has issues parsing it
 (defonce sections (json/generate-string
                     (json/decode
-                      (slurp (clojure.java.io/resource "./open_company/assets/sections.json"))) {:pretty true}))
+                      (slurp (clojure.java.io/resource "open_company/assets/sections.json"))) {:pretty true}))
 
 (defun add-slug
   "Add the slug to the company properties if it's missing."
