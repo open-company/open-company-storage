@@ -4,7 +4,13 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
-            [open-company.representations.company :as company-rep]))
+            [open-company.representations.company :as company-rep]
+            [cheshire.core :as json]))
+
+;; Round-trip it through Cheshire to ensure the embedded HTML gets encodedod or the client has issues parsing it
+(defonce sections (json/generate-string
+                    (json/decode
+                      (slurp (clojure.java.io/resource "open_company/assets/sections.json"))) {:pretty true}))
 
 (defun add-slug
   "Add the slug to the company properties if it's missing."
@@ -40,7 +46,9 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-(defresource company [slug]
+;; A resource for a specific company.
+(defresource company
+  [slug]
   common/open-company-resource
 
   :available-media-types [company-rep/media-type]
@@ -72,21 +80,44 @@
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:author ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
-(defresource company-list []
+;; A resource for a list of all the companies the user has access to.
+(defresource company-list
+  []
   common/authenticated-resource
 
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/collection-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
+  
   :allowed-methods [:get]
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx))))
 
+;; A resource for the available sections for a specific company.
+(defresource section-list
+  [slug]
+  common/authenticated-resource
+
+  :available-charsets [common/UTF8]
+  :available-media-types [company-rep/section-list-media-type]
+  :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
+
+  :allowed? (fn [ctx] (common/authorize slug (:jwtoken ctx)))
+
+  :allowed-methods [:get]
+  :exists? (fn [_] (get-company slug))
+
+  ;; Get a list of sections
+  :handle-ok (fn [_] sections))
+
 ;; ----- Routes -----
 
 (defroutes company-routes
+  (GET "/companies/:slug/section/new" [slug] (section-list slug))
+  (GET "/companies/:slug/section/new/" [slug] (section-list slug))
   (ANY "/companies/:slug" [slug] (company slug))
+  (ANY "/companies/:slug/" [slug] (company slug))
   (GET "/companies/" [] (company-list))
   (GET "/companies" [] (company-list)))

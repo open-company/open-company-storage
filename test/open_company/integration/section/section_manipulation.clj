@@ -37,8 +37,9 @@
 
     ;; verify the initial order
     (let [db-company (company/get-company r/slug)]
-      (:categories db-company) => ["progress" "company"]
-      (:sections db-company) => {:progress ["update" "finances" "team" "help"]
+      (:categories db-company) => ["progress" "financial" "company"]
+      (:sections db-company) => {:progress ["update" "team" "help"]
+                                 :financial ["finances"]
                                  :company ["diversity" "values"]})
 
     (facts "when the new order is valid"
@@ -84,7 +85,8 @@
   (facts "about section removal"
 
     ;; verify the initial set of sections
-    (:sections (company/get-company r/slug)) => {:progress ["update" "finances" "team" "help"]
+    (:sections (company/get-company r/slug)) => {:progress ["update" "team" "help"]
+                                                 :financial ["finances"]
                                                  :company ["diversity" "values"]}
 
       (fact "a section can be removed from the progress category"

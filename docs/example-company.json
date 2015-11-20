@@ -289,35 +289,35 @@
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-11T22:14:24Z",
-      "type" : "application/vnd.open-company.v1+json",
+      "type" : "application/vnd.open-company.company.v1+json",
       "updated-at": "2015-09-11T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-10T22:14:24Z",
-      "type" : "application/vnd.open-company.v1+json",
+      "type" : "application/vnd.open-company.company.v1+json",
       "updated-at": "2015-09-10T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-09T22:14:24Z",
-      "type" : "application/vnd.open-company.v1+json",
+      "type" : "application/vnd.open-company.company.v1+json",
       "updated-at": "2015-09-09T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-08T22:14:24Z",
-      "type" : "application/vnd.open-company.v1+json",
+      "type" : "application/vnd.open-company.company.v1+json",
       "updated-at": "2015-09-08T22:14:24Z"
     },
     {
       "rel" : "revision",
       "method": "GET",
       "href": "/companies/buffer?as-of=2015-09-07T22:14:24Z",
-      "type" : "application/vnd.open-company.v1+json",
+      "type" : "application/vnd.open-company.company.v1+json",
       "updated-at": "2015-09-07T22:14:24Z"
     }
   ],
@@ -327,24 +327,30 @@
       "rel" : "self",
       "method" : "GET",
       "href" : "/companies/buffer",
-      "type" : "application/vnd.open-company.v1+json"
+      "type" : "application/vnd.open-company.company.v1+json"
     },
     {
       "rel" : "update",
       "method" : "PUT",
       "href" : "/companies/buffer",
-      "type" : "application/vnd.open-company.v1+json"
+      "type" : "application/vnd.open-company.company.v1+json"
     },
     {
       "rel" : "partial-update",
       "method" : "PATCH",
       "href" : "/companies/buffer",
-      "type" : "application/vnd.open-company.v1+json"
+      "type" : "application/vnd.open-company.company.v1+json"
     },
     {
       "rel" : "delete",
       "method" : "DELETE",
       "href" : "/companies/buffer"
-    }
+    },
+    {
+      "rel" : "section-list",
+      "method" : "GET",
+      "href" : "/companies/buffer/sections/new",
+      "type" : "application/vnd.open-company.section-list.v1+json"
+    }    
   ]
 }

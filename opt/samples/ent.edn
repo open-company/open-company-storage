@@ -12,6 +12,7 @@
     }
     :sections {
       :progress ["finances"]
+      :financial []
       :company []
     }
   }
