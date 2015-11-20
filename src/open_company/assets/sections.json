@@ -21,7 +21,7 @@
             <li>We're all meeting up for a all-hands hackathon the first week of next month in Tampa</li>
           </ul>
           <p>Please do everything you can to support Tim this week as he is taking the lead on customer validation.</p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-update.svg",
           "core": true
         },
 
@@ -38,7 +38,7 @@
             <li>We closed our first enterprise deal. Congrats to Tim and the service team. Everyone please go the extra
             mile to make sure the Mack’s Galaxy Food’s account is well taken care of and forward any potential issues to Tim.</li>
           </ul>",
-          "image": "url",
+          "image": "/img/section-icons/progress-highlights.svg",
           "core": false
         },
 
@@ -108,7 +108,7 @@
             "low"
           ],
           "notes": "<p><em>Provide context about recent growth with a note.</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-growth.svg",
           "core": true
         },
 
@@ -128,7 +128,7 @@
             3rd attempt at focusing our market. Please do everything you can to support Tim as he is taking the
             lead on customer validation.</li>
           </ul>",
-          "image": "url",
+          "image": "/img/section-icons/progress-challenges.svg",
           "core": true
         },
 
@@ -147,7 +147,7 @@
             <li>Our office manager, Sam, left to pursue a great new opportunity with Walmart Labs. We won't
             be backfilling the position so everyone needs to help out.</li>
           </ul>",
-          "image": "url",
+          "image": "/img/section-icons/progress-team.svg",
           "core": true
         },
 
@@ -158,7 +158,7 @@
           "body": "<p><em>What tests have you run to validate your product? What did you learn? What's
           shipped and how has the roadmap changed? How is the product performing? What's not working? What's
           the evidence you are making something some people love?</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-product.svg",
           "core": true
         },
 
@@ -169,7 +169,7 @@
           "body": "<p><em>What issues are customers having with your product? How are your service metrics and
           SLA's performing? How are customer service costs and support metrics trending? What new content
           and policies have been created to improve customer success?</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-customer-service.svg",
           "core": false
         },
 
@@ -178,7 +178,7 @@
           "title": "Marketing and Customer Acquisition",
           "description": "",
           "body": "",
-          "image": "url",
+          "image": "/img/section-icons/progress-marketing.svg",
           "core": false
         },
 
@@ -187,7 +187,7 @@
           "title": "Press",
           "description": "Press mentions and PR activities",
           "body": "<p><em>List any notable press mentions since the last update. Provide an update on PR activities.</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-press.svg",
           "core": false
         },
 
@@ -196,7 +196,7 @@
           "title": "Sales",
           "description": "Notable sales activity and wins and losses",
           "body": "<p><em>Did you close any notable sales? What opportunities are in the pipeline?</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-sales.svg",
           "core": false
         },
 
@@ -205,7 +205,7 @@
           "title": "Business Development",
           "description": "Notable partnership activity and new deals",
           "body": "<p><em>Did you close any notable deals / partnerships? What opportunities are in the pipeline?</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-business-development.svg",
           "core": false
         },
 
@@ -214,7 +214,7 @@
           "title": "How You Can Help",
           "description": "Ask company stakeholders for help and ideas",
           "body": "<p><em>Where do you need the most help from your team and investors?</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-help.svg",
           "core": false
         },
 
@@ -223,7 +223,7 @@
           "title": "Kudos",
           "description": "Celebrate great actions that helped the company",
           "body": "<p><em>Who went above and beyond to help the company? What did they do?</em></p>",
-          "image": "url",
+          "image": "/img/section-icons/progress-kudos.svg",
           "core": false
         }
       ]
@@ -238,7 +238,7 @@
             "title": "Diversity",
             "description": "",
             "body": "",
-            "image": "url",
+            "image": "/img/section-icons/company-diversity.svg",
             "core": false
           },
 
@@ -247,7 +247,7 @@
             "title": "Values",
             "description": "",
             "body": "",
-            "image": "url",
+            "image": "/img/section-icons/company-values.svg",
             "core": true
           },
 
@@ -256,7 +256,7 @@
             "title": "Data Privacy",
             "description": "",
             "body": "",
-            "image": "url",
+            "image": "/img/section-icons/company-privacy.svg",
             "core": false
           },
 
@@ -266,7 +266,7 @@
             "description": "",
             "body": "<p><em>A very short reminder about what it is you do and what's the big idea to make
             sure everyone is aligned to a common purpose.</em></p>",
-            "image": "url",
+            "image": "/img/section-icons/company-privacy.svg",
             "core": true
           }
       ]      
@@ -281,7 +281,7 @@
             "title": "Finances",
             "description": "",
             "body": "",
-            "image": "url",
+            "image": "/img/section-icons/financial-finances.svg",
             "core": true
           },
 
@@ -290,7 +290,7 @@
             "title": "Compensation",
             "description": "",
             "body": "",
-            "image": "url",
+            "image": "/img/section-icons/financial-compensation.svg",
             "core": false
           },
 
@@ -299,7 +299,7 @@
             "title": "Ownership",
             "description": "",
             "body": "",
-            "image": "url",
+            "image": "/img/section-icons/financial-ownership.svg",
             "core": false
           }
       ]      
