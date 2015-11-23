@@ -215,7 +215,7 @@
             "body": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
             pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
             meetings go? After the raise, discuss who the investors are and the terms of the deal.",
-            "image": "/img/section-icons/financial-finances.svg",
+            "image": "/img/section-icons/financial-fundraising.svg",
             "core": false
           },
 
@@ -292,7 +292,7 @@
             "description": "Why the company exists",
             "body": "A short reminder about what it is you do and what's the big idea to make
             sure everyone is aligned to a common purpose.",
-            "image": "/img/section-icons/company-privacy.svg",
+            "image": "/img/section-icons/company-mission.svg",
             "core": true
           }
       ]      
