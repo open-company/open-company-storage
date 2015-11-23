@@ -211,8 +211,10 @@
           {
             "name": "fundraising",
             "title": "Fundraising",
-            "description": "",
-            "body": "",
+            "description": "Updates on the fundraising process",
+            "body": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
+            pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
+            meetings go? After the raise, discuss who the investors are and the terms of the deal.",
             "image": "/img/section-icons/financial-finances.svg",
             "core": false
           },
@@ -234,7 +236,7 @@
           {
             "name": "ownership",
             "title": "Ownership",
-            "description": "",
+            "description": "Distribution of company equity",
             "body": "How many shares are outstanding? What is the size of the employee option pool? Is there
             a formula used to allocate employee options? What was the value placed on the company, pre/post money,
             during the last raise? Has a 409A valuation been done, what was the value? Provide an easy to understand
@@ -266,7 +268,9 @@
             "name": "privacy",
             "title": "Data Privacy",
             "description": "Company policy on customer information privacy",
-            "body": "",
+            "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
+            apply to the company? What agreements exist with customers about their data? What are the important
+            do these agreements say in Plain English?",
             "image": "/img/section-icons/company-privacy.svg",
             "core": false
           },
