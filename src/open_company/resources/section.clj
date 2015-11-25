@@ -211,7 +211,7 @@
     (if (true? (valid-section company-slug section-name updated-section))
       (do
         ;; update the company
-        (company/update-company company-slug updated-company)
+        (company/update-company company-slug updated-company author)
         ;; create a new section revision or update the latest section
         (revise-or-update [original-section updated-section] timestamp))
       false))))
