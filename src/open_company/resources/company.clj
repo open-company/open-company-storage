@@ -178,22 +178,26 @@
 
   TODO: handle case of slug change.
   "
-  [slug company]
+  [slug company author]
   {:pre [(string? slug) (map? company)]}
   (if-let [original-company (get-company slug)]
     (let [updated-company (-> company
                             (clean)
                             (categories-for)
                             (remove-sections)
-                            (assoc :slug slug))]
-      (common/update-resource table-name primary-key original-company updated-company))))
+                            (assoc :slug slug))
+          section-names (flatten (vals (:sections updated-company)))
+          final-company (->> updated-company
+                          (author-for author section-names) ;; add/replace the :author in the sections
+                          (updated-for (common/current-timestamp) section-names))] ;; add/replace the :updated-at in the sections]
+        (common/update-resource table-name primary-key original-company final-company))))
 
 (defun put-company
   "Given the slug of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
-  ([slug :guard get-company company _author] (update-company slug company))
+  ([slug :guard get-company company author] (update-company slug company author))
   ([_slug company author] (create-company company author)))
 
 (defn delete-company
