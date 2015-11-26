@@ -4,6 +4,7 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
+            [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]
             [cheshire.core :as json]))
 
@@ -42,6 +43,9 @@
 
 (defn- patch-company [slug company-updates author]
   (if-let [company (company/get-company slug)]
+    ;; update each section
+
+    ;; update the company
     {:updated-company (company/put-company slug (merge company company-updates) author)}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg

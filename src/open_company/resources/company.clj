@@ -177,6 +177,7 @@
   Given an updated company property map, update the company and return `true` on success.
 
   TODO: handle case of slug change.
+  TODO: handle new and updated sections.
   "
   [slug company]
   {:pre [(string? slug) (map? company)]}
