@@ -43,12 +43,14 @@
     {:updated-company (company/put-company slug full-company author)}))
 
 (defn- patch-company [slug company-updates author]
-  (let [original-company (company/get-company slug)]
-    ;; put each section that was included in the patch
-    (doseq [section-name (clojure.set/intersection (set (keys company-updates)) common-res/sections)]
-      (section/put-section slug section-name (company-updates section-name) author))
+  (let [original-company (company/get-company slug)
+        section-names (clojure.set/intersection (set (keys company-updates)) common-res/sections)
+        updated-sections (->> section-names
+          (map #(section/put-section slug % (company-updates %) author)) ; put each section that's in the patch
+          (map #(dissoc % :id :section-name))) ; not needed for sections in company
+        patch-updates (merge company-updates (zipmap section-names updated-sections))] ; updated sections & anythig else
     ;; update the company
-    {:updated-company (company/put-company slug (merge original-company company-updates) author)}))
+    {:updated-company (company/put-company slug (merge original-company patch-updates) author)}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
