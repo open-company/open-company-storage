@@ -3,6 +3,7 @@
             [compojure.core :refer (defroutes ANY GET)]
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
+            [open-company.resources.common :as common-res]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]
@@ -42,11 +43,12 @@
     {:updated-company (company/put-company slug full-company author)}))
 
 (defn- patch-company [slug company-updates author]
-  (if-let [company (company/get-company slug)]
-    ;; update each section
-
+  (let [original-company (company/get-company slug)]
+    ;; put each section that was included in the patch
+    (doseq [section-name (clojure.set/intersection (set (keys company-updates)) common-res/sections)]
+      (section/put-section slug section-name (company-updates section-name) author))
     ;; update the company
-    {:updated-company (company/put-company slug (merge company company-updates) author)}))
+    {:updated-company (company/put-company slug (merge original-company company-updates) author)}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
