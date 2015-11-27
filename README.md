@@ -285,7 +285,7 @@ lein start
 
 Create a company with cURL:
 
-FIXME: there is no UI yet to do this so you need to create a company via the REPL or CLI import tool.
+TODO: there is no UI yet to do this so you need to create a company via the REPL or CLI import tool.
 
 List the companies with cURL:
 
@@ -347,6 +347,18 @@ Remove a section from a company sections with cURL:
 ```console
 curl -i -X PATCH \
 -d '{"sections": {"progress": ["finances", "growth", "team", "product", "customer-service", "help", "update"], "company": ["values", "diversity"]}}' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/buffer
+```
+
+Add a section to the company with cURL:
+
+```console
+curl -i -X PATCH \
+-d '{"sections": {"progress": ["finances", "growth", "team", "product", "fund-raising", "customer-service", "help", "update"], "company": ["values", "diversity"]}, "fund-raising": {"title": "Fundraising", "body": "No plans. We have enough monies."}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.piEzy4Aty6A8mfhWLMnJmy67WwsChVX87dp4I0CBz70" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
