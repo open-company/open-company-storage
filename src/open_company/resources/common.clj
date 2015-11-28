@@ -34,7 +34,7 @@
   ]
   :financial [
       :finances
-      :fund-raising
+      :fundraising
       :compensation
       :ownership
   ]
