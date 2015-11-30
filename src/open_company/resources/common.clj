@@ -29,7 +29,7 @@
             category (some #(if (= category-name (keyword (:name %))) %) categories)]
     (vec (map #(keyword (:name %)) (:sections category))))))
 
-;; Categories in default order as keys in a map with the value a vector of sections in each category in order
+;; Categories as keys in a map with the value a vector of sections in each category in order
 (def ordered-sections (zipmap categories (map sections-for categories)))
 
 (defun category-for
