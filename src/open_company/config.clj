@@ -1,6 +1,7 @@
 (ns open-company.config
   "Namespace for the configuration parameters."
   (:require [environ.core :refer (env)]
+            [cheshire.core :as json]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.core :as appenders]))
 
@@ -35,6 +36,8 @@
 ;; ----- OpenCompany -----
 
 (defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; in minutes
+
+(defonce sections (json/decode (slurp (clojure.java.io/resource "open_company/assets/sections.json"))))
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 

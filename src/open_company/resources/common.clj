@@ -1,8 +1,12 @@
 (ns open-company.resources.common
   "Resources are any thing stored in the open company platform: companies, reports"
-  (:require [clj-time.format :as format]
+  (:require [clojure.walk :refer (keywordize-keys)]
+            [if-let.core :refer (if-let*)]
+            [defun :refer (defun)]
+            [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
+            [open-company.config :as config]
             [open-company.db.pool :as pool]))
 
 ;; ----- RethinkDB metadata -----
@@ -12,50 +16,35 @@
 
 ;; ----- Category/Section definitions -----
 
-;; Categories in default order
-(def categories [:progress :financial :company])
+;; All the categories in default order
+(defonce categories (vec (map #(keyword (:name %)) (:categories (keywordize-keys config/sections)))))
 
-;; Sections of the category, in default order
-(def ordered-sections {
-  :progress [
-    :update
-    :highlights
-    :growth
-    :challenges
-    :team
-    :product
-    :customer-service
-    :marketing
-    :press
-    :sales
-    :business-development
-    :help
-    :kudos
-  ]
-  :financial [
-      :finances
-      :fundraising
-      :compensation
-      :ownership
-  ]
-  :company [
-    :diversity
-    :values
-    :privacy
-    :mission
-  ]
-})
+(defun sections-for
+  "Return all the sections for the provided category name in order."
+  
+  ([category-name :guard string?] (sections-for (keyword category-name)))
+
+  ([category-name :guard keyword?]
+  (if-let* [categories (:categories (keywordize-keys config/sections))
+            category (some #(if (= category-name (keyword (:name %))) %) categories)]
+    (vec (map #(keyword (:name %)) (:sections category))))))
+
+;; Categories in default order as keys in a map with the value a vector of sections in each category in order
+(def ordered-sections (zipmap categories (map sections-for categories)))
+
+(defun category-for
+  "Return the category name for the provided section-name."
+  
+  ([section-name :guard string?] (category-for (keyword section-name)))
+
+  ([section-name :guard keyword?]
+  (some #(if ((set (ordered-sections %)) (keyword section-name)) % false) (keys ordered-sections))))
 
 ;; All possible sections as a set
-(def sections (set (flatten (vals ordered-sections))))
+(defonce sections (set (flatten (vals ordered-sections))))
 
 ;; A set of all sections that can contain notes
 (def notes-sections #{:growth :finances})
-
-(defn category-for
-  "Return the category name for the provided section-name."
-  [section-name]
-  (some #(if ((set (ordered-sections %)) (keyword section-name)) % false) (keys ordered-sections)))
 
 ;; ----- Properties common to all resources -----
 
