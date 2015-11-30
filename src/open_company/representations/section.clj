@@ -61,4 +61,4 @@
 (defn render-section
   "Create a JSON representation of the section for the REST API"
   [section]
-  (json/generate-string (section-for-rendering section) {:pretty true}))
+  (json/generate-string (section-for-rendering section) {:pretty true :escape-non-ascii true}))
