@@ -80,7 +80,7 @@
 (defn render-company
   "Create a JSON representation of a company for the REST API"
   [company]
-  (json/generate-string (company-for-rendering company) {:pretty true :escape-non-ascii true}))
+  (json/generate-string (company-for-rendering company) {:pretty true}))
 
 (defn render-company-list
   "Create a JSON representation of a group of companies for the REST API"
@@ -91,4 +91,4 @@
       :href "/companies"
       :links [(common/self-link (str "/companies") collection-media-type)]
       :companies (map company-link companies))}
-    {:pretty true :escape-non-ascii true}))
+    {:pretty true}))
