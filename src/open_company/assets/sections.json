@@ -121,7 +121,7 @@
           "title": "Product",
           "description": "Product release and roadmap update",
           "body": "What tests have you run to validate your product? What did you learn? What's
-          shipped and how has the roadmap changed? How is the product performing? What's not working? What's
+          shipped recently and how has the roadmap changed? How is the product performing? What's not working? What's
           the evidence you are making something some people love?",
           "image": "/img/section-icons/progress-product.svg",
           "core": true
@@ -269,7 +269,7 @@
             "title": "Data Privacy",
             "description": "Company policy on customer information privacy",
             "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
-            apply to the company? What agreements exist with customers about their data? What are the important
+            apply to the company? What agreements exist with customers about their data? What
             do these agreements say in Plain English?",
             "image": "/img/section-icons/company-privacy.svg",
             "core": false
