@@ -132,6 +132,36 @@
         :title "Finances"
         :data [
           {
+            :period "2015-01"
+            :cash 2084935
+            :revenue 441108
+            :costs 444710
+          }
+          {
+            :period "2015-02"
+            :cash 1827750
+            :revenue 462236
+            :costs 719421
+          }
+          {
+            :period "2015-03"
+            :cash 2084003
+            :revenue 488771
+            :costs 232518
+          }
+          {
+            :period "2015-04"
+            :cash 2165528
+            :revenue 509161
+            :costs 427636
+          }
+          {
+            :period "2015-05"
+            :cash 2267067
+            :revenue 532350
+            :costs 430811
+          }
+          {
             :period "2015-06"
             :cash 2578881
             :revenue 550529
@@ -325,6 +355,36 @@
       :section {
         :title "Finances"
         :data[
+          {
+            :period "2015-01"
+            :cash 2084935
+            :revenue 441108
+            :costs 444710
+          }
+          {
+            :period "2015-02"
+            :cash 1827750
+            :revenue 462236
+            :costs 719421
+          }
+          {
+            :period "2015-03"
+            :cash 2084003
+            :revenue 488771
+            :costs 232518
+          }
+          {
+            :period "2015-04"
+            :cash 2165528
+            :revenue 509161
+            :costs 427636
+          }
+          {
+            :period "2015-05"
+            :cash 2267067
+            :revenue 532350
+            :costs 430811
+          }
           {
             :period "2015-06"
             :cash 2578881
@@ -552,6 +612,36 @@
       :section {
         :title "Finances"
         :data[
+          {
+            :period "2015-01"
+            :cash 2084935
+            :revenue 441108
+            :costs 444710
+          }
+          {
+            :period "2015-02"
+            :cash 1827750
+            :revenue 462236
+            :costs 719421
+          }
+          {
+            :period "2015-03"
+            :cash 2084003
+            :revenue 488771
+            :costs 232518
+          }
+          {
+            :period "2015-04"
+            :cash 2165528
+            :revenue 509161
+            :costs 427636
+          }
+          {
+            :period "2015-05"
+            :cash 2267067
+            :revenue 532350
+            :costs 430811
+          }
           {
             :period "2015-06"
             :cash 2578881
@@ -823,6 +913,36 @@
         :title "Finances"
         :data[
           {
+            :period "2015-01"
+            :cash 2084935
+            :revenue 441108
+            :costs 444710
+          }
+          {
+            :period "2015-02"
+            :cash 1827750
+            :revenue 462236
+            :costs 719421
+          }
+          {
+            :period "2015-03"
+            :cash 2084003
+            :revenue 488771
+            :costs 232518
+          }
+          {
+            :period "2015-04"
+            :cash 2165528
+            :revenue 509161
+            :costs 427636
+          }
+          {
+            :period "2015-05"
+            :cash 2267067
+            :revenue 532350
+            :costs 430811
+          }
+          {
             :period "2015-06"
             :cash 2578881
             :revenue 550529
@@ -974,9 +1094,15 @@
           }
         ]
         :notes {
-          :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
-          is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
-          <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
+          :body "<p>It can clearly be seen in the numbers here that our move from 7-day to 30-day trials for Buffer
+          for Business has significantly impacted metrics (most noticeably MRR).</p>
+          <p>The reason this has stalled our revenue growth is that it created a 30-day gap with no expiring trials
+          and therefore no new converting Buffer for Business customers.</p>
+          <p>This is an expected outcome that we decided was the right move for us to grow Buffer for Business.</p>
+          <p>I'm happy to share that from the trend we've seen for the first week of November, we are seeing an
+          increase in both the number of trials and the conversion rate of trials as a result of moving from 7-day
+          to 30-day trials.</p>
+          </p>"
         }
       }
       :section-name "growth"
@@ -1117,5 +1243,391 @@
       }
       :timestamp "2015-08-24T16:11:12.000Z"
     }
+
+    ;; October Update https://open.buffer.com/buffer-october-2015/
+    {
+      :section {
+        :title "Update"
+        :body "
+        <p>October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of
+        Buffer for Business.</p>"
+      }
+      :section-name "update"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
+    {
+      :section {
+        :title "Finances"
+        :data[
+          {
+            :period "2015-01"
+            :cash 2084935
+            :revenue 441108
+            :costs 444710
+          }
+          {
+            :period "2015-02"
+            :cash 1827750
+            :revenue 462236
+            :costs 719421
+          }
+          {
+            :period "2015-03"
+            :cash 2084003
+            :revenue 488771
+            :costs 232518
+          }
+          {
+            :period "2015-04"
+            :cash 2165528
+            :revenue 509161
+            :costs 427636
+          }
+          {
+            :period "2015-05"
+            :cash 2267067
+            :revenue 532350
+            :costs 430811
+          }
+          {
+            :period "2015-06"
+            :cash 2578881
+            :revenue 550529
+            :costs 238715
+          }
+          {
+            :period "2015-07"
+            :cash 2655505
+            :revenue 571532
+            :costs 494907
+          }
+          {
+            :period "2015-08"
+            :cash 2789388
+            :revenue 624196
+            :costs 490313
+          }
+          {
+            :period "2015-09"
+            :cash 2757998
+            :revenue 643992
+            :costs 675382
+          }
+          {
+            :period "2015-10"
+            :cash 2546589
+            :revenue 650478
+            :costs 861887
+          }
+        ]
+      }
+      :section-name "finances"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
+    {
+      :section {
+        :title "Key metrics"
+        :metrics [
+          {
+            :slug "total-registered-users"
+            :name "Total registered users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "mau"
+            :name "Monthly active users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "dau"
+            :name "Average daily active users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "arr"
+            :name "Annual recurring revenue"
+            :interval "monthly"
+            :unit "USD"
+            :target "high"
+          }
+        ]
+        :data [
+          {
+            :period "2015-06"
+            :slug "total-registered-users"
+            :value 2511292
+          }
+          {
+            :period "2015-07"
+            :slug "total-registered-users"
+            :value 2592194
+          }
+          {
+            :period "2015-08"
+            :slug "total-registered-users"
+            :value 2673418
+          }
+          {
+            :period "2015-09"
+            :slug "total-registered-users"
+            :value 2757998
+          }
+          {
+            :period "2015-10"
+            :slug "total-registered-users"
+            :value 2841519
+          }
+          {
+            :period "2015-06"
+            :slug "mau"
+            :value 206464
+          }
+          {
+            :period "2015-07"
+            :slug "mau"
+            :value 208667
+          }
+          {
+            :period "2015-08"
+            :slug "mau"
+            :value 211520
+          }
+          {
+            :period "2015-09"
+            :slug "mau"
+            :value 219744
+          }
+          {
+            :period "2015-10"
+            :slug "mau"
+            :value 226445
+          }
+          {
+            :period "2015-06"
+            :slug "dau"
+            :value 52229
+          }
+          {
+            :period "2015-07"
+            :slug "dau"
+            :value 51491
+          }
+          {
+            :period "2015-08"
+            :slug "dau"
+            :value 50489
+          }
+          {
+            :period "2015-09"
+            :slug "dau"
+            :value 54357
+          }
+          {
+            :period "2015-10"
+            :slug "dau"
+            :value 55460
+          }
+          {
+            :period "2015-06"
+            :slug "arr"
+            :value 6610000
+          }
+          {
+            :period "2015-07"
+            :slug "arr"
+            :value 6860000
+          }
+          {
+            :period "2015-08"
+            :slug "arr"
+            :value 7490000
+          }
+          {
+            :period "2015-09"
+            :slug "arr"
+            :value 7730000
+          }
+          {
+            :period "2015-10"
+            :slug "arr"
+            :value 7810000
+          }
+        ]
+        :notes {
+          :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
+          is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
+          <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
+        }
+      }
+      :section-name "growth"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
+    {
+      :section {
+        :title "Team and hiring"
+        :body "
+          <p>In October, we <a href=\"https://open.buffer.com/no-office/\">closed Buffer's physical office</a>
+          to go entirely remote and distributed.</p>
+          <p>As we grow, we started experimenting with
+          <a href=\"https://open.buffer.com/why-we-ask-our-team-to-grade-us-every-month-buffers-october-hiring-report/\">NPS</a>
+          to get the "pulse" of Buffer regularly.</p>
+          <p>We also evolved some of our team tools: we left HipChat & Sqwiggle for Slack & Zoom and joined Okta as a
+          security solution. On the transparency front, Leo shared more details on
+          <a href=\"https://open.buffer.com/explaining-equity/\">How We Explain Stock Options to Team Members</a>.</p>
+          <ul>
+            <li>56 team members across the world in 40 cities (full time + bootcampers)</li>
+            <li>In October, 9 teammates completed their bootcamp and 6 of them will be joining us full time. We're
+            so excited to welcome:
+            <ul>
+              <li><a href=\"https://twitter.com/kellybakes\">Kelly, Happiness Hero</a></li>
+              <li><a href=\"https://twitter.com/_alexray\">Alex, Front-End Engineer</a></li>
+              <li><a href=\"https://twitter.com/mwermuth\">Marcus, iOS Engineer</a></li>
+              <li><a href=\"https://twitter.com/dearlorenz\">Lorenz, Designer</a></li>
+              <li><a href=\"https://twitter.com/RoyBoss\">Roy, Customer Development</a></li>
+              <li><a href=\"https://twitter.com/alfred_lua\">Alfred, Community Champion</a></li>
+            </ul>8 new team members started their bootcamp in October.</li>
+            <li>At least 8 more people will be starting bootcamp throughout November.</li>
+            <li>We looked into 1,992 hiring conversations in October (+29% MoM)</li>
+          </ul>
+          <p>In November, we're hiring across <a href=\"https://buffer.com/journey\">12 open positions</a>, listed
+          on <a href=\"https://buffer.com/journey\">Buffer's Journey page</a>.</p>"
+      }
+      :section-name "team"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
+    {
+      :section {
+        :title "Product"
+        :body "
+        <p>We launched <a href=\"https://blog.bufferapp.com/pablo-images-for-instagram-pinterest-twitter-facebook\">Pablo 2.0!</a>
+        More than 500,000 Pablo images have been created so far, and we're excited to keep going with our quick
+        images tool.</p>
+        <img src=\"https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png\">
+        <p>We also made several improvements to Buffer for Business, including the move from 7 day to 30 day trials,
+        a new groups UI, the ability to search profiles and improved reliability/speed of analytics.</p>
+        <ul>
+          <li>Calendar View feature in beta (and <a href=\"https://blog.bufferapp.com/social-media-calendar\">launched in November</a>)</li>
+          <li>Awesome Plan ($10/mo) MRR: $379,189 (+2.3%)</li>
+          <li>Buffer for Business ($50+/mo) MRR: $272,227 (-0.3%) (a result of our move to 30-day trials)</li>
+          <li>New landing page experiment (awaiting results)</li>
+          <li>Multiple photo upload feature for Twitter</li>
+        </ul>"
+      }
+      :section-name "product"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
+    {
+      :section {
+        :title "Happiness"
+        :body "
+        <p>In October, the Happiness teams continued to focus on speed for customers who reach out. With response time
+        as our primary success metric, we're prioritizing hiring in November. We also added more specialized roles in
+        the team, for example, having one liaison between each of the Product and Happiness teams in order to
+        streamline some meetings (and cancel others!), as well as one team member focusing on self-help resources.
+        We're now hiring to form a Twitter-specific team, too.</p>
+        <p>We also separated out business support last month. The new business support and customer success teams
+        will focus on the specific needs of customers using Buffer as part of their business strategy. Key metrics
+        for this area will include increased customer engagement, reduced churn, NPS score and customer satisfaction
+        score to mention a few. We're excited to incorporate new tools and continue to hire in this area as well!</p>
+        <ul>
+          <li>12,282 replies sent</li>
+          <li>Customer Happiness Percentage: 95%</li>
+          <li>67% of emails got a reply within 1 hour</li>
+          <li>85% within 6 hours</li>
+          <li>54% of Tweets got a reply within 15 minutes</li>
+        </ul>"
+      }
+      :section-name "customer-service"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
+    {
+      :section {
+        :title "Marketing"
+        :body "
+        <p>We had a really exciting month in terms of traffic and sign-ups. After we bared our souls and shared how
+        <a href=\"https://blog.bufferapp.com/lost-traffic\">we had been losing social media traffic for quite some time</a>,
+        we got a lot of great feedback, insights and encouragement.</p>
+        <p>In October we focused a lot on improving the calls to action on the blog, which had a lot of success.
+        We also dove in more on the paid ads side and hired someone full-time to help us with that-stay tuned for
+        updates!</p>
+        <ul>
+          <li>2,711 signups via blog content (17.2% growth)</li>
+          <li>1,252,000 unique visitors (18.4% growth)</li>
+        </ul>
+        <p><b>Break-out content hits:</b></p>
+        <ul>
+          <li><a href=\"https://blog.bufferapp.com/lost-traffic\">We've Lost Nearly Half Our Social Referral Traffic in the Last 12 Months</a></li>
+          <li><a href=\"https://blog.bufferapp.com/twitter-polls\">The Complete Guide to New Twitter Polls: What They Are, How They Work and 9 Ways to Use Them</a></li>
+          <li><a href=\"https://open.buffer.com/no-office/\">After Growing to 50 People, We're Ditching the Office Completely: Here's Why</a></li>
+        </ul>"
+      }
+      :section-name "marketing"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+    
+    {
+      :section {
+        :title "Asks"
+        :body "<p>One quick ask: Recently we launched a brand new feature:
+        <a href=\"https://blog.bufferapp.com/social-media-calendar\">Social Media Calendar</a>.
+        We'd love your help to spread the word. <a href=\"https://twitter.com/intent/tweet?text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:%20https://blog.bufferapp.com/social-media-calendar%20pic.twitter.com/Y8XdRyU9ie\">Tweet</a>
+        or <a href=\"https://buffer.com/add?url=https%3A%2F%2Fblog.bufferapp.com%2Fsocial-media-calendar&text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:&picture=https%3A%2F%2Fbufferblog-wpengine.netdna-ssl.com%2Fwp-content%2Fuploads%2F2015%2F11%2Fcalendar-launch-600x410%402x.png&version=2.13.12&placement=hover_button_image\">Buffer</a>!</p>"
+      }
+      :section-name "help"
+      :author {
+        :name "Joel Gascoigne"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+      }
+      :timestamp "2015-11-20T08:00:46.000Z"
+    }
+
   ]
 }
