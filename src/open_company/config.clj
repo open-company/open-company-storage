@@ -10,7 +10,7 @@
 (defonce db-host (or (env :db-host) "localhost"))
 (defonce db-port (or (env :db-port) 28015))
 (defonce db-name (or (env :db-name) "open_company"))
-(defonce db-pool-size (or (env :db-pool-size) 30))
+(defonce db-pool-size (or (env :db-pool-size) 60))
 
 (defonce db-map {:host db-host :port db-port :db db-name})
 (defonce db-options (flatten (vec db-map))) ; k/v sequence as clj-rethinkdb wants it

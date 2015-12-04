@@ -64,7 +64,13 @@
         pool (if connection
                 (assoc pool :connections connections)
                 pool)]
-    ;; return the new state of the pool, and the connection we got (if any)
+    
+    ;; handle the case of no connection available
+    (if-not connection (let [msg "No connection available from DB pool"]
+                        (error msg)
+                        (throw (RuntimeException. msg))))
+    
+    ;; return the new state of the pool, and the connection we got
     (trace "Using connection: " connection)
     [pool connection]))
 
@@ -96,10 +102,10 @@
   `(do
     (trace "Starting DB pool connection macro.")
     (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start))
-    (let [[new-pool# connection#] (get-connection (deref rethinkdb-pool))]
+    (let [[new-pool# conn#] (get-connection (deref rethinkdb-pool))]
       (reset! rethinkdb-pool new-pool#)
       (try
-        (let [~connection (:connection connection#)]
+        (let [~connection (:connection conn#)]
           (do ~@body))
         (finally
-          (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) connection#)))))))
+          (if conn# (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) conn#))))))))

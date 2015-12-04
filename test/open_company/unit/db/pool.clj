@@ -66,8 +66,8 @@
           (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
           (pool/with-connection [conn]
             (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-            (pool/with-connection [conn]
-              conn => nil)))) ; no more connections
+            (pool/with-connection [conn] (println conn)) =>
+              (throws RuntimeException "No connection available from DB pool")))) ; no more connections
 
       (fact "it grows from 2 to 4, then no more"
 
@@ -81,8 +81,26 @@
               (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
               (pool/with-connection [conn]
                 (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-                (pool/with-connection [conn]
-                  conn => nil))))))))) ; no more connections
+                (pool/with-connection [conn] (println conn)) =>
+                  (throws RuntimeException "No connection available from DB pool"))))))
+
+
+      (fact "it recovers from no more resources"
+
+        (pool/start 2 2)
+
+        (pool/with-connection [conn]
+          (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+          (pool/with-connection [conn]
+            (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
+            (pool/with-connection [conn] (println conn)) =>
+              (throws RuntimeException "No connection available from DB pool") ; no more connections
+            (pool/with-connection [conn] (println conn)) =>
+              (throws RuntimeException "No connection available from DB pool") ; no more connections
+            (pool/with-connection [conn] (println conn)) =>
+              (throws RuntimeException "No connection available from DB pool")) ; no more connections
+          (pool/with-connection [conn]
+            (keys @conn) => (just rethinkdb-connection-keys))))))) ; valid connection
 
 (facts "about resource pools"
 
