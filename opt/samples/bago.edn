@@ -1,0 +1,534 @@
+;; Sample data, Bago's updates from https://open.bufferapp.com/
+{
+  :company {
+    :slug "bago"
+    :name "Bago"
+    :currency "EUR"
+    :timestamp "2015-07-13T12:59:28.000Z"
+    :author {
+      :name "Iacopo Carraro"
+      :user-id "123456"
+      :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
+    }
+    :sections {
+      :progress ["growth"]
+      :financial ["finances"]
+      :company []
+    }
+  }
+
+  :sections [
+    
+    {
+      :section {
+        :title "Key metrics"
+        :metrics [
+          {
+            :slug "total-registered-users"
+            :name "Total registered users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "mau"
+            :name "Monthly active users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "dau"
+            :name "Average daily active users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "arr"
+            :name "Annual recurring revenue"
+            :interval "monthly"
+            :unit "EUR"
+            :target "high"
+          }
+        ]
+        :data [
+
+          ;; total-registered-users
+          {
+            :period "2014-06"
+            :slug "total-registered-users"
+            :value 1211292
+          }
+          {
+            :period "2014-07"
+            :slug "total-registered-users"
+            :value 1311292
+          }
+          {
+            :period "2014-08"
+            :slug "total-registered-users"
+            :value 1411292
+          }
+          {
+            :period "2014-09"
+            :slug "total-registered-users"
+            :value 1511292
+          }
+          {
+            :period "2014-10"
+            :slug "total-registered-users"
+            :value 1611292
+          }
+          {
+            :period "2014-11"
+            :slug "total-registered-users"
+            :value 1711292
+          }
+          {
+            :period "2014-12"
+            :slug "total-registered-users"
+            :value 1811292
+          }
+          {
+            :period "2015-01"
+            :slug "total-registered-users"
+            :value 1911292
+          }
+          {
+            :period "2015-02"
+            :slug "total-registered-users"
+            :value 2011292
+          }
+          {
+            :period "2015-03"
+            :slug "total-registered-users"
+            :value 2111292
+          }
+          {
+            :period "2015-04"
+            :slug "total-registered-users"
+            :value 2211292
+          }
+          {
+            :period "2015-05"
+            :slug "total-registered-users"
+            :value 2311292
+          }
+          {
+            :period "2015-06"
+            :slug "total-registered-users"
+            :value 2411292
+          }
+          {
+            :period "2015-07"
+            :slug "total-registered-users"
+            :value 2592194
+          }
+          {
+            :period "2015-08"
+            :slug "total-registered-users"
+            :value 2673418
+          }
+
+          {
+            :period "2015-09"
+            :slug "total-registered-users"
+            :value 2757998
+          }
+          {
+            :period "2015-11"
+            :slug "total-registered-users"
+            :value 3017998
+          }
+
+          ;; mau
+          {
+            :period "2014-06"
+            :slug "mau"
+            :value 76464
+          }
+          {
+            :period "2014-07"
+            :slug "mau"
+            :value 86464
+          }
+          {
+            :period "2014-08"
+            :slug "mau"
+            :value 96464
+          }
+          {
+            :period "2014-09"
+            :slug "mau"
+            :value 106464
+          }
+          {
+            :period "2014-10"
+            :slug "mau"
+            :value 116464
+          }
+          {
+            :period "2014-11"
+            :slug "mau"
+            :value 126464
+          }
+          {
+            :period "2014-12"
+            :slug "mau"
+            :value 136464
+          }
+          {
+            :period "2015-01"
+            :slug "mau"
+            :value 146464
+          }
+          {
+            :period "2015-02"
+            :slug "mau"
+            :value 156464
+          }
+          {
+            :period "2015-03"
+            :slug "mau"
+            :value 166464
+          }
+          {
+            :period "2015-04"
+            :slug "mau"
+            :value 176464
+          }
+          {
+            :period "2015-05"
+            :slug "mau"
+            :value 186464
+          }
+          {
+            :period "2015-06"
+            :slug "mau"
+            :value 196464
+          }
+          {
+            :period "2015-07"
+            :slug "mau"
+            :value 208667
+          }
+          {
+            :period "2015-08"
+            :slug "mau"
+            :value 211520
+          }
+          {
+            :period "2015-09"
+            :slug "mau"
+            :value 219744
+          }
+          {
+            :period "2015-11"
+            :slug "mau"
+            :value 233144
+          }
+
+          ;; dau
+          {
+            :period "2014-06"
+            :slug "dau"
+            :value 37229
+          }
+          {
+            :period "2014-07"
+            :slug "dau"
+            :value 39229
+          }
+          {
+            :period "2014-08"
+            :slug "dau"
+            :value 40229
+          }
+          {
+            :period "2014-09"
+            :slug "dau"
+            :value 39229
+          }
+          {
+            :period "2014-10"
+            :slug "dau"
+            :value 43229
+          }
+          {
+            :period "2014-11"
+            :slug "dau"
+            :value 41229
+          }
+          {
+            :period "2014-12"
+            :slug "dau"
+            :value 42229
+          }
+          {
+            :period "2015-01"
+            :slug "dau"
+            :value 43229
+          }
+          {
+            :period "2015-02"
+            :slug "dau"
+            :value 43229
+          }
+          {
+            :period "2015-03"
+            :slug "dau"
+            :value 48229
+          }
+          {
+            :period "2015-04"
+            :slug "dau"
+            :value 45229
+          }
+          {
+            :period "2015-05"
+            :slug "dau"
+            :value 49229
+          }
+          {
+            :period "2015-06"
+            :slug "dau"
+            :value 52229
+          }
+          {
+            :period "2015-07"
+            :slug "dau"
+            :value 51491
+          }
+          {
+            :period "2015-08"
+            :slug "dau"
+            :value 50489
+          }
+          {
+            :period "2015-09"
+            :slug "dau"
+            :value 54357
+          }
+          {
+            :period "2015-11"
+            :slug "dau"
+            :value 58345
+          }
+
+          ;; arr
+          {
+            :period "2014-06"
+            :slug "arr"
+            :value 5410000
+          }
+          {
+            :period "2014-07"
+            :slug "arr"
+            :value 5510000
+          }
+          {
+            :period "2014-08"
+            :slug "arr"
+            :value 5610000
+          }
+          {
+            :period "2014-09"
+            :slug "arr"
+            :value 5710000
+          }
+          {
+            :period "2014-10"
+            :slug "arr"
+            :value 5810000
+          }
+          {
+            :period "2014-11"
+            :slug "arr"
+            :value 5910000
+          }
+          {
+            :period "2014-12"
+            :slug "arr"
+            :value 6010000
+          }
+          {
+            :period "2015-01"
+            :slug "arr"
+            :value 6110000
+          }
+          {
+            :period "2015-02"
+            :slug "arr"
+            :value 6210000
+          }
+          {
+            :period "2015-03"
+            :slug "arr"
+            :value 6310000
+          }
+          {
+            :period "2015-04"
+            :slug "arr"
+            :value 6410000
+          }
+          {
+            :period "2015-05"
+            :slug "arr"
+            :value 6510000
+          }
+          {
+            :period "2015-06"
+            :slug "arr"
+            :value 6610000
+          }
+          {
+            :period "2015-07"
+            :slug "arr"
+            :value 6860000
+          }
+          {
+            :period "2015-08"
+            :slug "arr"
+            :value 7490000
+          }
+          {
+            :period "2015-09"
+            :slug "arr"
+            :value 7730000
+          }
+          {
+           :period "2015-11"
+           :slug "arr"
+           :value 7924000
+          }
+        ]
+        :notes {
+          :body "<p>Don't grow to much please...</p>"
+        }
+      }
+      :section-name "growth"
+      :author {
+        :name "Iacopo Carraro"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
+      }
+      :timestamp "2015-11-01T21:12:43.000Z"
+    }
+    
+    ;; November Update - test
+    {
+      :section {
+        :title "Finances"
+        :data[
+          {
+            :period "2014-06"
+            :cash 2468881
+            :revenue 450529
+            :costs 128715
+          }
+          {
+            :period "2014-07"
+            :cash 2478881
+            :revenue 460529
+            :costs 138715
+          }
+          {
+            :period "2014-08"
+            :cash 2488881
+            :revenue 460529
+            :costs 138715
+          }
+          {
+            :period "2014-09"
+            :cash 2498881
+            :revenue 470529
+            :costs 148715
+          }
+          {
+            :period "2014-10"
+            :cash 2508881
+            :revenue 480529
+            :costs 158715
+          }
+          {
+            :period "2014-11"
+            :cash 2508881
+            :revenue 480529
+            :costs 168715
+          }
+          {
+            :period "2014-12"
+            :cash 2518881
+            :revenue 490529
+            :costs 178715
+          }
+          {
+            :period "2015-01"
+            :cash 2528881
+            :revenue 500529
+            :costs 188715
+          }
+          {
+            :period "2015-02"
+            :cash 2538881
+            :revenue 510529
+            :costs 198715
+          }
+          {
+            :period "2015-03"
+            :cash 2548881
+            :revenue 520529
+            :costs 208715
+          }
+          {
+            :period "2015-04"
+            :cash 2558881
+            :revenue 530529
+            :costs 218715
+          }
+          {
+            :period "2015-05"
+            :cash 2568881
+            :revenue 540529
+            :costs 228715
+          }
+          {
+            :period "2015-06"
+            :cash 2578881
+            :revenue 550529
+            :costs 238715
+          }
+          {
+            :period "2015-07"
+            :cash 2655505
+            :revenue 571532
+            :costs 494907
+          }
+          {
+            :period "2015-08"
+            :cash 2789388
+            :revenue 624196
+            :costs 490313
+          }
+          {
+            :period "2015-11"
+            :cash 3019388
+            :revenue 894196
+            :costs 501231
+          }
+        ]
+        :notes {
+          :body "<p>We're rich! Maybe...</p>"
+        }
+      }
+      :section-name "finances"
+      :author {
+        :name "Iacopo Carraro"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
+      }
+      :timestamp "2015-11-23T11:12:02.000Z"
+    }
+  ]
+}
