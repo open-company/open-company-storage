@@ -214,6 +214,106 @@
 
         :data [
           {
+            :period "2015-01"
+            :slug "total-registered-users"
+            :value 2090805
+          }
+          {
+            :period "2015-01"
+            :slug "mau"
+            :value 183638
+          }
+          {
+            :period "2015-01"
+            :slug "dau"
+            :value 44790
+          }
+          {
+            :period "2015-01"
+            :slug "arr"
+            :value 5290000
+          }
+          {
+            :period "2015-02"
+            :slug "total-registered-users"
+            :value 2171877
+          }
+          {
+            :period "2015-02"
+            :slug "mau"
+            :value 189216
+          }
+          {
+            :period "2015-02"
+            :slug "dau"
+            :value 47937
+          }
+          {
+            :period "2015-02"
+            :slug "arr"
+            :value 5550000
+          }
+          {
+            :period "2015-03"
+            :slug "total-registered-users"
+            :value 2261641
+          }
+          {
+            :period "2015-03"
+            :slug "mau"
+            :value 207035
+          }
+          {
+            :period "2015-03"
+            :slug "dau"
+            :value 50538
+          }
+          {
+            :period "2015-03"
+            :slug "arr"
+            :value 5870000
+          }
+          {
+            :period "2015-04"
+            :slug "total-registered-users"
+            :value 2351405
+          }
+          {
+            :period "2015-04"
+            :slug "mau"
+            :value 200125
+          }
+          {
+            :period "2015-04"
+            :slug "dau"
+            :value 49728
+          }
+          {
+            :period "2015-04"
+            :slug "arr"
+            :value 6110000
+          }
+          {
+            :period "2015-05"
+            :slug "total-registered-users"
+            :value 2432382
+          }
+          {
+            :period "2015-05"
+            :slug "mau"
+            :value 203449
+          }
+          {
+            :period "2015-05"
+            :slug "dau"
+            :value 49202
+          }
+          {
+            :period "2015-05"
+            :slug "arr"
+            :value 6390000
+          }
+          {
             :period "2015-06"
             :slug "total-registered-users"
             :value 2511292
@@ -450,6 +550,106 @@
 
         ]
         :data [
+          {
+            :period "2015-01"
+            :slug "total-registered-users"
+            :value 2090805
+          }
+          {
+            :period "2015-01"
+            :slug "mau"
+            :value 183638
+          }
+          {
+            :period "2015-01"
+            :slug "dau"
+            :value 44790
+          }
+          {
+            :period "2015-01"
+            :slug "arr"
+            :value 5290000
+          }
+          {
+            :period "2015-02"
+            :slug "total-registered-users"
+            :value 2171877
+          }
+          {
+            :period "2015-02"
+            :slug "mau"
+            :value 189216
+          }
+          {
+            :period "2015-02"
+            :slug "dau"
+            :value 47937
+          }
+          {
+            :period "2015-02"
+            :slug "arr"
+            :value 5550000
+          }
+          {
+            :period "2015-03"
+            :slug "total-registered-users"
+            :value 2261641
+          }
+          {
+            :period "2015-03"
+            :slug "mau"
+            :value 207035
+          }
+          {
+            :period "2015-03"
+            :slug "dau"
+            :value 50538
+          }
+          {
+            :period "2015-03"
+            :slug "arr"
+            :value 5870000
+          }
+          {
+            :period "2015-04"
+            :slug "total-registered-users"
+            :value 2351405
+          }
+          {
+            :period "2015-04"
+            :slug "mau"
+            :value 200125
+          }
+          {
+            :period "2015-04"
+            :slug "dau"
+            :value 49728
+          }
+          {
+            :period "2015-04"
+            :slug "arr"
+            :value 6110000
+          }
+          {
+            :period "2015-05"
+            :slug "total-registered-users"
+            :value 2432382
+          }
+          {
+            :period "2015-05"
+            :slug "mau"
+            :value 203449
+          }
+          {
+            :period "2015-05"
+            :slug "dau"
+            :value 49202
+          }
+          {
+            :period "2015-05"
+            :slug "arr"
+            :value 6390000
+          }
           {
             :period "2015-06"
             :slug "total-registered-users"
@@ -711,6 +911,106 @@
           }
         ]
         :data [
+          {
+            :period "2015-01"
+            :slug "total-registered-users"
+            :value 2090805
+          }
+          {
+            :period "2015-01"
+            :slug "mau"
+            :value 183638
+          }
+          {
+            :period "2015-01"
+            :slug "dau"
+            :value 44790
+          }
+          {
+            :period "2015-01"
+            :slug "arr"
+            :value 5290000
+          }
+          {
+            :period "2015-02"
+            :slug "total-registered-users"
+            :value 2171877
+          }
+          {
+            :period "2015-02"
+            :slug "mau"
+            :value 189216
+          }
+          {
+            :period "2015-02"
+            :slug "dau"
+            :value 47937
+          }
+          {
+            :period "2015-02"
+            :slug "arr"
+            :value 5550000
+          }
+          {
+            :period "2015-03"
+            :slug "total-registered-users"
+            :value 2261641
+          }
+          {
+            :period "2015-03"
+            :slug "mau"
+            :value 207035
+          }
+          {
+            :period "2015-03"
+            :slug "dau"
+            :value 50538
+          }
+          {
+            :period "2015-03"
+            :slug "arr"
+            :value 5870000
+          }
+          {
+            :period "2015-04"
+            :slug "total-registered-users"
+            :value 2351405
+          }
+          {
+            :period "2015-04"
+            :slug "mau"
+            :value 200125
+          }
+          {
+            :period "2015-04"
+            :slug "dau"
+            :value 49728
+          }
+          {
+            :period "2015-04"
+            :slug "arr"
+            :value 6110000
+          }
+          {
+            :period "2015-05"
+            :slug "total-registered-users"
+            :value 2432382
+          }
+          {
+            :period "2015-05"
+            :slug "mau"
+            :value 203449
+          }
+          {
+            :period "2015-05"
+            :slug "dau"
+            :value 49202
+          }
+          {
+            :period "2015-05"
+            :slug "arr"
+            :value 6390000
+          }
           {
             :period "2015-06"
             :slug "total-registered-users"
@@ -1012,6 +1312,106 @@
         ]
         :data [
           {
+            :period "2015-01"
+            :slug "total-registered-users"
+            :value 2090805
+          }
+          {
+            :period "2015-01"
+            :slug "mau"
+            :value 183638
+          }
+          {
+            :period "2015-01"
+            :slug "dau"
+            :value 44790
+          }
+          {
+            :period "2015-01"
+            :slug "arr"
+            :value 5290000
+          }
+          {
+            :period "2015-02"
+            :slug "total-registered-users"
+            :value 2171877
+          }
+          {
+            :period "2015-02"
+            :slug "mau"
+            :value 189216
+          }
+          {
+            :period "2015-02"
+            :slug "dau"
+            :value 47937
+          }
+          {
+            :period "2015-02"
+            :slug "arr"
+            :value 5550000
+          }
+          {
+            :period "2015-03"
+            :slug "total-registered-users"
+            :value 2261641
+          }
+          {
+            :period "2015-03"
+            :slug "mau"
+            :value 207035
+          }
+          {
+            :period "2015-03"
+            :slug "dau"
+            :value 50538
+          }
+          {
+            :period "2015-03"
+            :slug "arr"
+            :value 5870000
+          }
+          {
+            :period "2015-04"
+            :slug "total-registered-users"
+            :value 2351405
+          }
+          {
+            :period "2015-04"
+            :slug "mau"
+            :value 200125
+          }
+          {
+            :period "2015-04"
+            :slug "dau"
+            :value 49728
+          }
+          {
+            :period "2015-04"
+            :slug "arr"
+            :value 6110000
+          }
+          {
+            :period "2015-05"
+            :slug "total-registered-users"
+            :value 2432382
+          }
+          {
+            :period "2015-05"
+            :slug "mau"
+            :value 203449
+          }
+          {
+            :period "2015-05"
+            :slug "dau"
+            :value 49202
+          }
+          {
+            :period "2015-05"
+            :slug "arr"
+            :value 6390000
+          }
+          {
             :period "2015-06"
             :slug "total-registered-users"
             :value 2511292
@@ -1094,15 +1494,9 @@
           }
         ]
         :notes {
-          :body "<p>It can clearly be seen in the numbers here that our move from 7-day to 30-day trials for Buffer
-          for Business has significantly impacted metrics (most noticeably MRR).</p>
-          <p>The reason this has stalled our revenue growth is that it created a 30-day gap with no expiring trials
-          and therefore no new converting Buffer for Business customers.</p>
-          <p>This is an expected outcome that we decided was the right move for us to grow Buffer for Business.</p>
-          <p>I'm happy to share that from the trend we've seen for the first week of November, we are seeing an
-          increase in both the number of trials and the conversion rate of trials as a result of moving from 7-day
-          to 30-day trials.</p>
-          </p>"
+          :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
+          is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
+          <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
         }
       }
       :section-name "growth"
@@ -1371,6 +1765,106 @@
         ]
         :data [
           {
+            :period "2015-01"
+            :slug "total-registered-users"
+            :value 2090805
+          }
+          {
+            :period "2015-01"
+            :slug "mau"
+            :value 183638
+          }
+          {
+            :period "2015-01"
+            :slug "dau"
+            :value 44790
+          }
+          {
+            :period "2015-01"
+            :slug "arr"
+            :value 5290000
+          }
+          {
+            :period "2015-02"
+            :slug "total-registered-users"
+            :value 2171877
+          }
+          {
+            :period "2015-02"
+            :slug "mau"
+            :value 189216
+          }
+          {
+            :period "2015-02"
+            :slug "dau"
+            :value 47937
+          }
+          {
+            :period "2015-02"
+            :slug "arr"
+            :value 5550000
+          }
+          {
+            :period "2015-03"
+            :slug "total-registered-users"
+            :value 2261641
+          }
+          {
+            :period "2015-03"
+            :slug "mau"
+            :value 207035
+          }
+          {
+            :period "2015-03"
+            :slug "dau"
+            :value 50538
+          }
+          {
+            :period "2015-03"
+            :slug "arr"
+            :value 5870000
+          }
+          {
+            :period "2015-04"
+            :slug "total-registered-users"
+            :value 2351405
+          }
+          {
+            :period "2015-04"
+            :slug "mau"
+            :value 200125
+          }
+          {
+            :period "2015-04"
+            :slug "dau"
+            :value 49728
+          }
+          {
+            :period "2015-04"
+            :slug "arr"
+            :value 6110000
+          }
+          {
+            :period "2015-05"
+            :slug "total-registered-users"
+            :value 2432382
+          }
+          {
+            :period "2015-05"
+            :slug "mau"
+            :value 203449
+          }
+          {
+            :period "2015-05"
+            :slug "dau"
+            :value 49202
+          }
+          {
+            :period "2015-05"
+            :slug "arr"
+            :value 6390000
+          }
+          {
             :period "2015-06"
             :slug "total-registered-users"
             :value 2511292
@@ -1472,9 +1966,15 @@
           }
         ]
         :notes {
-          :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
-          is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
-          <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
+          :body "<p>It can clearly be seen in the numbers here that our move from 7-day to 30-day trials for Buffer
+          for Business has significantly impacted metrics (most noticeably MRR).</p>
+          <p>The reason this has stalled our revenue growth is that it created a 30-day gap with no expiring trials
+          and therefore no new converting Buffer for Business customers.</p>
+          <p>This is an expected outcome that we decided was the right move for us to grow Buffer for Business.</p>
+          <p>I'm happy to share that from the trend we've seen for the first week of November, we are seeing an
+          increase in both the number of trials and the conversion rate of trials as a result of moving from 7-day
+          to 30-day trials.</p>
+          </p>"
         }
       }
       :section-name "growth"
@@ -1494,7 +1994,7 @@
           to go entirely remote and distributed.</p>
           <p>As we grow, we started experimenting with
           <a href=\"https://open.buffer.com/why-we-ask-our-team-to-grade-us-every-month-buffers-october-hiring-report/\">NPS</a>
-          to get the "pulse" of Buffer regularly.</p>
+          to get the \"pulse\" of Buffer regularly.</p>
           <p>We also evolved some of our team tools: we left HipChat & Sqwiggle for Slack & Zoom and joined Okta as a
           security solution. On the transparency front, Leo shared more details on
           <a href=\"https://open.buffer.com/explaining-equity/\">How We Explain Stock Options to Team Members</a>.</p>
