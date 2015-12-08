@@ -1,0 +1,82 @@
+;; Sample data, Bago's updates from https://open.bufferapp.com/
+{
+  :company {
+    :slug "simple"
+    :name "Simple, LLC"
+    :currency "USD"
+    :timestamp "2015-07-13T12:59:28.000Z"
+    :author {
+      :name "Sean Johnson"
+      :user-id "123456"
+      :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
+    }
+    :sections {
+      :progress []
+      :financial ["finances"]
+      :company []
+    }
+  }
+
+  :sections [
+        
+    {
+      :section {
+        :title "Finances"
+        :data[
+          {
+            :period "2015-02"
+            :cash 1200000
+            :revenue 0
+            :costs 100000
+          }
+          {
+            :period "2015-04"
+            :cash 1000000
+            :revenue 0
+            :costs 100000
+          }
+          {
+            :period "2015-05"
+            :cash 900000
+            :revenue 0
+            :costs 100000
+          }
+          {
+            :period "2015-06"
+            :cash 800000
+            :revenue 0
+            :costs 100000
+          }
+          {
+            :period "2015-07"
+            :cash 700000
+            :revenue 0
+            :costs 100000
+          }
+          {
+            :period "2015-08"
+            :cash 650000
+            :revenue 50000
+            :costs 100000
+          }
+          {
+            :period "2015-09"
+            :cash 550000
+            :revenue 0
+            :costs 100000
+          }
+        ]
+        :notes {
+          :body "<p>We're simple! Simple is good...</p>"
+        }
+      }
+      :section-name "finances"
+      :author {
+        :name "Sean Johnson"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
+      }
+      :timestamp "2015-11-23T11:12:02.000Z"
+    }
+  ]
+}
