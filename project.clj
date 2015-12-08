@@ -58,6 +58,7 @@
         [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.2"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
+        [io.aviso/pretty "0.1.20"] ; Pretty print exceptions https://github.com/AvisoNovate/pretty
       ]
     }
 
