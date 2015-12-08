@@ -404,7 +404,7 @@
           }
         ]
         :notes {
-          :body "<p>Don't grow to much please...</p>"
+          :body "<p>Don't grow too much please...</p>"
         }
       }
       :section-name "growth"
