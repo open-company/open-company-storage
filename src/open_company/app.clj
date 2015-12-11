@@ -46,7 +46,7 @@
 (defn start [port]
   (run-server app {:port port :join? false})
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
-    "API Server\n"
+    "OPENcompany API Server\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
