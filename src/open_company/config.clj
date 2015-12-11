@@ -33,7 +33,7 @@
 
 (defonce passphrase (env :open-company-auth-passphrase))
 
-;; ----- OpenCompany -----
+;; ----- OPENcompany -----
 
 (defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; in minutes
 

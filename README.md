@@ -1,4 +1,4 @@
-# [OpenCompany](https://opencompany.io) Platform API
+# [OPENcompany](https://opencompany.io) Platform API
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
@@ -12,24 +12,24 @@
 
 > -- Dalai Lama
 
-Employees and investors, co-founders and execs, they all want more transparency from their startups, but there's no consensus about what it means to be transparent. OpenCompany is a platform that simplifies how key business information is shared with stakeholders.
+Employees and investors, co-founders and execs, they all want more transparency from their startups, but there's no consensus about what it means to be transparent. OPENcompany is a platform that simplifies how key business information is shared with stakeholders.
 
-When information about growth, finances, ownership and challenges is shared transparently, it inspires new ideas and new levels of stakeholder engagement. OpenCompany makes it easy for founders to engage with employees and investors, creating a sense of ownership and urgency for everyone.
+When information about growth, finances, ownership and challenges is shared transparently, it inspires new ideas and new levels of stakeholder engagement. OPENcompany makes it easy for founders to engage with employees and investors, creating a sense of ownership and urgency for everyone.
 
-[OpenCompany.io](https://opencompany.io) is GitHub for the rest of your company.
+[OPENcompany.io](https://opencompany.io) is GitHub for the rest of your company.
 
-To maintain transparency, OpenCompany information is always accessible and easy to find. Being able to search or flip through prior updates empowers everyone. Historical context brings new employees and investors up to speed, refreshes memories, and shows how the company is evolving over time.
+To maintain transparency, OPENcompany information is always accessible and easy to find. Being able to search or flip through prior updates empowers everyone. Historical context brings new employees and investors up to speed, refreshes memories, and shows how the company is evolving over time.
 
-Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OpenCompany platform turns transparency into a competitive advantage.
+Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OPENcompany platform turns transparency into a competitive advantage.
 
-Like the open companies we promote and support, the [OpenCompany.io](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through this platform API.
+Like the open companies we promote and support, the [OPENcompany.io](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through this platform API.
 
-To get started, head to: [OpenCompany.io](https://opencompany.io)
+To get started, head to: [OPENcompany.io](https://opencompany.io)
 
 
 ## Local Setup
 
-Users of the [OpenCompany.io](https://opencompany.io) platform should get started by going to [OpenCompany.io](https://opencompany.io). The following local setup is **for developers** wanting to work on the platform's API software.
+Users of the [OPENcompany.io](https://opencompany.io) platform should get started by going to [OPENcompany.io](https://opencompany.io). The following local setup is **for developers** wanting to work on the platform's API software.
 
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 

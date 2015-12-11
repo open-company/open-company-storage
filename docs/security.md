@@ -1,4 +1,4 @@
-# OpenCompany Security Design
+# OPENcompany Security Design
 
 https://slack.zendesk.com/hc/en-us/articles/201314026-Understanding-roles-permissions-inside-Slack
 

@@ -85,9 +85,9 @@
             "transactions",
             "views"
           ],          
-          "targets": [
-            "high",
-            "low"
+          "goal": [
+            "increase",
+            "decrease"
           ],
           "note": "Provide context about recent growth with a note.",
           "image": "/img/section-icons/progress-growth.svg",
