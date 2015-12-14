@@ -81,7 +81,7 @@
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
       ]  
     }]
-    :repl [:dev {
+    :repl-config [:dev {
       :dependencies [
         [org.clojure/tools.nrepl "0.2.12"] ; Network REPL https://github.com/clojure/tools.nrepl
         [aprint "0.1.3"] ; Pretty printing in the REPL (aprint ...) https://github.com/razum2um/aprint
@@ -94,6 +94,7 @@
                  '[clojure.string :as s])
       ]
     }]
+
     ;; Production environment
     :prod {
       :env {
@@ -112,7 +113,7 @@
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests
     "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
-    "repl" ["with-profile" "repl" "repl"]
+    "repl" ["with-profile" "+repl-config" "repl"]
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
     "ancient" ["ancient" ":all" ":allow-qualified"] ; check for out of date dependencies
