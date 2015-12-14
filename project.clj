@@ -21,7 +21,7 @@
     [ring/ring-devel "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.4.0"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
-    [http-kit "2.1.19"] ; Web server http://http-kit.org/
+    [http-kit "2.1.21-alpha2"] ; Web server http://http-kit.org/
     [compojure "1.4.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.14.0"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
@@ -89,7 +89,6 @@
       :injections [
         (require '[aprint.core :refer (aprint ap)]
                  '[clojure.stacktrace :refer (print-stack-trace)]
-                 '[clojure.test :refer :all]
                  '[clj-time.format :as t]
                  '[clojure.string :as s])
       ]

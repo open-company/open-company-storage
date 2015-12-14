@@ -28,7 +28,7 @@
           "name": "growth",
           "title": "Growth",
           "description": "Growth metrics and key performance indicators",
-          "prompt": "Pick the most important growth metric for the stakeholders of your company. You'll be able
+          "prompt": "Enter the most important growth metric for the stakeholders of your company. You'll be able
           to add more later.",
           "metrics": [
             {
