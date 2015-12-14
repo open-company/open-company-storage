@@ -78,5 +78,132 @@
       }
       :timestamp "2015-11-23T11:12:02.000Z"
     }
+
+    {
+      :section {
+        :title "Growth"
+        :metrics [
+          {
+            :slug "mau"
+            :name "Monthly active users"
+            :interval "monthly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "dau"
+            :name "Average daily active users"
+            :interval "weekly"
+            :unit "users"
+            :target "high"
+          }
+          {
+            :slug "profit"
+            :name "Profit"
+            :interval "quarterly"
+            :unit "USD"
+            :target "high"
+          }
+        ]
+
+        :data [
+          {
+            :period "2015-08"
+            :slug "mau"
+            :value 0
+          }
+          {
+            :period "2015-09"
+            :slug "mau"
+            :value 1000
+          }
+          {
+            :period "2015-10"
+            :slug "mau"
+            :value 2000
+          }
+          {
+            :period "2015-11"
+            :slug "mau"
+            :value 3000
+          }
+          {
+            :period "2015-12-07"
+            :slug "dau"
+            :value 800
+          }
+          {
+            :period "2015-11-30"
+            :slug "dau"
+            :value 700
+          }
+          {
+            :period "2015-11-30"
+            :slug "dau"
+            :value 600
+          }
+          {
+            :period "2015-11-23"
+            :slug "dau"
+            :value 500
+          }
+          {
+            :period "2015-11-16"
+            :slug "dau"
+            :value 400
+          }
+          {
+            :period "2015-11-09"
+            :slug "dau"
+            :value 300
+          }
+          {
+            :period "2015-11-02"
+            :slug "dau"
+            :value 200
+          }
+          {
+            :period "2015-10-26"
+            :slug "dau"
+            :value 100
+          }
+          {
+            :period "2015-10-19"
+            :slug "dau"
+            :value 0
+          }
+          {
+            :period "2015-07"
+            :slug "profit"
+            :value 10000
+          }
+          {
+            :period "2015-04"
+            :slug "profit"
+            :value 1000
+          }
+          {
+            :period "2015-01"
+            :slug "profit"
+            :value 100
+          }
+          {
+            :period "2014-10"
+            :slug "profit"
+            :value 0
+          }
+        ]
+        :notes {
+          :body "<p>This is excitingly simple growth!</p>"
+        }
+      }
+      :section-name "growth"
+      :author {
+        :name "Sean Johnson"
+        :user-id "123456"
+        :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
+      }
+      :timestamp "2015-11-23T11:12:02.000Z"
+    }
   ]
 }
