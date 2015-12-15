@@ -39,12 +39,17 @@
 
 (def open {
   :slug slug
-  :name "Transparency, LLC"
+  :name "OPENcompany"
   :currency "USD"
   :org-id "98765"})
 
-(def UNI {
-  :symbol slug
+(def buffer {
+  :slug "buffer"
+  :name "Buffer"
+  :currency "USD"
+  :org-id "42-hut-hut"})
+
+(def uni {
   :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
   :currency "FKP"
   :org-id "98765"})

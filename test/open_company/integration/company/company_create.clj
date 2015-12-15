@@ -12,14 +12,17 @@
 
 ;; The system should store newly created valid companies and handle the following scenarios:
 
-;; PUT
+;; PUT / POST
 ;; all good - 201 Created
 ;; all good, no ticker symbol in body - 201 Created
 ;; all good, unicode in the body - 201 Created
 
-;; bad, ticker symbol has invalid characters
-;; bad, ticker symbol is too long
-;; bad, ticker symbol in body is different than the provided URL
+;; bad, no JWToken
+;; bad, no org-id in JWToken
+
+;; bad, company slug has invalid characters
+;; bad, company slug is too long
+;; bad, company slug in body is different than the provided URL
 
 ;; no accept
 ;; no content type
