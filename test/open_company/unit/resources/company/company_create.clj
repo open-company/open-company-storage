@@ -54,6 +54,9 @@
 
   (facts "about company creation"
 
+    (fact "it fails to create a company if no org-id is provided"
+      (c/create-company r/open (dissoc r/coyote :org-id)) => false)
+
     (facts "it returns the company after successful creation"
       (c/create-company r/open r/coyote) => (contains r/open)
       (c/get-company r/slug) => (contains r/open))

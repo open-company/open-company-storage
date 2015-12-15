@@ -20,24 +20,34 @@
 (def coyote {
   :user-id "123456"
   :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
-  :name "Wile E. Coyote"})
+  :name "Wile E. Coyote"
+  :org-id "98765"})
 
 (def camus {
-  :user-id "1-4-1960"
+  :user-id "1960-01-04"
   :image "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
-  :name "Albert Camus"})
+  :name "Albert Camus"
+  :org-id "98765"})
+
+(def sartre {
+  :user-id "1980-06-21"
+  :image "http://existentialismtoday.com/wp-content/uploads/2015/11/sartre_22.jpg"
+  :name "Jean-Paul Sartre"
+  :org-id "87654"})
 
 ;; ----- Companies -----
 
 (def open {
   :slug slug
   :name "Transparency, LLC"
-  :currency "USD"})
+  :currency "USD"
+  :org-id "98765"})
 
 (def UNI {
   :symbol slug
   :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
-  :currency "FKP"})
+  :currency "FKP"
+  :org-id "98765"})
 
 ;; ----- Sections -----
 

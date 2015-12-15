@@ -179,6 +179,7 @@ Then enter these commands one-by-one, noting the output:
     :user-id "123456"
     :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
     :name "Wile E. Coyote"
+    :org-id "987654"
   })
 
 (company/create-company

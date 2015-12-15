@@ -32,7 +32,9 @@
 
   (facts "about revising sections"
 
-    (fact "when a sections is new"
+    (facts "when a sections is new"
+
+      (fact "creates a new section when the author is a member of the company org"
         (s/put-section r/slug :update r/text-section-1 r/coyote)
         (let [section (s/get-section r/slug :update)
               updated-at (:updated-at section)]
@@ -44,7 +46,18 @@
           updated-at => (:created-at section))
         (count (s/get-revisions r/slug :update)) => 1)
 
+      (fact "fails to create a new section when the author is NOT a member of the company org"
+        (s/put-section r/slug :update r/text-section-1 r/sartre) => false
+        (s/get-section r/slug :update) => nil
+        (count (s/get-revisions r/slug :update)) => 0))
+
     (with-state-changes [(before :facts (s/put-section r/slug :finances r/finances-section-1 r/coyote))]
+
+      (fact "fails to update a section when the author is NOT a member of the company org"
+        (let [original-section (s/get-section r/slug :finances)]
+          (s/put-section r/slug :finances r/finances-notes-section-2 r/sartre) => false
+          (s/get-section r/slug :finances) => original-section
+          (count (s/get-revisions r/slug :finances)) => 1))
 
       (facts "when the prior revision of the section DOESN'T have notes"
 

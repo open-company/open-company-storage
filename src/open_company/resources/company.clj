@@ -13,7 +13,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:slug :categories})
+  #{:slug :org-id :categories})
 
 ;; ----- Utility functions -----
 
@@ -148,18 +148,22 @@
   ([_company :guard #(not (map? %)) _author _timestamp] false)
   ([_company _author :guard #(not (map? %)) _timestamp] false)
 
+  ;; no org-id
+  ([_company _author :guard #(not (:org-id %)) _timestamp] false)
+
   ;; potentially a valid company
   ([company author timestamp]
     (let [company-slug (or (:slug company) (slug/slugify (:name company)))
           interim-company (-> company
-                            (clean) ;; remove disallowed properties
-                            (assoc :slug company-slug)
-                            (categories-for) ;; add/replace the :categories property
-                            (sections-for)) ;; add/replace the :sections property
+                            (clean) ; remove disallowed properties
+                            (assoc :slug company-slug) ; store the slug
+                            (assoc :org-id (:org-id author)) ; store the org
+                            (categories-for) ; add/replace the :categories property
+                            (sections-for)) ; add/replace the :sections property
           section-names (flatten (vals (:sections interim-company)))
           final-company (->> interim-company
-                          (author-for author section-names) ;; add/replace the :author in the sections
-                          (updated-for timestamp section-names))] ;; add/replace the :updated-at in the sections
+                          (author-for author section-names) ; add/replace the :author in the sections
+                          (updated-for timestamp section-names))] ; add/replace the :updated-at in the sections
       (if (true? (valid-company final-company))
         (do
           ;; create the each section in the DB
@@ -182,10 +186,12 @@
   [slug company]
   {:pre [(string? slug) (map? company)]}
   (if-let [original-company (get-company slug)]
-    (let [updated-company (-> company
+    (let [org-id (:org-id company)
+          updated-company (-> company
                             (clean)
                             (categories-for)
                             (remove-sections)
+                            (assoc :org-id org-id)
                             (assoc :slug slug))]
       (common/update-resource table-name primary-key original-company updated-company))))
 

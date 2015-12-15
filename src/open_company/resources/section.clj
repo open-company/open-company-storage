@@ -208,7 +208,8 @@
         updated-company (assoc sectioned-company section-name (-> updated-section
           (dissoc :company-slug)
           (dissoc :section-name)))]
-    (if (true? (valid-section company-slug section-name updated-section))
+    (if (and (= (:org-id original-company) (:org-id author)) ; author is valid to do this update
+             (true? (valid-section company-slug section-name updated-section))) ; update is valid
       (do
         ;; update the company
         (company/update-company company-slug updated-company)
