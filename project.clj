@@ -13,7 +13,7 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.8.0-RC3"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0-RC4"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.374"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -27,7 +27,7 @@
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.0.4"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.1"] ; Get environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.1.4"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.2.0-alpha2"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; command-line parsing https://github.com/clojure/tools.cli
@@ -57,7 +57,7 @@
       ]
       :plugins [
         [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
-        [jonase/eastwood "0.2.2"] ; Clojure linter https://github.com/jonase/eastwood
+        [jonase/eastwood "0.2.3"] ; Clojure linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [io.aviso/pretty "0.1.20"] ; Pretty print exceptions https://github.com/AvisoNovate/pretty
       ]
