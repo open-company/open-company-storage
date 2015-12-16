@@ -91,38 +91,60 @@
 (defn check-input [check]
   (if (= check true) true [false {:reason check}]))
 
+;; ----- Authentication and Authorization -----
+
 (defn authenticate
   "
   Check for the presence and validity of a JWToken in the Authorization header.
 
-  Return false if the header isn't present or valid, otherwise return a map to
+  Return false (by default) if the header isn't present or valid, otherwise return a map to
   add the JWToken to the Liberator context.
   "
-  [headers]
+  ([headers] (authenticate headers false))
+  ([headers default-response]
   (if-let [authorization (or (headers "Authorization") (headers "authorization"))]
     (let [jwtoken (last (s/split authorization #" "))]
       (if (jwt/check-token jwtoken) {:jwtoken jwtoken} false))
-    false))
+    default-response)))
+
+(defn authorized-to-company?
+  "Return true if the user is authorized to this company, false if not."
+  [ctx]
+  (let [company-org (get-in ctx [:company :org-id])
+        user-org (get-in ctx [:user :org-id])]
+    (and (not (nil? user-org)) (= company-org user-org))))
 
 (defn authorize
   "
-  If a user is authorized to this company, add full details to the Liberator context at :user
-  and authorship properties at :author.
+  If a user is authorized to this company, or the request is for anonymous access, 
+  add the user's details to the Liberator context at :user and authorship properties at :author,
+  otherwise return false if the user isn't authorized to the company org and it's not anonymous.
   "
-  [company-slug jwtoken]
-  ; TODO - authorize user to the company
+
+  ([company jwtoken] (authorize company jwtoken false))
+
+  ([company jwtoken allow-anonymous]
   (let [decoded (jwt/decode jwtoken)
         user (:claims decoded)
         author (author-for user)]
-    {:user user :author author}))
+    ;(if (or allow-anonymous (authorized-to-company? {:company company :user user}))
+      {:user user :author author}
+      ;false))))
+)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
+;; verify validity of JWToken if it's provided, but it's not required
+(def anonymous-resource {
+  :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers]) true))
+  :handle-unauthorized (fn [_] (missing-authentication-response))})
+
+;; verify validity and presence of required JWToken
 (def authenticated-resource {
   :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers])))
   :handle-unauthorized (fn [_] (missing-authentication-response))})
 
-(def open-company-resource (merge authenticated-resource {
+(def open-company-resource {
   :available-charsets [UTF8]
   :handle-not-found (fn [_] (missing-response))
   :allowed-methods [:get :put :delete :patch]
@@ -133,4 +155,8 @@
     :put (fn [ctx] (malformed-json? ctx))
     :patch (fn [ctx] (malformed-json? ctx))})
   :can-put-to-missing? (fn [_] true)
-  :conflict? (fn [_] false)}))
+  :conflict? (fn [_] false)})
+
+(def open-company-anonymous-resource (merge anonymous-resource open-company-resource))
+
+(def open-company-authenticated-resource (merge authenticated-resource open-company-resource))

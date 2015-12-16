@@ -7,8 +7,14 @@
             [open-company.app :refer (app)]
             [open-company.representations.company :as company-rep]))
 
-;; JWToken for use with QA profile
-(def jwtoken "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMS00LTE5NjAiLCJuYW1lIjoiY2FtdXMiLCJyZWFsLW5hbWUiOiJBbGJlcnQgQ2FtdXMiLCJhdmF0YXIiOiJodHRwOlwvXC93d3cuYnJlbnRvbmhvbG1lcy5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTBcLzA1XC9hbGJlcnQtY2FtdXMxLmpwZyIsImVtYWlsIjoiYWxiZXJ0QGNvbWJhdC5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWV9.hmOdqQ0f-ZWlckVZ0RS2QjL4j1616fHiZL3fzuD5tdI")
+;; JWToken for use with QA profile - matches open-company.lib.resources/coyote
+(def jwtoken-coyote "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.BxhKcg1d0rLEtn39iWPjGZMKd2DedG-VavJYG4Tq9pw")
+(def jwtoken jwtoken-coyote)
+(def jwtoken-bad (take 30 jwtoken))
+;; JWToken for use with QA profile - matches open-company.lib.resources/camus
+(def jwtoken-camus "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTk2MC0wMS0wNCIsIm5hbWUiOiJjYW11cyIsInJlYWwtbmFtZSI6IkFsYmVydCBDYW11cyIsImF2YXRhciI6Imh0dHA6XC9cL3d3dy5icmVudG9uaG9sbWVzLmNvbVwvd3AtY29udGVudFwvdXBsb2Fkc1wvMjAxMFwvMDVcL2FsYmVydC1jYW11czEuanBnIiwiZW1haWwiOiJhbGJlcnRAY29tYmF0Lm9yZyIsIm93bmVyIjp0cnVlLCJhZG1pbiI6dHJ1ZSwib3JnLWlkIjoiOTg3NjUifQ.JTwKiinDGEihcUCOGoHfKf7W6hnOGJH315IbH7U9LnY")
+;; JWToken for use with QA profile - matches open-company.lib.resources/sartre
+(def jwtoken-sartre "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTk4MC0wNi0yMSIsIm5hbWUiOiJzYXJ0cmUiLCJyZWFsLW5hbWUiOiJKZWFuLVBhdWwgU2FydHJlIiwiYXZhdGFyIjoiaHR0cDpcL1wvZXhpc3RlbnRpYWxpc210b2RheS5jb21cL3dwLWNvbnRlbnRcL3VwbG9hZHNcLzIwMTVcLzExXC9zYXJ0cmVfMjIuanBnIiwiZW1haWwiOiJzYXJ0cmVAbHljZWVsYS5vcmciLCJvd25lciI6dHJ1ZSwiYWRtaW4iOnRydWUsIm9yZy1pZCI6Ijg3NjU0In0.-27PGsFmNj0P4NY7c1MgdMa4QPi02OpCvxWb4dUqKnE")
 
 (defn base-mime-type [full-mime-type]
   (first (s/split full-mime-type #";")))
@@ -36,9 +42,10 @@
 
   ([method url options]
   (let [initial-request (request method url)
+        auth (or (:auth options) jwtoken)
         headers (:headers options)
-        headers-charset (if (:skip-charset options) headers (merge {:Accept-Charset "utf-8"} headers))
-        headers-auth (if (:skip-auth options) headers (merge {:Authorization jwtoken} headers))
+        headers-charset (if (:skip-charset options) headers (assoc headers :Accept-Charset "utf-8"))
+        headers-auth (if (:skip-auth options) headers-charset (assoc headers-charset :Authorization auth))
         headers-request (apply-headers initial-request headers-auth)
         body-value (:body options)
         body-request (if (:skip-body options) headers-request (body headers-request (json/generate-string body-value)))]

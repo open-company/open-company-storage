@@ -56,13 +56,19 @@
 ;; A resource for a specific company.
 (defresource company
   [slug]
-  common/open-company-resource
+  common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-media-types [company-rep/media-type]
   :exists? (fn [_] (get-company slug))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
-  :allowed? (fn [ctx] (common/authorize slug (:jwtoken ctx)))
+  :allowed? (by-method {
+    ;; allow unless bad JWToken
+    :get (fn [ctx] (if (:jwtoken ctx) (common/authorize (:company ctx) (:jwtoken ctx) true) true))
+    ;; allow only for org's users
+    :put (fn [ctx] (if (:jwtoken ctx) (common/authorize (:company ctx) (:jwtoken ctx)) false))
+    ;; allow only for org's users
+    :patch (fn [ctx] (if (:jwtoken ctx) (common/authorize (:company ctx) (:jwtoken ctx)) false))})
 
   :processable? (by-method {
     :get true
@@ -71,7 +77,7 @@
 
   ;; Handlers
   :handle-ok (by-method {
-    :get (fn [ctx] (company-rep/render-company (:company ctx)))
+    :get (fn [ctx] (company-rep/render-company (:company ctx) (common/authorized-to-company? ctx)))
     :put (fn [ctx] (company-rep/render-company (:updated-company ctx)))
     :patch (fn [ctx] (company-rep/render-company (:updated-company ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
@@ -90,7 +96,7 @@
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
   []
-  common/authenticated-resource
+  common/anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/collection-media-type]
@@ -105,13 +111,13 @@
 ;; A resource for the available sections for a specific company.
 (defresource section-list
   [slug]
-  common/authenticated-resource
+  common/authenticated-resource ; verify validity and presence of required JWToken
 
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/section-list-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
 
-  :allowed? (fn [ctx] (common/authorize slug (:jwtoken ctx)))
+  :allowed? (fn [ctx] (common/authorize (:company ctx) (:jwtoken ctx)))
 
   :allowed-methods [:get]
   :exists? (fn [_] (get-company slug))

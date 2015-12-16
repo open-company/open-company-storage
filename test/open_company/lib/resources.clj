@@ -19,20 +19,32 @@
 
 (def coyote {
   :user-id "123456"
-  :image "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
-  :name "Wile E. Coyote"
+  :name "coyote"
+  :real-name "Wile E. Coyote"
+  :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
+  :email "wile.e.coyote@acme.com"
+  :owner false
+  :admin false
   :org-id "98765"})
 
 (def camus {
   :user-id "1960-01-04"
-  :image "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
-  :name "Albert Camus"
+  :name "camus"
+  :real-name "Albert Camus"
+  :avatar "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
+  :email "albert@combat.org"
+  :owner true
+  :admin true
   :org-id "98765"})
 
 (def sartre {
   :user-id "1980-06-21"
-  :image "http://existentialismtoday.com/wp-content/uploads/2015/11/sartre_22.jpg"
-  :name "Jean-Paul Sartre"
+  :name "sartre"
+  :real-name "Jean-Paul Sartre"
+  :avatar "http://existentialismtoday.com/wp-content/uploads/2015/11/sartre_22.jpg"
+  :email "sartre@lyceela.org"
+  :owner true
+  :admin true
   :org-id "87654"})
 
 ;; ----- Companies -----

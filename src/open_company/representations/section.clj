@@ -1,5 +1,6 @@
 (ns open-company.representations.section
-  (:require [cheshire.core :as json]
+  (:require [defun :refer (defun-)]
+            [cheshire.core :as json]
             [open-company.representations.common :as common]
             [open-company.resources.section :as section]))
 
@@ -23,11 +24,16 @@
 (defn- revision-link [company-slug section-name updated-at]
   (common/revision-link (url company-slug section-name updated-at) updated-at media-type))
 
-(defn section-links
+(defun- section-links
   "Add the HATEAOS links to the section"
-  ([section] (section-links (:company-slug section) (:section-name section) section))
+  ([section authorized] (section-links (:company-slug section) (:section-name section) section authorized))
 
-  ([company-slug section-name section]
+  ; read/only links
+  ([company-slug section-name section false]
+  (assoc section :links [(self-link company-slug section-name)]))
+
+  ; read/write links
+  ([company-slug section-name section true]
   (assoc section :links (flatten [
     (self-link company-slug section-name)
     (update-link company-slug section-name)
@@ -52,13 +58,13 @@
 
 (defn section-for-rendering
   "Get a representation of the section for the REST API"
-  [section]
+  [section authorized]
   (-> section
     (revision-links)
-    (section-links)
+    (section-links authorized)
     (clean)))
 
 (defn render-section
   "Create a JSON representation of the section for the REST API"
   [section]
-  (json/generate-string (section-for-rendering section) {:pretty true}))
+  (json/generate-string (section-for-rendering section true) {:pretty true}))

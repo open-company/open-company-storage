@@ -3,6 +3,7 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
+            [open-company.resources.company :as company]
             [open-company.resources.section :as section-res]
             [open-company.representations.section :as section-rep]))
 
@@ -31,13 +32,13 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 (defresource section [company-slug section-name as-of]
-  common/open-company-resource
+  common/open-company-anonymous-resource
 
   :available-media-types [section-rep/media-type]
   :exists? (fn [_] (get-section company-slug section-name as-of))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
-  :allowed? (fn [ctx] (common/authorize company-slug (:jwtoken ctx)))
+  :allowed? (fn [ctx] (common/authorize (company/get-company company-slug) (:jwtoken ctx)))
 
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
