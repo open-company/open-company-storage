@@ -130,11 +130,6 @@
           {
             :period "2015-12-07"
             :slug "dau"
-            :value 800
-          }
-          {
-            :period "2015-11-30"
-            :slug "dau"
             :value 700
           }
           {
