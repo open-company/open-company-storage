@@ -88,21 +88,21 @@
             :name "Monthly active users"
             :interval "monthly"
             :unit "users"
-            :target "high"
+            :target "increase"
           }
           {
             :slug "dau"
             :name "Average daily active users"
             :interval "weekly"
             :unit "users"
-            :target "high"
+            :target "increase"
           }
           {
             :slug "profit"
             :name "Profit"
             :interval "quarterly"
             :unit "USD"
-            :target "high"
+            :target "increase"
           }
         ]
 
