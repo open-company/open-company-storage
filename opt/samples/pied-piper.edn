@@ -3,6 +3,7 @@
   :company {
     :slug "pied-piper"
     :name "Pied Piper"
+    :org-id "T06SBMH60"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"
     :author {

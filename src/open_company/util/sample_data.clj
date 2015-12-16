@@ -41,7 +41,8 @@
   (let [company (:company data)
         slug (:slug company)
         delete (:delete options)
-        author (:author company)]
+        author (:author company)
+        org-id (:org-id company)]
     (when (and delete (company/get-company slug))
       (println (str "Deleting company '" slug "'."))
       (company/delete-company slug))
@@ -49,7 +50,10 @@
       (when (company/get-company slug)
         (exit 1 (str "A company for '" slug "' already exists. Use the -d flag to delete the company on import."))))
     (println (str "Creating company '" slug "' by " (:name author)"."))
-    (company/create-company (dissoc company :author :timestamp :sections) author (:timestamp company))
+    (company/create-company
+      (dissoc company :author :timestamp :sections :org-id)
+      (assoc author :org-id org-id)
+      (:timestamp company))
     (import-sections slug (:sections data))
     (import-sections-map slug (:sections company)))
   (println "\nImport complete!\n"))

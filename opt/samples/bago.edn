@@ -3,6 +3,7 @@
   :company {
     :slug "bago"
     :name "Bago"
+    :org-id "T06SBMH60"
     :currency "EUR"
     :timestamp "2015-07-13T12:59:28.000Z"
     :author {
