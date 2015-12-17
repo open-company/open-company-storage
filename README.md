@@ -192,8 +192,8 @@ Then enter these commands one-by-one, noting the output:
   } author)
 
 (company/create-company {
-  :name "Transparency, LLC"
-  :slug "transparency"
+  :name "OPENcompany"
+  :slug "open"
   :currency "FKP"
   :finances {
     :title "Finances"

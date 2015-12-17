@@ -17,16 +17,20 @@
 
 (defun- import-sections
   "Add each section to the company recursively."
-  ([_company-slug _sections :guard empty?] true)
+  ([_company-slug _sections :guard empty? org-id] true)
 
-  ([company-slug sections]
+  ([company-slug sections org-id]
   (let [section (first sections)
         section-name (:section-name section)
         timestamp (:timestamp section)
-        author (:author section)]
-    (println (str "Creating section '" section-name "' at " timestamp " by " (:name author) "."))
-    (section/put-section company-slug section-name (:section section) author timestamp)
-    (import-sections company-slug (rest sections)))))
+        author (:author section)
+        message (str "'" section-name "' at " timestamp " by " (:name author) ".")]
+    (println (str "Creating " message))
+    (if 
+      (section/put-section company-slug section-name (:section section) (assoc author :org-id org-id) timestamp)
+      (println (str "SUCCESS: created " message))
+      (println (str "FAILURE: creating " message))))
+  (recur company-slug (rest sections) org-id)))
 
 (defn- import-sections-map
   "Update the company with the specified slug with the specified :sections map."
@@ -54,7 +58,7 @@
       (dissoc company :author :timestamp :sections :org-id)
       (assoc author :org-id org-id)
       (:timestamp company))
-    (import-sections slug (:sections data))
+    (import-sections slug (:sections data) org-id)
     (import-sections-map slug (:sections company)))
   (println "\nImport complete!\n"))
 

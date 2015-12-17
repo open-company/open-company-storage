@@ -97,3 +97,5 @@ Access authorized as #4 has access to all company information that is not draft,
 ### UI
 
 ### API
+
+https://docs.google.com/spreadsheets/d/1AvDqPHzDTWUxUdpzw9Hlff4IWbxc2QwHvcwGbVrYoSg/edit?usp=sharing
