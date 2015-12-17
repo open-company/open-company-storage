@@ -41,10 +41,16 @@
       :body reason
       :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}})))
 
-(defn missing-authentication-response []
+(defn unauthorized-response []
   (ring-response {
     :status 401
     :body "Not authorized. Provide a Bearer JWToken in the Authorization header."
+    :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
+
+(defn forbidden-response []
+  (ring-response {
+    :status 403
+    :body "Forbidden. Provide a Bearer JWToken in the Authorization header that is allowed to do this operation."
     :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
 
 (defn unprocessable-entity-response [reason]
@@ -127,22 +133,31 @@
   (let [decoded (jwt/decode jwtoken)
         user (:claims decoded)
         author (author-for user)]
-    ;(if (or allow-anonymous (authorized-to-company? {:company company :user user}))
+    ;; company organization and user organization are allowed not to match if:
+    ;; - anonymous access is allowed for this operation
+    ;; - there is no company for this operation (meaning usually a 404)
+    (if (or allow-anonymous (nil? company) (authorized-to-company? {:company company :user user}))
       {:user user :author author}
-      ;false))))
-)))
+      false))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; verify validity of JWToken if it's provided, but it's not required
 (def anonymous-resource {
   :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers]) true))
-  :handle-unauthorized (fn [_] (missing-authentication-response))})
+  :handle-unauthorized (fn [_] (unauthorized-response))
+  :handle-forbidden (by-method {
+    :get (forbidden-response)
+    :post (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
+    :put (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
+    :patch (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
+    :delete (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))})})
 
 ;; verify validity and presence of required JWToken
 (def authenticated-resource {
   :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers])))
-  :handle-unauthorized (fn [_] (missing-authentication-response))})
+  :handle-unauthorized (fn [_] (unauthorized-response))
+  :handle-forbidden (fn [_] (forbidden-response))})
 
 (def open-company-resource {
   :available-charsets [UTF8]
@@ -157,6 +172,6 @@
   :can-put-to-missing? (fn [_] true)
   :conflict? (fn [_] false)})
 
-(def open-company-anonymous-resource (merge anonymous-resource open-company-resource))
+(def open-company-anonymous-resource (merge open-company-resource anonymous-resource))
 
-(def open-company-authenticated-resource (merge authenticated-resource open-company-resource))
+(def open-company-authenticated-resource (merge open-company-resource authenticated-resource))

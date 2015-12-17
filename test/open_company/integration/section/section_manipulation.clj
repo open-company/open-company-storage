@@ -18,8 +18,22 @@
 
 ;; The system should support PATCHing the company sections property, and handle the following scenarios:
 
-;; reorder sections
-;; remove sections
+;; bad - invalid JWToken - 401 Unauthorized
+;; bad - no org-id in JWToken - 401 Unauthorized
+;; bad - organization doesn't match companies - 403 Forbidden
+
+;; bad - no matching company slug - 404 Not Found
+
+;; good - reorder sections
+;; good - remove sections
+
+;; TODO
+;; no accept
+;; no content type
+;; no charset
+;; wrong accept
+;; wrong content type
+;; wrong charset
 
 ;; ----- Tests -----
 
@@ -32,6 +46,59 @@
                                         (section/put-section r/slug :diversity r/text-section-2 r/coyote)
                                         (section/put-section r/slug :values r/text-section-1 r/coyote)))
                      (after :facts (company/delete-all-companies!))]
+
+  (facts "about failing to reorder sections"
+
+    (fact "with an invalid JWToken"
+      (let [new-order {:progress ["team" "update" "finances" "help"]
+                       :company ["diversity" "values"]}
+            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
+                                                                        :auth mock/jwtoken-bad})]
+        (:status response) => 401)
+      ;; verify the initial order is unchanged
+      (let [db-company (company/get-company r/slug)]
+        (:categories db-company) => ["progress" "financial" "company"]
+        (:sections db-company) => {:progress ["update" "team" "help"]
+                                   :financial ["finances"]
+                                   :company ["diversity" "values"]}))
+
+    (fact "with no JWToken"
+      (let [new-order {:progress ["team" "update" "finances" "help"]
+                       :company ["diversity" "values"]}
+            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
+                                                                        :skip-auth true})]
+        (:status response) => 401)
+      ;; verify the initial order is unchanged
+      (let [db-company (company/get-company r/slug)]
+        (:categories db-company) => ["progress" "financial" "company"]
+        (:sections db-company) => {:progress ["update" "team" "help"]
+                                   :financial ["finances"]
+                                   :company ["diversity" "values"]}))
+
+    (fact "with an organization that doesn't match the company"
+      (let [new-order {:progress ["team" "update" "finances" "help"]
+                       :company ["diversity" "values"]}
+            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
+                                                                        :auth mock/jwtoken-sartre})]
+        (:status response) => 403)
+      ;; verify the initial order is unchanged
+      (let [db-company (company/get-company r/slug)]
+        (:categories db-company) => ["progress" "financial" "company"]
+        (:sections db-company) => {:progress ["update" "team" "help"]
+                                   :financial ["finances"]
+                                   :company ["diversity" "values"]}))
+
+    (fact "with no company matching the company slug"
+      (let [new-order {:progress ["team" "update" "finances" "help"]
+                       :company ["diversity" "values"]}
+            response (mock/api-request :patch (company-rep/url "foo") {:body {:sections new-order}})]
+        (:status response) => 404)
+      ;; verify the initial order is unchanged
+      (let [db-company (company/get-company r/slug)]
+        (:categories db-company) => ["progress" "financial" "company"]
+        (:sections db-company) => {:progress ["update" "team" "help"]
+                                   :financial ["finances"]
+                                   :company ["diversity" "values"]})))
 
   (facts "about section reordering"
 

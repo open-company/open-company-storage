@@ -17,8 +17,8 @@
 ;; all good, no ticker symbol in body - 201 Created
 ;; all good, unicode in the body - 201 Created
 
-;; bad, no JWToken
-;; bad, no org-id in JWToken
+;; bad, no JWToken - 401 Unauthorized
+;; bad, invalid JWToken - 401 Unauthorized
 
 ;; bad, company slug has invalid characters
 ;; bad, company slug is too long

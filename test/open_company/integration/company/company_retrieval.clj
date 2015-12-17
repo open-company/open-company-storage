@@ -9,7 +9,7 @@
             [open-company.resources.section :as section]
             [open-company.representations.common :refer (GET)]
             [open-company.representations.company :as company-rep]
-            [open-company.representations.company :as section-rep]))
+            [open-company.representations.section :as section-rep]))
 
 ;; ----- Startup -----
 
@@ -24,7 +24,6 @@
 ;; GET
 
 ;; bad - invalid JWToken - 401 Unauthorized
-;; bad - no org-id in JWToken - 401 Unauthorized
 
 ;; bad - no matching company slug - 404 Not Found
 
@@ -32,6 +31,7 @@
 ;; all good - no JWToken - 200 OK
 ;; all good - not matching JWToken - 200 OK
 
+;; TODO
 ;; no accept
 ;; no content type
 ;; no charset
@@ -51,13 +51,13 @@
                                         (section/put-section r/slug :values r/text-section-1 r/coyote)))
                      (after :facts (company/delete-all-companies!))]
 
-  (future-facts "about failing to retrieve a company"
+  (facts "about failing to retrieve a company"
 
-    (future-fact "with an invalid JWToken")
+    (fact "with an invalid JWToken"
+      (:status (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})) => 401)
 
-    (future-fact "with no org-id in the JWToken")
-
-    (future-fact "that doesn't exist"))
+    (fact "that doesn't exist"
+      (:status (mock/api-request :get (company-rep/url "foo"))) => 404))
 
   (facts "about retrieving a company"
 
@@ -93,9 +93,9 @@
           {:company ["diversity" "values"], :financial ["finances"], :progress ["update" "team" "help"]}
         ;; verify each section has only a self HATEOAS link
         (doseq [section-key (map keyword (flatten (vals (:sections body))))]
-          (count (:links (body section-key))) => 1)
-        ;   (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
-        ;     section-rep/media-type (:links (body section-key))))
+          (count (:links (body section-key))) => 1
+          (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
+            section-rep/media-type (:links (body section-key))))
         ;; verify the company has only a self HATEOAS link
         (count (:links body)) => 1
         (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))

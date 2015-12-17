@@ -64,11 +64,17 @@
 
   :allowed? (by-method {
     ;; allow unless bad JWToken
-    :get (fn [ctx] (if (:jwtoken ctx) (common/authorize (:company ctx) (:jwtoken ctx) true) true))
-    ;; allow only for org's users
-    :put (fn [ctx] (if (:jwtoken ctx) (common/authorize (:company ctx) (:jwtoken ctx)) false))
-    ;; allow only for org's users
-    :patch (fn [ctx] (if (:jwtoken ctx) (common/authorize (:company ctx) (:jwtoken ctx)) false))})
+    :get (fn [ctx] (if (:jwtoken ctx)
+                    (common/authorize (:company (get-company slug)) (:jwtoken ctx) true)
+                    true))
+    ;; allow only for the company org's users
+    :put (fn [ctx] (if (:jwtoken ctx)
+                    (common/authorize (:company (get-company slug)) (:jwtoken ctx))
+                    false))
+    ;; allow only for the company org's users
+    :patch (fn [ctx] (if (:jwtoken ctx)
+                      (common/authorize (:company (get-company slug)) (:jwtoken ctx))
+                      false))})
 
   :processable? (by-method {
     :get true
