@@ -9,7 +9,7 @@
   :min-lein-version "2.5.1" ; highest version supported by Travis-CI as of 7/5/2015
 
   ;; JVM memory
-  :jvm-opts ^:replace ["-Xms512m" "-Xmx2048m" "-server"]
+  :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
 
   ;; Production dependencies
   :dependencies [
