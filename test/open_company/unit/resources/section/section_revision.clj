@@ -1,12 +1,9 @@
 (ns open-company.unit.resources.section.section-revision
   (:require [midje.sweet :refer :all]
-            [clj-time.core :as t]
-            [clj-time.format :as f]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [open-company.config :as config]
-            [open-company.resources.common :as common]
             [open-company.resources.company :as c]
             [open-company.resources.section :as s]))
 
@@ -14,15 +11,36 @@
 
 (db/test-startup)
 
-;; ----- Utility functions -----
+;; ----- Test Cases -----
 
-(defn postdate
-  "Push the timestamps of the specified section back to 1 second before the collapse-edit-time time limit."
-  [company-slug section-name]
-  (if-let [section (s/get-section company-slug section-name)]
-    (let [original-at (f/parse (:updated-at section))
-          new-at (t/minus original-at (t/seconds (inc (* 60 config/collapse-edit-time))))]
-      (common/update-resource s/table-name s/primary-key section section (f/unparse common/timestamp-format new-at)))))
+;; Updating a section with the Clojure API.
+
+;; The system should support updating the company sections, and handle the following scenarios:
+
+;; success - new section, author is member of the company
+
+;; fail - new section, author is not a member of the company
+;; fail - update the section, auther is not a member of the company
+
+;; Section has NO prior note cases:
+
+;; new revision - going from no note to having a note
+;; new revision - different author than prior revision
+;; new revision - prior update was too long ago
+
+;; same revision - same author and not too long ago
+
+
+;; Section HAS a prior note cases:
+
+;; new revision - no longer has a note
+;; new revision - different author than prior revision
+;; new revision - prior update was too long ago
+
+;; new revision - note is by a new author - TODO
+;; new revision - note update was too long ago - TODO
+
+;; same revision - same author and not too long ago
 
 ;; ----- Tests -----
 
@@ -92,7 +110,7 @@
           (count (s/get-revisions r/slug :finances)) => 2)
 
         (fact "creates a new revision when the update of the section is over the time limit"
-          (postdate r/slug :finances) ; long enough ago to trigger a new revision
+          (db/postdate r/slug :finances) ; long enough ago to trigger a new revision
           (s/put-section r/slug :finances r/finances-section-2 r/coyote)
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
@@ -155,7 +173,7 @@
           (count (s/get-revisions r/slug :finances)) => 2)
 
         (fact "creates a new revision when the update of the section is over the time limit"
-          (postdate r/slug :finances) ; long enough ago to trigger a new revision
+          (db/postdate r/slug :finances) ; long enough ago to trigger a new revision
           (s/put-section r/slug :finances r/finances-notes-section-2 r/coyote)
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
