@@ -34,11 +34,28 @@
 (defresource section [company-slug section-name as-of]
   common/open-company-anonymous-resource
 
+  :allowed-methods [:options :get :put :patch] ; remove :delete
   :available-media-types [section-rep/media-type]
   :exists? (fn [_] (get-section company-slug section-name as-of))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
-  :allowed? (fn [ctx] (common/authorize (company/get-company company-slug) (:jwtoken ctx)))
+  :allowed? (by-method {
+    ;; allow unless bad JWToken
+    :options (fn [ctx] (if (:jwtoken ctx)
+                    (common/authorize (company/get-company company-slug) (:jwtoken ctx) true)
+                    true))
+    ;; allow unless bad JWToken
+    :get (fn [ctx] (if (:jwtoken ctx)
+                    (common/authorize (company/get-company company-slug) (:jwtoken ctx) true)
+                    true))
+    ;; allow only for the company org's users
+    :put (fn [ctx] (if (:jwtoken ctx)
+                    (common/authorize (company/get-company company-slug) (:jwtoken ctx))
+                    false))
+    ;; allow only for the company org's users
+    :patch (fn [ctx] (if (:jwtoken ctx)
+                      (common/authorize (company/get-company company-slug) (:jwtoken ctx))
+                      false))})
 
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {

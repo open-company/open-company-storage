@@ -64,16 +64,24 @@
 
   :allowed? (by-method {
     ;; allow unless bad JWToken
+    :options (fn [ctx] (if (:jwtoken ctx)
+                    (common/authorize (company/get-company slug) (:jwtoken ctx) true)
+                    true))
+    ;; allow unless bad JWToken
     :get (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (:company (get-company slug)) (:jwtoken ctx) true)
+                    (common/authorize (company/get-company slug) (:jwtoken ctx) true)
                     true))
     ;; allow only for the company org's users
     :put (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (:company (get-company slug)) (:jwtoken ctx))
+                    (common/authorize (company/get-company slug) (:jwtoken ctx))
                     false))
     ;; allow only for the company org's users
     :patch (fn [ctx] (if (:jwtoken ctx)
-                      (common/authorize (:company (get-company slug)) (:jwtoken ctx))
+                      (common/authorize (company/get-company slug) (:jwtoken ctx))
+                      false))
+    ;; allow only for the company org's users
+    :delete (fn [ctx] (if (:jwtoken ctx)
+                      (common/authorize (company/get-company slug) (:jwtoken ctx))
                       false))})
 
   :processable? (by-method {

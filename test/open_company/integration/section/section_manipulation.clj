@@ -5,8 +5,7 @@
             [open-company.lib.db :as db]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
-            [open-company.representations.company :as company-rep]
-            ))
+            [open-company.representations.company :as company-rep]))
 
 ;; ----- Startup -----
 
@@ -14,9 +13,9 @@
 
 ;; ----- Test Cases -----
 
-;; PATCHing company sections with the REST API.
+;; PATCHing company's :sections properties with the REST API.
 
-;; The system should support PATCHing the company sections property, and handle the following scenarios:
+;; The system should support PATCHing the company's :sections property, and handle the following scenarios:
 
 ;; bad - invalid JWToken - 401 Unauthorized
 ;; bad - no org-id in JWToken - 401 Unauthorized
