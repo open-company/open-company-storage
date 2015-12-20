@@ -35,6 +35,7 @@
   ([]
     (ring-response {
       :status 404
+      :body ""
       :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
   ([reason]
     (ring-response {
@@ -42,16 +43,18 @@
       :body reason
       :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}})))
 
+(def unauthorized "Not authorized. Provide a Bearer JWToken in the Authorization header.")
 (defn unauthorized-response []
   (ring-response {
     :status 401
-    :body "Not authorized. Provide a Bearer JWToken in the Authorization header."
+    :body unauthorized
     :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
 
+(def forbidden "Forbidden. Provide a Bearer JWToken in the Authorization header that is allowed to do this operation.")
 (defn forbidden-response []
   (ring-response {
     :status 403
-    :body "Forbidden. Provide a Bearer JWToken in the Authorization header that is allowed to do this operation."
+    :body forbidden
     :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
 
 (defn unprocessable-entity-response [reason]
@@ -100,14 +103,9 @@
 
 ;; ----- Authentication and Authorization -----
 
-(defn authenticate
-  "
-  Check for the presence and validity of a JWToken in the Authorization header.
-
-  Return false (by default) if the header isn't present or valid, otherwise return a map to
-  add the JWToken to the Liberator context.
-  "
-  ([headers] (authenticate headers false))
+(defn authenticated?
+  "Check for the presence and validity of a JWToken in the Authorization header."
+  ([headers] (authenticated? headers false)) ; false to require a JWToken
   ([headers default-response]
   (if-let [authorization (or (headers "Authorization") (headers "authorization"))]
     (let [jwtoken (last (s/split authorization #" "))]
@@ -121,7 +119,7 @@
         user-org (get-in ctx [:user :org-id])]
     (and (not (nil? user-org)) (= company-org user-org))))
 
-(defn authorize
+(defn- authorize
   "
   If a user is authorized to this company, or the request is for anonymous access, 
   add the user's details to the Liberator context at :user and authorship properties at :author,
@@ -159,7 +157,7 @@
 
 ;; verify validity of JWToken if it's provided, but it's not required
 (def anonymous-resource {
-  :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers]) true))
+  :authorized? (fn [ctx] (authenticated? (get-in ctx [:request :headers]) true))
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (by-method {
     :get (forbidden-response)
@@ -170,7 +168,8 @@
 
 ;; verify validity and presence of required JWToken
 (def authenticated-resource {
-  :authorized? (fn [ctx] (authenticate (get-in ctx [:request :headers])))
+  :authorized? (fn [ctx] (authenticated? (get-in ctx [:request :headers])))
+  :handle-not-found (fn [_] (missing-response))
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (fn [_] (forbidden-response))})
 

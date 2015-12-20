@@ -3,6 +3,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
+            [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]))
@@ -18,7 +19,7 @@
 ;; The system should support PATCHing the company's :sections property, and handle the following scenarios:
 
 ;; bad - invalid JWToken - 401 Unauthorized
-;; bad - no org-id in JWToken - 401 Unauthorized
+;; bad - no JWToken - 401 Unauthorized
 ;; bad - organization doesn't match companies - 403 Forbidden
 
 ;; bad - no matching company slug - 404 Not Found
@@ -53,7 +54,8 @@
                        :company ["diversity" "values"]}
             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
                                                                         :auth mock/jwtoken-bad})]
-        (:status response) => 401)
+        (:status response) => 401
+        (:body response) => common/unauthorized)
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => ["progress" "financial" "company"]
@@ -66,7 +68,8 @@
                        :company ["diversity" "values"]}
             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
                                                                         :skip-auth true})]
-        (:status response) => 401)
+        (:status response) => 401
+        (:body response) => common/unauthorized)
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => ["progress" "financial" "company"]
@@ -79,7 +82,8 @@
                        :company ["diversity" "values"]}
             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
                                                                         :auth mock/jwtoken-sartre})]
-        (:status response) => 403)
+        (:status response) => 403
+        (:body response) => common/forbidden)
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => ["progress" "financial" "company"]
@@ -91,7 +95,8 @@
       (let [new-order {:progress ["team" "update" "finances" "help"]
                        :company ["diversity" "values"]}
             response (mock/api-request :patch (company-rep/url "foo") {:body {:sections new-order}})]
-        (:status response) => 404)
+        (:status response) => 404
+        (:body response) => "")
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => ["progress" "financial" "company"]

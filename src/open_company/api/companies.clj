@@ -101,7 +101,7 @@
   :available-media-types [company-rep/collection-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
   
-  :allowed-methods [:get]
+  :allowed-methods [:options :get]
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
@@ -116,12 +116,11 @@
   :available-media-types [company-rep/section-list-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
 
-  :allowed-methods [:get]
-  :exists? (fn [_] (get-company slug))
-
+  :allowed-methods [:options :get]
   :allowed? (fn [ctx] (common/allow-org-members slug ctx))
 
   ;; Get a list of sections
+  :exists? (fn [_] (get-company slug))
   :handle-ok (fn [_] sections))
 
 ;; ----- Routes -----

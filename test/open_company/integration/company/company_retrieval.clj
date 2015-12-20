@@ -4,6 +4,7 @@
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
+            [open-company.api.common :as common-api]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
@@ -54,10 +55,14 @@
   (facts "about failing to retrieve a company"
 
     (fact "with an invalid JWToken"
-      (:status (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})) => 401)
+      (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})]
+        (:status response) => 401
+        (:body response) => common-api/unauthorized))
 
     (fact "that doesn't exist"
-      (:status (mock/api-request :get (company-rep/url "foo"))) => 404))
+      (let [response (mock/api-request :get (company-rep/url "foo"))]
+        (:status response) => 404
+        (:body response) => "")))
 
   (facts "about retrieving a company"
 

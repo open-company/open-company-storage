@@ -5,8 +5,8 @@
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [open-company.lib.slugify :refer (slugify)]
+            [open-company.api.common :as common]
             [open-company.resources.company :as company]
-            [open-company.representations.common :refer (GET)]
             [open-company.representations.company :as company-rep]))
 
 ;; ----- Startup -----
@@ -24,7 +24,7 @@
 ;; bad - invalid JWToken - 401 Unauthorized
 
 ;; all good - no JWToken - 200 OK
-;; all good - JWToken - 200 OK
+;; all good - valid JWToken - 200 OK
 
 ;; TODO
 ;; no accept
@@ -46,7 +46,9 @@
   (fact "about failing to list companies"
 
     (fact "with a bad JWToken"
-      (:status (mock/api-request :get "/companies" {:auth mock/jwtoken-bad})) => 401))
+      (let [response (mock/api-request :get "/companies" {:auth mock/jwtoken-bad})]
+        (:status response) => 401
+        (:body response) => common/unauthorized)))
 
   (facts "about listing companies"
 

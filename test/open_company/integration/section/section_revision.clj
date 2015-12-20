@@ -3,6 +3,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
+            [open-company.api.common :as common]
             [open-company.resources.company :as c]
             [open-company.resources.section :as s]
             [open-company.representations.section :as section-rep]))
@@ -62,7 +63,8 @@
         (fact "with an invalid JWToken"
           (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
                                                                                     :auth mock/jwtoken-bad})]
-            (:status response) => 401)
+            (:status response) => 401
+            (:body response) => common/unauthorized)
           ;; verify the initial section is unchanged
           (s/get-section r/slug :update) => (contains r/text-section-1)
           (count (s/get-revisions r/slug :update)) => 1)
@@ -70,29 +72,33 @@
         (fact "with no JWToken"
           (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
                                                                                     :skip-auth true})]
-            (:status response) => 401)
+            (:status response) => 401
+            (:body response) => common/unauthorized)
           ;; verify the initial section is unchanged
           (s/get-section r/slug :update) => (contains r/text-section-1)
           (count (s/get-revisions r/slug :update)) => 1)
 
         (fact "with an organization that doesn't match the company"
-            (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
-                                                                                      :auth mock/jwtoken-sartre})]
-              (:status response) => 403)
-            ;; verify the initial section is unchanged
-            (s/get-section r/slug :update) => (contains r/text-section-1)
-            (count (s/get-revisions r/slug :update)) => 1)
+          (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
+                                                                                    :auth mock/jwtoken-sartre})]
+            (:status response) => 403
+            (:body response) => common/forbidden)
+          ;; verify the initial section is unchanged
+          (s/get-section r/slug :update) => (contains r/text-section-1)
+          (count (s/get-revisions r/slug :update)) => 1)
 
         (fact "with no company matching the company slug"
           (let [response (mock/api-request method (section-rep/url "foo" :update) {:body r/text-section-2})]
-            (:status response) => 404)
+            (:status response) => 404
+            (:body response) => "")
           ;; verify the initial section is unchanged
           (s/get-section r/slug :update) => (contains r/text-section-1)
           (count (s/get-revisions r/slug :update)) => 1)
 
         (fact "with no section matching the section slug"
           (let [response (mock/api-request method (section-rep/url r/slug :finances) {:body r/text-section-2})]
-            (:status response) => 404)
+            (:status response) => 404
+            (:body response) => "")
           ;; verify the initial section is unchanged
           (s/get-section r/slug :update) => (contains r/text-section-1)
           (count (s/get-revisions r/slug :update)) => 1)))))
