@@ -63,26 +63,11 @@
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
   :allowed? (by-method {
-    ;; allow unless bad JWToken
-    :options (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (company/get-company slug) (:jwtoken ctx) true)
-                    true))
-    ;; allow unless bad JWToken
-    :get (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (company/get-company slug) (:jwtoken ctx) true)
-                    true))
-    ;; allow only for the company org's users
-    :put (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (company/get-company slug) (:jwtoken ctx))
-                    false))
-    ;; allow only for the company org's users
-    :patch (fn [ctx] (if (:jwtoken ctx)
-                      (common/authorize (company/get-company slug) (:jwtoken ctx))
-                      false))
-    ;; allow only for the company org's users
-    :delete (fn [ctx] (if (:jwtoken ctx)
-                      (common/authorize (company/get-company slug) (:jwtoken ctx))
-                      false))})
+    :options (fn [ctx] (common/allow-anonymous slug ctx))
+    :get (fn [ctx] (common/allow-anonymous slug ctx))
+    :put (fn [ctx] (common/allow-org-members slug ctx))
+    :patch (fn [ctx] (common/allow-org-members slug ctx))
+    :delete (fn [ctx] (common/allow-org-members slug ctx))})
 
   :processable? (by-method {
     :get true
@@ -131,10 +116,10 @@
   :available-media-types [company-rep/section-list-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
 
-  :allowed? (fn [ctx] (common/authorize (:company ctx) (:jwtoken ctx)))
-
   :allowed-methods [:get]
   :exists? (fn [_] (get-company slug))
+
+  :allowed? (fn [ctx] (common/allow-org-members slug ctx))
 
   ;; Get a list of sections
   :handle-ok (fn [_] sections))

@@ -4,7 +4,8 @@
             [cheshire.core :as json]
             [liberator.representation :refer (ring-response)]
             [liberator.core :refer (by-method)]
-            [open-company.lib.jwt :as jwt]))
+            [open-company.lib.jwt :as jwt]
+            [open-company.resources.company :as company]))
 
 (def UTF8 "utf-8")
 
@@ -139,6 +140,20 @@
     (if (or allow-anonymous (nil? company) (authorized-to-company? {:company company :user user}))
       {:user user :author author}
       false))))
+
+(defn allow-anonymous
+  "Allow unless there is a JWToken provided and it's invalid"
+  [company-slug ctx]
+  (if-let [jwtoken (:jwtoken ctx)]
+    (authorize (company/get-company company-slug) jwtoken true)
+    true))
+
+(defn allow-org-members
+  "Allow only if the user's JWToken indicates membership in the company's org"
+  [company-slug ctx]
+  (if-let [jwtoken (:jwtoken ctx)]
+    (authorize (company/get-company company-slug) jwtoken)
+    false))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

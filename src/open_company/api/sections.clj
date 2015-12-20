@@ -40,22 +40,10 @@
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
   :allowed? (by-method {
-    ;; allow unless bad JWToken
-    :options (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (company/get-company company-slug) (:jwtoken ctx) true)
-                    true))
-    ;; allow unless bad JWToken
-    :get (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (company/get-company company-slug) (:jwtoken ctx) true)
-                    true))
-    ;; allow only for the company org's users
-    :put (fn [ctx] (if (:jwtoken ctx)
-                    (common/authorize (company/get-company company-slug) (:jwtoken ctx))
-                    false))
-    ;; allow only for the company org's users
-    :patch (fn [ctx] (if (:jwtoken ctx)
-                      (common/authorize (company/get-company company-slug) (:jwtoken ctx))
-                      false))})
+    :options (fn [ctx] (common/allow-anonymous company-slug ctx))
+    :get (fn [ctx] (common/allow-anonymous company-slug ctx))
+    :put (fn [ctx] (common/allow-org-members company-slug ctx))
+    :patch (fn [ctx] (common/allow-org-members company-slug ctx))})
 
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
