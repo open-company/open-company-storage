@@ -100,7 +100,7 @@
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/collection-media-type]
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
-  
+
   :allowed-methods [:options :get]
 
   ;; Get a list of companies

@@ -41,7 +41,7 @@
 
 (defun- company-links
   "Add the HATEAOS links to the company"
-  
+
   ; read/only links
   ([company false] (assoc company :links [(self-link company)]))
 

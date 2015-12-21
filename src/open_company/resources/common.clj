@@ -21,7 +21,7 @@
 
 (defun sections-for
   "Return all the sections for the provided category name in order."
-  
+
   ([category-name :guard string?] (sections-for (keyword category-name)))
 
   ([category-name :guard keyword?]
@@ -34,7 +34,7 @@
 
 (defun category-for
   "Return the category name for the provided section-name."
-  
+
   ([section-name :guard string?] (category-for (keyword section-name)))
 
   ([section-name :guard keyword?]

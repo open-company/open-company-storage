@@ -121,7 +121,7 @@
 
 (defn- authorize
   "
-  If a user is authorized to this company, or the request is for anonymous access, 
+  If a user is authorized to this company, or the request is for anonymous access,
   add the user's details to the Liberator context at :user and authorship properties at :author,
   otherwise return false if the user isn't authorized to the company org and it's not anonymous.
   "

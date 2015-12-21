@@ -55,11 +55,11 @@
 
   (with-state-changes [(before :facts (s/put-section r/slug :update r/text-section-1 r/coyote))]
 
-        
+
     (facts "about failing to update a section"
 
       (doseq [method [:put :patch]]
-        
+
         (fact "with an invalid JWToken"
           (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
                                                                                     :auth mock/jwtoken-bad})]

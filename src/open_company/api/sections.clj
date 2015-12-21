@@ -3,7 +3,6 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
-            [open-company.resources.company :as company]
             [open-company.resources.section :as section-res]
             [open-company.representations.section :as section-rep]))
 

@@ -64,12 +64,12 @@
         pool (if connection
                 (assoc pool :connections connections)
                 pool)]
-    
+
     ;; handle the case of no connection available
     (if-not connection (let [msg "No connection available from DB pool"]
                         (error msg)
                         (throw (RuntimeException. msg))))
-    
+
     ;; return the new state of the pool, and the connection we got
     (trace "Using connection: " connection)
     [pool connection]))

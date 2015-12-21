@@ -17,7 +17,7 @@
 
 (defun- import-sections
   "Add each section to the company recursively."
-  ([_company-slug _sections :guard empty? org-id] true)
+  ([_company-slug _sections :guard empty? _org-id] true)
 
   ([company-slug sections org-id]
   (let [section (first sections)
@@ -26,7 +26,7 @@
         author (:author section)
         message (str "'" section-name "' at " timestamp " by " (:name author) ".")]
     (println (str "Creating " message))
-    (if 
+    (if
       (section/put-section company-slug section-name (:section section) (assoc author :org-id org-id) timestamp)
       (println (str "SUCCESS: created " message))
       (println (str "FAILURE: creating " message))))
