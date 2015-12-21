@@ -3,7 +3,7 @@
   :company {
     :slug "yoyo"
     :name "YoYo"
-    :org-id "T06SBMH60"
+    :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-03-01T12:59:28.000Z"
     :author {

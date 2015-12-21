@@ -175,14 +175,14 @@ Then enter these commands one-by-one, noting the output:
 ;; Create some companies
 
 (def author {
-  :user-id "123456"
+  :user-id "slack:123456"
   :name "coyote"
   :real-name "Wile E. Coyote"
   :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
   :email "wile.e.coyote@acme.com"
   :owner false
   :admin false
-  :org-id "98765"
+  :org-id "slack:98765"
 })
 
 (company/create-company

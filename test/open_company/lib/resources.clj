@@ -18,34 +18,34 @@
 ;; ----- Authors -----
 
 (def coyote {
-  :user-id "123456"
+  :user-id "slack:123456"
   :name "coyote"
   :real-name "Wile E. Coyote"
   :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
   :email "wile.e.coyote@acme.com"
   :owner false
   :admin false
-  :org-id "98765"})
+  :org-id "slack:98765"})
 
 (def camus {
-  :user-id "1960-01-04"
+  :user-id "slack:1960-01-04"
   :name "camus"
   :real-name "Albert Camus"
   :avatar "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
   :email "albert@combat.org"
   :owner true
   :admin true
-  :org-id "98765"})
+  :org-id "slack:98765"})
 
 (def sartre {
-  :user-id "1980-06-21"
+  :user-id "slack:1980-06-21"
   :name "sartre"
   :real-name "Jean-Paul Sartre"
   :avatar "http://existentialismtoday.com/wp-content/uploads/2015/11/sartre_22.jpg"
   :email "sartre@lyceela.org"
   :owner true
   :admin true
-  :org-id "87654"})
+  :org-id "slack:87654"})
 
 ;; ----- Companies -----
 
@@ -53,18 +53,18 @@
   :slug slug
   :name "OPENcompany"
   :currency "USD"
-  :org-id "98765"})
+  :org-id "slack:98765"})
 
 (def buffer {
   :slug "buffer"
   :name "Buffer"
   :currency "USD"
-  :org-id "42-hut-hut"})
+  :org-id "slack:42-hut-hut"})
 
 (def uni {
   :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
   :currency "FKP"
-  :org-id "98765"})
+  :org-id "slack:98765"})
 
 ;; ----- Sections -----
 

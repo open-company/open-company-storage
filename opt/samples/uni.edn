@@ -3,7 +3,7 @@
   :company {
     :slug "uni"
     :name "Unicode.io"
-    :org-id "T06SBMH60"
+    :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-10-29T07:02:00.000Z"
     :author {

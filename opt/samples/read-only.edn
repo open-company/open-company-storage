@@ -3,7 +3,7 @@
   :company {
     :slug "read-only"
     :name "ReadOnly"
-    :org-id "not-your-org"
+    :org-id "slack:not-your-org"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"
     :author {
