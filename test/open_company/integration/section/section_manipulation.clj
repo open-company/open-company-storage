@@ -18,14 +18,14 @@
 
 ;; The system should support PATCHing the company's :sections property, and handle the following scenarios:
 
-;; bad - invalid JWToken - 401 Unauthorized
-;; bad - no JWToken - 401 Unauthorized
-;; bad - organization doesn't match companies - 403 Forbidden
+;; fail - invalid JWToken - 401 Unauthorized
+;; fail - no JWToken - 401 Unauthorized
+;; fail - organization doesn't match companies - 403 Forbidden
 
-;; bad - no matching company slug - 404 Not Found
+;; fail - no matching company slug - 404 Not Found
 
-;; good - reorder sections
-;; good - remove sections
+;; success - reorder sections
+;; success - remove sections
 
 ;; TODO
 ;; no accept

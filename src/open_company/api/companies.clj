@@ -1,6 +1,6 @@
 (ns open-company.api.companies
   (:require [defun :refer (defun)]
-            [compojure.core :refer (defroutes ANY GET)]
+            [compojure.core :refer (defroutes ANY OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
             [open-company.config :as config]
             [open-company.api.common :as common]
@@ -30,6 +30,13 @@
     :invalid-name (common/unprocessable-entity-response "Company name is required.")
     :invalid-slug (common/unprocessable-entity-response "Invalid slug.")
     (common/unprocessable-entity-response "Not processable.")))
+
+(defn- options-for-company [slug ctx]
+  (if-let [company (company/get-company slug)]
+    (if (common/authorized-to-company? (assoc ctx :company company))
+      (common/options-response [:options :get :put :patch :delete])
+      (common/options-response [:options :get]))
+    (common/missing-response)))
 
 ;; ----- Actions -----
 
@@ -70,6 +77,7 @@
     :delete (fn [ctx] (common/allow-org-members slug ctx))})
 
   :processable? (by-method {
+    :options true
     :get true
     :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
@@ -82,6 +90,7 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
+  :handle-options (fn [ctx] (options-for-company slug ctx))
 
   ;; Delete a company
   :delete! (fn [_] (company/delete-company slug))
@@ -99,9 +108,10 @@
 
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/collection-media-type]
-  :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
-
   :allowed-methods [:options :get]
+
+  :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
+  :handle-options (common/options-response [:options :get])
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
@@ -114,10 +124,11 @@
 
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/section-list-media-type]
-  :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
-
   :allowed-methods [:options :get]
   :allowed? (fn [ctx] (common/allow-org-members slug ctx))
+
+  :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
+  :handle-options (if (company/get-company slug) (common/options-response [:options :get]) (common/missing-response))
 
   ;; Get a list of sections
   :exists? (fn [_] (get-company slug))
@@ -126,9 +137,13 @@
 ;; ----- Routes -----
 
 (defroutes company-routes
+  (OPTIONS "/companies/:slug/section/new" [slug] (section-list slug))
+  (OPTIONS "/companies/:slug/section/new/" [slug] (section-list slug))
   (GET "/companies/:slug/section/new" [slug] (section-list slug))
   (GET "/companies/:slug/section/new/" [slug] (section-list slug))
   (ANY "/companies/:slug" [slug] (company slug))
   (ANY "/companies/:slug/" [slug] (company slug))
+  (OPTIONS "/companies/" [] (company-list))
+  (OPTIONS "/companies" [] (company-list))
   (GET "/companies/" [] (company-list))
   (GET "/companies" [] (company-list)))

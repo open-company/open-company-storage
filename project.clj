@@ -90,7 +90,8 @@
       :injections [
         (require '[aprint.core :refer (aprint ap)]
                  '[clojure.stacktrace :refer (print-stack-trace)]
-                 '[clj-time.format :as t]
+                 '[clj-time.core :as t]
+                 '[clj-time.format :as f]
                  '[clojure.string :as s])
       ]
     }]

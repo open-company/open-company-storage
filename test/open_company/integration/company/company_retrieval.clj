@@ -22,15 +22,23 @@
 
 ;; The system should return a representation of the company and handle the following scenarios:
 
+;; OPTIONS
+
+;; fail - invalid JWToken - 401 Unauthorized
+;; fail - no matching company slug - 404 Not Found
+
+;; success - matching JWToken - 204 No Content
+;; success - no JWToken - 204 No Content
+;; success - not matching JWToken - 204 No Content
+
 ;; GET
 
-;; bad - invalid JWToken - 401 Unauthorized
+;; fail - invalid JWToken - 401 Unauthorized
+;; fail - no matching company slug - 404 Not Found
 
-;; bad - no matching company slug - 404 Not Found
-
-;; all good - matching JWToken - 200 OK
-;; all good - no JWToken - 200 OK
-;; all good - not matching JWToken - 200 OK
+;; success - matching JWToken - 200 OK
+;; success - no JWToken - 200 OK
+;; success - not matching JWToken - 200 OK
 
 ;; TODO
 ;; no accept
@@ -42,6 +50,9 @@
 
 ;; ----- Tests -----
 
+(def limited-options "OPTIONS, GET")
+(def full-options "OPTIONS, GET, PUT, PATCH, DELETE")
+
 (with-state-changes [(before :facts (do (company/delete-all-companies!)
                                         (company/create-company r/open r/coyote)
                                         (section/put-section r/slug :update r/text-section-1 r/coyote)
@@ -51,6 +62,36 @@
                                         (section/put-section r/slug :diversity r/text-section-2 r/coyote)
                                         (section/put-section r/slug :values r/text-section-1 r/coyote)))
                      (after :facts (company/delete-all-companies!))]
+
+  (facts "about available options for retrieving a company"
+
+    (fact "with a bad JWToken"
+      (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-bad})]
+        (:status response) => 401
+        (:body response) => common-api/unauthorized))
+
+    (fact "with no company matching the company slug"
+      (let [response (mock/api-request :options (company-rep/url "foo"))]
+        (:status response) => 404
+        (:body response) => ""))
+
+    (fact "with no JWToken"
+      (let [response (mock/api-request :options (company-rep/url r/open) {:skip-auth true})]
+        (:status response) => 204
+        (:body response) => ""
+        ((:headers response) "Allow") => limited-options))
+
+    (fact "with an organization that doesn't match the company"
+      (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-sartre})]
+        (:status response) => 204
+        (:body response) => ""
+        ((:headers response) "Allow") => limited-options))
+
+    (fact "with a user's org in a JWToken that matches the company's org"
+      (let [response (mock/api-request :options (company-rep/url r/open))]
+        (:status response) => 204
+        (:body response) => ""
+        ((:headers response) "Allow") => full-options)))
 
   (facts "about failing to retrieve a company"
 

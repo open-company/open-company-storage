@@ -19,12 +19,19 @@
 
 ;; The system should return a collection of companies and handle the following scenarios:
 
+;; OPTIONS
+
+;; fail - invalid JWToken - 401 Unauthorized
+
+;; success - no JWToken - 204 No Content
+;; success - valid JWToken - 204 No Content
+
 ;; GET
 
-;; bad - invalid JWToken - 401 Unauthorized
+;; fail - invalid JWToken - 401 Unauthorized
 
-;; all good - no JWToken - 200 OK
-;; all good - valid JWToken - 200 OK
+;; success - no JWToken - 200 OK
+;; success - valid JWToken - 200 OK
 
 ;; TODO
 ;; no accept
@@ -36,12 +43,33 @@
 
 ;; ----- Tests -----
 
+(def options  "OPTIONS, GET")
+
 (with-state-changes [(before :facts (do
                                       (company/delete-all-companies!)
                                       (company/create-company r/open r/coyote)
                                       (company/create-company r/uni r/camus)
                                       (company/create-company r/buffer r/sartre)))
                      (after :facts (company/delete-all-companies!))]
+
+  (facts "about available options in listing companies"
+
+    (fact "with a bad JWToken"
+      (let [response (mock/api-request :options "/companies" {:auth mock/jwtoken-bad})]
+        (:status response) => 401
+        (:body response) => common/unauthorized))
+
+    (fact "with no JWToken"
+      (let [response (mock/api-request :options "/companies" {:skip-auth true})]
+        (:status response) => 204
+        (:body response) => ""
+        ((:headers response) "Allow") => options))
+
+    (fact "with a valid JWToken"
+      (let [response (mock/api-request :options "/companies")]
+        (:status response) => 204
+        (:body response) => ""
+        ((:headers response) "Allow") => options)))
 
   (fact "about failing to list companies"
 

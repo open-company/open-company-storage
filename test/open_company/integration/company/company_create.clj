@@ -12,6 +12,8 @@
 
 ;; The system should store newly created valid companies and handle the following scenarios:
 
+;; OPTIONS
+
 ;; PUT / POST
 ;; all good - 201 Created
 ;; all good, no ticker symbol in body - 201 Created

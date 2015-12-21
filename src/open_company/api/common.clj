@@ -31,17 +31,22 @@
 
 ;; ----- Responses -----
 
+(defn options-response [methods]
+  (ring-response {
+    :status 204
+    :headers {"Allow" (s/join ", " (map s/upper-case (map name methods)))}}))
+
 (defn missing-response
   ([]
-    (ring-response {
-      :status 404
-      :body ""
-      :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
+  (ring-response {
+    :status 404
+    :body ""
+    :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}}))
   ([reason]
-    (ring-response {
-      :status 404
-      :body reason
-      :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}})))
+  (ring-response {
+    :status 404
+    :body reason
+    :headers {"Content-Type" (format "text/plain;charset=%s" UTF8)}})))
 
 (def unauthorized "Not authorized. Provide a Bearer JWToken in the Authorization header.")
 (defn unauthorized-response []
@@ -160,6 +165,7 @@
   :authorized? (fn [ctx] (authenticated? (get-in ctx [:request :headers]) true))
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (by-method {
+    :options (forbidden-response)
     :get (forbidden-response)
     :post (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
     :put (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
@@ -177,9 +183,15 @@
   :available-charsets [UTF8]
   :handle-not-found (fn [_] (missing-response))
   :handle-not-implemented (fn [_] (missing-response))
-  :allowed-methods [:options :get :put :delete :patch]
-  :respond-with-entity? (by-method {:put true :patch true :delete false})
+  :allowed-methods [:options :get :put :patch :delete]
+  :respond-with-entity? (by-method {
+    :options false
+    :get true
+    :put true
+    :patch true
+    :delete false})
   :malformed? (by-method {
+    :options false
     :get false
     :delete false
     :put (fn [ctx] (malformed-json? ctx))

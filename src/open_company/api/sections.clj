@@ -1,8 +1,10 @@
 (ns open-company.api.sections
-  (:require [compojure.core :refer (routes ANY)]
+  (:require [if-let.core :refer (if-let*)]
+            [compojure.core :refer (routes ANY)]
             [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
+            [open-company.resources.company :as company-res]
             [open-company.resources.section :as section-res]
             [open-company.representations.section :as section-rep]))
 
@@ -18,6 +20,14 @@
     :bad-company (common/missing-response)
     :bad-section-name (common/missing-response)
     (common/unprocessable-entity-response "Not processable.")))
+
+(defn- options-for-section [company-slug section-name ctx]
+  (if-let* [company (company-res/get-company company-slug)
+            section (section-res/get-section company-slug section-name)]
+    (if (common/authorized-to-company? (assoc ctx :company company))
+      (common/options-response [:options :get :put :patch])
+      (common/options-response [:options :get]))
+    (common/missing-response)))
 
 ;; ----- Actions -----
 
@@ -46,6 +56,7 @@
 
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
+    :options true
     :get true
     :put (fn [ctx] (common/check-input
                       (section-res/valid-section company-slug section-name
@@ -66,6 +77,7 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 section-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
+  :handle-options (fn [ctx] (options-for-section company-slug section-name ctx))
 
   ;; Create or update a section
   :new? (by-method {:put (not (seq (section-res/list-revisions company-slug section-name)))})

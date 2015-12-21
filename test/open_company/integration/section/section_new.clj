@@ -19,15 +19,23 @@
 
 ;; The system should return a collection of section templates and handle the following scenarios:
 
+;; OPTIONS
+
+;; fail - invalid JWToken - 401 Unauthorized
+;; fail - no JWToken - 401 Unauthorized
+;; fail - organization doesn't match companies - 403 Forbidden
+;; fail - no matching company slug - 404 Not Found
+
+;; success - matching JWToken - 204 No Content
+
 ;; GET
 
-;; bad - invalid JWToken - 401 Unauthorized
-;; bad - no JWToken - 401 Unauthorized
-;; bad - organization doesn't match companies - 403 Forbidden
+;; fail - invalid JWToken - 401 Unauthorized
+;; fail - no JWToken - 401 Unauthorized
+;; fail - organization doesn't match companies - 403 Forbidden
+;; fail - no matching company slug - 404 Not Found
 
-;; bad - no matching company slug - 404 Not Found
-
-;; all good - matching JWToken - 200 OK
+;; success - matching JWToken - 200 OK
 
 ;; TODO
 ;; no accept
@@ -39,26 +47,55 @@
 
 ;; ----- Tests -----
 
+(def url (str (company-rep/url r/slug) "/section/new"))
+
 (with-state-changes [(before :facts (do
                                       (company/delete-all-companies!)
                                       (company/create-company r/open r/coyote)))
                      (after :facts (company/delete-all-companies!))]
 
-  (fact "about failing to get new section templates"
+  (facts "about available options for new section templates"
 
     (fact "with a bad JWToken"
-      (let [response (mock/api-request :get (str (company-rep/url r/slug) "/section/new") {:auth mock/jwtoken-bad})]
+      (let [response (mock/api-request :options url {:auth mock/jwtoken-bad})]
         (:status response) => 401
         (:body response) => common/unauthorized))
 
-    (fact "without a JWToken"
-      (let [response (mock/api-request :get (str (company-rep/url r/slug) "/section/new") {:skip-auth true})]
+    (fact "with no JWToken"
+      (let [response (mock/api-request :options url {:skip-auth true})]
         (:status response) => 401
         (:body response) => common/unauthorized))
 
     (fact "with an organization that doesn't match the company"
-      (let [response (mock/api-request :get (str (company-rep/url r/slug) "/section/new") {:auth mock/jwtoken-sartre})]
-        (println (:headers response))
+      (let [response (mock/api-request :options url {:auth mock/jwtoken-sartre})]
+        (:status response) => 403
+        (:body response) => common/forbidden))
+
+    (fact "with no company matching the company slug"
+      (let [response (mock/api-request :options (str (company-rep/url "foo") "/section/new"))]
+        (:status response) => 404
+        (:body response) => ""))
+
+    (fact "with a user's org in a JWToken that matches the company's org"
+      (let [response (mock/api-request :options url)]
+        (:status response) => 204
+        (:body response) => ""
+        ((:headers response) "Allow") => "OPTIONS, GET")))
+
+  (facts "about failing to get new section templates"
+
+    (fact "with a bad JWToken"
+      (let [response (mock/api-request :get url {:auth mock/jwtoken-bad})]
+        (:status response) => 401
+        (:body response) => common/unauthorized))
+
+    (fact "without a JWToken"
+      (let [response (mock/api-request :get url {:skip-auth true})]
+        (:status response) => 401
+        (:body response) => common/unauthorized))
+
+    (fact "with an organization that doesn't match the company"
+      (let [response (mock/api-request :get url {:auth mock/jwtoken-sartre})]
         (:status response) => 403
         (:body response) => common/forbidden))
 
@@ -70,6 +107,6 @@
   (fact "about getting new section templates"
 
     (fact "with a user's org in a JWToken that matches the company's org"
-      (let [response (mock/api-request :get (str (company-rep/url r/slug) "/section/new"))]
+      (let [response (mock/api-request :get url)]
         (:status response) => 200
         (json/decode (:body response)) => config/sections))))
