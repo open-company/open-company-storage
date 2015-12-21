@@ -23,7 +23,7 @@
 
 (defn- options-for-section [company-slug section-name ctx]
   (if-let* [company (company-res/get-company company-slug)
-            section (section-res/get-section company-slug section-name)]
+            _section (section-res/get-section company-slug section-name)]
     (if (common/authorized-to-company? (assoc ctx :company company))
       (common/options-response [:options :get :put :patch])
       (common/options-response [:options :get]))
