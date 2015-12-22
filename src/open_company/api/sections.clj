@@ -81,8 +81,8 @@
 
   ;; Create or update a section
   :new? (by-method {:put (not (seq (section-res/list-revisions company-slug section-name)))})
-  :put! (fn [ctx] (put-section company-slug section-name (:data ctx) (:author ctx)))
-  :patch! (fn [ctx] (put-section company-slug section-name (merge (:section ctx) (:data ctx)) (:author ctx)))
+  :put! (fn [ctx] (put-section company-slug section-name (:data ctx) (:user ctx)))
+  :patch! (fn [ctx] (put-section company-slug section-name (merge (:section ctx) (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (section-location-response (:updated-section ctx))))
 
 ;; ----- Routes -----

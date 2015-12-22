@@ -4,6 +4,7 @@
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [open-company.config :as config]
+            [open-company.resources.common :as common]
             [open-company.resources.company :as c]
             [open-company.resources.section :as s]))
 
@@ -56,7 +57,7 @@
         (s/put-section r/slug :update r/text-section-1 r/coyote)
         (let [section (s/get-section r/slug :update)
               updated-at (:updated-at section)]
-          (:author section) => r/coyote
+          (:author section) => (contains (common/author-for-user r/coyote))
           (:body section) => (:body r/text-section-1)
           (:title section) => (:title r/text-section-1)
           (check/timestamp? updated-at) => true
@@ -85,14 +86,14 @@
                 updated-at (:updated-at section)
                 created-at (:created-at section)
                 notes (:notes section)]
-            (:author section) => r/coyote
+            (:author section) => (contains (common/author-for-user r/coyote))
             (:data section) => (:data r/finances-notes-section-2)
             (:title section) => (:title r/finances-notes-section-2)
             (check/timestamp? updated-at) => true
             (check/about-now? updated-at) => true
             (= updated-at created-at) => true
             (:body notes) => (get-in r/finances-notes-section-2 [:notes :body])
-            (:author notes) => r/coyote
+            (:author notes) => (contains (common/author-for-user r/coyote))
             (:updated-at notes) => updated-at)
           (count (s/get-revisions r/slug :finances)) => 2)
 
@@ -101,7 +102,7 @@
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => r/camus
+            (:author section) => (contains (common/author-for-user r/camus))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (check/timestamp? updated-at) => true
@@ -115,7 +116,7 @@
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => r/coyote
+            (:author section) => (contains (common/author-for-user r/coyote))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (check/timestamp? updated-at) => true
@@ -129,7 +130,7 @@
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => r/coyote
+            (:author section) => (contains (common/author-for-user r/coyote))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (check/timestamp? updated-at) => true
@@ -146,7 +147,7 @@
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => r/coyote
+            (:author section) => (contains (common/author-for-user r/coyote))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (:notes section) => nil
@@ -161,14 +162,14 @@
                 updated-at (:updated-at section)
                 created-at (:created-at section)
                 notes (:notes section)]
-            (:author section) => r/camus
+            (:author section) => (contains (common/author-for-user r/camus))
             (:data section) => (:data r/finances-notes-section-2)
             (:title section) => (:title r/finances-notes-section-2)
             (check/timestamp? updated-at) => true
             (check/about-now? updated-at) => true
             (= updated-at created-at) => true
             (:body notes) => (get-in r/finances-notes-section-2 [:notes :body])
-            (:author notes) => r/camus
+            (:author notes) => (contains (common/author-for-user r/camus))
             (:updated-at notes) => updated-at)
           (count (s/get-revisions r/slug :finances)) => 2)
 
@@ -179,14 +180,14 @@
                 updated-at (:updated-at section)
                 created-at (:created-at section)
                 notes (:notes section)]
-            (:author section) => r/coyote
+            (:author section) => (contains (common/author-for-user r/coyote))
             (:data section) => (:data r/finances-notes-section-2)
             (:title section) => (:title r/finances-notes-section-2)
             (check/timestamp? updated-at) => true
             (check/about-now? updated-at) => true
             (= created-at updated-at) => true
             (:body notes) => (get-in r/finances-notes-section-2 [:notes :body])
-            (:author notes) => r/coyote
+            (:author notes) => (contains (common/author-for-user r/coyote))
             (:updated-at notes) => updated-at)
           (count (s/get-revisions r/slug :finances)) => 2)
 
@@ -201,7 +202,7 @@
           (let [section (s/get-section r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => r/coyote
+            (:author section) => (contains (common/author-for-user r/coyote))
             (:data section) => (:data r/finances-notes-section-2)
             (:title section) => (:title r/finances-notes-section-2)
             (check/timestamp? updated-at) => true

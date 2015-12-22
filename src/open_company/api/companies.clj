@@ -44,19 +44,19 @@
   (if-let [company (company/get-company slug)]
     {:company company}))
 
-(defn- put-company [slug company author]
+(defn- put-company [slug company user]
   (let [full-company (assoc company :slug slug)]
-    {:updated-company (company/put-company slug full-company author)}))
+    {:updated-company (company/put-company slug full-company user)}))
 
-(defn- patch-company [slug company-updates author]
+(defn- patch-company [slug company-updates user]
   (let [original-company (company/get-company slug)
         section-names (clojure.set/intersection (set (keys company-updates)) common-res/sections)
         updated-sections (->> section-names
-          (map #(section/put-section slug % (company-updates %) author)) ; put each section that's in the patch
+          (map #(section/put-section slug % (company-updates %) user)) ; put each section that's in the patch
           (map #(dissoc % :id :section-name))) ; not needed for sections in company
         patch-updates (merge company-updates (zipmap section-names updated-sections))] ; updated sections & anythig else
     ;; update the company
-    {:updated-company (company/put-company slug (merge original-company patch-updates) author)}))
+    {:updated-company (company/put-company slug (merge original-company patch-updates) user)}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -97,8 +97,8 @@
 
   ;; Create or update a company
   :new? (by-method {:put (not (company/get-company slug))})
-  :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:author ctx)))
-  :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:author ctx)))
+  :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:user ctx)))
+  :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
 ;; A resource for a list of all the companies the user has access to.

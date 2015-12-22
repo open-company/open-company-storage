@@ -142,22 +142,23 @@
   "Given the company property map, create the company, returning the property map for the resource or `false`.
   If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword."
 
-  ([company author] (create-company company author (common/current-timestamp)))
+  ([company user] (create-company company user (common/current-timestamp)))
 
   ;; not a map
-  ([_company :guard #(not (map? %)) _author _timestamp] false)
-  ([_company _author :guard #(not (map? %)) _timestamp] false)
+  ([_company :guard #(not (map? %)) _user _timestamp] false)
+  ([_company _user :guard #(not (map? %)) _timestamp] false)
 
   ;; no org-id
-  ([_company _author :guard #(not (:org-id %)) _timestamp] false)
+  ([_company _user :guard #(not (:org-id %)) _timestamp] false)
 
   ;; potentially a valid company
-  ([company author timestamp]
+  ([company user timestamp]
     (let [company-slug (or (:slug company) (slug/slugify (:name company)))
+          author (common/author-for-user user)
           interim-company (-> company
                             (clean) ; remove disallowed properties
                             (assoc :slug company-slug) ; store the slug
-                            (assoc :org-id (:org-id author)) ; store the org
+                            (assoc :org-id (:org-id user)) ; store the org
                             (categories-for) ; add/replace the :categories property
                             (sections-for)) ; add/replace the :sections property
           section-names (flatten (vals (:sections interim-company)))
@@ -200,8 +201,8 @@
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
-  ([slug :guard get-company company _author] (update-company slug company))
-  ([_slug company author] (create-company company author)))
+  ([slug :guard get-company company _user] (update-company slug company))
+  ([_slug company user] (create-company company user)))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."

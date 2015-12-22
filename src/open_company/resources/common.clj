@@ -1,6 +1,7 @@
 (ns open-company.resources.common
   "Resources are any thing stored in the open company platform: companies, reports"
-  (:require [clojure.walk :refer (keywordize-keys)]
+  (:require [clojure.string :as s]
+            [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
             [defun :refer (defun)]
             [clj-time.format :as format]
@@ -72,6 +73,21 @@
   "Remove any reserved properties from the resource."
   [resource]
   (apply dissoc resource reserved-properties))
+
+(defn- name-for
+  "Replace :name in the map with :real-name if it's not blank."
+  [user]
+  (if (s/blank? (:real-name user))
+    user
+    (assoc user :name (:real-name user))))
+
+(defn author-for-user
+  "Extract the :avatar/:image, :user-id and :name (the author fields) from the JWToken claims."
+  [user]
+  (-> user
+    (name-for)
+    (select-keys [:avatar :user-id :name])
+    (clojure.set/rename-keys {:avatar :image})))
 
 ;; ----- Resource CRUD funcitons -----
 

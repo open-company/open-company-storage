@@ -12,23 +12,6 @@
 (def malformed true)
 (def good-json false)
 
-;; ----- Utility functions -----
-
-(defn- name-for
-  "Replace :name in the map with :real-name if it's not blank."
-  [user]
-  (if (s/blank? (:real-name user))
-    user
-    (assoc user :name (:real-name user))))
-
-(defn- author-for
-  "Extract the :avatar/:image, :user-id and :name (the author fields) from the JWToken claims."
-  [user]
-  (-> user
-    (name-for)
-    (select-keys [:avatar :user-id :name])
-    (clojure.set/rename-keys {:avatar :image})))
-
 ;; ----- Responses -----
 
 (defn options-response [methods]
@@ -127,7 +110,7 @@
 (defn- authorize
   "
   If a user is authorized to this company, or the request is for anonymous access,
-  add the user's details to the Liberator context at :user and authorship properties at :author,
+  add the user's details to the Liberator context at :user,
   otherwise return false if the user isn't authorized to the company org and it's not anonymous.
   "
 
@@ -135,13 +118,12 @@
 
   ([company jwtoken allow-anonymous]
   (let [decoded (jwt/decode jwtoken)
-        user (:claims decoded)
-        author (author-for user)]
+        user (:claims decoded)]
     ;; company organization and user organization are allowed not to match if:
     ;; - anonymous access is allowed for this operation
     ;; - there is no company for this operation (meaning usually a 404)
     (if (or allow-anonymous (nil? company) (authorized-to-company? {:company company :user user}))
-      {:user user :author author}
+      {:user user}
       false))))
 
 (defn allow-anonymous

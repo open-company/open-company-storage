@@ -182,20 +182,21 @@
 
   TODO: only :author and :updated-at for notes if it's what has changed
   "
-  ([company-slug section-name section author]
-    (put-section company-slug section-name section author (common/current-timestamp)))
+  ([company-slug section-name section user]
+    (put-section company-slug section-name section user (common/current-timestamp)))
 
-  ;; invalid section or author
-  ([_company-slug _section-name _section :guard #(not (map? %)) _author _timestamp] false)
-  ([_company-slug _section-name _section _author :guard #(not (map? %)) _timestamp] false)
+  ;; invalid section or user
+  ([_company-slug _section-name _section :guard #(not (map? %)) _user _timestamp] false)
+  ([_company-slug _section-name _section _user :guard #(not (map? %)) _timestamp] false)
 
   ;; force section-name to a keyword
-  ([company-slug section-name :guard #(not (keyword? %)) section author timestamp]
-  (put-section company-slug (keyword section-name) section author timestamp))
+  ([company-slug section-name :guard #(not (keyword? %)) section user timestamp]
+  (put-section company-slug (keyword section-name) section user timestamp))
 
-  ([company-slug section-name section author timestamp]
+  ([company-slug section-name section user timestamp]
   (let [original-company (company/get-company company-slug)
         original-section (get-section company-slug section-name)
+        author (common/author-for-user user)
         updated-section (-> section
           (clean)
           (assoc :company-slug company-slug)
@@ -208,7 +209,7 @@
         updated-company (assoc sectioned-company section-name (-> updated-section
           (dissoc :company-slug)
           (dissoc :section-name)))]
-    (if (and (= (:org-id original-company) (:org-id author)) ; author is valid to do this update
+    (if (and (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
              (true? (valid-section company-slug section-name updated-section))) ; update is valid
       (do
         ;; update the company
