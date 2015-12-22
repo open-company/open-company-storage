@@ -186,21 +186,21 @@
             :slug "total-registered-users"
             :name "Total registered users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
             :name "Monthly active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
             :name "Average daily active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
@@ -523,21 +523,21 @@
             :slug "total-registered-users"
             :name "Total registered users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
             :name "Monthly active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
             :name "Average daily active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
@@ -885,21 +885,21 @@
             :slug "total-registered-users"
             :name "Total registered users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
             :name "Monthly active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
             :name "Average daily active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
@@ -1285,21 +1285,21 @@
             :slug "total-registered-users"
             :name "Total registered users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
             :name "Monthly active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
             :name "Average daily active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
@@ -1738,21 +1738,21 @@
             :slug "total-registered-users"
             :name "Total registered users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
             :name "Monthly active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
             :name "Average daily active users"
             :interval "monthly"
-            :unit "users"
+            :unit "number"
             :target "increase"
           }
           {
