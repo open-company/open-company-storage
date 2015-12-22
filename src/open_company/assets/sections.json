@@ -80,6 +80,10 @@
             {
               "unit": "number",
               "name": "A number"
+            },
+            {
+              "unit": "percentage",
+              "name": "%"
             }
           ],          
           "goal": [
