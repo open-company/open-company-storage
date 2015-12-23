@@ -74,16 +74,17 @@
             "quarterly"
           ],
           "units": [
-            "users",
-            "currency",
-            "registrations",
-            "people",
-            "customers",
-            "subscribers",
-            "followers",
-            "likes",
-            "transactions",
-            "views"
+            {
+              "unit": "currency"
+            },
+            {
+              "unit": "number",
+              "name": "A number"
+            },
+            {
+              "unit": "%",
+              "name": "%"
+            }
           ],          
           "goal": [
             "increase",
