@@ -49,7 +49,7 @@
             :slug "arr"
             :name "Annual recurring revenue"
             :interval "monthly"
-            :unit "EUR"
+            :unit "currency"
             :target "increase"
           }
         ]
