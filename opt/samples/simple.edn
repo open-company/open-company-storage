@@ -101,7 +101,7 @@
             :slug "profit"
             :name "Profit"
             :interval "quarterly"
-            :unit "USD"
+            :unit "currency"
             :target "increase"
           }
         ]

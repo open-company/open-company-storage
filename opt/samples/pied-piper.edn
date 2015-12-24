@@ -177,7 +177,7 @@
             :slug "arr"
             :name "Annual recurring revenue"
             :interval "monthly"
-            :unit "USD"
+            :unit "currency"
             :target "increase"
           }
         ]
@@ -384,7 +384,7 @@
             :slug "arr"
             :name "Annual recurring revenue"
             :interval "monthly"
-            :unit "USD"
+            :unit "currency"
             :target "increase"
           }
 
@@ -616,7 +616,7 @@
             :slug "arr"
             :name "Annual recurring revenue"
             :interval "monthly"
-            :unit "USD"
+            :unit "currency"
             :target "increase"
           }
         ]
@@ -886,7 +886,7 @@
             :slug "arr"
             :name "Annual recurring revenue"
             :interval "monthly"
-            :unit "USD"
+            :unit "currency"
             :target "increase"
           }
         ]
