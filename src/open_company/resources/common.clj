@@ -82,11 +82,11 @@
     (assoc user :name (:real-name user))))
 
 (defn author-for-user
-  "Extract the :avatar/:image, :user-id and :name (the author fields) from the JWToken claims."
+  "Extract the :avatar (Slack) / :image (import), :user-id and :name (the author fields) from the JWToken claims."
   [user]
   (-> user
     (name-for)
-    (select-keys [:avatar :user-id :name])
+    (select-keys [:avatar :image :user-id :name])
     (clojure.set/rename-keys {:avatar :image})))
 
 ;; ----- Resource CRUD funcitons -----

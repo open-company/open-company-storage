@@ -86,7 +86,6 @@
             companies (get-in body [:collection :companies])]
         (:status response) => 200
         (map :name companies) => (just (set (map :name [r/open r/uni r/buffer]))) ; verify names
-        (map :name companies) => (just (set (map :name [r/open r/uni r/buffer]))) ; verify names
         (map :slug companies) => (just (set [(:slug r/open) (slugify (:name r/uni)) (:slug r/buffer)])) ; verify slugs
         (doseq [company companies] ; verify HATEOAS links
           (count (:links company)) => 1
