@@ -396,14 +396,24 @@ http://localhost:3000/companies/open
 
 ## Import sample data
 
-To import sample data from an edn file run:
+To import company sample data from an edn file run:
 ```console
 lein run -m open-company.util.sample-data -- ./opt/samples/buffer.edn
 ```
 
-use `-d` to erase the company before starting the process like this:
+use `-d` to erase the company while importing like this:
 ```console
 lein run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
+```
+
+To add all the company sample data in a directory (each file with a `.edn` extension), run:
+```console
+lein run -m open-company.util.sample-data -- ./opt/samples/
+```
+
+use `-d` to erase companies while importing like this:
+```console
+lein run -m open-company.util.sample-data -- -d ./opt/samples/
 ```
 
 To add sample data on a production environment, specify the production database name:
@@ -415,7 +425,7 @@ DB_NAME="open_company" lein run -m open-company.util.sample-data -- -d ./opt/sam
 or
 
 ```console
-lein with-profile prod run -m open-company.util.sample-data -- -d ./opt/samples/buffer.edn
+DB_NAME="open_company" lein run -m open-company.util.sample-data -- -d ./opt/samples/
 ```
 
 
