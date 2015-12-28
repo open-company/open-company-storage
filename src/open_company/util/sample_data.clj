@@ -70,20 +70,23 @@
 
 (defn usage [options-summary]
   (s/join \newline
-     ["This program imports OPENcompany data from an EDN file."
+     ["This program imports OPENcompany data from EDN file(s)."
       ""
-      "Usage: lein run -m open-company.util.sample-data -- [options] company-data.edn"
+      "Usage:"
+      "  lein run -m open-company.util.sample-data -- [options] company-data.edn"
+      "  lein run -m open-company.util.sample-data -- [options] /directory/"
       ""
       "Options:"
       options-summary
       ""
       "Company data: an EDN file with company and sections"
+      "Directory: a directory of comany data EDN files"
       ""
       "Please refer to ./opt/samples for more information on the file format."
       ""]))
 
 (defn data-msg []
-  "\nThe data file must be an EDN file with a :company map and :sections vector.\n")
+  "\nNOTE: The data file(s) must be an EDN file with a :company map and :sections vector.\n")
 
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
@@ -97,12 +100,19 @@
       (:help options) (exit 0 (usage summary))
       (not= (count arguments) 1) (exit 1 (usage summary))
       errors (exit 1 (error-msg errors)))
-    ;; Try the import
+    ;; Get the list of files to import
     (try
-      (let [data (read-string (slurp (first arguments)))]
-        (if (and (map? data) (:company data) (:sections data))
-          (import-company options data)
-          (exit 1 (data-msg))))
+      (let [arg (first arguments)
+            edn-file #".*\.edn$"
+            filenames (if (re-matches edn-file arg)
+                        [arg]
+                        (filter #(re-matches edn-file %) (map #(.toString %) (file-seq (clojure.java.io/file arg)))))]
+        ;; Import each file
+        (doseq [filename filenames]
+          (let [data (read-string (slurp filename))]
+            (if (and (map? data) (:company data) (:sections data))
+              (import-company options data)
+              (exit 1 (data-msg))))))
       (catch Exception e
         (println e)
         (exit 1 (data-msg))))))
