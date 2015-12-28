@@ -105,8 +105,8 @@
       (let [arg (first arguments)
             edn-file #".*\.edn$"
             filenames (if (re-matches edn-file arg)
-                        [arg]
-                        (filter #(re-matches edn-file %) (map #(.toString %) (file-seq (clojure.java.io/file arg)))))]
+                        [arg] ; they specified just 1 file
+                        (filter #(re-matches edn-file %) (map str (file-seq (clojure.java.io/file arg)))))] ; a dir
         ;; Import each file
         (doseq [filename filenames]
           (let [data (read-string (slurp filename))]
