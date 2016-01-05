@@ -26,12 +26,12 @@
     [liberator "0.14.0"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.0.4"] ; Data validation https://github.com/Prismatic/schema
-    [environ "1.0.1"] ; Get environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.2.0-alpha4"] ; Logging https://github.com/ptaoussanis/timbre
-    [raven-clj "1.3.1"] ; Clojure interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+    [environ "1.0.1"] ; Environment settings from different sources https://github.com/weavejester/environ
+    [com.taoensso/timbre "4.2.0"] ; Logging https://github.com/ptaoussanis/timbre
+    [raven-clj "1.3.1"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
-    [org.clojure/tools.cli "0.3.3"] ; command-line parsing https://github.com/clojure/tools.cli
-    [clj-jwt "0.1.1"] ; Clojure library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
+    [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
+    [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
  ]
 
   ;; Production plugins
@@ -57,7 +57,7 @@
       ]
       :plugins [
         [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
-        [jonase/eastwood "0.2.3"] ; Clojure linter https://github.com/jonase/eastwood
+        [jonase/eastwood "0.2.3"] ; Linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [io.aviso/pretty "0.1.20"] ; Pretty print exceptions https://github.com/AvisoNovate/pretty
       ]
