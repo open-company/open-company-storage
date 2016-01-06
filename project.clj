@@ -6,7 +6,7 @@
     :url "http://www.mozilla.org/MPL/2.0/"
   }
 
-  :min-lein-version "2.5.1" ; highest version supported by Travis-CI as of 7/5/2015
+  :min-lein-version "2.5.3" ; highest version supported by Travis-CI as of 7/5/2015
 
   ;; JVM memory
   :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
@@ -32,6 +32,7 @@
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
+    [tupelo "0.1.59"] ; Utility functions https://github.com/cloojure/tupelo
  ]
 
   ;; Production plugins
