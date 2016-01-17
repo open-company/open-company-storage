@@ -27,7 +27,7 @@
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.0.4"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.1"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.2.0"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.2.1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
@@ -54,13 +54,11 @@
       :dependencies [
         [midje "1.8.3"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [io.aviso/pretty "0.1.20"] ; Pretty print exceptions https://github.com/AvisoNovate/pretty
       ]
       :plugins [
         [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.3"] ; Linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
-        [io.aviso/pretty "0.1.20"] ; Pretty print exceptions https://github.com/AvisoNovate/pretty
       ]
     }
 
