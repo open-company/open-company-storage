@@ -13,7 +13,7 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.8.0-RC4"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0-RC5"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.374"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -29,10 +29,10 @@
     [environ "1.0.1"] ; Environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.2.1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
-    [clj-http "2.0.0"] ; HTTP client https://github.com/dakrone/clj-http
+    [clj-http "2.0.1"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
-    [tupelo "0.1.59"] ; Utility functions https://github.com/cloojure/tupelo
+    [tupelo "0.1.60"] ; Utility functions https://github.com/cloojure/tupelo
  ]
 
   ;; Production plugins
