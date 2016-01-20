@@ -13,7 +13,7 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.8.0-RC5"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.8.0"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.374"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
