@@ -2,7 +2,9 @@
 {
   :company {
     :slug "uni"
-    :name "Unicode.io"
+    :name "Ūnīcõdé.īõ"
+    :description "Wė’ré vérÿ fõnd ôf Ūnīcõdé."
+    :logo "/img/samples/unicode.png"
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-10-29T07:02:00.000Z"

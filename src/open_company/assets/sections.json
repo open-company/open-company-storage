@@ -1,6 +1,54 @@
 {
   "categories": [
+    {
+      "name": "company",
+      "title": "Company",
+      "sections": [
 
+          {
+            "name": "diversity",
+            "title": "Diversity",
+            "description": "Diversity goals and current state",
+            "body": "Discuss company policy and goals around gender, race and ethnicity, age, and sexuality.
+            What is the current state of diversity at the company? What are the goals? What changes in hiring,
+            culture and retention are you working on to achieve those goals?",
+            "image": "/img/section-icons/company-diversity.svg",
+            "core": false
+          },
+
+          {
+            "name": "privacy",
+            "title": "Data Privacy",
+            "description": "Company policy on customer information privacy",
+            "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
+            apply to the company? What agreements exist with customers about their data? What
+            do these agreements say in Plain English?",
+            "image": "/img/section-icons/company-privacy.svg",
+            "core": false
+          },
+
+          {
+            "name": "values",
+            "title": "Values",
+            "description": "Core values the company lives by",
+            "body": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
+            they came from, why they're important, and provide examples of how people can use them to guide their
+            decisions, behavior, and actions.",
+            "image": "/img/section-icons/company-values.svg",
+            "core": true
+          },
+
+          {
+            "name": "mission",
+            "title": "Mission",
+            "description": "Why the company exists",
+            "body": "A short reminder about what it is you do and what's the big idea to make
+            sure everyone is aligned to a common purpose.",
+            "image": "/img/section-icons/company-mission.svg",
+            "core": true
+          }
+      ]      
+    },
     {
       "name": "progress",
       "title": "Progress",
@@ -246,55 +294,6 @@
             case of a liquidity event?",
             "image": "/img/section-icons/financial-ownership.svg",
             "core": false
-          }
-      ]      
-    },
-    {
-      "name": "company",
-      "title": "Company",
-      "sections": [
-
-          {
-            "name": "diversity",
-            "title": "Diversity",
-            "description": "Diversity goals and current state",
-            "body": "Discuss company policy and goals around gender, race and ethnicity, age, and sexuality.
-            What is the current state of diversity at the company? What are the goals? What changes in hiring,
-            culture and retention are you working on to achieve those goals?",
-            "image": "/img/section-icons/company-diversity.svg",
-            "core": false
-          },
-
-          {
-            "name": "privacy",
-            "title": "Data Privacy",
-            "description": "Company policy on customer information privacy",
-            "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
-            apply to the company? What agreements exist with customers about their data? What
-            do these agreements say in Plain English?",
-            "image": "/img/section-icons/company-privacy.svg",
-            "core": false
-          },
-
-          {
-            "name": "values",
-            "title": "Values",
-            "description": "Core values the company lives by",
-            "body": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
-            they came from, why they're important, and provide examples of how people can use them to guide their
-            decisions, behavior, and actions.",
-            "image": "/img/section-icons/company-values.svg",
-            "core": true
-          },
-
-          {
-            "name": "mission",
-            "title": "Mission",
-            "description": "Why the company exists",
-            "body": "A short reminder about what it is you do and what's the big idea to make
-            sure everyone is aligned to a common purpose.",
-            "image": "/img/section-icons/company-mission.svg",
-            "core": true
           }
       ]      
     }

@@ -3,6 +3,8 @@
   :company {
     :slug "pied-piper"
     :name "Pied Piper"
+    :description "A Middle-Out Compression Solution Making Data Storage Problems Smaller"
+    :logo "/img/samples/pied-piper.png"
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"

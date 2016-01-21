@@ -3,6 +3,7 @@
   :company {
     :slug "bago"
     :name "Bago"
+    :description "An even better way to share on social media."
     :org-id "slack:T06SBMH60"
     :currency "EUR"
     :timestamp "2015-07-13T12:59:28.000Z"
