@@ -35,7 +35,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8 JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) v2.2.1+ - a multi-modal (document, key/value, relational) open source NoSQL database
+* [RethinkDB](http://rethinkdb.com/) v2.2.3+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -75,6 +75,19 @@ Assuming you are running Mac OS X and are a [Homebrew](http://mxcl.github.com/ho
 ```console
 brew update && brew install rethinkdb
 ```
+
+If you already have RethinkDB installed via brew, check the version:
+
+```console
+rethinkdb -v
+```
+
+If it's older, then upgrade it with:
+
+```console
+brew update && brew upgrade rethinkdb
+```
+
 
 Follow the instructions provided by brew to run RethinkDB every time at login:
 
