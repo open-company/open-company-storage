@@ -1,6 +1,6 @@
 (ns open-company.api.entry
   (:require [compojure.core :refer (defroutes GET OPTIONS)]
-            [liberator.core :refer (defresource)]
+            [liberator.core :refer (defresource by-method)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.representations.common :as common-rep]
@@ -35,7 +35,7 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 "application/json"))
 
-  :handle-ok (fn [{:keys [user] :as ctx}]
+  :handle-ok (fn [{:keys [user] :as _ctx}]
                (let [companies (when user (company-res/get-companies-by-index "org-id" (:org-id user)))]
                  (json/generate-string
                   {:links (links user companies)}
