@@ -10,10 +10,12 @@
     [org.httpkit.server :refer (run-server)]
     [compojure.core :refer (defroutes ANY)]
     [open-company.config :as c]
+    [open-company.api.entry :refer (entry-routes)]
     [open-company.api.companies :refer (company-routes)]
     [open-company.api.sections :refer (section-routes)]))
 
 (defroutes routes
+  entry-routes
   company-routes
   section-routes)
 
