@@ -233,7 +233,7 @@
     (common/read-resources table-name [primary-key "name"]))))
 
 (defn get-companies-by-index
-  "Given the org-id of the company, retrieve it from the database, or return nil if it doesn't exist."
+  "Given the name of a secondary index and a value, retrieve all matching companies"
   [index-key v]
   {:pre [(string? index-key)]}
   (common/read-resources table-name index-key v))

@@ -24,4 +24,8 @@
 
     (fact "removed companies are not listed"
       (c/delete-company (:slug r/buffer))
-      (map :name (c/list-companies)) => (just (set (map :name [r/open r/uni]))))))
+      (map :name (c/list-companies)) => (just (set (map :name [r/open r/uni]))))
+
+    (fact "companies can be queried via secondary indexes"
+      (count (c/get-companies-by-index "org-id" (:org-id r/sartre))) => 1
+      (:slug (first (c/get-companies-by-index "org-id" (:org-id r/sartre)))) => (:slug r/buffer))))
