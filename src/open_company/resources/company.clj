@@ -232,6 +232,14 @@
   (vec (sort-by primary-key
     (common/read-resources table-name [primary-key "name"]))))
 
+(defn get-companies-by-index
+  "Given the org-id of the company, retrieve it from the database, or return nil if it doesn't exist."
+  [index-key v]
+  {:pre [(string? index-key)]}
+  (common/read-resources table-name index-key v))
+
+;; (get-companies-by-index "org-id" "slack:T06SBMH60")
+
 ;; ----- Armageddon -----
 
 (defn delete-all-companies!
