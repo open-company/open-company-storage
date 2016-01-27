@@ -3,6 +3,8 @@
   :company {
     :slug "pied-piper"
     :name "Pied Piper"
+    :description "A Middle-Out Compression Solution Making Data Storage Problems Smaller"
+    :logo "/img/samples/pied-piper.png"
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"
@@ -24,6 +26,7 @@
     {
       :section {
         :title "Values"
+        :headline "The 10 Pied Piper values and how we act on them every day."
         :body
           "<h3>1. Choose positivity</h3>
           <ul>
@@ -700,7 +703,8 @@
     {
       :section {
         :title "Asks"
-        :body "<h3>Share our finance position</h3>
+        :headline "Share our finance position"
+        :body "
         <p>We're looking for an in-house finance person, to help us to be more disciplined about
         our finances and be better data-informed across all areas of the company. We'd love your help to
         spread the word on the job listing!
@@ -803,6 +807,7 @@
     {
       :section {
         :title "Update"
+        :headline "September update"
         :body "
         <p>We reached the 50 team members mark in September! This feels like a big milestone and a special moment to reflect on.</p>
         <p>For me, the most exciting part of this is that 50 people are able to join our journey of working as a fully distributed
@@ -992,7 +997,8 @@
     {
       :section {
         :title "Team and hiring"
-        :body "<h3>17 open roles</h3>
+        :headline "17 open roles"
+        :body "
           <p>We are still growing the team fast and have <a href=\"https://buffer.com/journey\">17 open roles we are hiring for</a>,
           including new roles like <a href=\"https://buffer.com/journey/social-media-manager\">Social Media Manager</a> and
           <a href=\"https://buffer.com/journey/customer-hero\">Customer Hero</a>.</p>
@@ -1017,7 +1023,8 @@
     {
       :section {
         :title "Product"
-        :body "<h3>New features and experiments</h3>
+        :headline "New features and experiments"
+        :body "
         <p>Our <a href=\"https://open.buffer.com/product-team-evolution/\">product teams</a> are working together more
         closely than ever before, and as a result we've been moving quickly with new features and experiments! In September
         we adjusted Pied Piper for Business trials from 7 days to 30 days to allow us longer to help those in trial find value
@@ -1053,7 +1060,8 @@
     {
       :section {
         :title "Happiness"
-        :body "<h3>Focusing on email response times</h3>
+        :headline "Focusing on email response times"
+        :body "
         <p>In September, the Happiness Team re-focused on email response times as our main objective. We saw
         big improvement on our speed while customer happiness levels stayed the same. Next month we're looking
         forward to more specialization on the teams within Customer Happiness. We are also celebrating one more
@@ -1077,7 +1085,8 @@
     {
       :section {
         :title "Marketing"
-        :body "<h3>New metrics focus</h3>
+        :headline "New metrics focus"
+        :body "
         <p>Thanks to great help from the data team, we built a series of
         <a href=\"https://open.buffer.com/remote-work-tools/\">Looker dashboards</a> to fully track the metrics
         and conversions from our marketing efforts. Feels like we're in a great place to move ahead with some new
@@ -1104,7 +1113,8 @@
     {
       :section {
         :title "Diversity"
-        :body "<h3>We're building a more inclusive Pied Piper!</h3>
+        :headline "We're building a more inclusive Pied Piper!"
+        :body "
         <p>Here's a transparent look at the overall demographic diversity of our team.</p>
         <img src=\"http://take.ms/cTKFm\">
         <img src=\"http://take.ms/3mBTC\">

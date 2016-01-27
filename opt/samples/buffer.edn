@@ -3,6 +3,8 @@
   :company {
     :slug "buffer"
     :name "Buffer"
+    :description "A better way to share on social media."
+    :logo "/img/samples/buffer.png"
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"
@@ -24,6 +26,7 @@
     {
       :section {
         :title "Values"
+        :headline "The 10 Buffer values and how we act on them every day."
         :body
           "<h3>1. Choose positivity</h3>
           <ul>
@@ -1624,7 +1627,8 @@
     {
       :section {
         :title "Diversity"
-        :body "<h3>We're building a more inclusive Buffer!</h3>
+        :headline "We're building a more inclusive Buffer!"
+        :body "
         <p>Here's a transparent look at the overall demographic diversity of our team.</p>
         <img src=\"http://take.ms/cTKFm\">
         <img src=\"http://take.ms/3mBTC\">
@@ -1643,6 +1647,7 @@
     {
       :section {
         :title "Update"
+        :headline "Buffer in October."
         :body "
         <p>October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of
         Buffer for Business.</p>"
@@ -1990,6 +1995,7 @@
     {
       :section {
         :title "Team and hiring"
+        :headline "We went totally remote and distributed."
         :body "
           <p>In October, we <a href=\"https://open.buffer.com/no-office/\">closed Buffer's physical office</a>
           to go entirely remote and distributed.</p>
@@ -2029,6 +2035,7 @@
     {
       :section {
         :title "Product"
+        :headline "We launched Pablo 2.0!"
         :body "
         <p>We launched <a href=\"https://blog.bufferapp.com/pablo-images-for-instagram-pinterest-twitter-facebook\">Pablo 2.0!</a>
         More than 500,000 Pablo images have been created so far, and we're excited to keep going with our quick
@@ -2056,6 +2063,7 @@
     {
       :section {
         :title "Happiness"
+        :headline "Continued to focus on speed for customers."
         :body "
         <p>In October, the Happiness teams continued to focus on speed for customers who reach out. With response time
         as our primary success metric, we're prioritizing hiring in November. We also added more specialized roles in
@@ -2086,6 +2094,7 @@
     {
       :section {
         :title "Marketing"
+        :headline "We bared our souls and it paid off."
         :body "
         <p>We had a really exciting month in terms of traffic and sign-ups. After we bared our souls and shared how
         <a href=\"https://blog.bufferapp.com/lost-traffic\">we had been losing social media traffic for quite some time</a>,
@@ -2116,6 +2125,7 @@
     {
       :section {
         :title "Asks"
+        :headline "One quick ask."
         :body "<p>One quick ask: Recently we launched a brand new feature:
         <a href=\"https://blog.bufferapp.com/social-media-calendar\">Social Media Calendar</a>.
         We'd love your help to spread the word. <a href=\"https://twitter.com/intent/tweet?text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:%20https://blog.bufferapp.com/social-media-calendar%20pic.twitter.com/Y8XdRyU9ie\">Tweet</a>

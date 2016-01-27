@@ -3,6 +3,8 @@
   :company {
     :slug "yoyo"
     :name "YoYo"
+    :description "Bouncing Around Since 2015"
+    :logo "/img/samples/yoyo.png"
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-03-01T12:59:28.000Z"

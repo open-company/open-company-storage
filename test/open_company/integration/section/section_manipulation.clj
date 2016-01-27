@@ -37,6 +37,8 @@
 
 ;; ----- Tests -----
 
+(def categories (map name open-company.resources.common/categories))
+
 (with-state-changes [(before :facts (do (company/delete-all-companies!)
                                         (company/create-company r/open r/coyote)
                                         (section/put-section r/slug :update r/text-section-1 r/coyote)
@@ -58,7 +60,7 @@
         (:body response) => common/unauthorized)
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
-        (:categories db-company) => ["progress" "financial" "company"]
+        (:categories db-company) => categories
         (:sections db-company) => {:progress ["update" "team" "help"]
                                    :financial ["finances"]
                                    :company ["diversity" "values"]}))
@@ -72,7 +74,7 @@
         (:body response) => common/unauthorized)
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
-        (:categories db-company) => ["progress" "financial" "company"]
+        (:categories db-company) => categories
         (:sections db-company) => {:progress ["update" "team" "help"]
                                    :financial ["finances"]
                                    :company ["diversity" "values"]}))
@@ -86,7 +88,7 @@
         (:body response) => common/forbidden)
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
-        (:categories db-company) => ["progress" "financial" "company"]
+        (:categories db-company) => categories
         (:sections db-company) => {:progress ["update" "team" "help"]
                                    :financial ["finances"]
                                    :company ["diversity" "values"]}))
@@ -99,7 +101,7 @@
         (:body response) => "")
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
-        (:categories db-company) => ["progress" "financial" "company"]
+        (:categories db-company) => categories
         (:sections db-company) => {:progress ["update" "team" "help"]
                                    :financial ["finances"]
                                    :company ["diversity" "values"]})))
@@ -108,7 +110,7 @@
 
     ;; verify the initial order
     (let [db-company (company/get-company r/slug)]
-      (:categories db-company) => ["progress" "financial" "company"]
+      (:categories db-company) => categories
       (:sections db-company) => {:progress ["update" "team" "help"]
                                  :financial ["finances"]
                                  :company ["diversity" "values"]})
