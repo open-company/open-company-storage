@@ -300,6 +300,12 @@ Or start a development API server:
 lein start
 ```
 
+You'll need a JWToken to use the REST API via cURL as an authenticated user. The token is passed in the `Authorization`
+header with each request. You can either extract your own token from the cookie in your web browser, to make requests
+against your own services or our servers, or you can also use a
+[sample token](https://github.com/open-company/open-company-auth#sample-jwtoken)
+from the OPENcompany Authentication service if you are only making requests against your local services.
+
 Create a company with cURL:
 
 TODO: there is no UI yet to do this so you need to create a company via the REPL or CLI import tool.
