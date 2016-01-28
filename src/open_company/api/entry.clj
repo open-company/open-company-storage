@@ -21,6 +21,12 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
+(defn handle-get [{:keys [user] :as _ctx}]
+  (let [companies (when user (company-res/get-companies-by-index "org-id" (:org-id user)))]
+    (json/generate-string
+      {:links (links user companies)}
+      {:pretty true})))
+
 (defresource entry-point []
   common/anonymous-resource
 
@@ -35,11 +41,7 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 "application/json"))
 
-  :handle-ok (fn [{:keys [user] :as _ctx}]
-               (let [companies (when user (company-res/get-companies-by-index "org-id" (:org-id user)))]
-                 (json/generate-string
-                  {:links (links user companies)}
-                  {:pretty true})))
+  :handle-ok handle-get
 
   :handle-options (common/options-response [:options :get]))
 
