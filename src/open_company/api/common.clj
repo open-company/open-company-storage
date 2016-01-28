@@ -103,7 +103,7 @@
 
    If a valid token is supplied return a map containing :jwtoken and associated :user.
    If invalid token is supplied return {:jwtoken false}.
-   If not Authorization headers are supplied return nil."
+   If no Authorization headers are supplied return nil."
   [headers]
   (if-let [authorization (or (get headers "Authorization") (get headers "authorization"))]
     (let [jwtoken (last (s/split authorization #" "))]
@@ -113,12 +113,12 @@
         {:jwtoken false}))))
 
 (defn allow-anonymous
-  "Allow unless there is a JWToken provided and it's invalid"
+  "Allow unless there is a JWToken provided and it's invalid."
   [ctx]
   (boolean (or (nil? (:jwtoken ctx)) (:jwtoken ctx))))
 
 (defn allow-org-members
-  "Allow only if the user's JWToken indicates membership in the company's org"
+  "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
   [company-slug ctx]
   (let [user    (:user ctx)
         company (company/get-company company-slug)]
