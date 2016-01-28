@@ -114,7 +114,7 @@
         (:name body) => (:name r/open)
         (:slug body) => (:slug r/open)
         (:org-id body) => nil ; verify no org-id
-        (:categories body) => (map name common/categories)
+        (:categories body) => (map name common/category-names)
         (:sections body) =>
           {:company ["diversity" "values"], :financial ["finances"], :progress ["update" "team" "help"]}
         ;; verify section contents

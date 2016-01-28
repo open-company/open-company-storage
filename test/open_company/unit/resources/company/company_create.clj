@@ -80,7 +80,7 @@
         (= updated-at (:updated-at retrieved-company)) => true))
 
     (fact "it returns the pre-defined categories"
-      (:categories (c/create-company r/open r/coyote)) => (contains common/categories))
+      (:categories (c/create-company r/open r/coyote)) => (contains common/category-names))
 
     (facts "it returns the sections in the company in the pre-defined order"
       (:sections (c/create-company r/open r/coyote)) => {:progress [] :financial [] :company []}

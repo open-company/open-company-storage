@@ -1,6 +1,7 @@
 (ns open-company.resources.common
   "Resources are any thing stored in the open company platform: companies, reports"
-  (:require [clojure.string :as s]
+  (:require [clojure.string :as string]
+            [schema.core :as s]
             [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
             [defun :refer (defun)]
@@ -18,31 +19,36 @@
 ;; ----- Category/Section definitions -----
 
 ;; All the categories in default order
-(defonce categories (vec (map #(keyword (:name %)) (:categories (keywordize-keys config/sections)))))
+(def categories (:categories (keywordize-keys config/sections)))
+(def category-names (map (comp keyword :name) (:categories (keywordize-keys config/sections))))
 
-(defun sections-for
+(def ordered-sections
+  (into {} (for [{:keys [sections name]} categories]
+             [(keyword name) sections])))
+
+(def category-section-tree
+  ^ {:doc "Category->Section lookup structure "}
+  (into {} (for [[cat sects] ordered-sections]
+             [cat (mapv (comp keyword :name) sects)])))
+
+
+(def section-category-tree
+  ^ {:doc "Section->Category lookup structure "}
+  (reduce (fn [acc [cat sects]]
+            (merge acc (zipmap sects (repeat cat))))
+          {}
+          category-section-tree))
+
+(defn sections-for [cat]
   "Return all the sections for the provided category name in order."
+  (get category-section-tree (keyword cat)))
 
-  ([category-name :guard string?] (sections-for (keyword category-name)))
-
-  ([category-name :guard keyword?]
-  (if-let* [categories (:categories (keywordize-keys config/sections))
-            category (some #(if (= category-name (keyword (:name %))) %) categories)]
-    (vec (map #(keyword (:name %)) (:sections category))))))
-
-;; Categories as keys in a map with the value a vector of sections in each category in order
-(def ordered-sections (zipmap categories (map sections-for categories)))
-
-(defun category-for
-  "Return the category name for the provided section-name."
-
-  ([section-name :guard string?] (category-for (keyword section-name)))
-
-  ([section-name :guard keyword?]
-  (some #(if ((set (ordered-sections %)) (keyword section-name)) % false) (keys ordered-sections))))
+(defn category-for [section]
+  "Return the category for the provided section name in order."
+  (get section-category-tree (keyword section)))
 
 ;; All possible sections as a set
-(defonce sections (set (flatten (vals ordered-sections))))
+(defonce sections (set (flatten (vals category-section-tree))))
 
 ;; A set of all sections that can contain notes
 (def notes-sections #{:growth :finances})
@@ -77,7 +83,7 @@
 (defn- name-for
   "Replace :name in the map with :real-name if it's not blank."
   [user]
-  (if (s/blank? (:real-name user))
+  (if (string/blank? (:real-name user))
     user
     (assoc user :name (:real-name user))))
 

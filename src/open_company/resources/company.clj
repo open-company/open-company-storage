@@ -1,5 +1,7 @@
 (ns open-company.resources.company
-  (:require [clojure.string :as s]
+  (:require [clojure.string :as string]
+            [clojure.set :as cset]
+            [schema.core :as s]
             [defun :refer (defun defun-)]
             [open-company.lib.slugify :as slug]
             [open-company.resources.common :as common]))
@@ -25,37 +27,28 @@
 (defn- categories-for
   "Add the :categories vector in the company with the definitive initial list of categories."
   [company]
-  (assoc company :categories common/categories))
+  (assoc company :categories common/category-names))
 
 (defn- section-list
   "Return the set of section names that are contained in the provided company."
   [company]
-  (set (clojure.set/intersection common/sections (set (keys company)))))
+  (set (cset/intersection common/sections (set (keys company)))))
 
-(defun- sections-for
-  "Add a :sections vector in the new company with the sections that this company map actually contains."
-
-  ; init
-  ([company] (sections-for company (keys common/ordered-sections) (section-list company) {}))
-
-  ; no more categories
-  ([company _categories :guard empty? _sections section-matches] (assoc company :sections section-matches)) ; all done
-
-  ; section matches per category
-  ([company categories sections section-matches]
-  (let [category-name (first categories)
-        category-sections (common/ordered-sections category-name)
-        matches-for-category (filter #(some sections [%]) category-sections)]
-    (sections-for company
-      (rest categories)
-      sections
-      (assoc section-matches category-name (vec matches-for-category))))))
+(defn sections-for
+  "Add a :sections key to given company containing category->ordered-sections mapping
+  Only add sections to the ordered-sections list that are used in the company map"
+  [company]
+  (let [seclist (section-list company)]
+    (->> (for [[cat sects] common/category-section-tree]
+          [cat (vec (filter (set seclist) sects))])
+      (into {})
+      (assoc company :sections))))
 
 (defn- remove-sections
   "Remove any sections from the company that are not in the :sections property"
   [company]
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
-    (apply dissoc company (clojure.set/difference (section-list company) sections))))
+    (apply dissoc company (cset/difference (section-list company) sections))))
 
 (defn sections-with
   "Add the provided section name to the end of the correct category, unless it's already in the category."
@@ -73,7 +66,7 @@
   "
   [company]
   (let [possible-sections-with-notes
-        (clojure.set/intersection common/notes-sections
+        (cset/intersection common/notes-sections
           (set (:sections company)))
         sections-with-notes
           (filter #(get-in company [(keyword %) :notes])
@@ -127,7 +120,7 @@
   TODO: Use prismatic schema to validate company properties."
   ([_ :guard #(not (map? %))] :invalid-map)
   ([_ :guard #(and (:slug %) (not (slug/valid-slug? (:slug %))))] :invalid-slug)
-  ([_ :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
+  ([_ :guard #(or (not (string? (:name %))) (string/blank? (:name %)))] :invalid-name)
   ([_] true))
 
 ;; ----- Company CRUD -----

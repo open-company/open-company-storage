@@ -37,7 +37,7 @@
 
 ;; ----- Tests -----
 
-(def categories (map name open-company.resources.common/categories))
+(def categories (map name open-company.resources.common/category-names))
 
 (with-state-changes [(before :facts (do (company/delete-all-companies!)
                                         (company/create-company r/open r/coyote)
