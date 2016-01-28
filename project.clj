@@ -6,7 +6,7 @@
     :url "http://www.mozilla.org/MPL/2.0/"
   }
 
-  :min-lein-version "2.5.1" ; highest version supported by Travis-CI as of 7/5/2015
+  :min-lein-version "2.5.1" ; highest version supported by Travis-CI as of 1/28/2016
 
   ;; JVM memory
   :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
@@ -26,8 +26,8 @@
     [liberator "0.14.0"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.0.4"] ; Data validation https://github.com/Prismatic/schema
-    [environ "1.0.1"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.2.1"] ; Logging https://github.com/ptaoussanis/timbre
+    [environ "1.0.2"] ; Environment settings from different sources https://github.com/weavejester/environ
+    [com.taoensso/timbre "4.3.0-RC1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.0.1"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
@@ -38,7 +38,7 @@
   ;; Production plugins
   :plugins [
     [lein-ring "0.9.7"] ; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-environ "1.0.1"] ; Get environment settings from different sources https://github.com/weavejester/environ
+    [lein-environ "1.0.2"] ; Get environment settings from different sources https://github.com/weavejester/environ
   ]
 
   :profiles {
@@ -47,8 +47,8 @@
     :qa {
       :env {
         :db-name "open_company_qa"
-        :liberator-trace false
-        :hot-reload false
+        :liberator-trace "false"
+        :hot-reload "false"
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
@@ -66,8 +66,8 @@
     :dev [:qa {
       :env ^:replace {
         :db-name "open_company_dev"
-        :liberator-trace true ; liberator debug data in HTTP response headers
-        :hot-reload true ; reload code when changed on the file system
+        :liberator-trace "true" ; liberator debug data in HTTP response headers
+        :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
       }
       :plugins [
@@ -99,8 +99,8 @@
     :prod {
       :env {
         :db-name "open_company"
-        :liberator-trace false
-        :hot-reload false
+        :liberator-trace "false"
+        :hot-reload "false"
       }
     }
   }

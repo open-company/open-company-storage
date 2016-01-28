@@ -5,6 +5,11 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.core :as appenders]))
 
+(defn- bool
+  "Handle the fact that we may have true/false strings, when we want booleans."
+  [val]
+  (boolean (Boolean/valueOf val)))
+
 ;; ----- RethinkDB -----
 
 (defonce db-host (or (env :db-host) "localhost"))
@@ -17,13 +22,13 @@
 
 ;; ----- HTTP server -----
 
-(defonce hot-reload (or (env :hot-reload) false))
+(defonce hot-reload (bool (or (env :hot-reload) false)))
 (defonce api-server-port (Integer/parseInt (or (env :port) "3000")))
 
 ;; ----- Liberator -----
 
 ;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
-(defonce liberator-trace (or (env :liberator-trace) false))
+(defonce liberator-trace (bool (or (env :liberator-trace) false)))
 
 ;; ----- Sentry -----
 
