@@ -7,17 +7,17 @@
             [open-company.representations.company :as company-rep]
             [cheshire.core :as json]))
 
-;; ----- Representations
+;; ----- Representations -----
 
-(defn company-link [{:keys [name] :as c}]
+(defn- company-link [{:keys [name] :as c}]
   (common-rep/link-map "company" "GET" (company-rep/url c) company-rep/media-type :name name))
 
-(defn links [user companies]
+(defn- links [user companies]
   (cond-> [(common-rep/link-map "company-list" "GET" "/companies/" company-rep/collection-media-type)]
     user      (conj (common-rep/link-map "company-create" "POST" "/companies/" company-rep/media-type))
     companies (into (mapv company-link companies))))
 
-(defn render-entry [{:keys [user] :as _ctx}]
+(defn- render-entry [{:keys [user] :as _ctx}]
   (let [companies (when user (company-res/get-companies-by-index "org-id" (:org-id user)))]
     (json/generate-string
       {:links (links user companies)}

@@ -57,20 +57,25 @@
     (fact "link to create company"
       (fact "provided if authenticated"
         (let [res (mock/api-request :get "/" {:auth mock/jwtoken-sartre})]
+          (:status res) => 200
           (first (get-links-by-rel "company-create" res)) => truthy))
       (fact "not provided if not authenticated"
         (let [res (mock/api-request :get "/" {:skip-auth true})]
+          (:status res) => 200
           (first (get-links-by-rel "company-create" res)) => falsey)))
 
     (fact "link to company list is provided"
       (fact "if authenticated"
         (let [res (mock/api-request :get "/" {:auth mock/jwtoken-sartre})]
+          (:status res) => 200
           (first (get-links-by-rel "company-list" res)) => truthy))
       (fact "if not authenticated"
         (let [res (mock/api-request :get "/" {:skip-auth true})]
+          (:status res) => 200
           (first (get-links-by-rel "company-list" res)) => truthy)))
 
     (fact "companies associated with user are listed"
       (let [res (mock/api-request :get "/" {:auth mock/jwtoken-sartre})]
+        (:status res) => 200
         (get-links-by-rel "company" res) => seq
         (-> (get-links-by-rel "company" res) first :name) => (:name r/buffer)))))
