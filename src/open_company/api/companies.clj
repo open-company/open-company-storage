@@ -34,9 +34,8 @@
 (defn- options-for-company [slug ctx]
   (if-let [company (company/get-company slug)]
     (if (common/authorized-to-company? (assoc ctx :company company))
-      (common/options-response [:options :get :put :patch :delete])
-      (common/options-response [:options :get]))
-    (common/missing-response)))
+      (common/options-response [:options :get :put :patch :post :delete])
+      (common/options-response [:options :post :get])) (common/missing-response)))
 
 ;; ----- Actions -----
 
