@@ -232,6 +232,13 @@
   (vec (sort-by primary-key
     (common/read-resources table-name [primary-key "name"]))))
 
+(defn get-companies-by-index
+  "Given the name of a secondary index and a value, retrieve all matching companies"
+  ;; e.g.: (get-companies-by-index "org-id" "slack:T06SBMH60")
+  [index-key v]
+  {:pre [(string? index-key)]}
+  (common/read-resources table-name index-key v))
+
 ;; ----- Armageddon -----
 
 (defn delete-all-companies!

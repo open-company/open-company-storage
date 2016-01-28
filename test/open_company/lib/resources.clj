@@ -52,19 +52,16 @@
 (def open {
   :slug slug
   :name "OPENcompany"
-  :currency "USD"
-  :org-id "slack:98765"})
+  :currency "USD"})
 
 (def buffer {
   :slug "buffer"
   :name "Buffer"
-  :currency "USD"
-  :org-id "slack:42-hut-hut"})
+  :currency "USD"})
 
 (def uni {
   :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
-  :currency "FKP"
-  :org-id "slack:98765"})
+  :currency "FKP"})
 
 ;; ----- Sections -----
 

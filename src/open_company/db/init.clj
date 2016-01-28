@@ -76,6 +76,8 @@
       (when (create-database conn db-name)
         (create-table conn db-name company/table-name company/primary-key)
         (print ".")
+        (create-index conn company/table-name "org-id")
+        (print ".")
         (create-table conn db-name section/table-name section/primary-key)
         (print ".")
         (create-index conn section/table-name "company-slug")
