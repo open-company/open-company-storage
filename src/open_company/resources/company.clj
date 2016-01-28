@@ -220,10 +220,14 @@
 ;; ----- Collection of companies -----
 
 (defn list-companies
-  "Return a sequence of company property maps with slugs and names, sorted by slug."
-  []
-  (vec (sort-by primary-key
-    (common/read-resources table-name [primary-key "name"]))))
+  "Return a sequence of company property maps with slugs and names, sorted by slug.
+  Note: if additional-keys are supplied only documents containing those keys will be returned"
+  ([] (list-companies []))
+  ([additional-keys]
+   (->> (into [primary-key "name"] additional-keys)
+        (common/read-resources table-name)
+        (sort-by primary-key)
+        vec)))
 
 (defn get-companies-by-index
   "Given the name of a secondary index and a value, retrieve all matching companies"
