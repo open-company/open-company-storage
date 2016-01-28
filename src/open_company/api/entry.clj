@@ -1,6 +1,6 @@
 (ns open-company.api.entry
   (:require [compojure.core :refer (defroutes GET OPTIONS)]
-            [liberator.core :refer (defresource by-method)]
+            [liberator.core :refer (defresource)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.representations.common :as common-rep]
@@ -8,8 +8,6 @@
             [cheshire.core :as json]))
 
 ;; ----- Representations
-;; I assume these could go into a separate representations ns but since
-;; they're just links and not full domain objects I just kept them here
 
 (defn company-link [{:keys [name] :as c}]
   (common-rep/link-map "company" "GET" (company-rep/url c) company-rep/media-type :name name))
@@ -19,13 +17,13 @@
     user      (conj (common-rep/link-map "company-create" "POST" "/companies/" company-rep/media-type))
     companies (into (mapv company-link companies))))
 
-;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
-
-(defn handle-get [{:keys [user] :as _ctx}]
+(defn render-entry [{:keys [user] :as _ctx}]
   (let [companies (when user (company-res/get-companies-by-index "org-id" (:org-id user)))]
     (json/generate-string
       {:links (links user companies)}
       {:pretty true})))
+
+;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 (defresource entry-point []
   common/anonymous-resource
@@ -41,7 +39,7 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 "application/json"))
 
-  :handle-ok handle-get
+  :handle-ok render-entry
 
   :handle-options (common/options-response [:options :get]))
 
