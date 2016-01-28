@@ -91,15 +91,6 @@
 
 ;; ----- Authentication and Authorization -----
 
-(defn authenticated?
-  "Check for the presence and validity of a JWToken in the Authorization header."
-  ([headers] (authenticated? headers false)) ; false to require a JWToken
-  ([headers default-response]
-  (if-let [authorization (or (headers "Authorization") (headers "authorization"))]
-    (let [jwtoken (last (s/split authorization #" "))]
-      (if (jwt/check-token jwtoken) {:jwtoken jwtoken} false))
-    default-response)))
-
 (defn authorized-to-company?
   "Return true if the user is authorized to this company, false if not."
   [ctx]
@@ -107,44 +98,41 @@
         user-org (get-in ctx [:user :org-id])]
     (and (not (nil? user-org)) (= company-org user-org))))
 
-(defn- authorize
-  "
-  If a user is authorized to this company, or the request is for anonymous access,
-  add the user's details to the Liberator context at :user,
-  otherwise return false if the user isn't authorized to the company org and it's not anonymous.
-  "
+(defn- read-token
+  "Read supplied jwtoken from headers.
 
-  ([company jwtoken] (authorize company jwtoken false))
-
-  ([company jwtoken allow-anonymous]
-  (let [decoded (jwt/decode jwtoken)
-        user (:claims decoded)]
-    ;; company organization and user organization are allowed not to match if:
-    ;; - anonymous access is allowed for this operation
-    ;; - there is no company for this operation (meaning usually a 404)
-    (if (or allow-anonymous (nil? company) (authorized-to-company? {:company company :user user}))
-      {:user user}
-      false))))
+   If a valid token is supplied return a map containing :jwtoken and associated :user.
+   If invalid token is supplied return {:jwtoken false}.
+   If not Authorization headers are supplied return nil."
+  [headers]
+  (if-let [authorization (or (get headers "Authorization") (get headers "authorization"))]
+    (let [jwtoken (last (s/split authorization #" "))]
+      (if (jwt/check-token jwtoken)
+        {:jwtoken jwtoken
+         :user    (:claims (jwt/decode jwtoken))}
+        {:jwtoken false}))))
 
 (defn allow-anonymous
   "Allow unless there is a JWToken provided and it's invalid"
-  [company-slug ctx]
-  (if-let [jwtoken (:jwtoken ctx)]
-    (authorize (company/get-company company-slug) jwtoken true)
-    true))
+  [ctx]
+  (boolean (or (nil? (:jwtoken ctx)) (:jwtoken ctx))))
 
 (defn allow-org-members
   "Allow only if the user's JWToken indicates membership in the company's org"
   [company-slug ctx]
-  (if-let [jwtoken (:jwtoken ctx)]
-    (authorize (company/get-company company-slug) jwtoken)
-    false))
+  (let [user    (:user ctx)
+        company (company/get-company company-slug)]
+    (cond
+      (and user company) (authorized-to-company? {:company company :user user})
+      (nil? company)     true
+      :else              false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; verify validity of JWToken if it's provided, but it's not required
 (def anonymous-resource {
-  :authorized? (fn [ctx] (authenticated? (get-in ctx [:request :headers]) true))
+  :initialize-context (fn [ctx] (read-token (get-in ctx [:request :headers])))
+  :authorized? allow-anonymous
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (by-method {
     :options (forbidden-response)
@@ -156,7 +144,8 @@
 
 ;; verify validity and presence of required JWToken
 (def authenticated-resource {
-  :authorized? (fn [ctx] (authenticated? (get-in ctx [:request :headers])))
+  :initialize-context (fn [ctx] (read-token (get-in ctx [:request :headers])))
+  :authorized? (fn [{:keys [jwtoken]}] (boolean jwtoken))
   :handle-not-found (fn [_] (missing-response))
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (fn [_] (forbidden-response))})

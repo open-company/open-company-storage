@@ -49,8 +49,8 @@
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
   :allowed? (by-method {
-    :options (fn [ctx] (common/allow-anonymous company-slug ctx))
-    :get (fn [ctx] (common/allow-anonymous company-slug ctx))
+    :options (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (common/allow-anonymous ctx))
     :put (fn [ctx] (common/allow-org-members company-slug ctx))
     :patch (fn [ctx] (common/allow-org-members company-slug ctx))})
 

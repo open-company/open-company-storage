@@ -29,11 +29,7 @@
   common/anonymous-resource
 
   :allowed-methods [:options :get]
-  ;; slug supplied to allow-anonymous here is irrelevant.
-  ;; the allowed? checking and token decoding should be
-  ;; decoupled and probably use :initialize-context for
-  ;; token decoding
-  :allowed? (fn [ctx] (common/allow-anonymous "foo" ctx))
+  :allowed? (fn [ctx] (common/allow-anonymous ctx))
   :available-media-types ["application/json"]
 
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))

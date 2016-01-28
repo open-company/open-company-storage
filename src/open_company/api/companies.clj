@@ -70,8 +70,8 @@
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
   :allowed? (by-method {
-    :options (fn [ctx] (common/allow-anonymous slug ctx))
-    :get (fn [ctx] (common/allow-anonymous slug ctx))
+    :options (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (common/allow-anonymous ctx))
     :put (fn [ctx] (common/allow-org-members slug ctx))
     :patch (fn [ctx] (common/allow-org-members slug ctx))
     :delete (fn [ctx] (common/allow-org-members slug ctx))})
