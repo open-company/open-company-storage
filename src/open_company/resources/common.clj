@@ -8,8 +8,38 @@
             [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
+            [open-company.lib.slugify :as slug]
             [open-company.config :as config]
             [open-company.db.pool :as pool]))
+
+;; ----- Schemas -----
+
+(def Slug (s/pred slug/valid-slug?))
+
+(def SectionsOrder
+  {s/Keyword [s/Str]})
+
+;; TODO check for non-blank?
+(def Company
+  {:name        s/Str
+   :slug        Slug
+   :description s/Str
+   :org-id      s/Str
+   :currency    s/Str
+   :sections    SectionsOrder
+   ;;:created-at  s/Str
+   ;;:updated-at  s/Str
+   s/Keyword    s/Any})
+
+(def User
+  {:name        s/Str
+   :org-id      s/Str
+   :user-id     s/Str
+   :avatar      s/Str
+   :image       s/Str
+   ;;:created-at  s/Str
+   ;;:updated-at  s/Str
+   s/Keyword    s/Any})
 
 ;; ----- RethinkDB metadata -----
 
