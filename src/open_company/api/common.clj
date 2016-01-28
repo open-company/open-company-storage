@@ -117,6 +117,11 @@
   [ctx]
   (boolean (or (nil? (:jwtoken ctx)) (:jwtoken ctx))))
 
+(defn allow-authenticated
+  "Allow unless there is a JWToken provided and it's invalid"
+  [ctx]
+  (boolean (:jwtoken ctx)))
+
 (defn allow-org-members
   "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
   [company-slug ctx]
