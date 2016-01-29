@@ -2,6 +2,8 @@
   (:require [defun :refer (defun)]
             [compojure.core :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
+            [clojure.set :as cset]
+            [schema.core :as s]
             [open-company.config :as config]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
@@ -96,10 +98,28 @@
   :delete! (fn [_] (company/delete-company slug))
 
   ;; Create or update a company
+  ;; TODO remove possibility to create company
   :new? (by-method {:put (not (company/get-company slug))})
   :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
+
+(defn valid-post-req
+  "If the request contains valid JSON POST data to create
+   companies retun the parsed JSON, otherwise nil."
+  [ctx]
+  (let [[invalid-json? parsed] (common/malformed-json? ctx)]
+   (when (and (not invalid-json?)
+              ;; Ensure all required keys are present and valid
+              (nil? (->> (keys common-res/CompanyMinimum)
+                         (select-keys (:data parsed))
+                         (s/check common-res/CompanyMinimum)))
+              ;; Ensure all extra fields match with our sections
+              (->> (into (keys common-res/CompanyMinimum)
+                         (keys common-res/CompanyOptional))
+                   (cset/difference (-> parsed :data keys set))
+                   (cset/superset? common-res/section-names)))
+      parsed)))
 
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
@@ -120,9 +140,7 @@
   :malformed? (by-method {
     :options false
     :get false
-    :post (fn [ctx] (->> (keys common-res/CompanyMinimum)
-                         (select-keys (:data ctx))
-                         (s/check common-res/CompanyMinimum)))})
+    :post (fn [ctx] (if-let [data (valid-post-req ctx)] [false data] true))})
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
