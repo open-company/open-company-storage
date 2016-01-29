@@ -1,5 +1,6 @@
 (ns open-company.integration.company.company-create
-  (:require [midje.sweet :refer :all]
+  (:require [cheshire.core :as json]
+            [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
@@ -57,3 +58,23 @@
 ;       (company/get-company r/TICKER) => (contains r/OPEN)
 ;       ;; Reports are empty?
 ;       (report/report-count r/TICKER) => 0)))
+
+(with-state-changes [(before :facts (do (company/delete-all-companies!)
+                                        (company/create-company r/open r/coyote)))]
+  (facts "about creating companies"
+    (fact "missing fields cause 400"
+      (let [payload  {:name "hello"}
+            response (mock/api-request :post "/companies" {:body payload})]
+        (:status response) => 400))
+    (fact "superflous fields cause 400"
+      (let [payload  {:bogus "xx" :name "hello" :description "x"}
+            response (mock/api-request :post "/companies" {:body payload})]
+        (:status response) => 400))
+    (fact "provided slug is taken causes 422"
+      (let [payload  {:slug "open" :name "hello" :description "x"}
+            response (mock/api-request :post "/companies" {:body payload})]
+        (:status response) => 422))
+    (fact "provided slug does not follow slug format causes 422"
+      (let [payload  {:slug "under_score" :name "hello" :description "x"}
+            response (mock/api-request :post "/companies" {:body payload})]
+        (:status response) => 422))))

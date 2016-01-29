@@ -75,13 +75,13 @@
    :description s/Str})
 
 (def CompanyOptional
-  {:currency    s/Str})
+  {:currency    s/Str
+   :slug        Slug})
 
 (def Company
   (merge CompanyMinimum
          CompanyOptional
-         {:slug        Slug
-          :org-id      s/Str
+         {:org-id      s/Str
           :sections    SectionsOrder
           (s/optional-key :created-at)  s/Str
           (s/optional-key :updated-at)  s/Str}

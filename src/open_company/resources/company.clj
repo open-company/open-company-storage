@@ -155,6 +155,8 @@
     (categories-for)
     (sections-for)))
 
+;; Any "real" sections they provide ought to end up in the company document
+;; with author and time stamp, and also with their own section document entries.
 (s/defn create-company*
   [company :- common/Company]
   (let [sections      (select-keys common/section-names company)

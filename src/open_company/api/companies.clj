@@ -104,22 +104,24 @@
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
-(defn valid-post-req
+(defn invalid-post-req?
   "If the request contains valid JSON POST data to create
    companies retun the parsed JSON, otherwise nil."
   [ctx]
-  (let [[invalid-json? parsed] (common/malformed-json? ctx)]
-   (when (and (not invalid-json?)
-              ;; Ensure all required keys are present and valid
-              (nil? (->> (keys common-res/CompanyMinimum)
-                         (select-keys (:data parsed))
-                         (s/check common-res/CompanyMinimum)))
-              ;; Ensure all extra fields match with our sections
-              (->> (into (keys common-res/CompanyMinimum)
-                         (keys common-res/CompanyOptional))
-                   (cset/difference (-> parsed :data keys set))
-                   (cset/superset? common-res/section-names)))
-      parsed)))
+  (let [[invalid-json? parsed] (common/malformed-json? ctx)
+        report {:invalid-json invalid-json?
+                ;; Ensure all required keys are present and valid
+                :required-keys (->> (keys common-res/CompanyMinimum)
+                                     (select-keys (:data parsed))
+                                     (s/check common-res/CompanyMinimum))
+                ;; Ensure all extra fields match with our sections
+                :sections (->> (into (set (keys common-res/CompanyMinimum))
+                                     (set (keys common-res/CompanyOptional)))
+                               (cset/difference (-> parsed :data keys set))
+                               (cset/superset? common-res/section-names))}]
+    ;; TODO think about this
+    [(or invalid-json? (:required-keys report) (not (:sections report)))
+     (assoc parsed :malformed-report report)]))
 
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
@@ -140,15 +142,16 @@
   :malformed? (by-method {
     :options false
     :get false
-    :post (fn [ctx] (if-let [data (valid-post-req ctx)] [false data] true))})
+    :post (fn [ctx] (invalid-post-req? ctx))})
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
 
-  :conflict? (by-method {
-    :get false
-    :options false
-    :post (fn [ctx] (-> ctx :data :slug company/slug-available? not))})
+  :processable? (by-method {
+    :get true
+    :options true
+    :post (fn [ctx] (and (-> ctx :data :slug company/slug-available?)
+                         (->> ctx :data :slug (s/check common-res/Slug) nil?)))})
 
   :handle-ok (by-method {
     :get  (fn [ctx] (company-rep/render-company-list (:companies ctx)))
