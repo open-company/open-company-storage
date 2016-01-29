@@ -75,10 +75,10 @@
       ; handle case of a string which is valid JSON, but still malformed for us
       (do (when-not (map? data) (throw (Exception.)))
         [good-json {:data data}])
-      malformed)
+      [malformed])
     (catch Exception e
       (debug "Request body not processable as JSON: " e)
-      malformed)))
+      [malformed])))
 
 (defn known-content-type?
   [ctx content-type]
