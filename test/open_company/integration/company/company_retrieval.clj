@@ -51,7 +51,8 @@
 ;; ----- Tests -----
 
 (def limited-options "OPTIONS, GET")
-(def full-options "OPTIONS, GET, PUT, PATCH, DELETE")
+(def authenticated-options "OPTIONS, POST, GET")
+(def full-options "OPTIONS, GET, PUT, PATCH, POST, DELETE")
 
 (with-state-changes [(before :facts (do (company/delete-all-companies!)
                                         (company/create-company r/open r/coyote)
@@ -85,7 +86,7 @@
       (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-sartre})]
         (:status response) => 204
         (:body response) => ""
-        ((:headers response) "Allow") => limited-options))
+        ((:headers response) "Allow") => authenticated-options))
 
     (fact "with a user's org in a JWToken that matches the company's org"
       (let [response (mock/api-request :options (company-rep/url r/open))]
