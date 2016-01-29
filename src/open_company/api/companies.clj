@@ -33,15 +33,9 @@
 
 (defn- options-for-company [slug ctx]
   (if-let [company (company/get-company slug)]
-    (cond (common/authorized-to-company? (assoc ctx :company company))
-          (common/options-response [:options :get :put :patch :post :delete])
-
-          (common/authenticated? ctx)
-          (common/options-response [:options :post :get])
-
-          :else
-          (common/options-response [:options :get]))
-    (common/missing-response)))
+    (if (common/authorized-to-company? (assoc ctx :company company))
+      (common/options-response [:options :get :put :patch :post :delete])
+      (common/options-response [:options :post :get])) (common/missing-response)))
 
 ;; ----- Actions -----
 
