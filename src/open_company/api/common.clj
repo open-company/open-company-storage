@@ -175,6 +175,7 @@
     :options false
     :get false
     :delete false
+    :post (fn [ctx] (malformed-json? ctx))
     :put (fn [ctx] (malformed-json? ctx))
     :patch (fn [ctx] (malformed-json? ctx))})
   :can-put-to-missing? (fn [_] false)

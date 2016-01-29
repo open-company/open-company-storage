@@ -44,6 +44,7 @@
 ;; ----- Tests -----
 
 (def options  "OPTIONS, GET")
+(def authenticated-options  "OPTIONS, GET, POST")
 
 (with-state-changes [(before :facts (do
                                       (company/delete-all-companies!)
@@ -69,7 +70,7 @@
       (let [response (mock/api-request :options "/companies")]
         (:status response) => 204
         (:body response) => ""
-        ((:headers response) "Allow") => options)))
+        ((:headers response) "Allow") => authenticated-options)))
 
   (fact "about failing to list companies"
 

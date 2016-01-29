@@ -1,6 +1,6 @@
 (ns open-company.api.companies
   (:require [defun :refer (defun)]
-            [compojure.core :refer (defroutes ANY OPTIONS GET)]
+            [compojure.core :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
             [open-company.config :as config]
             [open-company.api.common :as common]
@@ -34,8 +34,9 @@
 (defn- options-for-company [slug ctx]
   (if-let [company (company/get-company slug)]
     (if (common/authorized-to-company? (assoc ctx :company company))
-      (common/options-response [:options :get :put :patch :post :delete])
-      (common/options-response [:options :post :get])) (common/missing-response)))
+      (common/options-response [:options :get :put :patch :delete])
+      (common/options-response [:options :get]))
+    (common/missing-response)))
 
 ;; ----- Actions -----
 
@@ -103,18 +104,40 @@
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
   []
-  common/anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
+  common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-charsets [common/UTF8]
-  :available-media-types [company-rep/collection-media-type]
-  :allowed-methods [:options :get]
+  :available-media-types (by-method {:get [company-rep/collection-media-type]
+                                     :post ["application/json"]})
+  :allowed-methods [:options :post :get]
+  :allowed? (by-method {
+    :options (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (common/allow-anonymous ctx))
+    :post (fn [ctx] (common/allow-authenticated ctx))})
 
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
-  :handle-options (common/options-response [:options :get])
+
+  :malformed? (by-method {
+    :options false
+    :get false
+    :post (fn [ctx] (->> (keys common-res/CompanyMinimum)
+                         (select-keys (:data ctx))
+                         (s/check common-res/CompanyMinimum)))})
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
-  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx))))
+
+  :conflict? (by-method {
+    :get false
+    :options false
+    :post (fn [ctx] (-> ctx :data :slug company/slug-available? not))})
+
+  :handle-ok (by-method {
+    :get  (fn [ctx] (company-rep/render-company-list (:companies ctx)))
+    :post (fn [ctx] (println (company/->company (:data ctx))))})
+  :handle-options (fn [ctx] (if (common/authenticated? ctx)
+                              (common/options-response [:options :get :post])
+                              (common/options-response [:options :get]))))
 
 ;; A resource for the available sections for a specific company.
 (defresource section-list
@@ -145,4 +168,6 @@
   (OPTIONS "/companies/" [] (company-list))
   (OPTIONS "/companies" [] (company-list))
   (GET "/companies/" [] (company-list))
-  (GET "/companies" [] (company-list)))
+  (GET "/companies" [] (company-list))
+  (POST "/companies/" [] (company-list))
+  (POST "/companies" [] (company-list)))

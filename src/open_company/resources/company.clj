@@ -131,6 +131,37 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
+(defn placeholder-sections []
+  (reduce (fn [s sec]
+            (assoc s (-> sec :name keyword)
+                     (assoc sec :placeholder true)))
+          {}
+          (filter :core common/sections)))
+
+(declare list-companies)
+(defn taken-slugs []
+  (set (map :slug (list-companies))))
+
+(defn slug-available? [slug]
+  (not (contains? (taken-slugs) slug)))
+
+(s/defn ->company :- common/Company
+  [company-props user]
+  (-> company-props
+    (update :slug #(if % % (slug/find-available-slug (:name company-props) (taken-slugs))))
+    (update :currency #(if % % "USD"))
+    (assoc :org-id (:org-id user))
+    (merge (placeholder-sections))
+    (categories-for)
+    (sections-for)))
+
+(s/defn create-company*
+  [company :- common/Company]
+  (let [sections      (select-keys common/section-names company)
+        real-sections (into {} (filter (fn [[k v]] (not (:placeholder v))) sections))
+        company-      (apply dissoc company (keys real-sections))]
+    ))
+
 (defun create-company
   "Given the company property map, create the company, returning the property map for the resource or `false`.
   If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword."
