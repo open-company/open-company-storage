@@ -91,6 +91,11 @@
 
 ;; ----- Authentication and Authorization -----
 
+(defn authenticated?
+  "Return true if the request contains a valid JWToken"
+  [ctx]
+  (and (:jwtoken ctx) (:user ctx)))
+
 (defn authorized-to-company?
   "Return true if the user is authorized to this company, false if not."
   [ctx]
@@ -120,7 +125,7 @@
 (defn allow-authenticated
   "Allow unless there is a JWToken provided and it's invalid"
   [ctx]
-  (boolean (:jwtoken ctx)))
+  (authenticated? ctx))
 
 (defn allow-org-members
   "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
@@ -150,7 +155,7 @@
 ;; verify validity and presence of required JWToken
 (def authenticated-resource {
   :initialize-context (fn [ctx] (read-token (get-in ctx [:request :headers])))
-  :authorized? (fn [{:keys [jwtoken]}] (boolean jwtoken))
+  :authorized? (fn [ctx] (authenticated? ctx))
   :handle-not-found (fn [_] (missing-response))
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (fn [_] (forbidden-response))})
