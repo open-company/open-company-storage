@@ -49,7 +49,7 @@
 
 (defn- patch-company [slug company-updates user]
   (let [original-company (company/get-company slug)
-        section-names (clojure.set/intersection (set (keys company-updates)) common-res/sections)
+        section-names (clojure.set/intersection (set (keys company-updates)) common-res/section-names)
         updated-sections (->> section-names
           (map #(section/put-section slug % (company-updates %) user)) ; put each section that's in the patch
           (map #(dissoc % :id :section-name))) ; not needed for sections in company

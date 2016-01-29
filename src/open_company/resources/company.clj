@@ -32,7 +32,7 @@
 (defn- section-list
   "Return the set of section names that are contained in the provided company."
   [company]
-  (set (cset/intersection common/sections (set (keys company)))))
+  (set (cset/intersection common/section-names (set (keys company)))))
 
 (defn sections-for
   "Add a :sections key to given company containing category->ordered-sections mapping

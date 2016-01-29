@@ -57,13 +57,13 @@
              [(keyword name) sections])))
 
 (def category-section-tree
-  ^ {:doc "Category->Section lookup structure "}
+  ^ {:doc "Category->Section lookup structure"}
   (into {} (for [[cat sects] ordered-sections]
              [cat (mapv (comp keyword :name) sects)])))
 
 
 (def section-category-tree
-  ^ {:doc "Section->Category lookup structure "}
+  ^ {:doc "Section->Category lookup structure"}
   (reduce (fn [acc [cat sects]]
             (merge acc (zipmap sects (repeat cat))))
           {}
@@ -78,7 +78,8 @@
   (get section-category-tree (keyword section)))
 
 ;; All possible sections as a set
-(defonce sections (set (flatten (vals category-section-tree))))
+(def sections (set (flatten (vals ordered-sections))))
+(def section-names (set (flatten (vals category-section-tree))))
 
 ;; A set of all sections that can contain notes
 (def notes-sections #{:growth :finances})
