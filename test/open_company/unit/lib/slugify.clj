@@ -1,6 +1,6 @@
 (ns open-company.unit.lib.slugify
   (:require [midje.sweet :refer :all]
-            [open-company.lib.slugify :refer (slugify max-slug-length)]))
+            [open-company.lib.slugify :refer (slugify max-slug-length find-available-slug)]))
 
 (facts "about making slugs"
 
@@ -103,4 +103,9 @@
     "42"                "42"
     "slug42"            "slug42"
     "slug-42"           "slug-42"
-    "this-is-a-slug-42" "this-is-a-slug-42"))
+    "this-is-a-slug-42" "this-is-a-slug-42")
+
+  (fact "available slugs can be found"
+    (find-available-slug "My Name" #{"my-name" "my-name-1" "abc"}) => "my-name-2"
+    (find-available-slug "abc" #{"abc-1" "abe" "abx" "abc-2"}) => "abc"
+    (find-available-slug "abc" #{"abc" "abc-1" "abe" "abx" "abc-2"}) => "abc-3"))
