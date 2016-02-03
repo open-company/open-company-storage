@@ -32,8 +32,10 @@
 ;; ----- Actions -----
 
 (defn- get-section [company-slug section-name as-of]
-  (if-let [section (section-res/get-section company-slug section-name as-of)]
-    {:section section}))
+  (let [section     (section-res/get-section company-slug section-name as-of)
+        placeholder (get (company-res/get-company company-slug) (keyword section-name))]
+    (when-let [s (or section placeholder)]
+      {:section s})))
 
 (defn- put-section [company-slug section-name section author]
   {:updated-section (section-res/put-section company-slug section-name section author)})
@@ -80,7 +82,7 @@
   :handle-options (fn [ctx] (options-for-section company-slug section-name ctx))
 
   ;; Create or update a section
-  :new? (by-method {:put (not (seq (section-res/list-revisions company-slug section-name)))})
+  :new? (by-method {:put (fn [ctx] (not (:section ctx)))})
   :put! (fn [ctx] (put-section company-slug section-name (:data ctx) (:user ctx)))
   :patch! (fn [ctx] (put-section company-slug section-name (merge (:section ctx) (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (section-location-response (:updated-section ctx))))
