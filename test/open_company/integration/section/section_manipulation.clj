@@ -39,7 +39,8 @@
 
 (def categories (map name open-company.resources.common/category-names))
 
-(with-state-changes [(before :facts (do (company/delete-all-companies!)
+(with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
+                     (before :facts (do (company/delete-all-companies!)
                                         (company/create-company r/open r/coyote)
                                         (section/put-section r/slug :update r/text-section-1 r/coyote)
                                         (section/put-section r/slug :finances r/finances-section-1 r/coyote)
@@ -154,6 +155,33 @@
           (:sections (company/get-company r/slug)) => new-order)))
 
     (future-facts "when the new order is NOT valid"))
+
+  (facts "about placeholder section removal"
+    (let [slug     "hello-world"
+          payload  {:name "Hello World" :description "x"}
+          response (mock/api-request :post "/companies" {:body payload})
+          company  (company/get-company slug)]
+      ;; ensure all placeholder sections are in company
+      (:sections company) => {:progress ["update" "growth" "challenges" "team" "product"]
+                              :financial ["finances"]
+                              :company ["values" "mission"]}
+      (:growth company) => truthy
+      (:challenges company) => truthy
+      (:team company) => truthy
+      (:product company) => truthy
+      (:mission company) => truthy
+      (let [new-set {:progress ["update" "finances" "help"]
+                     :company ["values"]}
+            response (mock/api-request :patch (company-rep/url slug) {:body {:sections new-set}})
+            body     (mock/body-from-response response)
+            company  (company/get-company slug)]
+        (:status response) => 200
+        (:sections company) => new-set
+        (:growth company) => falsey
+        (:challenges company) => falsey
+        (:team company) => falsey
+        (:product company) => falsey
+        (:mission company) => falsey)))
 
   (facts "about section removal"
 
