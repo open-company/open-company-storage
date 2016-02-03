@@ -6,6 +6,7 @@
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.resources.company :as company]
+            [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]))
 
 ;; ----- Test Cases -----
@@ -59,10 +60,14 @@
 ;       (company/get-company r/TICKER) => (contains r/OPEN)
 ;       ;; Reports are empty?
 ;       (report/report-count r/TICKER) => 0)))
-(with-state-changes [(before :facts (do (schema.core/set-fn-validation! true)
-                                        (company/delete-all-companies!)
+(with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
+                     (before :facts (do (company/delete-all-companies!)
                                         (company/create-company! (company/->company r/open r/coyote))))]
+  ;; -------------------
+  ;; JWToken things are covered in open-company.integration.company.company-list
+  ;; -------------------
   (facts "about creating companies"
+
     (fact "missing fields cause 400"
       (let [payload  {:name "hello"}
             response (mock/api-request :post "/companies" {:body payload})]
@@ -80,8 +85,21 @@
         (let [payload  {:slug "under_score" :name "hello" :description "x"}
               response (mock/api-request :post "/companies" {:body payload})]
           (:status response) => 422)))
+
     (facts "sections"
       (fact "unknown sections cause 400"
        (let [payload  {:name "hello" :description "x" :unknown-section {}}
               response (mock/api-request :post "/companies" {:body payload})]
-          (:status response) => 400)))))
+         (:status response) => 400))
+      (facts "known user supplied sections"
+        (let [diversity {:title "Diversity" :description "Diversity yay!" :body "TBD" :section-name "diversity"}
+              payload  {:name "Diverse Co" :description "x" :diversity diversity}
+              response (mock/api-request :post "/companies" {:body payload})
+              company  (company/get-company "diverse-co")
+              sect     (section/get-section "diverse-co" :diversity)]
+          (fact "are added with author and updated-at"
+            (:status response) => 201
+            (-> company :diversity :placeholder) => falsey
+            (-> company :diversity :author) => truthy
+            (-> company :diversity :updated-at) => truthy
+            (:description sect) => "Diversity yay!"))))))
