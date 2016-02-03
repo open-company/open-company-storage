@@ -131,13 +131,19 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
-(defn placeholder-sections []
+(defn placeholder-sections [company-slug]
   (reduce (fn [s sec]
-            (assoc s (-> sec :name keyword)
-                     (assoc sec :placeholder true)))
+            (assoc s
+                   (-> sec :name keyword)
+                   (-> sec
+                       (assoc :section-name (-> sec :name keyword))
+                       (assoc :company-slug company-slug)
+                       (assoc :placeholder true)
+                       (dissoc :name))))
           {}
           (filter :core common/sections)))
 
+;; ----- Slug -----
 (declare list-companies)
 (defn taken-slugs []
   (set (map :slug (list-companies))))
