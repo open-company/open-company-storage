@@ -31,6 +31,8 @@
     :bad-company (common/missing-response)
     :invalid-name (common/unprocessable-entity-response "Company name is required.")
     :invalid-slug (common/unprocessable-entity-response "Invalid slug.")
+    :invalid-slug-format (common/unprocessable-entity-response "Invalid slug format.")
+    :slug-taken (common/unprocessable-entity-response "Slug already taken.")
     (common/unprocessable-entity-response "Not processable.")))
 
 (defn- options-for-company [slug ctx]
@@ -123,6 +125,12 @@
     [(or invalid-json? (:required-keys report) (not (:sections report)))
      (assoc parsed :malformed-report report)]))
 
+(defn slug-processable [slug]
+  (cond
+    (nil? slug)                    true
+    (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
+    (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
+
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
   []
@@ -150,15 +158,16 @@
   :processable? (by-method {
     :get true
     :options true
-    :post (fn [ctx] (and (-> ctx :data :slug company/slug-available?)
-                         (->> ctx :data :slug (s/check common-res/Slug) nil?)))})
+    :post (fn [ctx] (slug-processable (-> ctx :data :slug)))})
 
   :handle-ok (by-method {
     :get  (fn [ctx] (company-rep/render-company-list (:companies ctx)))
     :post (fn [ctx] (println (company/->company (:data ctx))))})
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])
-                              (common/options-response [:options :get]))))
+                              (common/options-response [:options :get])))
+
+  :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx))))
 
 ;; A resource for the available sections for a specific company.
 (defresource section-list
