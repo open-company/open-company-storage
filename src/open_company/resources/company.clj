@@ -27,7 +27,7 @@
 (defn- categories-for
   "Add the :categories vector in the company with the definitive initial list of categories."
   [company]
-  (assoc company :categories common/category-names))
+  (assoc company :categories (vec common/category-names)))
 
 (defn- section-list
   "Return the set of section names that are contained in the provided company."

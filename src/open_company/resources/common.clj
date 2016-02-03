@@ -1,6 +1,7 @@
 (ns open-company.resources.common
   "Resources are any thing stored in the open company platform: companies, reports"
   (:require [clojure.string :as string]
+            [clojure.set :as cset]
             [schema.core :as s]
             [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
@@ -21,7 +22,7 @@
 
 ;; All the categories in default order
 (def categories (:categories (keywordize-keys config/sections)))
-(def category-names (map (comp keyword :name) (:categories (keywordize-keys config/sections))))
+(def category-names (set (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
 
 (def ordered-sections
   (into {} (for [{:keys [sections name]} categories]
@@ -60,14 +61,20 @@
 (def Slug (s/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {s/Keyword [s/Str]})
+  {s/Keyword [s/Keyword]})
 
 (def Section
-  {:name s/Str})
+  {:section-name                 s/Keyword
+   :title                        s/Str
+   :description                  s/Str
+   :company-slug                 s/Str
+   (s/optional-key :body)        s/Str
+   (s/optional-key :created-at)  s/Str
+   (s/optional-key :updated-at)  s/Str
+   s/Keyword                     s/Any})
 
-(def PlaceholderSections
-  (into {} (for [sn section-names]
-            [(s/optional-key sn) (merge Section {:placeholder true})])))
+(def InlineSections
+  (into {} (for [sn section-names] [(s/optional-key sn) Section])))
 
 ;; TODO check for non-blank?
 (def CompanyMinimum
@@ -83,9 +90,10 @@
          CompanyOptional
          {:org-id      s/Str
           :sections    SectionsOrder
+          :categories  (s/pred #(cset/subset? (set %) category-names))
           (s/optional-key :created-at)  s/Str
           (s/optional-key :updated-at)  s/Str}
-          PlaceholderSections))
+          InlineSections))
 
 (def User
   {:name        s/Str
