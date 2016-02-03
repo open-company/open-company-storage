@@ -1,6 +1,7 @@
 (ns open-company.resources.company
   (:require [clojure.string :as string]
             [clojure.set :as cset]
+            [medley.core :as med]
             [schema.core :as s]
             [defun :refer (defun defun-)]
             [open-company.lib.slugify :as slug]
@@ -151,24 +152,45 @@
 (defn slug-available? [slug]
   (not (contains? (taken-slugs) slug)))
 
+;; ----- Create saveable company doc ----
+
+(defn real-sections [company]
+  (->> (select-keys company common/section-names)
+       (med/remove-vals :placeholder)))
+
+(defn complete-real-sections
+  [company user]
+  (let [rs (real-sections company)
+        add-info #(-> %
+                      (assoc :author (common/author-for-user user))
+                      (assoc :company-slug (:slug company))
+                      (update :section-name keyword))]
+    (merge company (med/map-vals add-info rs))))
+
 (s/defn ->company :- common/Company
   [company-props user]
-  (-> company-props
-    (update :slug #(if % % (slug/find-available-slug (:name company-props) (taken-slugs))))
-    (update :currency #(if % % "USD"))
-    (assoc :org-id (:org-id user))
-    (merge (placeholder-sections))
-    (categories-for)
-    (sections-for)))
+  (let [slug (if-let [s (:slug company-props)]
+               s
+               (slug/find-available-slug (:name company-props) (taken-slugs)))]
+    (-> company-props
+        (assoc :slug slug)
+        (update :currency #(if % % "USD"))
+        (assoc :org-id (:org-id user))
+        (merge (placeholder-sections slug))
+        (complete-real-sections user)
+        (categories-for)
+        (sections-for))))
 
 ;; Any "real" sections they provide ought to end up in the company document
 ;; with author and time stamp, and also with their own section document entries.
-(s/defn create-company*
+(s/defn create-company!
   [company :- common/Company]
-  (let [sections      (select-keys common/section-names company)
-        real-sections (into {} (filter (fn [[k v]] (not (:placeholder v))) sections))
-        company-      (apply dissoc company (keys real-sections))]
-    ))
+  (let [real-sections     (real-sections company)
+        ts                (common/current-timestamp)
+        rs-w-ts           (med/map-vals #(assoc % :updated-at ts) real-sections)]
+    (doseq [[_ section] real-sections]
+      (common/create-resource common/section-table-name section ts))
+    (common/create-resource table-name (merge company rs-w-ts) ts)))
 
 (defun create-company
   "Given the company property map, create the company, returning the property map for the resource or `false`.
