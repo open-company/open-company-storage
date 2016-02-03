@@ -160,9 +160,10 @@
     :options true
     :post (fn [ctx] (slug-processable (-> ctx :data :slug)))})
 
-  :handle-ok (by-method {
-    :get  (fn [ctx] (company-rep/render-company-list (:companies ctx)))
-    :post (fn [ctx] (println (company/->company (:data ctx))))})
+  :post! (fn [ctx] {:company (company/create-company! (company/->company (:data ctx) (:user ctx)))})
+
+  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
+  :handle-created (fn [ctx] (company-location-response (:company ctx)))
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])
                               (common/options-response [:options :get])))
