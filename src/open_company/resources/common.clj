@@ -4,8 +4,6 @@
             [clojure.set :as cset]
             [schema.core :as s]
             [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let*)]
-            [defun :refer (defun)]
             [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
@@ -41,12 +39,14 @@
           {}
           category-section-tree))
 
-(defn sections-for [cat]
+(defn sections-for
   "Return all the sections for the provided category name in order."
+  [cat]
   (get category-section-tree (keyword cat)))
 
-(defn category-for [section]
+(defn category-for
   "Return the category for the provided section name in order."
+  [section]
   (get section-category-tree (keyword section)))
 
 ;; All possible sections as a set
