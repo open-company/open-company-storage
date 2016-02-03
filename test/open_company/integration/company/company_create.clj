@@ -76,6 +76,16 @@
       (let [payload  {:bogus "xx" :name "hello" :description "x"}
             response (mock/api-request :post "/companies" {:body payload})]
         (:status response) => 400))
+
+    (fact "company can be created with name and description"
+      (let [payload  {:name "Hello World" :description "x"}
+            response (mock/api-request :post "/companies" {:body payload})
+            body     (mock/body-from-response response)]
+        (:status response) => 201
+        (:slug body) => "hello-world"
+        (:description body) => "x"
+        (:name body) => "Hello World"))
+
     (facts "slug"
       (fact "provided slug is taken causes 422"
         (let [payload  {:slug "open" :name "hello" :description "x"}
