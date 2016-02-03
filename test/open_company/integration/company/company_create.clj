@@ -1,5 +1,6 @@
 (ns open-company.integration.company.company-create
   (:require [cheshire.core :as json]
+            [schema.test]
             [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
@@ -58,9 +59,9 @@
 ;       (company/get-company r/TICKER) => (contains r/OPEN)
 ;       ;; Reports are empty?
 ;       (report/report-count r/TICKER) => 0)))
-
-(with-state-changes [(before :facts (do (company/delete-all-companies!)
-                                        (company/create-company r/open r/coyote)))]
+(with-state-changes [(before :facts (do (schema.core/set-fn-validation! true)
+                                        (company/delete-all-companies!)
+                                        (company/create-company! (company/->company r/open r/coyote))))]
   (facts "about creating companies"
     (fact "missing fields cause 400"
       (let [payload  {:name "hello"}
@@ -70,11 +71,17 @@
       (let [payload  {:bogus "xx" :name "hello" :description "x"}
             response (mock/api-request :post "/companies" {:body payload})]
         (:status response) => 400))
-    (fact "provided slug is taken causes 422"
-      (let [payload  {:slug "open" :name "hello" :description "x"}
-            response (mock/api-request :post "/companies" {:body payload})]
-        (:status response) => 422))
-    (fact "provided slug does not follow slug format causes 422"
-      (let [payload  {:slug "under_score" :name "hello" :description "x"}
-            response (mock/api-request :post "/companies" {:body payload})]
-        (:status response) => 422))))
+    (facts "slug"
+      (fact "provided slug is taken causes 422"
+        (let [payload  {:slug "open" :name "hello" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})]
+          (:status response) => 422))
+      (fact "provided slug does not follow slug format causes 422"
+        (let [payload  {:slug "under_score" :name "hello" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})]
+          (:status response) => 422)))
+    (facts "sections"
+      (fact "unknown sections cause 400"
+       (let [payload  {:name "hello" :description "x" :unknown-section {}}
+              response (mock/api-request :post "/companies" {:body payload})]
+          (:status response) => 400)))))
