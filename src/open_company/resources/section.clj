@@ -199,6 +199,7 @@
         author (common/author-for-user user)
         updated-section (-> section
           (clean)
+          (dissoc :placeholder)
           (assoc :company-slug company-slug)
           (assoc :section-name section-name)
           (assoc :author author)
@@ -207,6 +208,7 @@
         updated-sections (company/sections-with (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)
         updated-company (assoc sectioned-company section-name (-> updated-section
+          (dissoc :placeholder)
           (dissoc :company-slug)
           (dissoc :section-name)))]
     (if (and (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
