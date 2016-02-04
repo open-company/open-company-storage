@@ -160,8 +160,7 @@
 ;; ----- Create saveable company doc ----
 
 (defn real-sections [company]
-  (->> (select-keys company common/section-names)
-       (med/remove-vals :placeholder)))
+  (med/remove-vals :placeholder (select-keys company common/section-names)))
 
 (defn complete-real-sections
   [company user]
