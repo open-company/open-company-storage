@@ -59,50 +59,48 @@
     (let [category-name (common/category-for section-name)] ; get the category for this section name
       (update-in sections [category-name] conj section-name)))) ; add the section name to the category
 
-(defn- notes-for
-  "
-  Return a sequence of the sections that do have notes in the form:
+;; (defn- notes-for
+;;   "
+;;   Return a sequence of the sections that do have notes in the form:
 
-  [[:section-name :notes] [:section-name :notes]]
-  "
-  [company]
-  (let [possible-sections-with-notes
-        (cset/intersection common/notes-sections
-          (set (:sections company)))
-        sections-with-notes
-          (filter #(get-in company [(keyword %) :notes])
-            possible-sections-with-notes)]
-    (vec (map #(vec [(keyword %) :notes]) sections-with-notes))))
+;;   [[:section-name :notes] [:section-name :notes]]
+;;   "
+;;   [company]
+;;   (let [possible-sections-with-notes (cset/intersection common/notes-sections
+;;                                                         (set (:sections company)))
+;;         sections-with-notes (filter #(get-in company [(keyword %) :notes])
+;;             possible-sections-with-notes)]
+;;     (vec (map #(vec [(keyword %) :notes]) sections-with-notes))))
 
-(defun- author-for
-  "Add or replace the :author map for each specified section with the specified author for this revision."
-  ;; determine sections with notes
-  ([author sections company] (author-for author sections (notes-for company) company))
-  ;; all done!
-  ([_author _sections :guard empty? _notes-sections :guard empty? company] company)
-  ;; replace the :author in the section notes and recurse
-  ([author _sections :guard empty? notes-sections company]
-    (author-for author [] (rest notes-sections)
-      (assoc-in company (flatten [(first notes-sections) :author]) author)))
-  ;; replace the :author in the section and recurse
-  ([author sections notes-sections company]
-    (author-for author (rest sections) notes-sections
-      (assoc-in company [(keyword (first sections)) :author] author))))
+;; (defun- author-for
+;;   "Add or replace the :author map for each specified section with the specified author for this revision."
+;;   ;; determine sections with notes
+;;   ([author sections company] (author-for author sections (notes-for company) company))
+;;   ;; all done!
+;;   ([_author _sections :guard empty? _notes-sections :guard empty? company] company)
+;;   ;; replace the :author in the section notes and recurse
+;;   ([author _sections :guard empty? notes-sections company]
+;;     (author-for author [] (rest notes-sections)
+;;       (assoc-in company (flatten [(first notes-sections) :author]) author)))
+;;   ;; replace the :author in the section and recurse
+;;   ([author sections notes-sections company]
+;;     (author-for author (rest sections) notes-sections
+;;       (assoc-in company [(keyword (first sections)) :author] author))))
 
-(defun- updated-for
-  "Add or replace the :updated-at for each specified section with the specified timestamp for this revision."
-  ;; determine sections with notes
-  ([timestamp sections company] (updated-for timestamp sections (notes-for company) company))
-  ;; all done!
-  ([_timestamp _sections :guard empty? _notes-sections :guard empty? company] company)
-  ;; replace the :updated-at in the section notes and recurse
-  ([timestamp _sections :guard empty? notes-sections company]
-    (updated-for timestamp [] (rest notes-sections)
-      (assoc-in company (flatten [(first notes-sections) :updated-at]) timestamp)))
-  ;; replace the :updated-at in the section and recurse
-  ([timestamp sections notes-sections company]
-    (updated-for timestamp (rest sections) notes-sections
-      (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
+;; (defun- updated-for
+;;   "Add or replace the :updated-at for each specified section with the specified timestamp for this revision."
+;;   ;; determine sections with notes
+;;   ([timestamp sections company] (updated-for timestamp sections (notes-for company) company))
+;;   ;; all done!
+;;   ([_timestamp _sections :guard empty? _notes-sections :guard empty? company] company)
+;;   ;; replace the :updated-at in the section notes and recurse
+;;   ([timestamp _sections :guard empty? notes-sections company]
+;;     (updated-for timestamp [] (rest notes-sections)
+;;       (assoc-in company (flatten [(first notes-sections) :updated-at]) timestamp)))
+;;   ;; replace the :updated-at in the section and recurse
+;;   ([timestamp sections notes-sections company]
+;;     (updated-for timestamp (rest sections) notes-sections
+;;       (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
 
 ;; ----- Validations -----
 
@@ -168,11 +166,12 @@
 (defn complete-real-sections
   [company user]
   (let [rs (real-sections company)
-        add-info #(-> %
-                      (assoc :author (common/author-for-user user))
-                      (assoc :company-slug (:slug company))
-                      (update :section-name keyword))]
-    (merge company (med/map-vals add-info rs))))
+        add-info (fn [[k section-data]]
+                   [k (-> section-data
+                          (assoc :author (common/author-for-user user))
+                          (assoc :company-slug (:slug company))
+                          (assoc :section-name k))])]
+    (merge company (into {} (map add-info rs)))))
 
 (s/defn ->company :- common/Company
   [company-props user]
@@ -187,55 +186,61 @@
         (categories-for)
         (sections-for))))
 
-;; Any "real" sections they provide ought to end up in the company document
-;; with author and time stamp, and also with their own section document entries.
+(s/defn add-updated-at
+  [{:keys [section-name] :as section} :- common/Section ts]
+  (let [notes-section? (contains? common/notes-sections section-name)]
+    (cond-> section
+      true                                  (assoc :updated-at ts)
+      (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
+
 (s/defn create-company!
   [company :- common/Company]
+  (s/validate common/Company company) ; throw if invalid
   (let [real-sections     (real-sections company)
         ts                (common/current-timestamp)
-        rs-w-ts           (med/map-vals #(assoc % :updated-at ts) real-sections)]
+        rs-w-ts           (med/map-vals #(add-updated-at % ts) real-sections)]
     (doseq [[_ section] real-sections]
       (common/create-resource common/section-table-name section ts))
     (common/create-resource table-name (merge company rs-w-ts) ts)))
 
-(defun create-company
-  "Given the company property map, create the company, returning the property map for the resource or `false`.
-  If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword."
+;; (defun create-company
+;;   "Given the company property map, create the company, returning the property map for the resource or `false`.
+;;   If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword."
 
-  ([company user] (create-company company user (common/current-timestamp)))
+;;   ([company user] (create-company company user (common/current-timestamp)))
 
-  ;; not a map
-  ([_company :guard #(not (map? %)) _user _timestamp] false)
-  ([_company _user :guard #(not (map? %)) _timestamp] false)
+;;   ;; not a map
+;;   ([_company :guard #(not (map? %)) _user _timestamp] false)
+;;   ([_company _user :guard #(not (map? %)) _timestamp] false)
 
-  ;; no org-id
-  ([_company _user :guard #(not (:org-id %)) _timestamp] false)
+;;   ;; no org-id
+;;   ([_company _user :guard #(not (:org-id %)) _timestamp] false)
 
-  ;; potentially a valid company
-  ([company user timestamp]
-    (let [company-slug (or (:slug company) (slug/slugify (:name company)))
-          author (common/author-for-user user)
-          interim-company (-> company
-                            (clean) ; remove disallowed properties
-                            (assoc :slug company-slug) ; store the slug
-                            (assoc :org-id (:org-id user)) ; store the org
-                            (categories-for) ; add/replace the :categories property
-                            (sections-for)) ; add/replace the :sections property
-          section-names (flatten (vals (:sections interim-company)))
-          final-company (->> interim-company
-                          (author-for author section-names) ; add/replace the :author in the sections
-                          (updated-for timestamp section-names))] ; add/replace the :updated-at in the sections
-      (if (true? (valid-company final-company))
-        (do
-          ;; create the each section in the DB
-          (doseq [section-name section-names]
-            (let [section (-> (get final-company (keyword section-name))
-                              (assoc :company-slug (:slug final-company))
-                              (assoc :section-name section-name))]
-              (common/create-resource common/section-table-name section timestamp)))
-          ;; create the company in the DB
-          (common/create-resource table-name final-company timestamp))
-        false))))
+;;   ;; potentially a valid company
+;;   ([company user timestamp]
+;;     (let [company-slug (or (:slug company) (slug/slugify (:name company)))
+;;           author (common/author-for-user user)
+;;           interim-company (-> company
+;;                             (clean) ; remove disallowed properties
+;;                             (assoc :slug company-slug) ; store the slug
+;;                             (assoc :org-id (:org-id user)) ; store the org
+;;                             (categories-for) ; add/replace the :categories property
+;;                             (sections-for)) ; add/replace the :sections property
+;;           section-names (flatten (vals (:sections interim-company)))
+;;           final-company (->> interim-company
+;;                           (author-for author section-names) ; add/replace the :author in the sections
+;;                           (updated-for timestamp section-names))] ; add/replace the :updated-at in the sections
+;;       (if (true? (valid-company final-company))
+;;         (do
+;;           ;; create the each section in the DB
+;;           (doseq [section-name section-names]
+;;             (let [section (-> (get final-company (keyword section-name))
+;;                               (assoc :company-slug (:slug final-company))
+;;                               (assoc :section-name section-name))]
+;;               (common/create-resource common/section-table-name section timestamp)))
+;;           ;; create the company in the DB
+;;           (common/create-resource table-name final-company timestamp))
+;;         false))))
 
 (defn update-company
   "
@@ -262,7 +267,7 @@
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
   ([slug :guard get-company company _user] (update-company slug company))
-  ([_slug company user] (create-company company user)))
+  ([_slug company user] (create-company! (->company company user))))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."
