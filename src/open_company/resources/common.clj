@@ -91,6 +91,7 @@
          {:org-id      s/Str
           :sections    SectionsOrder
           :categories  (s/pred #(cset/subset? (set %) category-names))
+          (s/optional-key :logo)        s/Str
           (s/optional-key :created-at)  s/Str
           (s/optional-key :updated-at)  s/Str}
           InlineSections))
