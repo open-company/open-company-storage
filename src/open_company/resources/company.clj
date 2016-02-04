@@ -175,12 +175,10 @@
 
 (s/defn ->company :- common/Company
   [company-props user]
-  (let [slug (if-let [s (:slug company-props)]
-               s
-               (slug/find-available-slug (:name company-props) (taken-slugs)))]
+  (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]
     (-> company-props
         (assoc :slug slug)
-        (update :currency #(if % % "USD"))
+        (update :currency #(or % "USD"))
         (assoc :org-id (:org-id user))
         (complete-real-sections user)
         (categories-for)
