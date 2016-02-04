@@ -62,7 +62,7 @@
           "name": "update",
           "title": "Founder's Update",
           "description": "Company update",
-          "headline": "Here's what's new in October.",
+          "headline": "Here's what happened during...",
           "body": "Provide an overview of important happenings in the company since the last update.",
           "image": "/img/section-icons/progress-update.svg",
           "core": true
@@ -202,7 +202,7 @@
           "name": "marketing",
           "title": "Marketing and Customer Acquisition",
           "description": "Notable marketing activities and results",
-          "headline": "",
+          "headline": "We're trying out...",
           "body": "List any notable marketing activities since the last update. How are the current marketing
           efforts performing? What changes and new activities are planned?",
           "image": "/img/section-icons/progress-marketing.svg",
@@ -213,7 +213,7 @@
           "name": "press",
           "title": "Press",
           "description": "Press mentions and PR activities",
-          "headline": "",
+          "headline": "Check out our coverage in...",
           "body": "List any notable press mentions since the last update. Provide an update on PR activities.",
           "image": "/img/section-icons/progress-press.svg",
           "core": false
@@ -223,7 +223,7 @@
           "name": "sales",
           "title": "Sales",
           "description": "Notable sales activity and wins and losses",
-          "headline": "",
+          "headline": "We just closed the...",
           "body": "Did you close any notable sales? What opportunities are in the pipeline?",
           "image": "/img/section-icons/progress-sales.svg",
           "core": false
@@ -233,7 +233,7 @@
           "name": "business-development",
           "title": "Business Development",
           "description": "Notable partnership activity and new deals",
-          "headline": "",
+          "headline": "We just closed the...",
           "body": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
           "image": "/img/section-icons/progress-business-development.svg",
           "core": false
@@ -242,7 +242,7 @@
         {
           "name": "help",
           "title": "How You Can Help",
-          "headline": "",
+          "headline": "Just one quick ask, please...",
           "description": "Ask your company stakeholders for help and ideas",
           "body": "Where do you need the most help from your team and investors? Be specific.",
           "image": "/img/section-icons/progress-help.svg",
@@ -252,7 +252,7 @@
         {
           "name": "kudos",
           "title": "Kudos",
-          "headline": "",
+          "headline": "A big shout out to...",
           "description": "Celebrate great actions that helped the company",
           "body": "Who went above and beyond to help the company? What did they do?",
           "image": "/img/section-icons/progress-kudos.svg",
@@ -278,7 +278,7 @@
           {
             "name": "fundraising",
             "title": "Fundraising",
-            "headline": "We're raising our next round of funds in...",
+            "headline": "We're talking to 2 firms about...",
             "description": "Updates on the fundraising process",
             "body": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
             pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
