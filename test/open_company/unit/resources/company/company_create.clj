@@ -79,6 +79,14 @@
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))
 
+    (facts "it adds timestamps to notes"
+      (let [co      (c/add-placeholder-sections (c/->company r/open r/coyote))
+            w-note  (assoc-in co [:growth :notes :body] "A Note")
+            company (c/create-company! co)
+            from-db (c/get-company (:slug r/open))]
+        (get-in from-db [:updated-at]) => (:updated-at company)
+        (get-in from-db [:growth :notes :updated-at]) => (:updated-at company)))
+
     (fact "it returns the pre-defined categories"
       (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
 
