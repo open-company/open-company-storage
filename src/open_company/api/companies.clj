@@ -113,15 +113,15 @@
   (let [[invalid-json? parsed] (common/malformed-json? ctx)
         with-reason (fn [r] (assoc parsed :malformed-reason r))]
     (cond invalid-json?
-          [true (with-reason  :malformed-json)]
+          [true (with-reason :malformed-json)]
           ;; Ensure all required keys are present and valid
           ;; s/check returns nil if data complies
-          (not (->> (keys common-res/CompanyMinimum)
-                    (select-keys (:data parsed))
-                    (s/check common-res/CompanyMinimum)))
+          (->> (keys common-res/CompanyMinimum)
+               (select-keys (:data parsed))
+               (s/check common-res/CompanyMinimum))
           [true (with-reason :missing-fields)]
           ;; Ensure all extra fields match with our sections
-          ;; if superset? at the end is true no extra fields are found
+          ;; if superset? returns true no superfluous fields are found
           (not (->> (into (set (keys common-res/CompanyMinimum))
                           (set (keys common-res/CompanyOptional)))
                     (cset/difference (-> parsed :data keys set))
