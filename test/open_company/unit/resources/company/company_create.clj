@@ -79,27 +79,30 @@
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))
 
-    (facts "it adds timestamps to notes"
-      (let [co      (c/add-placeholder-sections (c/->company r/open r/coyote))
-            w-note  (assoc-in co [:growth :notes :body] "A Note")
-            company (c/create-company! co)
-            from-db (c/get-company (:slug r/open))]
-        (get-in from-db [:updated-at]) => (:updated-at company)
-        (get-in from-db [:growth :notes :updated-at]) => (:updated-at company)))
+    (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
+      (facts "it adds timestamps to notes"
+        (let [co      (c/add-placeholder-sections (c/->company r/open r/coyote))
+              w-note  (-> co (add-section :growth) (assoc-in [:growth :notes :body] "A Note"))
+              company (c/create-company! co)
+              from-db (c/get-company (:slug r/open))]
+          (get-in from-db [:updated-at]) => (:updated-at company)
+          (get-in from-db [:growth :notes :updated-at]) => (:updated-at company)))
 
-    (fact "it returns the pre-defined categories"
-      (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
+      (fact "it returns the pre-defined categories"
+        (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
 
-    (facts "it returns the sections in the company in the pre-defined order"
-      (:sections (c/create-company! (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
-      (c/delete-company r/slug)
-      (:sections (c/create-company! (c/->company (assoc r/open :update {}) r/coyote))) =>
+      (facts "it returns the sections in the company in the pre-defined order"
+        (:sections (c/create-company! (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
+        (c/delete-company r/slug)
+        (:sections (c/create-company! (c/->company (add-section r/open :update) r/coyote))) =>
         {:progress [:update] :financial [] :company []}
-      (c/delete-company r/slug)
-      (:sections (c/create-company! (c/->company (assoc r/open :values {}) r/coyote))) =>
+        (c/delete-company r/slug)
+        (:sections (c/create-company! (c/->company (add-section r/open :values) r/coyote))) =>
         {:progress [] :financial [] :company [:values]}
-      (c/delete-company r/slug)
-      (:sections (c/create-company!
-                  (c/->company (-> r/open (assoc :mission {} :press {} :help {} :challenges {} :diversity {} :update {}))
-                               r/coyote)))
-      => {:progress [:update :challenges :press :help] :financial [] :company [:diversity :mission]})))
+        (c/delete-company r/slug)
+        (:sections (c/create-company!
+                    (c/->company (-> r/open
+                                     (add-section :mission) (add-section :press) (add-section :help)
+                                     (add-section :challenges) (add-section :diversity) (add-section :update))
+                                 r/coyote)))
+        => {:progress [:update :challenges :press :help] :financial [] :company [:diversity :mission]}))))
