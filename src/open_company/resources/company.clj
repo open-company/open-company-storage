@@ -124,6 +124,16 @@
   ([_ :guard #(or (not (string? (:name %))) (string/blank? (:name %)))] :invalid-name)
   ([_] true))
 
+
+;; ----- Slug -----
+
+(declare list-companies)
+(defn taken-slugs []
+  (set (map :slug (list-companies))))
+
+(defn slug-available? [slug]
+  (not (contains? (taken-slugs) slug)))
+
 ;; ----- Company CRUD -----
 
 (defn get-company
@@ -144,13 +154,10 @@
           {}
           (filter :core common/sections)))
 
-;; ----- Slug -----
-(declare list-companies)
-(defn taken-slugs []
-  (set (map :slug (list-companies))))
-
-(defn slug-available? [slug]
-  (not (contains? (taken-slugs) slug)))
+(defn add-placeholder-sections [company]
+  (-> (placeholder-sections (:slug company))
+      (merge company)
+      (sections-for)))
 
 ;; ----- Create saveable company doc ----
 
@@ -176,7 +183,6 @@
         (assoc :slug slug)
         (update :currency #(if % % "USD"))
         (assoc :org-id (:org-id user))
-        (merge (placeholder-sections slug))
         (complete-real-sections user)
         (categories-for)
         (sections-for))))

@@ -164,7 +164,9 @@
     :options true
     :post (fn [ctx] (slug-processable (-> ctx :data :slug)))})
 
-  :post! (fn [ctx] {:company (company/create-company! (company/->company (:data ctx) (:user ctx)))})
+  :post! (fn [ctx] {:company (-> (company/->company (:data ctx) (:user ctx))
+                                 (company/add-placeholder-sections)
+                                 (company/create-company!))})
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
   :handle-created (fn [ctx] (company-location-response (:company ctx)))
