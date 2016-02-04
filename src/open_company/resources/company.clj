@@ -187,8 +187,7 @@
 (s/defn add-updated-at
   [{:keys [section-name] :as section} :- common/Section ts]
   (let [notes-section? (contains? common/notes-sections section-name)]
-    (cond-> section
-      true                                  (assoc :updated-at ts)
+    (cond-> (assoc section :updated-at ts)
       (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
 
 (s/defn create-company!
