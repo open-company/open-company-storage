@@ -106,24 +106,28 @@
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
-(defn invalid-post-req?
+(defn malformed-post-req?
   "If the request contains valid JSON POST data to create
    companies retun the parsed JSON, otherwise nil."
   [ctx]
   (let [[invalid-json? parsed] (common/malformed-json? ctx)
-        report {:invalid-json invalid-json?
-                ;; Ensure all required keys are present and valid
-                :required-keys (->> (keys common-res/CompanyMinimum)
-                                     (select-keys (:data parsed))
-                                     (s/check common-res/CompanyMinimum))
-                ;; Ensure all extra fields match with our sections
-                :sections (->> (into (set (keys common-res/CompanyMinimum))
-                                     (set (keys common-res/CompanyOptional)))
-                               (cset/difference (-> parsed :data keys set))
-                               (cset/superset? common-res/section-names))}]
-    ;; TODO think about this
-    [(or invalid-json? (:required-keys report) (not (:sections report)))
-     (assoc parsed :malformed-report report)]))
+        with-reason (fn [r] (assoc parsed :malformed-reason r))]
+    (cond invalid-json?
+          [true (with-reason  :malformed-json)]
+          ;; Ensure all required keys are present and valid
+          ;; s/check returns nil if data complies
+          (not (->> (keys common-res/CompanyMinimum)
+                    (select-keys (:data parsed))
+                    (s/check common-res/CompanyMinimum)))
+          [true (with-reason :missing-fields)]
+          ;; Ensure all extra fields match with our sections
+          ;; if superset? at the end is true no extra fields are found
+          (not (->> (into (set (keys common-res/CompanyMinimum))
+                          (set (keys common-res/CompanyOptional)))
+                    (cset/difference (-> parsed :data keys set))
+                    (cset/superset? common-res/section-names)))
+          [true (with-reason :unexpected-fields)]
+          :else [false parsed])))
 
 (defn slug-processable [slug]
   (cond
@@ -150,7 +154,7 @@
   :malformed? (by-method {
     :options false
     :get false
-    :post (fn [ctx] (invalid-post-req? ctx))})
+    :post (fn [ctx] (malformed-post-req? ctx))})
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
