@@ -55,8 +55,8 @@
       false))) ; must not have been a string
 
 (defn ^:private positive-numbers
-	([] (positive-numbers 1))
-	([n] (lazy-seq (cons n (positive-numbers (inc n))))))
+  ([] (positive-numbers 1))
+  ([n] (lazy-seq (cons n (positive-numbers (inc n))))))
 
 (defn find-available-slug
   "Create a slug from `name` but find alternatives
