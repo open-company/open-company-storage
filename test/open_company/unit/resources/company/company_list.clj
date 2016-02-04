@@ -12,9 +12,9 @@
 
 (with-state-changes [(before :facts (do
                                       (c/delete-all-companies!)
-                                      (c/create-company r/open r/coyote)
-                                      (c/create-company r/uni r/camus)
-                                      (c/create-company r/buffer r/sartre)))
+                                      (c/create-company! (c/->company r/open r/coyote))
+                                      (c/create-company! (c/->company r/uni r/camus))
+                                      (c/create-company! (c/->company r/buffer r/sartre))))
                      (after :facts (c/delete-all-companies!))]
 
   (facts "about listing companies"

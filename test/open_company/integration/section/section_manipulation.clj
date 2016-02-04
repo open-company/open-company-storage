@@ -41,7 +41,7 @@
 
 (with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
                      (before :facts (do (company/delete-all-companies!)
-                                        (company/create-company r/open r/coyote)
+                                        (company/create-company! (company/->company r/open r/coyote))
                                         (section/put-section r/slug :update r/text-section-1 r/coyote)
                                         (section/put-section r/slug :finances r/finances-section-1 r/coyote)
                                         (section/put-section r/slug :team r/text-section-2 r/coyote)

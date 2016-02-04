@@ -67,7 +67,7 @@
 
 (with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
                      (before :facts (do (c/delete-company r/slug)
-                                        (c/create-company r/open r/coyote)))
+                                        (c/create-company! (c/->company r/open r/coyote))))
                      (after :facts (c/delete-company r/slug))]
 
   (with-state-changes [(before :facts (s/put-section r/slug :update r/text-section-1 r/coyote))]
@@ -294,7 +294,7 @@
   (facts "about updating a placeholder section"
 
     (facts "with PUT"
-      (with-state-changes [(before :facts (c/create-company! (c/->company r/buffer r/coyote)))
+      (with-state-changes [(before :facts (c/create-company! (c/add-placeholder-sections (c/->company r/buffer r/coyote))))
                            (after :facts (c/delete-company (:slug r/buffer)))]
         (fact "update existing revision title"
           (let [updated  (assoc r/text-section-1 :title "New Title")
@@ -307,7 +307,7 @@
             (:placeholder body) => falsey))))
 
     (facts "with PATCH"
-      (with-state-changes [(before :facts (c/create-company! (c/->company r/buffer r/coyote)))
+      (with-state-changes [(before :facts (c/create-company! (c/add-placeholder-sections (c/->company r/buffer r/coyote))))
                            (after :facts (c/delete-company (:slug r/buffer)))]
         (fact "update existing revision title"
           (let [updated  {:title "New Title"}

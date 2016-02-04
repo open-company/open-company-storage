@@ -55,21 +55,21 @@
   (facts "about company creation"
 
     (fact "it fails to create a company if no org-id is provided"
-      (c/create-company r/open (dissoc r/coyote :org-id)) => false)
+      (c/create-company! (c/->company r/open (dissoc r/coyote :org-id))) => (throws Exception))
 
     (facts "it returns the company after successful creation"
-      (c/create-company r/open r/coyote) => (contains r/open)
+      (c/create-company! (c/->company r/open r/coyote)) => (contains r/open)
       (c/get-company r/slug) => (contains r/open))
 
     (facts "it accepts unicode company names"
       (doseq [good-name r/names]
         (let [new-oc (assoc r/open :name good-name)]
-          (c/create-company new-oc r/coyote) => (contains new-oc)
+          (c/create-company! (c/->company new-oc r/coyote)) => (contains new-oc)
           (c/get-company r/slug) => (contains new-oc)
           (c/delete-company r/slug))))
 
     (facts "it creates timestamps"
-      (let [company (c/create-company r/open r/coyote)
+      (let [company (c/create-company! (c/->company r/open r/coyote))
             created-at (:created-at company)
             updated-at (:updated-at company)
             retrieved-company (c/get-company r/slug)]
@@ -80,23 +80,18 @@
         (= updated-at (:updated-at retrieved-company)) => true))
 
     (fact "it returns the pre-defined categories"
-      (:categories (c/create-company r/open r/coyote)) => (contains common/category-names))
+      (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
 
     (facts "it returns the sections in the company in the pre-defined order"
-      (:sections (c/create-company r/open r/coyote)) => {:progress [] :financial [] :company []}
+      (:sections (c/create-company! (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
       (c/delete-company r/slug)
-      (:sections (c/create-company (assoc r/open :update {}) r/coyote)) =>
+      (:sections (c/create-company! (c/->company (assoc r/open :update {}) r/coyote))) =>
         {:progress [:update] :financial [] :company []}
       (c/delete-company r/slug)
-      (:sections (c/create-company (assoc r/open :values {}) r/coyote)) =>
+      (:sections (c/create-company! (c/->company (assoc r/open :values {}) r/coyote))) =>
         {:progress [] :financial [] :company [:values]}
       (c/delete-company r/slug)
-      (:sections (c/create-company
-        (-> r/open
-          (assoc :mission {})
-          (assoc :press {})
-          (assoc :help {})
-          (assoc :challenges {})
-          (assoc :diversity {})
-          (assoc :update {}))
-        r/coyote)) => {:progress [:update :challenges :press :help] :financial [] :company [:diversity :mission]})))
+      (:sections (c/create-company!
+                  (c/->company (-> r/open (assoc :mission {} :press {} :help {} :challenges {} :diversity {} :update {}))
+                               r/coyote)))
+      => {:progress [:update :challenges :press :help] :financial [] :company [:diversity :mission]})))

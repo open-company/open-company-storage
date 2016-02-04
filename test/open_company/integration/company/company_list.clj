@@ -48,9 +48,9 @@
 
 (with-state-changes [(before :facts (do
                                       (company/delete-all-companies!)
-                                      (company/create-company r/open r/coyote)
-                                      (company/create-company r/uni r/camus)
-                                      (company/create-company r/buffer r/sartre)))
+                                      (company/create-company! (company/->company r/open r/coyote))
+                                      (company/create-company! (company/->company r/uni r/camus))
+                                      (company/create-company! (company/->company r/buffer r/sartre))))
                      (after :facts (company/delete-all-companies!))]
 
   (facts "about available options in listing companies"
