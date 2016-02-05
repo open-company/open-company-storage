@@ -81,8 +81,8 @@
 
     (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
       (facts "it adds timestamps to notes"
-        (let [co      (c/add-placeholder-sections (c/->company r/open r/coyote))
-              w-note  (-> co (add-section :growth) (assoc-in [:growth :notes :body] "A Note"))
+        (let [w-note  (-> r/open (add-section :growth) (assoc-in [:growth :notes :body] "A Note"))
+              co      (c/->company w-note r/coyote)
               company (c/create-company! co)
               from-db (c/get-company (:slug r/open))]
           (get-in from-db [:updated-at]) => (:updated-at company)
