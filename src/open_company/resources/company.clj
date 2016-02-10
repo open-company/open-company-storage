@@ -147,16 +147,16 @@
         (sections-for))))
 
 (s/defn add-updated-at
-  [{:keys [section-name] :as section} :- common/Section ts]
   "Add `:updated-at` key with `ts` as value to a given section.
    If the sectino has a `:notes` key also add the timestamp there."
+  [{:keys [section-name] :as section} :- common/Section ts]
   (let [notes-section? (contains? common/notes-sections section-name)]
     (cond-> (assoc section :updated-at ts)
       (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
 
 (s/defn create-company!
-  [company :- common/Company]
   "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
+  [company :- common/Company]
   (s/validate common/Company company) ; throw if invalid
   (let [real-sections (real-sections company)
         ts (common/current-timestamp)
