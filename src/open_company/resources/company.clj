@@ -95,7 +95,10 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
-(defn placeholder-sections [company-slug]
+(defn placeholder-sections
+  "Return a map of section-name -> section containing all
+   placeholder sections in sections.json"
+  [company-slug]
   (reduce (fn [s sec]
             (assoc s
                    (-> sec :name keyword)
@@ -114,10 +117,14 @@
 
 ;; ----- Create saveable company doc ----
 
-(defn real-sections [company]
+(defn real-sections
+  "Select all non-placeholder sections from a company map"
+  [company]
   (med/remove-vals :placeholder (select-keys company common/section-names)))
 
 (defn complete-real-sections
+  "For each non-placeholder section in the company add an author,
+   the company's slug and the section name"
   [company user]
   (let [rs (real-sections company)
         add-info (fn [[k section-data]]
@@ -128,6 +135,7 @@
     (merge company (into {} (map add-info rs)))))
 
 (s/defn ->company :- common/Company
+  "Take a minimal map describing a company and a user and 'fill the blanks'"
   [company-props user]
   (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]
     (-> company-props
@@ -140,16 +148,19 @@
 
 (s/defn add-updated-at
   [{:keys [section-name] :as section} :- common/Section ts]
+  "Add `:updated-at` key with `ts` as value to a given section.
+   If the sectino has a `:notes` key also add the timestamp there."
   (let [notes-section? (contains? common/notes-sections section-name)]
     (cond-> (assoc section :updated-at ts)
       (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
 
 (s/defn create-company!
   [company :- common/Company]
+  "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
   (s/validate common/Company company) ; throw if invalid
-  (let [real-sections     (real-sections company)
-        ts                (common/current-timestamp)
-        rs-w-ts           (med/map-vals #(add-updated-at % ts) real-sections)]
+  (let [real-sections (real-sections company)
+        ts (common/current-timestamp)
+        rs-w-ts (med/map-vals #(add-updated-at % ts) real-sections)]
     (doseq [[_ section] real-sections]
       (common/create-resource common/section-table-name section ts))
     (common/create-resource table-name (merge company rs-w-ts) ts)))
