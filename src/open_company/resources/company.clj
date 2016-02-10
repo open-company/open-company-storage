@@ -114,9 +114,7 @@
 
   Ensures the slug is valid, or returns `:invalid-slug`.
 
-  If everything is OK with the proposed new company, `true` is returned.
-
-  TODO: Use prismatic schema to validate company properties."
+  If everything is OK with the proposed new company, `true` is returned."
   ([_ :guard #(not (map? %))] :invalid-map)
   ([_ :guard #(and (:slug %) (not (slug/valid-slug? (:slug %))))] :invalid-slug)
   ([_ :guard #(or (not (string? (:name %))) (string/blank? (:name %)))] :invalid-name)
