@@ -66,30 +66,30 @@
 
 (defn malformed-post-req?
   "If the request contains valid JSON POST data to create
-   companies retun the parsed JSON, otherwise nil."
+   companies, return the parsed JSON, otherwise return nil."
   [ctx]
   (let [[invalid-json? parsed] (common/malformed-json? ctx)
         with-reason (fn [r] (assoc parsed :malformed-reason r))]
     (cond invalid-json?
-          [true (with-reason :malformed-json)]
-          ;; Ensure all required keys are present and valid
-          ;; s/check returns nil if data complies
-          (->> (keys common-res/CompanyMinimum)
-               (select-keys (:data parsed))
-               (s/check common-res/CompanyMinimum))
-          [true (with-reason :missing-fields)]
-          ;; Ensure all extra fields match with our sections
-          ;; if superset? returns true no superfluous fields are found
-          (not (->> (into (set (keys common-res/CompanyMinimum))
-                          (set (keys common-res/CompanyOptional)))
-                    (cset/difference (-> parsed :data keys set))
-                    (cset/superset? common-res/section-names)))
-          [true (with-reason :unexpected-fields)]
-          :else [false parsed])))
+      [true (with-reason :malformed-json)]
+      ;; Ensure all required keys are present and valid
+      ;; s/check returns nil if data complies
+      (->> (keys common-res/CompanyMinimum)
+           (select-keys (:data parsed))
+           (s/check common-res/CompanyMinimum))
+      [true (with-reason :missing-fields)]
+      ;; Ensure all extra fields match with our sections
+      ;; if superset? returns true no superfluous fields are found
+      (not (->> (into (set (keys common-res/CompanyMinimum))
+                      (set (keys common-res/CompanyOptional)))
+                (cset/difference (-> parsed :data keys set))
+                (cset/superset? common-res/section-names)))
+      [true (with-reason :unexpected-fields)]
+      :else [false parsed])))
 
 (defn slug-processable [slug]
   (cond
-    (nil? slug)                    true
+    (nil? slug) true
     (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
     (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
 
