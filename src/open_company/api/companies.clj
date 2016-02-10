@@ -62,6 +62,37 @@
     ;; update the company
     {:updated-company (company/put-company slug (merge original-company patch-updates) user)}))
 
+;; ----- Validations -----
+
+(defn malformed-post-req?
+  "If the request contains valid JSON POST data to create
+   companies retun the parsed JSON, otherwise nil."
+  [ctx]
+  (let [[invalid-json? parsed] (common/malformed-json? ctx)
+        with-reason (fn [r] (assoc parsed :malformed-reason r))]
+    (cond invalid-json?
+          [true (with-reason :malformed-json)]
+          ;; Ensure all required keys are present and valid
+          ;; s/check returns nil if data complies
+          (->> (keys common-res/CompanyMinimum)
+               (select-keys (:data parsed))
+               (s/check common-res/CompanyMinimum))
+          [true (with-reason :missing-fields)]
+          ;; Ensure all extra fields match with our sections
+          ;; if superset? returns true no superfluous fields are found
+          (not (->> (into (set (keys common-res/CompanyMinimum))
+                          (set (keys common-res/CompanyOptional)))
+                    (cset/difference (-> parsed :data keys set))
+                    (cset/superset? common-res/section-names)))
+          [true (with-reason :unexpected-fields)]
+          :else [false parsed])))
+
+(defn slug-processable [slug]
+  (cond
+    (nil? slug)                    true
+    (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
+    (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for a specific company.
@@ -105,35 +136,6 @@
   :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
-
-(defn malformed-post-req?
-  "If the request contains valid JSON POST data to create
-   companies retun the parsed JSON, otherwise nil."
-  [ctx]
-  (let [[invalid-json? parsed] (common/malformed-json? ctx)
-        with-reason (fn [r] (assoc parsed :malformed-reason r))]
-    (cond invalid-json?
-          [true (with-reason :malformed-json)]
-          ;; Ensure all required keys are present and valid
-          ;; s/check returns nil if data complies
-          (->> (keys common-res/CompanyMinimum)
-               (select-keys (:data parsed))
-               (s/check common-res/CompanyMinimum))
-          [true (with-reason :missing-fields)]
-          ;; Ensure all extra fields match with our sections
-          ;; if superset? returns true no superfluous fields are found
-          (not (->> (into (set (keys common-res/CompanyMinimum))
-                          (set (keys common-res/CompanyOptional)))
-                    (cset/difference (-> parsed :data keys set))
-                    (cset/superset? common-res/section-names)))
-          [true (with-reason :unexpected-fields)]
-          :else [false parsed])))
-
-(defn slug-processable [slug]
-  (cond
-    (nil? slug)                    true
-    (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
-    (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
 
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
