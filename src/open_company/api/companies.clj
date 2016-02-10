@@ -144,7 +144,7 @@
 
   :available-charsets [common/UTF8]
   :available-media-types (by-method {:get [company-rep/collection-media-type]
-                                     :post ["application/json"]})
+                                     :post [company-rep/media-type]})
   :allowed-methods [:options :post :get]
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
