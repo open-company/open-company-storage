@@ -62,24 +62,14 @@
 
 ;; ----- Validations -----
 
-(defn malformed-post-req?
-  "If the request contains valid JSON POST data to create
-   companies, return the parsed JSON, otherwise return nil."
-  [ctx]
-  (let [[invalid-json? parsed] (common/malformed-json? ctx)]
-    (if invalid-json?
-      [true (assoc parsed :reason :malformed-json)]
-      (let [company (company/->company (:data parsed) (:user ctx))
-            valid?  (s/check common-res/Company company)]
-        (if (seq (dissoc valid? :slug)) ; remove slug check because that's handled by processable?
-          [true {:reason valid?}]
-          [false parsed])))))
-
-(defn slug-processable [slug]
-  (cond
-    (nil? slug) true
-    (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
-    (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
+(defn processable-post-req? [{:keys [user data]}]
+  (let [company (company/->company data user)
+        invalid? (s/check common-res/Company company)
+        slug-taken? (not (company/slug-available? (:slug company)))]
+    (cond
+      invalid? [false {:reason invalid?}]
+      slug-taken? [false {:reason :slug-taken}]
+      :else [true {}])))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -141,18 +131,13 @@
 
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
 
-  :malformed? (by-method {
-    :options false
-    :get false
-    :post (fn [ctx] (malformed-post-req? ctx))})
-
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
 
   :processable? (by-method {
     :get true
     :options true
-    :post (fn [ctx] (slug-processable (-> ctx :data :slug)))})
+    :post (fn [ctx] (processable-post-req? ctx))})
 
   :post! (fn [ctx] {:company (-> (company/->company (:data ctx) (:user ctx))
                                  (company/add-placeholder-sections)
