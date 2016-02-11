@@ -59,25 +59,6 @@
     (let [category-name (common/category-for section-name)] ; get the category for this section name
       (update-in sections [category-name] conj section-name)))) ; add the section name to the category
 
-;; ----- Validations -----
-
-(defun valid-company
-  "Given the name and optionally the slug of a new company, and a map of the new company's properties,
-  check if the everything is in order to create the new company.
-
-  Ensures the company is provided as an associative data structure or returns `:invalid-map`.
-
-  Ensures the name of the company is specified or returns `:invalid-name`.
-
-  Ensures the slug is valid, or returns `:invalid-slug`.
-
-  If everything is OK with the proposed new company, `true` is returned."
-  ([_ :guard #(not (map? %))] :invalid-map)
-  ([_ :guard #(and (:slug %) (not (slug/valid-slug? (:slug %))))] :invalid-slug)
-  ([_ :guard #(or (not (string? (:name %))) (string/blank? (:name %)))] :invalid-name)
-  ([_] true))
-
-
 ;; ----- Slug -----
 
 (declare list-companies)
@@ -134,7 +115,7 @@
                           (assoc :section-name k))])]
     (merge company (into {} (map add-info rs)))))
 
-(s/defn ->company :- common/Company
+(s/defn ^:always-validate ->company :- common/Company
   "Take a minimal map describing a company and a user and 'fill the blanks'"
   [company-props user]
   (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]
@@ -154,10 +135,9 @@
     (cond-> (assoc section :updated-at ts)
       (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
 
-(s/defn create-company!
+(s/defn ^:always-validate create-company!
   "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
   [company :- common/Company]
-  (s/validate common/Company company) ; throw if invalid
   (let [real-sections (real-sections company)
         ts (common/current-timestamp)
         rs-w-ts (med/map-vals #(add-updated-at % ts) real-sections)]

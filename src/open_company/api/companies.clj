@@ -15,10 +15,10 @@
 ;; Round-trip it through Cheshire to ensure the embedded HTML gets encodedod or the client has issues parsing it
 (defonce sections (json/generate-string config/sections {:pretty true}))
 
-(defun add-slug
+(defn add-slug
   "Add the slug to the company properties if it's missing."
-  ([_ company :guard :slug] company)
-  ([slug company] (assoc company :slug slug)))
+  [slug company]
+  (update company :slug (fnil identity slug)))
 
 ;; ----- Responses -----
 
@@ -28,11 +28,10 @@
 
 (defn- unprocessable-reason [reason]
   (case reason
-    :bad-company (common/missing-response)
-    :invalid-name (common/unprocessable-entity-response "Company name is required.")
-    :invalid-slug (common/unprocessable-entity-response "Invalid slug.")
     :invalid-slug-format (common/unprocessable-entity-response "Invalid slug format.")
     :slug-taken (common/unprocessable-entity-response "Slug already taken.")
+    :name (common/unprocessable-entity-response "Company name is required.")
+    :slug (common/unprocessable-entity-response "Invalid or missing slug.")
     (common/unprocessable-entity-response "Not processable.")))
 
 (defn- options-for-company [slug ctx]
@@ -93,6 +92,11 @@
     (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
     (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
 
+(defn company-processable [company]
+  (->> (add-slug slug company)
+       (s/check {:slug common-res/Slug, :name s/Str, s/Keyword s/Any})
+       (common/check->liberator true)))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for a specific company.
@@ -114,7 +118,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))
+    :put (fn [ctx] (company-processable (:data ctx)))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers

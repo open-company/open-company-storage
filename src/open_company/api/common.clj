@@ -89,6 +89,14 @@
 (defn check-input [check]
   (if (= check true) true [false {:reason check}]))
 
+(defn check->liberator
+  "Given a desired return value and the result of a schema/check function return
+   a vector that can be used as result for Liberators processable/allowed/.. checks"
+  [correct check-result]
+  (if (nil? check-result)
+    [correct]
+    [(not correct) {:reason (-> check-result keys first)}]))
+
 ;; ----- Authentication and Authorization -----
 
 (defn authenticated?
