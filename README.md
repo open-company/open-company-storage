@@ -198,42 +198,29 @@ Then enter these commands one-by-one, noting the output:
   :org-id "slack:98765"
 })
 
-(company/create-company
-  {
-    :name "Blank Inc."
-    :currency "GBP"
-  } author)
+(company/create-company!
+ (company/->company {:name "Blank Inc."
+                     :currency "GBP"}
+                    author))
 
-(company/create-company {
-  :name "OPENcompany"
-  :slug "open"
-  :currency "FKP"
-  :finances {
-    :title "Finances"
-    :data [
-      {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-    ]
-  }} author)
+(company/create-company!
+ (company/->company {:name "OPENcompany"
+                     :slug "open"
+                     :currency "FKP"
+                     :finances {:title "Finances"
+                     :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
+                     author))
 
-(company/create-company
-  {
-    :name "Buffer"
-    :currency "USD"
-    :update {
-      :title "Founder's Update"
-      :body "It's all good!"
-    }
-    :finances {
-      :title "Finances"
-      :data [
-        {:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
-        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
-      ]
-      :notes {
-        :body "Good stuff! Revenue is up."
-      }
-    }
-  } author)
+(company/create-company!
+ (company/->company {:name "Buffer"
+                     :currency "USD"
+                     :update {:title "Founder's Update"
+                              :body "It's all good!"}
+                     :finances {:title "Finances"
+                                :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
+                                       {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
+                                :notes {:body "Good stuff! Revenue is up."}}}
+                    author))
 
 ;; List companies
 (company/list-companies)
