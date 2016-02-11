@@ -1,6 +1,5 @@
 (ns open-company.resources.company
-  (:require [clojure.string :as string]
-            [clojure.set :as cset]
+  (:require [clojure.set :as cset]
             [medley.core :as med]
             [schema.core :as s]
             [defun :refer (defun defun-)]
