@@ -1,6 +1,5 @@
 (ns open-company.api.companies
-  (:require [defun :refer (defun)]
-            [compojure.core :refer (defroutes ANY OPTIONS GET POST)]
+  (:require [compojure.core :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
             [clojure.set :as cset]
             [schema.core :as s]
