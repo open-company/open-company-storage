@@ -115,7 +115,7 @@
                           (assoc :section-name k))])]
     (merge company (into {} (map add-info rs)))))
 
-(s/defn ^:always-validate ->company :- common/Company
+(s/defn ->company :- common/Company
   "Take a minimal map describing a company and a user and 'fill the blanks'"
   [company-props user]
   (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]

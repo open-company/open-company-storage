@@ -95,7 +95,7 @@
   [correct check-result]
   (if (nil? check-result)
     [correct]
-    [(not correct) {:reason (-> check-result keys first)}]))
+    [(not correct) {:reason check-result}]))
 
 ;; ----- Authentication and Authorization -----
 

@@ -31,7 +31,7 @@
     :slug-taken (common/unprocessable-entity-response "Slug already taken.")
     :name (common/unprocessable-entity-response "Company name is required.")
     :slug (common/unprocessable-entity-response "Invalid or missing slug.")
-    (common/unprocessable-entity-response "Not processable.")))
+    (common/unprocessable-entity-response (str "Not processable: " (pr-str reason)))))
 
 (defn- options-for-company [slug ctx]
   (if-let [company (company/get-company slug)]
@@ -66,34 +66,20 @@
   "If the request contains valid JSON POST data to create
    companies, return the parsed JSON, otherwise return nil."
   [ctx]
-  (let [[invalid-json? parsed] (common/malformed-json? ctx)
-        with-reason (fn [r] (assoc parsed :malformed-reason r))]
-    (cond invalid-json?
-      [true (with-reason :malformed-json)]
-      ;; Ensure all required keys are present and valid
-      ;; s/check returns nil if data complies
-      (->> (keys common-res/CompanyMinimum)
-           (select-keys (:data parsed))
-           (s/check common-res/CompanyMinimum))
-      [true (with-reason :missing-fields)]
-      ;; Ensure all extra fields match with our sections
-      ;; if superset? returns true no superfluous fields are found
-      (not (->> (into (set (keys common-res/CompanyMinimum))
-                      (set (keys common-res/CompanyOptional)))
-                (cset/difference (-> parsed :data keys set))
-                (cset/superset? common-res/section-names)))
-      [true (with-reason :unexpected-fields)]
-      :else [false parsed])))
+  (let [[invalid-json? parsed] (common/malformed-json? ctx)]
+    (if invalid-json?
+      [true (assoc parsed :reason :malformed-json)]
+      (let [company (company/->company (:data parsed) (:user ctx))
+            valid?  (s/check common-res/Company company)]
+        (if (seq (dissoc valid? :slug)) ; remove slug check because that's handled by processable?
+          [true {:reason valid?}]
+          [false parsed])))))
 
 (defn slug-processable [slug]
   (cond
     (nil? slug) true
     (s/check common-res/Slug slug) [false {:reason :invalid-slug-format}]
     (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
-
-(defn company-processable [company]
-  (->> (s/check {:slug common-res/Slug, :name s/Str, s/Keyword s/Any})
-       (common/check->liberator true)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -116,7 +102,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (company-processable (add-slug slug (:data ctx))))
+    :put (fn [ctx] (common/check->liberator true (s/check common-res/Company (company/->company (add-slug slug (:data ctx)) (:user ctx)))))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers

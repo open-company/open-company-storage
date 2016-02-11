@@ -60,8 +60,7 @@
 ;       (company/get-company r/TICKER) => (contains r/OPEN)
 ;       ;; Reports are empty?
 ;       (report/report-count r/TICKER) => 0)))
-(with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
-                     (before :facts (do (company/delete-all-companies!)
+(with-state-changes [(before :facts (do (company/delete-all-companies!)
                                         (company/create-company! (company/->company r/open r/coyote))))]
   ;; -------------------
   ;; JWToken things are covered in open-company.integration.company.company-list
