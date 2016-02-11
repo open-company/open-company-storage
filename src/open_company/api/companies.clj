@@ -93,8 +93,7 @@
     (not (company/slug-available? slug)) [false {:reason :slug-taken}]))
 
 (defn company-processable [company]
-  (->> (add-slug slug company)
-       (s/check {:slug common-res/Slug, :name s/Str, s/Keyword s/Any})
+  (->> (s/check {:slug common-res/Slug, :name s/Str, s/Keyword s/Any})
        (common/check->liberator true)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -118,7 +117,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (company-processable (:data ctx)))
+    :put (fn [ctx] (company-processable (add-slug slug (:data ctx))))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers
