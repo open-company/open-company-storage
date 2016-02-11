@@ -67,14 +67,14 @@
   ;; -------------------
   (facts "about creating companies"
 
-    (fact "missing fields cause 400"
+    (fact "missing fields cause 422"
       (let [payload  {:name "hello"}
             response (mock/api-request :post "/companies" {:body payload})]
-        (:status response) => 400))
-    (fact "superflous fields cause 400"
+        (:status response) => 422))
+    (fact "superflous fields cause 422"
       (let [payload  {:bogus "xx" :name "hello" :description "x"}
             response (mock/api-request :post "/companies" {:body payload})]
-        (:status response) => 400))
+        (:status response) => 422))
 
     (fact "company can be created with name and description"
       (let [payload  {:name "Hello World" :description "x"}
@@ -96,10 +96,10 @@
           (:status response) => 422)))
 
     (facts "sections"
-      (fact "unknown sections cause 400"
+      (fact "unknown sections cause 422"
        (let [payload  {:name "hello" :description "x" :unknown-section {}}
               response (mock/api-request :post "/companies" {:body payload})]
-         (:status response) => 400))
+         (:status response) => 422))
       (facts "known user supplied sections"
         (let [diversity {:title "Diversity" :description "Diversity yay!" :body "TBD" :section-name "diversity"}
               payload  {:name "Diverse Co" :description "x" :diversity diversity}
