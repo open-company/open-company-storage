@@ -61,10 +61,14 @@
 ;; ----- Slug -----
 
 (declare list-companies)
-(defn taken-slugs []
+(defn taken-slugs
+  "Return all slugs which are in use as a set."
+  []
   (set (map :slug (list-companies))))
 
-(defn slug-available? [slug]
+(defn slug-available?
+  "Return true if the slug is not used by any company in the database."
+  [slug]
   (not (contains? (taken-slugs) slug)))
 
 ;; ----- Company CRUD -----
