@@ -77,24 +77,18 @@
   (into {} (for [sn section-names] [(s/optional-key sn) Section])))
 
 ;; TODO check for non-blank?
-(def CompanyMinimum
-  {:name        s/Str
-   :description s/Str})
-
-(def CompanyOptional
-  {:currency    s/Str
-   :slug        Slug})
-
 (def Company
-  (merge CompanyMinimum
-         CompanyOptional
-         {:org-id      s/Str
-          :sections    SectionsOrder
-          :categories  (s/pred #(cset/subset? (set %) category-names))
-          (s/optional-key :logo)        s/Str
-          (s/optional-key :created-at)  s/Str
-          (s/optional-key :updated-at)  s/Str}
-          InlineSections))
+  {:name        s/Str
+   :description s/Str
+   :slug        Slug
+   :currency    s/Str
+   :org-id      s/Str
+   :sections    SectionsOrder
+   :categories  (s/pred #(cset/subset? (set %) category-names))
+   (s/optional-key :logo)        s/Str
+   (s/optional-key :created-at)  s/Str
+   (s/optional-key :updated-at)  s/Str}
+  InlineSections)
 
 (def User
   {:name        s/Str
