@@ -34,7 +34,7 @@
   [company]
   (set (cset/intersection common/section-names (set (keys company)))))
 
-(defn sections-for
+(defn- sections-for
   "Add a :sections key to given company containing category->ordered-sections mapping
   Only add sections to the ordered-sections list that are used in the company map"
   [company]
