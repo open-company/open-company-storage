@@ -58,7 +58,7 @@
     (let [category-name (common/category-for section-name)] ; get the category for this section name
       (update-in sections [category-name] conj section-name)))) ; add the section name to the category
 
-;; ----- Slug -----
+;; ----- Company Slug -----
 
 (declare list-companies)
 (defn taken-slugs []
@@ -128,7 +128,7 @@
 
 (s/defn add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section.
-   If the sectino has a `:notes` key also add the timestamp there."
+   If the section has a `:notes` key also add the timestamp there."
   [{:keys [section-name] :as section} :- common/Section ts]
   (let [notes-section? (contains? common/notes-sections section-name)]
     (cond-> (assoc section :updated-at ts)
