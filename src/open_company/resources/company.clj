@@ -50,14 +50,6 @@
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
     (apply dissoc company (cset/difference (section-list company) sections))))
 
-(defn sections-with
-  "Add the provided section name to the end of the correct category, unless it's already in the category."
-  [sections section-name]
-  (if ((set (map keyword (flatten (vals sections)))) (keyword section-name))
-    sections ; already contains the section-name
-    (let [category-name (common/category-for section-name)] ; get the category for this section name
-      (update-in sections [category-name] conj section-name)))) ; add the section name to the category
-
 ;; ----- Company Slug -----
 
 (declare list-companies)

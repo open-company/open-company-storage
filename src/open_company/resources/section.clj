@@ -39,6 +39,14 @@
   (when (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
     (:id time1))))
 
+(defn- sections-with
+  "Add the provided section name to the end of the correct category, unless it's already in the category."
+  [sections section-name]
+  (if ((set (map keyword (flatten (vals sections)))) (keyword section-name))
+    sections ; already contains the section-name
+    (let [category-name (common/category-for section-name)] ; get the category for this section name
+      (update-in sections [category-name] conj section-name)))) ; add the section name to the category
+
 (defun update-notes-for
 
   ;; no notes in this section
@@ -205,7 +213,7 @@
           (assoc :author author)
           (assoc :updated-at timestamp)
           (update-notes-for (original-company section-name) author timestamp))
-        updated-sections (company/sections-with (:sections original-company) section-name)
+        updated-sections (sections-with (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)
         updated-company (assoc sectioned-company section-name (-> updated-section
           (dissoc :placeholder)
