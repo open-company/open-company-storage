@@ -101,7 +101,7 @@
 
 ;; ----- Create saveable company doc ----
 
-(defn real-sections
+(defn- real-sections
   "Select all non-placeholder sections from a company map"
   [company]
   (med/remove-vals :placeholder (select-keys company common/section-names)))
@@ -130,7 +130,7 @@
         (categories-for)
         (sections-for))))
 
-(s/defn add-updated-at
+(s/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section.
    If the sectino has a `:notes` key also add the timestamp there."
   [{:keys [section-name] :as section} :- common/Section ts]
