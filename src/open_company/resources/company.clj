@@ -79,7 +79,7 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
-(defn placeholder-sections
+(defn- placeholder-sections
   "Return a map of section-name -> section containing all
    placeholder sections in sections.json"
   [company-slug]
