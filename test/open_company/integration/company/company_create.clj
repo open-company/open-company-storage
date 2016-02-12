@@ -101,7 +101,7 @@
               response (mock/api-request :post "/companies" {:body payload})]
          (:status response) => 422))
       (facts "known user supplied sections"
-        (let [diversity {:title "Diversity" :description "Diversity yay!" :body "TBD" :section-name "diversity"}
+        (let [diversity {:title "Diversity" :description "Diversity is important to us." :body "TBD" :section-name "diversity"}
               payload  {:name "Diverse Co" :description "x" :diversity diversity}
               response (mock/api-request :post "/companies" {:body payload})
               company  (company/get-company "diverse-co")
@@ -111,4 +111,4 @@
             (-> company :diversity :placeholder) => falsey
             (-> company :diversity :author) => truthy
             (-> company :diversity :updated-at) => truthy
-            (:description sect) => "Diversity yay!"))))))
+            (:description sect) => "Diversity is important to us."))))))

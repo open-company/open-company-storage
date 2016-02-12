@@ -22,7 +22,7 @@ To maintain transparency, OPENcompany information is always accessible and easy 
 
 Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OPENcompany platform turns transparency into a competitive advantage.
 
-Like the open companies we promote and support, the [OPENcompany](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
+Like the open companies we promote and support, the [OPENcompany](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
 
 To get started, head to: [OPENcompany](https://opencompany.io)
 
@@ -468,4 +468,4 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).
 
-Copyright © 2015-2016 Transparency, LLC
+Copyright © 2015-2016 Transparency
