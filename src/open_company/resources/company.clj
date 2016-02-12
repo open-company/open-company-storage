@@ -34,7 +34,7 @@
   [company]
   (set (cset/intersection common/section-names (set (keys company)))))
 
-(defn sections-for
+(defn- sections-for
   "Add a :sections key to given company containing category->ordered-sections mapping
   Only add sections to the ordered-sections list that are used in the company map"
   [company]
@@ -61,10 +61,14 @@
 ;; ----- Company Slug -----
 
 (declare list-companies)
-(defn taken-slugs []
+(defn taken-slugs
+  "Return all slugs which are in use as a set."
+  []
   (set (map :slug (list-companies))))
 
-(defn slug-available? [slug]
+(defn slug-available?
+  "Return true if the slug is not used by any company in the database."
+  [slug]
   (not (contains? (taken-slugs) slug)))
 
 ;; ----- Company CRUD -----
@@ -97,7 +101,7 @@
 
 ;; ----- Create saveable company doc ----
 
-(defn real-sections
+(defn- real-sections
   "Select all non-placeholder sections from a company map"
   [company]
   (med/remove-vals :placeholder (select-keys company common/section-names)))
@@ -126,7 +130,7 @@
         (categories-for)
         (sections-for))))
 
-(s/defn add-updated-at
+(s/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section.
    If the section has a `:notes` key also add the timestamp there."
   [{:keys [section-name] :as section} :- common/Section ts]

@@ -54,7 +54,7 @@
     (catch Exception e
       false))) ; must not have been a string
 
-(defn ^:private positive-numbers
+(defn- positive-numbers
   ([] (positive-numbers 1))
   ([n] (lazy-seq (cons n (positive-numbers (inc n))))))
 
