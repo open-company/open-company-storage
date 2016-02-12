@@ -85,9 +85,8 @@
   [company-slug]
   (reduce (fn [s sec]
             (assoc s
-                   (-> sec :name keyword)
+                   (:section-name sec)
                    (-> sec
-                       (assoc :section-name (-> sec :name keyword))
                        (assoc :company-slug company-slug)
                        (assoc :placeholder true)
                        (dissoc :name))))

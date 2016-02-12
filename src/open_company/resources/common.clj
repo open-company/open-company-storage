@@ -29,7 +29,7 @@
 (def category-section-tree
   ^ {:doc "Category->Section lookup structure"}
   (into {} (for [[cat sects] ordered-sections]
-             [cat (mapv (comp keyword :name) sects)])))
+             [cat (mapv (comp keyword :section-name) sects)])))
 
 
 (def section-category-tree
@@ -50,7 +50,7 @@
   (get section-category-tree (keyword section)))
 
 ;; All possible sections as a set
-(def sections (set (flatten (vals ordered-sections))))
+(def sections (set (map #(update % :section-name keyword) (flatten (vals ordered-sections)))))
 (def section-names (set (flatten (vals category-section-tree))))
 
 ;; A set of all sections that can contain notes
@@ -78,17 +78,17 @@
 
 ;; TODO check for non-blank?
 (def Company
-  {:name        s/Str
-   :description s/Str
-   :slug        Slug
-   :currency    s/Str
-   :org-id      s/Str
-   :sections    SectionsOrder
-   :categories  (s/pred #(cset/subset? (set %) category-names))
-   (s/optional-key :logo)        s/Str
-   (s/optional-key :created-at)  s/Str
-   (s/optional-key :updated-at)  s/Str}
-  InlineSections)
+  (merge {:name        s/Str
+          :description s/Str
+          :slug        Slug
+          :currency    s/Str
+          :org-id      s/Str
+          :sections    SectionsOrder
+          :categories  (s/pred #(cset/subset? (set %) category-names))
+          (s/optional-key :logo)        s/Str
+          (s/optional-key :created-at)  s/Str
+          (s/optional-key :updated-at)  s/Str}
+         InlineSections))
 
 (def User
   {:name        s/Str
