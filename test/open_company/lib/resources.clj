@@ -49,7 +49,7 @@
 
 ;; ----- Companies ----
 (def open {:slug slug
-           :name "OPENcompany"
+           :name "OpenCompany"
            :description "Build trust with stakeholders"
            :currency "USD"})
 

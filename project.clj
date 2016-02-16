@@ -1,5 +1,5 @@
 (defproject open-company-api "0.0.2-SNAPSHOT"
-  :description "OPENcompany Platform API"
+  :description "OpenCompany Platform API"
   :url "https://opencompany.io/"
   :license {
     :name "Mozilla Public License v2.0"

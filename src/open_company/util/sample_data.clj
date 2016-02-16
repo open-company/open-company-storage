@@ -1,5 +1,5 @@
 (ns open-company.util.sample-data
-  "Commandline client to import sample data into OPENcompany."
+  "Commandline client to import sample data into OpenCompany."
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
             [defun :refer (defun-)]
@@ -70,7 +70,7 @@
 
 (defn usage [options-summary]
   (s/join \newline
-     ["This program imports OPENcompany data from EDN file(s)."
+     ["This program imports OpenCompany data from EDN file(s)."
       ""
       "Usage:"
       "  lein run -m open-company.util.sample-data -- [options] company-data.edn"

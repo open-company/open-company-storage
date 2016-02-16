@@ -1,4 +1,4 @@
-# Temporary OPENcompany API Documentation
+# Temporary OpenCompany API Documentation
 
 ## Company List
 
