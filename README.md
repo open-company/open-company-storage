@@ -39,13 +39,13 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 #### Java
 
-Chances are your system already has Java 8 installed. You can verify this with:
+Chances are your system already has Java 8+ installed. You can verify this with:
 
 ```console
 java -version
 ```
 
-If you do not have Java 8 [download it](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and follow the installation instructions.
+If you do not have Java 8+ [download it](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and follow the installation instructions.
 
 #### Leiningen
 
