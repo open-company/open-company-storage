@@ -22,7 +22,7 @@ To maintain transparency, OPENcompany information is always accessible and easy 
 
 Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OPENcompany platform turns transparency into a competitive advantage.
 
-Like the open companies we promote and support, the [OPENcompany](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
+Like the open companies we promote and support, the [OPENcompany](https://opencompany.io) platform is completely transparent. The company supporting this effort, Transparency, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
 
 To get started, head to: [OPENcompany](https://opencompany.io)
 
@@ -39,13 +39,13 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 #### Java
 
-Chances are your system already has Java 8 installed. You can verify this with:
+Chances are your system already has Java 8+ installed. You can verify this with:
 
 ```console
 java -version
 ```
 
-If you do not have Java 8 [download it](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and follow the installation instructions.
+If you do not have Java 8+ [download it](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and follow the installation instructions.
 
 #### Leiningen
 
@@ -198,42 +198,29 @@ Then enter these commands one-by-one, noting the output:
   :org-id "slack:98765"
 })
 
-(company/create-company
-  {
-    :name "Blank Inc."
-    :currency "GBP"
-  } author)
+(company/create-company!
+ (company/->company {:name "Blank Inc."
+                     :currency "GBP"}
+                    author))
 
-(company/create-company {
-  :name "OPENcompany"
-  :slug "open"
-  :currency "FKP"
-  :finances {
-    :title "Finances"
-    :data [
-      {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-    ]
-  }} author)
+(company/create-company!
+ (company/->company {:name "OPENcompany"
+                     :slug "open"
+                     :currency "FKP"
+                     :finances {:title "Finances"
+                     :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
+                     author))
 
-(company/create-company
-  {
-    :name "Buffer"
-    :currency "USD"
-    :update {
-      :title "Founder's Update"
-      :body "It's all good!"
-    }
-    :finances {
-      :title "Finances"
-      :data [
-        {:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
-        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}
-      ]
-      :notes {
-        :body "Good stuff! Revenue is up."
-      }
-    }
-  } author)
+(company/create-company!
+ (company/->company {:name "Buffer"
+                     :currency "USD"
+                     :update {:title "Founder's Update"
+                              :body "It's all good!"}
+                     :finances {:title "Finances"
+                                :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
+                                       {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
+                                :notes {:body "Good stuff! Revenue is up."}}}
+                    author))
 
 ;; List companies
 (company/list-companies)
@@ -308,7 +295,15 @@ from the OPENcompany Authentication service if you are only making requests agai
 
 Create a company with cURL:
 
-TODO: there is no UI yet to do this so you need to create a company via the REPL or CLI import tool.
+```console
+curl -i -X POST \
+-d '{"currency": "EUR", "name": "Hotel Procrastination", "description": "Coworking for the rest of us."}' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/
+```
 
 List the companies with cURL:
 
@@ -392,7 +387,7 @@ http://localhost:3000/companies/buffer
 Delete the company with cURL:
 
 ```console
-curl -i -X DELETE 
+curl -i -X DELETE
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 http://localhost:3000/companies/open
 ```
@@ -469,4 +464,4 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).
 
-Copyright © 2015-2016 Transparency, LLC
+Copyright © 2015-2016 Transparency

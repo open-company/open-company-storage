@@ -51,7 +51,7 @@
 
 (with-state-changes [(before :facts (do
                                       (company/delete-all-companies!)
-                                      (company/create-company r/open r/coyote)))
+                                      (company/create-company! (company/->company r/open r/coyote))))
                      (after :facts (company/delete-all-companies!))]
 
   (facts "about available options for new section templates"

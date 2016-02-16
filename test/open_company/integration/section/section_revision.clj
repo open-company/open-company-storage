@@ -65,8 +65,9 @@
 (def limited-options "OPTIONS, GET")
 (def full-options "OPTIONS, GET, PUT, PATCH")
 
-(with-state-changes [(before :facts (do (c/delete-company r/slug)
-                                        (c/create-company r/open r/coyote)))
+(with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
+                     (before :facts (do (c/delete-company r/slug)
+                                        (c/create-company! (c/->company r/open r/coyote))))
                      (after :facts (c/delete-company r/slug))]
 
   (with-state-changes [(before :facts (s/put-section r/slug :update r/text-section-1 r/coyote))]
@@ -289,6 +290,44 @@
               (check/about-now? updated-at) => true
               (check/before? (:created-at updated-section) updated-at) => true)
             (count (s/get-revisions r/slug :finances)) => 1)))) ; but there is still just 1 revision
+
+  (facts "about updating a placeholder section"
+
+    (facts "with PUT"
+      (with-state-changes [(before :facts (c/create-company! (c/add-placeholder-sections (c/->company r/buffer r/coyote))))
+                           (after :facts (c/delete-company (:slug r/buffer)))]
+        (fact "update existing revision title"
+          (let [updated  (assoc r/text-section-1 :title "New Title")
+                response (mock/api-request :put (section-rep/url (:slug r/buffer) :update) {:body updated})
+                body     (mock/body-from-response response)
+                company  (c/get-company (:slug r/buffer))]
+            (:status response) => 200
+            (-> company :update :placeholder) => falsey
+            body => (contains updated)
+            (:placeholder body) => falsey))))
+
+    (facts "with PATCH"
+      (with-state-changes [(before :facts (c/create-company! (c/add-placeholder-sections (c/->company r/buffer r/coyote))))
+                           (after :facts (c/delete-company (:slug r/buffer)))]
+        (fact "update existing revision title"
+          (let [updated  {:title "New Title"}
+                response (mock/api-request :patch (section-rep/url (:slug r/buffer) :update) {:body updated})
+                body     (mock/body-from-response response)
+                company  (c/get-company (:slug r/buffer))]
+            (:status response) => 200
+            (-> company :update :placeholder) => falsey
+            (:title body) => (:title updated)
+            (:placeholder body) => falsey))))
+
+    (future-facts "with DELETE"
+      #_(with-state-changes [(before :facts (c/create-company! (c/->company r/buffer r/coyote)))
+                           (after :facts (c/delete-company (:slug r/buffer)))]
+        (fact "update existing revision title"
+          (let [response (mock/api-request :delete (section-rep/url (:slug r/buffer) :update))
+                body     (mock/body-from-response response)
+                company  (c/get-company (:slug r/buffer))]
+            (:status response) => 200
+            (-> company :update) => nil)))))
 
   (future-facts "about creating a new section revision"
 

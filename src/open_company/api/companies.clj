@@ -1,7 +1,8 @@
 (ns open-company.api.companies
-  (:require [defun :refer (defun)]
-            [compojure.core :refer (defroutes ANY OPTIONS GET)]
+  (:require [compojure.core :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
+            [clojure.set :as cset]
+            [schema.core :as s]
             [open-company.config :as config]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
@@ -13,10 +14,10 @@
 ;; Round-trip it through Cheshire to ensure the embedded HTML gets encodedod or the client has issues parsing it
 (defonce sections (json/generate-string config/sections {:pretty true}))
 
-(defun add-slug
+(defn add-slug
   "Add the slug to the company properties if it's missing."
-  ([_ company :guard :slug] company)
-  ([slug company] (assoc company :slug slug)))
+  [slug company]
+  (update company :slug (fnil identity slug)))
 
 ;; ----- Responses -----
 
@@ -26,10 +27,11 @@
 
 (defn- unprocessable-reason [reason]
   (case reason
-    :bad-company (common/missing-response)
-    :invalid-name (common/unprocessable-entity-response "Company name is required.")
-    :invalid-slug (common/unprocessable-entity-response "Invalid slug.")
-    (common/unprocessable-entity-response "Not processable.")))
+    :invalid-slug-format (common/unprocessable-entity-response "Invalid slug format.")
+    :slug-taken (common/unprocessable-entity-response "Slug already taken.")
+    :name (common/unprocessable-entity-response "Company name is required.")
+    :slug (common/unprocessable-entity-response "Invalid or missing slug.")
+    (common/unprocessable-entity-response (str "Not processable: " (pr-str reason)))))
 
 (defn- options-for-company [slug ctx]
   (if-let [company (company/get-company slug)]
@@ -50,13 +52,24 @@
 
 (defn- patch-company [slug company-updates user]
   (let [original-company (company/get-company slug)
-        section-names (clojure.set/intersection (set (keys company-updates)) common-res/sections)
+        section-names (clojure.set/intersection (set (keys company-updates)) common-res/section-names)
         updated-sections (->> section-names
           (map #(section/put-section slug % (company-updates %) user)) ; put each section that's in the patch
           (map #(dissoc % :id :section-name))) ; not needed for sections in company
         patch-updates (merge company-updates (zipmap section-names updated-sections))] ; updated sections & anythig else
     ;; update the company
     {:updated-company (company/put-company slug (merge original-company patch-updates) user)}))
+
+;; ----- Validations -----
+
+(defn processable-post-req? [{:keys [user data]}]
+  (let [company (company/->company data user)
+        invalid? (s/check common-res/Company company)
+        slug-taken? (not (company/slug-available? (:slug company)))]
+    (cond
+      invalid? [false {:reason invalid?}]
+      slug-taken? [false {:reason :slug-taken}]
+      :else [true {}])))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -79,7 +92,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (common/check-input (company/valid-company slug (add-slug slug (:data ctx)))))
+    :put (fn [ctx] (common/check->liberator true (s/check common-res/Company (company/->company (add-slug slug (:data ctx)) (:user ctx)))))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers
@@ -96,6 +109,7 @@
   :delete! (fn [_] (company/delete-company slug))
 
   ;; Create or update a company
+  ;; TODO remove possibility to create company
   :new? (by-method {:put (not (company/get-company slug))})
   :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
@@ -104,18 +118,38 @@
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
   []
-  common/anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
+  common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-charsets [common/UTF8]
-  :available-media-types [company-rep/collection-media-type]
-  :allowed-methods [:options :get]
+  :available-media-types (by-method {:get [company-rep/collection-media-type]
+                                     :post [company-rep/media-type]})
+  :allowed-methods [:options :post :get]
+  :allowed? (by-method {
+    :options (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (common/allow-anonymous ctx))
+    :post (fn [ctx] (common/allow-authenticated ctx))})
 
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
-  :handle-options (common/options-response [:options :get])
 
   ;; Get a list of companies
   :exists? (fn [_] {:companies (company/list-companies)})
-  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx))))
+
+  :processable? (by-method {
+    :get true
+    :options true
+    :post (fn [ctx] (processable-post-req? ctx))})
+
+  :post! (fn [ctx] {:company (-> (company/->company (:data ctx) (:user ctx))
+                                 (company/add-placeholder-sections)
+                                 (company/create-company!))})
+
+  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
+  :handle-created (fn [ctx] (company-location-response (:company ctx)))
+  :handle-options (fn [ctx] (if (common/authenticated? ctx)
+                              (common/options-response [:options :get :post])
+                              (common/options-response [:options :get])))
+
+  :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx))))
 
 ;; A resource for the available sections for a specific company.
 (defresource section-list
@@ -146,4 +180,6 @@
   (OPTIONS "/companies/" [] (company-list))
   (OPTIONS "/companies" [] (company-list))
   (GET "/companies/" [] (company-list))
-  (GET "/companies" [] (company-list)))
+  (GET "/companies" [] (company-list))
+  (POST "/companies/" [] (company-list))
+  (POST "/companies" [] (company-list)))

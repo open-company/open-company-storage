@@ -54,7 +54,7 @@
 (def full-options "OPTIONS, GET, PUT, PATCH, DELETE")
 
 (with-state-changes [(before :facts (do (company/delete-all-companies!)
-                                        (company/create-company r/open r/coyote)
+                                        (company/create-company! (company/->company r/open r/coyote))
                                         (section/put-section r/slug :update r/text-section-1 r/coyote)
                                         (section/put-section r/slug :finances r/finances-section-1 r/coyote)
                                         (section/put-section r/slug :team r/text-section-2 r/coyote)
@@ -114,7 +114,7 @@
         (:name body) => (:name r/open)
         (:slug body) => (:slug r/open)
         (:org-id body) => nil ; verify no org-id
-        (:categories body) => (map name common/categories)
+        (:categories body) => (map name common/category-names)
         (:sections body) =>
           {:company ["diversity" "values"], :financial ["finances"], :progress ["update" "team" "help"]}
         ;; verify section contents

@@ -32,7 +32,7 @@
     [clj-http "2.0.1"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
-    [tupelo "0.1.60"] ; Utility functions https://github.com/cloojure/tupelo
+    [medley "0.7.0"] ; Utility functions https://github.com/weavejester/medley
  ]
 
   ;; Production plugins
@@ -122,10 +122,10 @@
   ;; ----- Code check configuration -----
 
   :eastwood {
-    ;; Dinable some linters that are enabled by default
+    ;; Disable some linters that are enabled by default
     :exclude-linters [:wrong-arity]
     ;; Enable some linters that are disabled by default
-    :add-linters [:unused-namespaces :unused-private-vars :unused-locals]
+    :add-linters [:unused-namespaces :unused-private-vars] ; :unused-locals]
 
     ;; Exclude testing namespaces
     :tests-paths ["test"]

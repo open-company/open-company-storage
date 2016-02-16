@@ -46,7 +46,7 @@
 ;; ----- Tests -----
 
 (with-state-changes [(before :facts (do (c/delete-company r/slug)
-                                        (c/create-company r/open r/coyote)))
+                                        (c/create-company! (c/->company r/open r/coyote))))
                      (after :facts (c/delete-company r/slug))]
 
   (facts "about revising sections"

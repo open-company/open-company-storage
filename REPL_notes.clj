@@ -1,5 +1,6 @@
 ;; productive set of development namespaces (Clojure API)
 (require '[rethinkdb.query :as r])
+(require '[schema.core :as schema])
 (require '[open-company.config :as c])
 (require '[open-company.db.init :as db] :reload)
 (require '[open-company.db.pool :as pool] :reload)
@@ -21,3 +22,8 @@
 
 ;; print last exception
 (print-stack-trace *e)
+
+;; Validate sections in sections.json against schema (should be all nils)
+(def sections*
+  (->> common/sections (map #(assoc % :company-slug "x"))))
+(map #(schema/check common/Section %) sections*)

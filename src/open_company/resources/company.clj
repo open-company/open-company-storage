@@ -1,5 +1,7 @@
 (ns open-company.resources.company
-  (:require [clojure.string :as s]
+  (:require [clojure.set :as cset]
+            [medley.core :as med]
+            [schema.core :as s]
             [defun :refer (defun defun-)]
             [open-company.lib.slugify :as slug]
             [open-company.resources.common :as common]))
@@ -25,110 +27,41 @@
 (defn- categories-for
   "Add the :categories vector in the company with the definitive initial list of categories."
   [company]
-  (assoc company :categories common/categories))
+  (assoc company :categories (vec common/category-names)))
 
 (defn- section-list
   "Return the set of section names that are contained in the provided company."
   [company]
-  (set (clojure.set/intersection common/sections (set (keys company)))))
+  (set (cset/intersection common/section-names (set (keys company)))))
 
-(defun- sections-for
-  "Add a :sections vector in the new company with the sections that this company map actually contains."
-
-  ; init
-  ([company] (sections-for company (keys common/ordered-sections) (section-list company) {}))
-
-  ; no more categories
-  ([company _categories :guard empty? _sections section-matches] (assoc company :sections section-matches)) ; all done
-
-  ; section matches per category
-  ([company categories sections section-matches]
-  (let [category-name (first categories)
-        category-sections (common/ordered-sections category-name)
-        matches-for-category (filter #(some sections [%]) category-sections)]
-    (sections-for company
-      (rest categories)
-      sections
-      (assoc section-matches category-name (vec matches-for-category))))))
+(defn- sections-for
+  "Add a :sections key to given company containing category->ordered-sections mapping
+  Only add sections to the ordered-sections list that are used in the company map"
+  [company]
+  (let [seclist (section-list company)]
+    (->> (for [[cat sects] common/category-section-tree]
+          [cat (vec (filter (set seclist) sects))])
+      (into {})
+      (assoc company :sections))))
 
 (defn- remove-sections
   "Remove any sections from the company that are not in the :sections property"
   [company]
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
-    (apply dissoc company (clojure.set/difference (section-list company) sections))))
+    (apply dissoc company (cset/difference (section-list company) sections))))
 
-(defn sections-with
-  "Add the provided section name to the end of the correct category, unless it's already in the category."
-  [sections section-name]
-  (if ((set (map keyword (flatten (vals sections)))) (keyword section-name))
-    sections ; already contains the section-name
-    (let [category-name (common/category-for section-name)] ; get the category for this section name
-      (update-in sections [category-name] conj section-name)))) ; add the section name to the category
+;; ----- Company Slug -----
 
-(defn- notes-for
-  "
-  Return a sequence of the sections that do have notes in the form:
+(declare list-companies)
+(defn taken-slugs
+  "Return all slugs which are in use as a set."
+  []
+  (set (map :slug (list-companies))))
 
-  [[:section-name :notes] [:section-name :notes]]
-  "
-  [company]
-  (let [possible-sections-with-notes
-        (clojure.set/intersection common/notes-sections
-          (set (:sections company)))
-        sections-with-notes
-          (filter #(get-in company [(keyword %) :notes])
-            possible-sections-with-notes)]
-    (vec (map #(vec [(keyword %) :notes]) sections-with-notes))))
-
-(defun- author-for
-  "Add or replace the :author map for each specified section with the specified author for this revision."
-  ;; determine sections with notes
-  ([author sections company] (author-for author sections (notes-for company) company))
-  ;; all done!
-  ([_author _sections :guard empty? _notes-sections :guard empty? company] company)
-  ;; replace the :author in the section notes and recurse
-  ([author _sections :guard empty? notes-sections company]
-    (author-for author [] (rest notes-sections)
-      (assoc-in company (flatten [(first notes-sections) :author]) author)))
-  ;; replace the :author in the section and recurse
-  ([author sections notes-sections company]
-    (author-for author (rest sections) notes-sections
-      (assoc-in company [(keyword (first sections)) :author] author))))
-
-(defun- updated-for
-  "Add or replace the :updated-at for each specified section with the specified timestamp for this revision."
-  ;; determine sections with notes
-  ([timestamp sections company] (updated-for timestamp sections (notes-for company) company))
-  ;; all done!
-  ([_timestamp _sections :guard empty? _notes-sections :guard empty? company] company)
-  ;; replace the :updated-at in the section notes and recurse
-  ([timestamp _sections :guard empty? notes-sections company]
-    (updated-for timestamp [] (rest notes-sections)
-      (assoc-in company (flatten [(first notes-sections) :updated-at]) timestamp)))
-  ;; replace the :updated-at in the section and recurse
-  ([timestamp sections notes-sections company]
-    (updated-for timestamp (rest sections) notes-sections
-      (assoc-in company [(keyword (first sections)) :updated-at] timestamp))))
-
-;; ----- Validations -----
-
-(defun valid-company
-  "Given the name and optionally the slug of a new company, and a map of the new company's properties,
-  check if the everything is in order to create the new company.
-
-  Ensures the company is provided as an associative data structure or returns `:invalid-map`.
-
-  Ensures the name of the company is specified or returns `:invalid-name`.
-
-  Ensures the slug is valid, or returns `:invalid-slug`.
-
-  If everything is OK with the proposed new company, `true` is returned.
-
-  TODO: Use prismatic schema to validate company properties."
-  ([_ :guard #(not (map? %))] :invalid-map)
-  ([_ :guard #(and (:slug %) (not (slug/valid-slug? (:slug %))))] :invalid-slug)
-  ([_ :guard #(or (not (string? (:name %))) (s/blank? (:name %)))] :invalid-name)
-  ([_] true))
+(defn slug-available?
+  "Return true if the slug is not used by any company in the database."
+  [slug]
+  (not (contains? (taken-slugs) slug)))
 
 ;; ----- Company CRUD -----
 
@@ -138,44 +71,73 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
-(defun create-company
-  "Given the company property map, create the company, returning the property map for the resource or `false`.
-  If you get a false response and aren't sure why, use the `valid-company` function to get a reason keyword."
+(defn- placeholder-sections
+  "Return a map of section-name -> section containing all
+   placeholder sections in sections.json"
+  [company-slug]
+  (reduce (fn [s sec]
+            (assoc s
+                   (:section-name sec)
+                   (-> sec
+                       (assoc :company-slug company-slug)
+                       (assoc :placeholder true)
+                       (dissoc :name))))
+          {}
+          (filter :core common/sections)))
 
-  ([company user] (create-company company user (common/current-timestamp)))
+(defn add-placeholder-sections [company]
+  (-> (placeholder-sections (:slug company))
+      (merge company)
+      (sections-for)))
 
-  ;; not a map
-  ([_company :guard #(not (map? %)) _user _timestamp] false)
-  ([_company _user :guard #(not (map? %)) _timestamp] false)
+;; ----- Create saveable company doc ----
 
-  ;; no org-id
-  ([_company _user :guard #(not (:org-id %)) _timestamp] false)
+(defn- real-sections
+  "Select all non-placeholder sections from a company map"
+  [company]
+  (med/remove-vals :placeholder (select-keys company common/section-names)))
 
-  ;; potentially a valid company
-  ([company user timestamp]
-    (let [company-slug (or (:slug company) (slug/slugify (:name company)))
-          author (common/author-for-user user)
-          interim-company (-> company
-                            (clean) ; remove disallowed properties
-                            (assoc :slug company-slug) ; store the slug
-                            (assoc :org-id (:org-id user)) ; store the org
-                            (categories-for) ; add/replace the :categories property
-                            (sections-for)) ; add/replace the :sections property
-          section-names (flatten (vals (:sections interim-company)))
-          final-company (->> interim-company
-                          (author-for author section-names) ; add/replace the :author in the sections
-                          (updated-for timestamp section-names))] ; add/replace the :updated-at in the sections
-      (if (true? (valid-company final-company))
-        (do
-          ;; create the each section in the DB
-          (doseq [section-name section-names]
-            (let [section (-> (get final-company (keyword section-name))
-                              (assoc :company-slug (:slug final-company))
-                              (assoc :section-name section-name))]
-              (common/create-resource common/section-table-name section timestamp)))
-          ;; create the company in the DB
-          (common/create-resource table-name final-company timestamp))
-        false))))
+(defn complete-real-sections
+  "For each non-placeholder section in the company add an author,
+   the company's slug and the section name"
+  [company user]
+  (let [rs (real-sections company)
+        add-info (fn [[k section-data]]
+                   [k (-> section-data
+                          (assoc :author (common/author-for-user user))
+                          (assoc :company-slug (:slug company))
+                          (assoc :section-name k))])]
+    (merge company (into {} (map add-info rs)))))
+
+(s/defn ->company :- common/Company
+  "Take a minimal map describing a company and a user and 'fill the blanks'"
+  [company-props user]
+  (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]
+    (-> company-props
+        (assoc :slug slug)
+        (update :currency #(or % "USD"))
+        (assoc :org-id (:org-id user))
+        (complete-real-sections user)
+        (categories-for)
+        (sections-for))))
+
+(s/defn ^:private add-updated-at
+  "Add `:updated-at` key with `ts` as value to a given section.
+   If the section has a `:notes` key also add the timestamp there."
+  [{:keys [section-name] :as section} :- common/Section ts]
+  (let [notes-section? (contains? common/notes-sections section-name)]
+    (cond-> (assoc section :updated-at ts)
+      (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
+
+(s/defn ^:always-validate create-company!
+  "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
+  [company :- common/Company]
+  (let [real-sections (real-sections company)
+        ts (common/current-timestamp)
+        rs-w-ts (med/map-vals #(add-updated-at % ts) real-sections)]
+    (doseq [[_ section] real-sections]
+      (common/create-resource common/section-table-name section ts))
+    (common/create-resource table-name (merge company rs-w-ts) ts)))
 
 (defn update-company
   "
@@ -202,7 +164,7 @@
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
   ([slug :guard get-company company _user] (update-company slug company))
-  ([_slug company user] (create-company company user)))
+  ([_slug company user] (create-company! (->company company user))))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."
@@ -227,10 +189,14 @@
 ;; ----- Collection of companies -----
 
 (defn list-companies
-  "Return a sequence of company property maps with slugs and names, sorted by slug."
-  []
-  (vec (sort-by primary-key
-    (common/read-resources table-name [primary-key "name"]))))
+  "Return a sequence of company property maps with slugs and names, sorted by slug.
+  Note: if additional-keys are supplied only documents containing those keys will be returned"
+  ([] (list-companies []))
+  ([additional-keys]
+   (->> (into [primary-key "name"] additional-keys)
+        (common/read-resources table-name)
+        (sort-by primary-key)
+        vec)))
 
 (defn get-companies-by-index
   "Given the name of a secondary index and a value, retrieve all matching companies"

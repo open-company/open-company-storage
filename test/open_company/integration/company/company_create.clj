@@ -1,9 +1,12 @@
 (ns open-company.integration.company.company-create
-  (:require [midje.sweet :refer :all]
+  (:require [cheshire.core :as json]
+            [schema.test]
+            [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.resources.company :as company]
+            [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]))
 
 ;; ----- Test Cases -----
@@ -57,3 +60,55 @@
 ;       (company/get-company r/TICKER) => (contains r/OPEN)
 ;       ;; Reports are empty?
 ;       (report/report-count r/TICKER) => 0)))
+(with-state-changes [(before :facts (do (company/delete-all-companies!)
+                                        (company/create-company! (company/->company r/open r/coyote))))]
+  ;; -------------------
+  ;; JWToken things are covered in open-company.integration.company.company-list
+  ;; -------------------
+  (facts "about creating companies"
+
+    (fact "missing fields cause 422"
+      (let [payload  {:name "hello"}
+            response (mock/api-request :post "/companies" {:body payload})]
+        (:status response) => 422))
+    (fact "superflous fields cause 422"
+      (let [payload  {:bogus "xx" :name "hello" :description "x"}
+            response (mock/api-request :post "/companies" {:body payload})]
+        (:status response) => 422))
+
+    (fact "company can be created with name and description"
+      (let [payload  {:name "Hello World" :description "x"}
+            response (mock/api-request :post "/companies" {:body payload})
+            body     (mock/body-from-response response)]
+        (:status response) => 201
+        (:slug body) => "hello-world"
+        (:description body) => "x"
+        (:name body) => "Hello World"))
+
+    (facts "slug"
+      (fact "provided slug is taken causes 422"
+        (let [payload  {:slug "open" :name "hello" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})]
+          (:status response) => 422))
+      (fact "provided slug does not follow slug format causes 422"
+        (let [payload  {:slug "under_score" :name "hello" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})]
+          (:status response) => 422)))
+
+    (facts "sections"
+      (fact "unknown sections cause 422"
+       (let [payload  {:name "hello" :description "x" :unknown-section {}}
+              response (mock/api-request :post "/companies" {:body payload})]
+         (:status response) => 422))
+      (facts "known user supplied sections"
+        (let [diversity {:title "Diversity" :description "Diversity is important to us." :body "TBD" :section-name "diversity"}
+              payload  {:name "Diverse Co" :description "x" :diversity diversity}
+              response (mock/api-request :post "/companies" {:body payload})
+              company  (company/get-company "diverse-co")
+              sect     (section/get-section "diverse-co" :diversity)]
+          (fact "are added with author and updated-at"
+            (:status response) => 201
+            (-> company :diversity :placeholder) => falsey
+            (-> company :diversity :author) => truthy
+            (-> company :diversity :updated-at) => truthy
+            (:description sect) => "Diversity is important to us."))))))

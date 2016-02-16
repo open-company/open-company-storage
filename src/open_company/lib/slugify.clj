@@ -53,3 +53,19 @@
     (= slug (slugify slug)) ; a valid slug slugifys to itself
     (catch Exception e
       false))) ; must not have been a string
+
+(defn- positive-numbers
+  ([] (positive-numbers 1))
+  ([n] (lazy-seq (cons n (positive-numbers (inc n))))))
+
+(defn find-available-slug
+  "Create a slug from `name` but find alternatives
+   if the resulting slug is part of the set given as `taken`"
+  [name taken]
+  {:pre [(set? taken)]}
+  (let [base-slug (slugify name)]
+    (if (taken base-slug)
+      (->> (map #(str base-slug "-" %) (positive-numbers))
+           (filter (fn [candidate] (not (contains? taken candidate))))
+           first)
+      base-slug)))

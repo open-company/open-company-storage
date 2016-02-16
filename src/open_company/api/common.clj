@@ -75,10 +75,10 @@
       ; handle case of a string which is valid JSON, but still malformed for us
       (do (when-not (map? data) (throw (Exception.)))
         [good-json {:data data}])
-      malformed)
+      [malformed])
     (catch Exception e
       (debug "Request body not processable as JSON: " e)
-      malformed)))
+      [malformed])))
 
 (defn known-content-type?
   [ctx content-type]
@@ -89,7 +89,20 @@
 (defn check-input [check]
   (if (= check true) true [false {:reason check}]))
 
+(defn check->liberator
+  "Given a desired return value and the result of a schema/check function return
+   a vector that can be used as result for Liberators processable/allowed/.. checks"
+  [correct check-result]
+  (if (nil? check-result)
+    [correct]
+    [(not correct) {:reason check-result}]))
+
 ;; ----- Authentication and Authorization -----
+
+(defn authenticated?
+  "Return true if the request contains a valid JWToken"
+  [ctx]
+  (and (:jwtoken ctx) (:user ctx)))
 
 (defn authorized-to-company?
   "Return true if the user is authorized to this company, false if not."
@@ -116,6 +129,11 @@
   "Allow unless there is a JWToken provided and it's invalid."
   [ctx]
   (boolean (or (nil? (:jwtoken ctx)) (:jwtoken ctx))))
+
+(defn allow-authenticated
+  "Allow unless there is a JWToken provided and it's invalid"
+  [ctx]
+  (authenticated? ctx))
 
 (defn allow-org-members
   "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
@@ -145,7 +163,7 @@
 ;; verify validity and presence of required JWToken
 (def authenticated-resource {
   :initialize-context (fn [ctx] (read-token (get-in ctx [:request :headers])))
-  :authorized? (fn [{:keys [jwtoken]}] (boolean jwtoken))
+  :authorized? (fn [ctx] (authenticated? ctx))
   :handle-not-found (fn [_] (missing-response))
   :handle-unauthorized (fn [_] (unauthorized-response))
   :handle-forbidden (fn [_] (forbidden-response))})
@@ -165,6 +183,7 @@
     :options false
     :get false
     :delete false
+    :post (fn [ctx] (malformed-json? ctx))
     :put (fn [ctx] (malformed-json? ctx))
     :patch (fn [ctx] (malformed-json? ctx))})
   :can-put-to-missing? (fn [_] false)

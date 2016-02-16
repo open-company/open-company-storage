@@ -47,21 +47,20 @@
   :admin true
   :org-id "slack:87654"})
 
-;; ----- Companies -----
+;; ----- Companies ----
+(def open {:slug slug
+           :name "OPENcompany"
+           :description "Build trust with stakeholders"
+           :currency "USD"})
 
-(def open {
-  :slug slug
-  :name "OPENcompany"
-  :currency "USD"})
+(def buffer {:slug "buffer"
+             :name "Buffer"
+             :description "Social Media LaLaLa"
+             :currency "USD"})
 
-(def buffer {
-  :slug "buffer"
-  :name "Buffer"
-  :currency "USD"})
-
-(def uni {
-  :name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
-  :currency "FKP"})
+(def uni {:name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
+          :description "Unicode FTW"
+          :currency "FKP"})
 
 ;; ----- Sections -----
 
