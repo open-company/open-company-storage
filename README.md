@@ -200,11 +200,13 @@ Then enter these commands one-by-one, noting the output:
 
 (company/create-company!
  (company/->company {:name "Blank Inc."
+                     :description "We're busy ideating."
                      :currency "GBP"}
                     author))
 
 (company/create-company!
- (company/->company {:name "OPENcompany"
+ (company/->company {:name "OpenCompany"
+                     :description "Startup Transparency Made Simple"
                      :slug "open"
                      :currency "FKP"
                      :finances {:title "Finances"
@@ -214,8 +216,10 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company!
  (company/->company {:name "Buffer"
                      :currency "USD"
+                     :description "A better way to share on social media."
                      :update {:title "Founder's Update"
-                              :body "It's all good!"}
+                              :headline "Buffer in October."
+                              :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
                      :finances {:title "Finances"
                                 :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
                                        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
@@ -227,7 +231,7 @@ Then enter these commands one-by-one, noting the output:
 
 ;; Get a company
 (company/get-company "blank-inc")
-(company/get-company "transparency")
+(company/get-company "open")
 (company/get-company "buffer")
 
 ;; Create/update a section
@@ -248,7 +252,7 @@ Then enter these commands one-by-one, noting the output:
   {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
   :notes {:body "We got our second customer! Revenue FTW!"}} author)
 
-(section/put-section "buffer" :update {:title "Founder's Update" :body "It's all meh."} author)
+(section/put-section "buffer" :update {:headline "It's all meh."} author)
 
 ;; Get a section
 (section/get-section "transparency" :finances)

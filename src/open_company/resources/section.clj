@@ -191,7 +191,7 @@
   TODO: only :author and :updated-at for notes if it's what has changed
   "
   ([company-slug section-name section user]
-    (put-section company-slug section-name section user (common/current-timestamp)))
+  (put-section company-slug section-name section user (common/current-timestamp)))
 
   ;; invalid section or user
   ([_company-slug _section-name _section :guard #(not (map? %)) _user _timestamp] false)
