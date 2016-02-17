@@ -10,6 +10,6 @@ Project maintainers have the right to remove, edit, or reject comments, commits,
 
 Please respect each other. Do not dismiss, abuse, harass, attack, insult or discriminate against others. This code of conduct applies both within project spaces and in public spaces when an individual is representing the project or its community.
 
-If you feel this code has been violated, please report the incident by contacting Stuart Levinson via [email](mailto:stuart@opencompany.io). We will work with you to resolve the issue promptly.
+If you feel this code has been violated, please report the incident by contacting Stuart Levinson via [email](mailto:stuart@opencompany.com). We will work with you to resolve the issue promptly.
 
 This Code of Conduct is adapted from the [Contributor Covenant](http://contributor-covenant.org), version 1.1.0, available at: [http://contributor-covenant.org/version/1/1/0/](http://contributor-covenant.org/version/1/1/0/)
