@@ -47,7 +47,7 @@
     hot-reload-routes))
 
 (defn start [port]
-  (timbre/set-config! config/log-config)
+  (timbre/set-config! c/log-config)
   (run-server app {:port port :join? false})
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
     "OpenCompany API Server\n"
