@@ -4,6 +4,7 @@
   (:require
     [liberator.dev :refer (wrap-trace)]
     [raven-clj.ring :refer (wrap-sentry)]
+    [taoensso.timbre :as timbre]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
@@ -46,6 +47,7 @@
     hot-reload-routes))
 
 (defn start [port]
+  (timbre/set-config! config/log-config)
   (run-server app {:port port :join? false})
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
     "OpenCompany API Server\n"
