@@ -151,10 +151,10 @@
   (let [timed-resource (merge resource {
           :created-at timestamp
           :updated-at timestamp})
-        insert (pool/with-connection [conn]
-                (-> (r/table table-name)
-                (r/insert timed-resource)
-                (r/run conn)))]
+        insert (pool/with-pool [conn pool/rethinkdb-pool]
+                 (-> (r/table table-name)
+                     (r/insert timed-resource)
+                     (r/run conn)))]
   (if (= 1 (:inserted insert))
     timed-resource
     (throw (RuntimeException. (str "RethinkDB insert failure: " insert))))))
@@ -165,7 +165,7 @@
   or return nil if it doesn't exist.
   "
   [table-name primary-key-value]
-  (pool/with-connection [conn]
+  (pool/with-pool [conn pool/rethinkdb-pool]
     (-> (r/table table-name)
       (r/get primary-key-value)
       (r/run conn))))
@@ -176,19 +176,19 @@
   the resources from the database.
   "
   ([table-name fields]
-  (pool/with-connection [conn]
+  (pool/with-pool [conn pool/rethinkdb-pool]
     (-> (r/table table-name)
       (r/with-fields fields)
       (r/run conn))))
 
   ([table-name index-name index-value]
-  (pool/with-connection [conn]
+  (pool/with-pool [conn pool/rethinkdb-pool]
     (-> (r/table table-name)
       (r/get-all [index-value] {:index index-name})
       (r/run conn))))
 
   ([table-name index-name index-value fields]
-  (pool/with-connection [conn]
+  (pool/with-pool [conn pool/rethinkdb-pool]
     (-> (r/table table-name)
       (r/get-all [index-value] {:index index-name})
       (r/pluck fields)
@@ -205,11 +205,11 @@
           primary-key-name (original-resource primary-key-name)
           :created-at (:created-at original-resource)
           :updated-at timestamp})
-        update (pool/with-connection [conn]
-              (-> (r/table table-name)
-              (r/get (original-resource primary-key-name))
-              (r/replace timed-resource)
-              (r/run conn)))]
+        update (pool/with-pool [conn pool/rethinkdb-pool]
+                 (-> (r/table table-name)
+                     (r/get (original-resource primary-key-name))
+                     (r/replace timed-resource)
+                     (r/run conn)))]
   (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
     timed-resource
     (throw (RuntimeException. (str "RethinkDB update failure: " update)))))))
@@ -217,22 +217,22 @@
 (defn delete-resource
   "Delete the specified resource and return `true`."
   ([table-name primary-key-value]
-  (let [delete (pool/with-connection [conn]
-                (-> (r/table table-name)
-                (r/get primary-key-value)
-                (r/delete)
-                (r/run conn)))]
+   (let [delete (pool/with-pool [conn pool/rethinkdb-pool]
+                  (-> (r/table table-name)
+                      (r/get primary-key-value)
+                      (r/delete)
+                      (r/run conn)))]
     (if (= 1 (:deleted delete))
       true
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete))))))
 
   ([table-name key-name key-value]
-  (let [delete (pool/with-connection [conn]
-                (-> (r/table table-name)
-                (r/get-all [key-value] {:index key-name})
-                (r/delete)
-                (r/run conn)))]
-    (if (zero? (:errors delete))
+   (let [delete (pool/with-pool [conn pool/rethinkdb-pool]
+                  (-> (r/table table-name)
+                      (r/get-all [key-value] {:index key-name})
+                      (r/delete)
+                      (r/run conn)))]
+     (if (zero? (:errors delete))
       true
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))))))
 
@@ -241,10 +241,10 @@
 (defn delete-all-resources!
   "Use with caution! Failure can result in partial deletes of just some resources. Returns `true` if successful."
   [table-name]
-  (let [delete (pool/with-connection [conn]
-                  (-> (r/table table-name)
-                    (r/delete)
-                    (r/run conn)))]
+  (let [delete (pool/with-pool [conn pool/rethinkdb-pool]
+                 (-> (r/table table-name)
+                     (r/delete)
+                     (r/run conn)))]
     (if (pos? (:errors delete))
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))
       true)))
