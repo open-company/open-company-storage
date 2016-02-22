@@ -10,12 +10,17 @@
   [val]
   (boolean (Boolean/valueOf val)))
 
+;; ----- System -----
+
+(defonce processors (.availableProcessors (Runtime/getRuntime)))
+(defonce core-async-limit (+ 42 (* 2 processors)))
+
 ;; ----- RethinkDB -----
 
 (defonce db-host (or (env :db-host) "localhost"))
 (defonce db-port (or (env :db-port) 28015))
 (defonce db-name (or (env :db-name) "open_company"))
-(defonce db-pool-size (or (env :db-pool-size) 40))
+(defonce db-pool-size (or (env :db-pool-size) (- core-async-limit 21))) ; conservative with the core.async limit
 
 (defonce db-map {:host db-host :port db-port :db db-name})
 (defonce db-options (flatten (vec db-map))) ; k/v sequence as clj-rethinkdb wants it
@@ -40,7 +45,8 @@
 
 ;; ----- OpenCompany -----
 
-(defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; in minutes
+;; how long to wait before a sequential edit by the same author is considered a new version
+(defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; 24 hours in minutes
 
 (defonce sections (json/decode (slurp (clojure.java.io/resource "open_company/assets/sections.json"))))
 
