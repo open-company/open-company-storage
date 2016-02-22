@@ -193,10 +193,10 @@
   Note: if additional-keys are supplied only documents containing those keys will be returned"
   ([] (list-companies []))
   ([additional-keys]
-   (->> (into [primary-key "name"] additional-keys)
-        (common/read-resources table-name)
-        (sort-by primary-key)
-        vec)))
+    (->> (into [primary-key "name"] additional-keys)
+      (common/read-resources table-name)
+      (sort-by primary-key)
+      vec)))
 
 (defn get-companies-by-index
   "Given the name of a secondary index and a value, retrieve all matching companies"

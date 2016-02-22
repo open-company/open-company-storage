@@ -207,8 +207,10 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company!
  (company/->company {:name "OpenCompany"
                      :description "Startup Transparency Made Simple"
+                     :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
                      :slug "open"
-                     :currency "FKP"
+                     :home-page "https://opencompany.com/"
+                     :currency "USD"
                      :finances {:title "Finances"
                      :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
                      author))
@@ -217,6 +219,8 @@ Then enter these commands one-by-one, noting the output:
  (company/->company {:name "Buffer"
                      :currency "USD"
                      :description "A better way to share on social media."
+                     :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
+                     :home-page "https://buffer.com/"
                      :update {:title "Founder's Update"
                               :headline "Buffer in October."
                               :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
