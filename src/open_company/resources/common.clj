@@ -1,8 +1,7 @@
 (ns open-company.resources.common
   "Resources are any thing stored in the open company platform: companies, reports"
-  (:require [clojure.string :as string]
-            [clojure.set :as cset]
-            [schema.core :as s]
+  (:require [clojure.string :as s]
+            [schema.core :as schema]
             [clojure.walk :refer (keywordize-keys)]
             [clj-time.format :as format]
             [clj-time.core :as time]
@@ -31,7 +30,6 @@
   (into {} (for [[cat sects] ordered-sections]
              [cat (mapv (comp keyword :section-name) sects)])))
 
-
 (def section-category-tree
   ^ {:doc "Section->Category lookup structure"}
   (reduce (fn [acc [cat sects]]
@@ -52,54 +50,57 @@
 ;; All possible sections as a set
 (def sections (set (map #(update % :section-name keyword) (flatten (vals ordered-sections)))))
 (def section-names (set (flatten (vals category-section-tree))))
+;; All possible sections as a map
+(def sections-by-name (zipmap (map :section-name sections) sections))
 
-;; A set of all sections that can contain notes
+;; A set of all section names that can contain notes
 (def notes-sections #{:growth :finances})
 
 ;; ----- Schemas -----
 
-(def Slug (s/pred slug/valid-slug?))
+(def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {s/Keyword [s/Keyword]})
+  {schema/Keyword [schema/Keyword]})
 
 (def Section
-  {:section-name                 s/Keyword
-   :title                        s/Str
-   :description                  s/Str
-   :company-slug                 s/Str
-   (s/optional-key :body)        s/Str
-   (s/optional-key :created-at)  s/Str
-   (s/optional-key :updated-at)  s/Str
-   s/Keyword                     s/Any})
+  {:section-name schema/Keyword
+   :title schema/Str
+   :description schema/Str
+   :company-slug schema/Str
+   :image schema/Str
+   (schema/optional-key :body) schema/Str
+   (schema/optional-key :created-at) schema/Str
+   (schema/optional-key :updated-at) schema/Str
+   schema/Keyword schema/Any})
 
 (def InlineSections
-  (into {} (for [sn section-names] [(s/optional-key sn) Section])))
+  (into {} (for [sn section-names] [(schema/optional-key sn) Section])))
 
 ;; TODO check for non-blank?
 (def Company
-  (merge {:name        s/Str
-          :description s/Str
-          :slug        Slug
-          :currency    s/Str
-          :org-id      s/Str
-          :sections    SectionsOrder
-          :categories  (s/pred #(cset/subset? (set %) category-names))
-          (s/optional-key :home-page)   s/Str
-          (s/optional-key :logo)        s/Str
-          (s/optional-key :created-at)  s/Str
-          (s/optional-key :updated-at)  s/Str}
+  (merge {:name schema/Str
+          :description schema/Str
+          :slug Slug
+          :currency schema/Str
+          :org-id schema/Str
+          :sections SectionsOrder
+          :categories (schema/pred #(clojure.set/subset? (set %) category-names))
+          (schema/optional-key :home-page) schema/Str
+          (schema/optional-key :logo) schema/Str
+          (schema/optional-key :created-at) schema/Str
+          (schema/optional-key :updated-at) schema/Str}
          InlineSections))
 
 (def User
-  {:name        s/Str
-   :org-id      s/Str
-   :user-id     s/Str
-   :avatar      s/Str
-   :image       s/Str
-   (s/optional-key :created-at)  s/Str
-   (s/optional-key :updated-at)  s/Str
-   s/Keyword    s/Any})
+  {:name schema/Str
+   :org-id schema/Str
+   :user-id schema/Str
+   :avatar schema/Str
+   :image schema/Str
+   (schema/optional-key :created-at) schema/Str
+   (schema/optional-key :updated-at) schema/Str
+   schema/Keyword schema/Any})
 
 ;; ----- Properties common to all resources -----
 
@@ -131,7 +132,7 @@
 (defn- name-for
   "Replace :name in the map with :real-name if it's not blank."
   [user]
-  (if (string/blank? (:real-name user))
+  (if (s/blank? (:real-name user))
     user
     (assoc user :name (:real-name user))))
 

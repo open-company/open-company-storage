@@ -1,8 +1,7 @@
 (ns open-company.api.companies
   (:require [compojure.core :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
-            [clojure.set :as cset]
-            [schema.core :as s]
+            [schema.core :as schema]
             [open-company.config :as config]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
@@ -64,7 +63,7 @@
 
 (defn processable-post-req? [{:keys [user data]}]
   (let [company (company/->company data user)
-        invalid? (s/check common-res/Company company)
+        invalid? (schema/check common-res/Company company)
         slug-taken? (not (company/slug-available? (:slug company)))]
     (cond
       invalid? [false {:reason invalid?}]
@@ -92,7 +91,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (common/check->liberator true (s/check common-res/Company (company/->company (add-slug slug (:data ctx)) (:user ctx)))))
+    :put (fn [ctx] (common/check->liberator true (schema/check common-res/Company (company/->company (add-slug slug (:data ctx)) (:user ctx)))))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers

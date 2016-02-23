@@ -5,6 +5,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
+            [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]))
@@ -76,7 +77,7 @@
             response (mock/api-request :post "/companies" {:body payload})]
         (:status response) => 422))
 
-    (fact "company can be created with name and description"
+    (fact "a company can be created with just a name and description"
       (let [payload  {:name "Hello World" :description "x"}
             response (mock/api-request :post "/companies" {:body payload})
             body     (mock/body-from-response response)]
@@ -101,14 +102,15 @@
               response (mock/api-request :post "/companies" {:body payload})]
          (:status response) => 422))
       (facts "known user supplied sections"
-        (let [diversity {:title "Diversity" :description "Diversity is important to us." :body "TBD" :section-name "diversity"}
-              payload  {:name "Diverse Co" :description "x" :diversity diversity}
+        (let [diversity {:title "Diversity" :body "TBD" :section-name "diversity"}
+              payload  {:name "Diverse Co" :description "Diversity is important to us." :diversity diversity}
               response (mock/api-request :post "/companies" {:body payload})
               company  (company/get-company "diverse-co")
               sect     (section/get-section "diverse-co" :diversity)]
-          (fact "are added with author and updated-at"
+          (fact "are added with author, updated-at, image and description"
             (:status response) => 201
-            (-> company :diversity :placeholder) => falsey
-            (-> company :diversity :author) => truthy
-            (-> company :diversity :updated-at) => truthy
-            (:description sect) => "Diversity is important to us."))))))
+            (:placeholder sect) => falsey
+            (:author sect) => truthy
+            (:updated-at sect) => truthy
+            (:image sect) => (get-in common/sections-by-name [:diversity :image])
+            (:description sect) => (get-in common/sections-by-name [:diversity :description])))))))

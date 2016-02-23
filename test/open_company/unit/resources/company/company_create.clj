@@ -42,18 +42,17 @@
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))
 
+    (facts "it adds timestamps to notes"
+      (let [co (c/->company (assoc r/open :finances r/finances-notes-section-1) r/coyote)
+            company (c/create-company! co)
+            from-db (c/get-company (:slug r/open))]
+        (get-in from-db [:updated-at]) => (:updated-at company)
+        (get-in from-db [:finances :notes :updated-at]) => (:updated-at company)))
+
+    (fact "it returns the pre-defined categories"
+      (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
+
     (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
-      (facts "it adds timestamps to notes"
-        (let [w-note  (-> r/open (add-section :growth) (assoc-in [:growth :notes :body] "A Note"))
-              co      (c/->company w-note r/coyote)
-              company (c/create-company! co)
-              from-db (c/get-company (:slug r/open))]
-          (get-in from-db [:updated-at]) => (:updated-at company)
-          (get-in from-db [:growth :notes :updated-at]) => (:updated-at company)))
-
-      (fact "it returns the pre-defined categories"
-        (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
-
       (facts "it returns the sections in the company in the pre-defined order"
         (:sections (c/create-company! (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
         (c/delete-company r/slug)
