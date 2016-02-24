@@ -71,13 +71,14 @@
                         (throw (RuntimeException. msg))))
 
     ;; return the new state of the pool, and the connection we got
-    (trace "Using connection: " connection)
+    (trace "Using connection: " (:id connection))
     [pool connection]))
 
 (defn release-connection
   "Low level function for releasing. Use with-connection macro instead."
   [{:keys [connections] :as pool} {res-id :id :as connection}]
   ;; Get the connection to be released from the pool
+  (trace "Releasing connection:" res-id)
   (let [busy-connection (first (filter #(= (:id %) res-id) connections))
         connections (disj connections busy-connection) ; out of the pool
         connections (conj connections connection)] ; back into the pool w/o busy
@@ -101,7 +102,8 @@
   [[connection] & body]
   `(do
     (trace "Starting DB pool connection macro.")
-    (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start))
+    (locking rethinkdb-pool
+      (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start)))
     (let [[new-pool# conn#] (get-connection (deref rethinkdb-pool))]
       (reset! rethinkdb-pool new-pool#)
       (try
