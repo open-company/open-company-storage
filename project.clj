@@ -71,7 +71,7 @@
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
       }
       :plugins [
-        [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
+        [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-pprint "1.1.2"] ; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
         [lein-ancient "0.6.8"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
