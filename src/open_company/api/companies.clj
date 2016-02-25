@@ -35,7 +35,7 @@
 (defn- options-for-company [slug ctx]
   (if-let [company (company/get-company slug)]
     (if (common/authorized-to-company? (assoc ctx :company company))
-      (common/options-response [:options :get :put :patch :delete])
+      (common/options-response [:options :get :patch :delete])
       (common/options-response [:options :get]))
     (common/missing-response)))
 
@@ -45,19 +45,21 @@
   (if-let [company (company/get-company slug)]
     {:company company}))
 
-(defn- put-company [slug company user]
-  (let [full-company (assoc company :slug slug)]
-    {:updated-company (company/put-company slug full-company user)}))
-
 (defn- patch-company [slug company-updates user]
   (let [original-company (company/get-company slug)
         section-names (clojure.set/intersection (set (keys company-updates)) common-res/section-names)
+        ; store any new or updated sections that were provided in the company as sections
         updated-sections (->> section-names
-          (map #(section/put-section slug % (company-updates %) user)) ; put each section that's in the patch
+          (map #(section/put-section slug % (company-updates %) user)) ; put each section that's included in the patch
           (map #(dissoc % :id :section-name))) ; not needed for sections in company
-        patch-updates (merge company-updates (zipmap section-names updated-sections))] ; updated sections & anythig else
+        ; merge the original company with the updated sections & anything other properties they provided 
+        with-section-updates (merge original-company (merge company-updates (zipmap section-names updated-sections)))
+        ; get any sections that we used to have, that have been added back in (come back from the dead)
+        with-prior-sections with-section-updates ; TODO
+        ; add in the placeholder sections for any newly added sections
+        with-placeholders (company/add-placeholder-sections with-prior-sections)]
     ;; update the company
-    {:updated-company (company/put-company slug (merge original-company patch-updates) user)}))
+    {:updated-company (company/put-company slug with-placeholders user)}))
 
 ;; ----- Validations -----
 
@@ -84,20 +86,18 @@
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))
-    :put (fn [ctx] (common/allow-org-members slug ctx))
+    :put false
     :patch (fn [ctx] (common/allow-org-members slug ctx))
     :delete (fn [ctx] (common/allow-org-members slug ctx))})
 
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (common/check->liberator true (schema/check common-res/Company (company/->company (add-slug slug (:data ctx)) (:user ctx)))))
     :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
 
   ;; Handlers
   :handle-ok (by-method {
     :get (fn [ctx] (company-rep/render-company (:company ctx) (common/authorized-to-company? ctx)))
-    :put (fn [ctx] (company-rep/render-company (:updated-company ctx)))
     :patch (fn [ctx] (company-rep/render-company (:updated-company ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company-rep/media-type))
@@ -107,12 +107,8 @@
   ;; Delete a company
   :delete! (fn [_] (company/delete-company slug))
 
-  ;; Create or update a company
-  ;; TODO remove possibility to create company
-  :new? (by-method {:put (not (company/get-company slug))})
-  :put! (fn [ctx] (put-company slug (add-slug slug (:data ctx)) (:user ctx)))
-  :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
-  :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
+  ;; Update a company
+  :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx))))
 
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
@@ -139,7 +135,7 @@
     :post (fn [ctx] (processable-post-req? ctx))})
 
   :post! (fn [ctx] {:company (-> (company/->company (:data ctx) (:user ctx))
-                                 (company/add-placeholder-sections)
+                                 (company/add-core-placeholder-sections)
                                  (company/create-company!))})
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))

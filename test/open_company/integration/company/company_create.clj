@@ -112,5 +112,5 @@
             (:placeholder sect) => falsey
             (:author sect) => truthy
             (:updated-at sect) => truthy
-            (:image sect) => (get-in common/sections-by-name [:diversity :image])
-            (:description sect) => (get-in common/sections-by-name [:diversity :description])))))))
+            (:image sect) => (:image (common/section-by-name :diversity))
+            (:description sect) => (:description (common/section-by-name :diversity))))))))

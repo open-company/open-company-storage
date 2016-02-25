@@ -52,6 +52,7 @@
   "Remove properties of the section that aren't needed in the REST API representation"
   [section]
   (-> section
+    (dissoc :core)
     (dissoc :id)
     (dissoc :company-slug)
     (dissoc :section-name)))

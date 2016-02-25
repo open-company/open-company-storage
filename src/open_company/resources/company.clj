@@ -70,7 +70,7 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
-(defn- placeholder-sections
+(defn- core-placeholder-sections
   "Return a map of section-name -> section containing just the core
    placeholder sections in sections.json"
   [company-slug]
@@ -84,10 +84,23 @@
           {}
           (filter :core common/sections)))
 
-(defn add-placeholder-sections [company]
-  (-> (placeholder-sections (:slug company))
+(defn add-core-placeholder-sections
+  "Add the placeholder for any core sections that are missing from the provided company."
+  [company]
+  (-> (core-placeholder-sections (:slug company))
       (merge company)
       (sections-for)))
+
+(defn add-placeholder-sections
+  "Add the canonical placeholder section for any section names listed in the :sections property but that aren't present
+  in the company."
+  [company]
+  (let [sections (-> company :sections vals flatten vec)
+        missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
+        missing-sections (map common/section-by-name missing-section-names)
+        ; add :placeholder flag and remove :core flag
+        placeholder-sections (map #(dissoc % :core) (map #(assoc % :placeholder true) missing-sections))]
+    (merge company (zipmap missing-section-names placeholder-sections))))
 
 ;; ----- Create saveable company doc ----
 
@@ -107,8 +120,8 @@
                           (assoc :author (common/author-for-user user))
                           (assoc :company-slug (:slug company))
                           (assoc :section-name section-name)
-                          (assoc :description (get-in common/sections-by-name [section-name :description])) 
-                          (assoc :image (get-in common/sections-by-name [section-name :image])))])]
+                          (assoc :description (:description (common/section-by-name section-name)))
+                          (assoc :image (:image (common/section-by-name section-name))))])]
     (merge company (into {} (map add-info rs)))))
 
 (schema/defn ->company :- common/Company

@@ -4,6 +4,7 @@
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [open-company.api.common :as common]
+            [open-company.resources.common :as common-res]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]))
@@ -26,6 +27,8 @@
 
 ;; success - reorder sections
 ;; success - remove sections
+;; success - add sections (blank)
+;; success - add sections (with content)
 
 ;; TODO
 ;; no accept
@@ -215,7 +218,7 @@
 
       (fact "multiple sections can be removed from the progress category"
         (let [new-set {:progress ["finances"]
-                         :company ["diversity" "values"]}
+                       :company ["diversity" "values"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
@@ -280,4 +283,37 @@
           (:team db-company) => nil
           (:help db-company) => (contains r/text-section-1)
           (:diversity db-company) => nil
-          (:values db-company) => (contains r/text-section-1)))))
+          (:values db-company) => (contains r/text-section-1))))
+  
+  (facts "about adding sections"
+
+    (future-fact "that don't really exist")
+
+    (facts "without any section content"
+    
+      (fact "that never existed"
+        (let [new-sections {:progress ["highlights"] :company [] :financial []}
+              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+              body (mock/body-from-response response)
+              resp-highlights (:highlights body)
+              db-company (company/get-company r/slug)
+              db-highlights (:highlights db-company)
+              placeholder (dissoc (common-res/section-by-name :highlights) :section-name :core)]
+          (:status response) => 200
+          (:sections body) => new-sections
+          ; verify placeholder flag and content in response
+          (:placeholder resp-highlights) => true 
+          resp-highlights => (contains placeholder)
+          ; verify placeholder flag and content in DB
+          (:placeholder db-highlights) => true
+          db-highlights => (contains placeholder)))
+
+        (future-fact "that used to exist"))
+
+    (future-fact "with section content")
+
+    (future-fact "with too much content"
+      
+      (future-fact "extra properties aren't allowed")
+
+      (future-fact "read/only properties are ignored"))))

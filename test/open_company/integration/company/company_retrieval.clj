@@ -51,7 +51,7 @@
 ;; ----- Tests -----
 
 (def limited-options "OPTIONS, GET")
-(def full-options "OPTIONS, GET, PUT, PATCH, DELETE")
+(def full-options "OPTIONS, GET, PATCH, DELETE")
 
 (with-state-changes [(before :facts (do (company/delete-all-companies!)
                                         (company/create-company! (company/->company r/open r/coyote))

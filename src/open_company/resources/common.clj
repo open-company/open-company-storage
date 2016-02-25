@@ -49,9 +49,17 @@
 
 ;; All possible sections as a set
 (def sections (set (map #(update % :section-name keyword) (flatten (vals ordered-sections)))))
+
+;; All possible section names as a set
 (def section-names (set (flatten (vals category-section-tree))))
-;; All possible sections as a map
+
+;; All possible sections as a map from their name
 (def sections-by-name (zipmap (map :section-name sections) sections))
+
+(defn section-by-name
+  "Return the canonical placeholder section definition for a named section."
+  [section-name]
+  (sections-by-name (keyword section-name)))
 
 ;; A set of all section names that can contain notes
 (def notes-sections #{:growth :finances})
