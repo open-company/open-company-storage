@@ -287,7 +287,11 @@
   
   (facts "about adding sections"
 
-    (future-fact "that don't really exist")
+    (fact "that don't really exist"
+      (let [new-sections {:progress ["health"] :company [] :financial []}
+            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+            body (mock/body-from-response response)]
+        (:status response) => 200))
 
     (facts "without any section content"
     
