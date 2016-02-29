@@ -27,12 +27,12 @@
     [com.apa512/rethinkdb "0.11.0"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.0.5"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.2"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.3.0-RC1"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.3.1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "2.1.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
-    [medley "0.7.2"] ; Utility functions https://github.com/weavejester/medley
+    [medley "0.7.3"] ; Utility functions https://github.com/weavejester/medley
  ]
 
   ;; Production plugins
@@ -71,7 +71,7 @@
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
       }
       :plugins [
-        [lein-bikeshed "0.2.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
+        [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-pprint "1.1.2"] ; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
         [lein-ancient "0.6.8"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
