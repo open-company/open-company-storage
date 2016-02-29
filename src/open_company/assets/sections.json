@@ -9,7 +9,7 @@
             "section-name": "diversity",
             "title": "Diversity",
             "description": "Diversity goals and makeup",
-            "headline": "When it comes to diversity, we...",
+            "headline": "",
             "body": "Discuss company policy and goals around gender, race and ethnicity, age, and sexuality.
             What is the current state of diversity at the company? What are the goals? What changes in hiring,
             culture and retention are you working on to achieve those goals?",
@@ -21,7 +21,7 @@
             "section-name": "privacy",
             "title": "Data Privacy",
             "description": "Company policy on customer information privacy",
-            "headline": "How we protect customer privacy",
+            "headline": "",
             "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
             apply to the company? What agreements exist with customers about their data? What
             do these agreements say in Plain English?",
@@ -33,7 +33,7 @@
             "section-name": "values",
             "title": "Values",
             "description": "Core values the company lives by",
-            "headline": "The core values we live by",
+            "headline": "",
             "body": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
             they came from, why they're important, and provide examples of how people can use them to guide their
             decisions, behavior, and actions.",
@@ -45,7 +45,7 @@
             "section-name": "mission",
             "title": "Mission",
             "description": "Why the company exists",
-            "headline": "We exist to...",
+            "headline": "",
             "body": "A short reminder about what it is you do and what's the big idea to make
             sure everyone is aligned to a common purpose.",
             "image": "/img/section-icons/company-mission.svg",
@@ -62,7 +62,7 @@
           "section-name": "update",
           "title": "Founder's Update",
           "description": "Company update",
-          "headline": "Here's what happened during...",
+          "headline": "",
           "body": "Provide an overview of important happenings in the company since the last update.",
           "image": "/img/section-icons/progress-update.svg",
           "core": true
@@ -72,7 +72,7 @@
           "section-name": "highlights",
           "title": "Highlights",
           "description": "Company milestones and accomplishments",
-          "headline": "We made it to...",
+          "headline": "",
           "body": "What new company milestones or accomplishments are you most proud of? List up to three.",
           "image": "/img/section-icons/progress-highlights.svg",
           "core": false
@@ -82,7 +82,7 @@
           "section-name": "growth",
           "title": "Growth",
           "description": "Growth metrics and key performance indicators",
-          "headline": "Watch us grow...",
+          "headline": "",
           "prompt": "Enter the most important growth metric for the stakeholders of your company. You'll be able
           to add more later.",
           "metrics": [
@@ -154,7 +154,7 @@
           "section-name": "challenges",
           "title": "Key Challenges",
           "description": "Challenges facing the company",
-          "headline": "The top challenge we're facing is...",
+          "headline": "",
           "body": "What are you most disappointed about? What’s something you recently learned
           and your plan to fix it going forward? What is the company stuck on? What are the systemic or existential
           threats everyone needs to be focused on?",
@@ -166,7 +166,7 @@
           "section-name": "team",
           "title": "Team and Hiring",
           "description": "Team and hiring update",
-          "headline": "We just hired...",
+          "headline": "",
           "body": "Announce and welcome new hires. Discuss what positions are currently open and what's being
           done to fill them. How many candidates are applying for the positions? Which employees are no longer
           with the company and why they left.",
@@ -178,7 +178,7 @@
           "section-name": "product",
           "title": "Product",
           "description": "Product release and roadmap update",
-          "headline": "We just released...",
+          "headline": "",
           "body": "What tests have you run to validate your product? What did you learn? What's
           shipped recently and how has the roadmap changed? How is the product performing? What's not working? What's
           the evidence you are making something some people love?",
@@ -190,7 +190,7 @@
           "section-name": "customer-service",
           "title": "Customer Service",
           "description": "Customer service update",
-          "headline": "Customers are finding that...",
+          "headline": "",
           "body": "What issues are customers having with your product? How are your service metrics and
           SLA's performing? How are customer service costs and support metrics trending? What new content
           and policies have been created to improve customer success?",
@@ -202,7 +202,7 @@
           "section-name": "marketing",
           "title": "Marketing and Customer Acquisition",
           "description": "Notable marketing activities and results",
-          "headline": "We're trying out...",
+          "headline": "",
           "body": "List any notable marketing activities since the last update. How are the current marketing
           efforts performing? What changes and new activities are planned?",
           "image": "/img/section-icons/progress-marketing.svg",
@@ -213,7 +213,7 @@
           "section-name": "press",
           "title": "Press",
           "description": "Press mentions and PR activities",
-          "headline": "Check out our coverage in...",
+          "headline": "",
           "body": "List any notable press mentions since the last update. Provide an update on PR activities.",
           "image": "/img/section-icons/progress-press.svg",
           "core": false
@@ -223,7 +223,7 @@
           "section-name": "sales",
           "title": "Sales",
           "description": "Notable sales activity and wins and losses",
-          "headline": "We just closed the...",
+          "headline": "",
           "body": "Did you close any notable sales? What opportunities are in the pipeline?",
           "image": "/img/section-icons/progress-sales.svg",
           "core": false
@@ -233,7 +233,7 @@
           "section-name": "business-development",
           "title": "Business Development",
           "description": "Notable partnership activity and new deals",
-          "headline": "We just closed the...",
+          "headline": "",
           "body": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
           "image": "/img/section-icons/progress-business-development.svg",
           "core": false
@@ -242,7 +242,7 @@
         {
           "section-name": "help",
           "title": "How You Can Help",
-          "headline": "Just one quick ask, please...",
+          "headline": "",
           "description": "Ask your company stakeholders for help and ideas",
           "body": "Where do you need the most help from your team and investors? Be specific.",
           "image": "/img/section-icons/progress-help.svg",
@@ -252,7 +252,7 @@
         {
           "section-name": "kudos",
           "title": "Kudos",
-          "headline": "A big shout out to...",
+          "headline": "",
           "description": "Celebrate great actions that helped the company",
           "body": "Who went above and beyond to help the company? What did they do?",
           "image": "/img/section-icons/progress-kudos.svg",
@@ -268,7 +268,7 @@
           {
             "section-name": "finances",
             "title": "Finances",
-            "headline": "Cash on hand, burn and runway.",
+            "headline": "",
             "description": "Cash on hand, burn and runway",
             "note": "Provide context about recent changes in company finances with a note.",
             "image": "/img/section-icons/financial-finances.svg",
@@ -278,7 +278,7 @@
           {
             "section-name": "fundraising",
             "title": "Fundraising",
-            "headline": "We're talking to 2 firms about...",
+            "headline": "",
             "description": "Updates on the fundraising process",
             "body": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
             pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
@@ -290,7 +290,7 @@
           {
             "section-name": "compensation",
             "title": "Compensation",
-            "headline": "Employee compensation is based on our formula.",
+            "headline": "",
             "description": "Founder, executive and employee compensation practices",
             "body": "Depending on your culture of openness with compensation, you could discuss the
             thought process or formula used to determine salaries / commissions / bonuses / profit share. You may
@@ -306,7 +306,7 @@
             "section-name": "ownership",
             "title": "Ownership",
             "description": "Distribution of company equity",
-            "headline": "Our company is owned by the founders, employees and investors.",
+            "headline": "",
             "body": "How many shares are outstanding? What is the size of the employee option pool? Is there
             a formula used to allocate employee options? What was the value placed on the company, pre/post money,
             during the last raise? Has a 409A valuation been done, what was the value? Provide an easy to understand
