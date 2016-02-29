@@ -202,8 +202,9 @@
   (put-section company-slug (keyword section-name) section user timestamp))
 
   ([company-slug section-name section user timestamp]
-  (let [original-company (company/get-company company-slug)
-        original-section (get-section company-slug section-name)
+  (let [original-company (company/get-company company-slug) ; company before the update
+        original-section (get-section company-slug section-name) ; section before the update
+        template-section (common/section-by-name section-name) ; canonical version of this section
         author (common/author-for-user user)
         updated-section (-> section
           (clean)
@@ -212,6 +213,9 @@
           (assoc :section-name section-name)
           (assoc :author author)
           (assoc :updated-at timestamp)
+          (assoc :image (:image template-section)); read-only property
+          (assoc :description (:description template-section)); read-only property
+          (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section)))
           (update-notes-for (original-company section-name) author timestamp))
         updated-sections (sections-with (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)
