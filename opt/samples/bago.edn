@@ -3,7 +3,7 @@
   :company {
     :slug "bago"
     :name "Bago"
-    :description "An even better way to share on social media."
+    :description "An even better way to develop code."
     :logo "https://open-company-assets.s3.amazonaws.com/bago.png"
     :org-id "slack:T06SBMH60"
     :currency "EUR"
