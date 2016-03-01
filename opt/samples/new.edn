@@ -4,6 +4,7 @@
     :slug "new"
     :name "New.ly"
     :description "Fresh as the new driven snow."
+    :logo "https://open-company-assets.s3.amazonaws.com/new.png"
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-05-01T12:59:28.000Z"
