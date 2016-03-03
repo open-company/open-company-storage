@@ -50,7 +50,7 @@
         (get-in from-db [:finances :notes :updated-at]) => (:updated-at company)))
 
     (fact "it returns the pre-defined categories"
-      (:categories (c/create-company! (c/->company r/open r/coyote))) => (contains common/category-names))
+      (:categories (c/create-company! (c/->company r/open r/coyote))) => common/category-names)
 
     (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
       (facts "it returns the sections in the company in the pre-defined order"

@@ -40,7 +40,7 @@
 
 ;; ----- Tests -----
 
-(def categories (map name open-company.resources.common/category-names))
+(def categories (map name common-res/category-names))
 
 (with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
                      (before :facts (do (company/delete-all-companies!)

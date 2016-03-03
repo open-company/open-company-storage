@@ -19,7 +19,7 @@
 
 ;; All the categories in default order
 (def categories (:categories (keywordize-keys config/sections)))
-(def category-names (set (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
+(def category-names (vec (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
 
 (def ordered-sections
   (into {} (for [{:keys [sections name]} categories]
@@ -93,7 +93,7 @@
           :currency schema/Str
           :org-id schema/Str
           :sections SectionsOrder
-          :categories (schema/pred #(clojure.set/subset? (set %) category-names))
+          :categories (schema/pred #(clojure.set/subset? (set %) (set category-names)))
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :created-at) schema/Str
