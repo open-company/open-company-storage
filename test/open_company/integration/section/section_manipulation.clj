@@ -98,8 +98,9 @@
                                    :company ["diversity" "values"]}))
 
     (fact "with no company matching the company slug"
-      (let [new-order {:progress ["team" "update" "finances" "help"]
-                       :company ["diversity" "values"]}
+      (let [new-order {:company ["diversity" "values"]
+                       :progress ["team" "update" "finances" "help"]
+                       :financial []}
             response (mock/api-request :patch (company-rep/url "foo") {:body {:sections new-order}})]
         (:status response) => 404
         (:body response) => "")
@@ -122,7 +123,8 @@
     (facts "when the new order is valid"
 
       (fact "the section order in the progress category can be gently adjusted"
-        (let [new-order {:progress ["team" "update" "finances" "help"]
+        (let [new-order {:progress ["team" "update" "help"]
+                         :financial ["finances"]
                          :company ["diversity" "values"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -131,7 +133,8 @@
           (:sections (company/get-company r/slug)) => new-order))
 
       (fact "the sections order in the progress category can be greatly adjusted"
-        (let [new-order {:progress ["help" "team" "finances" "update"]
+        (let [new-order {:progress ["help" "team" "update"]
+                         :financial ["finances"]
                          :company ["diversity" "values"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -140,7 +143,8 @@
           (:sections (company/get-company r/slug)) => new-order))
 
       (fact "the section order in the company category can be adjusted"
-        (let [new-order {:progress ["update" "finances" "team" "help"]
+        (let [new-order {:progress ["update" "team" "help"]
+                         :financial ["finances"]
                          :company ["values" "diversity"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -149,7 +153,8 @@
           (:sections (company/get-company r/slug)) => new-order))
 
       (fact "the section order in the progress and company category can both be adjusted at once"
-        (let [new-order {:progress ["help" "team" "finances" "update"]
+        (let [new-order {:progress ["help" "team" "update"]
+                         :financial ["finances"]
                          :company ["values" "diversity"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -291,7 +296,7 @@
       (let [new-sections {:progress ["health"] :company [] :financial []}
             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
             body (mock/body-from-response response)]
-        (:status response) => 200))
+        (:status response) => 422))
 
     (facts "without any section content"
     

@@ -41,8 +41,8 @@
 
 ;; ----- Actions -----
 
-(defn- get-company [slug]
-  (if-let [company (company/get-company slug)]
+(defn- get-company [slug ctx]
+  (if-let [company (or (:company ctx) (company/get-company slug))]
     {:company company}))
 
 (defn- patch-company [slug company-updates user]
@@ -63,6 +63,15 @@
 
 ;; ----- Validations -----
 
+(defn processable-patch-req? [slug ctx]
+  (if-let [existing-company (company/get-company slug)] ; can only PATCH a company that already exists
+    (let [updated-company (merge existing-company (:data ctx)) ; apply the PATCH to the existing company
+          invalid? (schema/check common-res/Company updated-company)] ; check that it's still valid
+      (cond
+        invalid? [false {:reason invalid?}] ; invalid
+        :else [true {:company existing-company}])) ; it's valid, keep the existing company around for efficiency
+    [true {}])) ; it will fail later on :exists?
+
 (defn processable-post-req? [{:keys [user data]}]
   (let [company (company/->company data user)
         invalid? (schema/check common-res/Company company)
@@ -80,7 +89,7 @@
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-media-types [company-rep/media-type]
-  :exists? (fn [_] (get-company slug))
+  :exists? (fn [ctx] (get-company slug ctx))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
   :allowed? (by-method {
@@ -93,7 +102,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] true)}) ;; TODO validate for subset of company properties
+    :patch (fn [ctx] (processable-patch-req? slug ctx))})
 
   ;; Handlers
   :handle-ok (by-method {
@@ -160,7 +169,7 @@
   :handle-options (if (company/get-company slug) (common/options-response [:options :get]) (common/missing-response))
 
   ;; Get a list of sections
-  :exists? (fn [_] (get-company slug))
+  :exists? (fn [ctx] (get-company slug ctx))
   :handle-ok (fn [_] sections))
 
 ;; ----- Routes -----

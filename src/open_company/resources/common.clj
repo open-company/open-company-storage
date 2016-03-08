@@ -66,16 +66,18 @@
 
 ;; ----- Schemas -----
 
+(def SectionName (schema/pred #(section-names (keyword %))))
+
 (def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {schema/Keyword [schema/Keyword]})
+  {schema/Keyword [SectionName]})
 
 (def Section
-  {:section-name schema/Keyword
+  {(schema/optional-key :section-name) SectionName
    :title schema/Str
    :description schema/Str
-   :company-slug schema/Str
+   (schema/optional-key :company-slug) schema/Str
    :image schema/Str
    (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
@@ -93,7 +95,7 @@
           :currency schema/Str
           :org-id schema/Str
           :sections SectionsOrder
-          :categories (schema/pred #(clojure.set/subset? (set %) (set category-names)))
+          :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :created-at) schema/Str

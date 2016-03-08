@@ -62,6 +62,11 @@
   [slug]
   (not (contains? (taken-slugs) slug)))
 
+;; ----- Validations -----
+
+(defn valid-company [slug company]
+  (schema/check common/Company (assoc company :slug slug)))
+
 ;; ----- Company CRUD -----
 
 (defn get-company
