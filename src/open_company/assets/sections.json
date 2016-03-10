@@ -13,7 +13,7 @@
           "body": "Does everyone know what they’re fighting for? What is your mission?",
           "image": "https://open-company.s3.amazonaws.com/mission.svg",
           "core": true
-        }
+        },
 
         {
           "section-name": "values",
