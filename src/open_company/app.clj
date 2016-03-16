@@ -48,6 +48,11 @@
 
 (defn start [port]
   (timbre/set-config! c/log-config)
+  ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
+  (Thread/setDefaultUncaughtExceptionHandler
+   (reify Thread$UncaughtExceptionHandler
+     (uncaughtException [_ thread ex]
+       (timbre/error ex "Uncaught exception on" (.getName thread)))))
   (run-server app {:port port :join? false})
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
     "OpenCompany API Server\n"
