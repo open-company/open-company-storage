@@ -93,7 +93,6 @@
        (s/join \newline errors)))
 
 (defn -main [& args]
-  (pool/start)
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
     ;; Handle help and error conditions
     (cond
