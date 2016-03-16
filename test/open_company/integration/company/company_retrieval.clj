@@ -116,7 +116,7 @@
         (:org-id body) => nil ; verify no org-id
         (:categories body) => (map name common/category-names)
         (:sections body) =>
-          {:company ["diversity" "values"], :financial ["finances"], :progress ["update" "team" "help"]}
+          {:company ["help" "diversity" "values"], :financial ["finances"], :progress ["update" "team"]}
         ;; verify section contents
         (:update body) => (contains r/text-section-1)
         (:finances body) => (contains r/finances-section-1)
@@ -136,7 +136,7 @@
             body (mock/body-from-response response)]
         (:status response) => 200
         (:sections body) =>
-          {:company ["diversity" "values"], :financial ["finances"], :progress ["update" "team" "help"]}
+          {:company ["help" "diversity" "values"], :financial ["finances"], :progress ["update" "team"]}
         ;; verify each section has only a self HATEOAS link
         (doseq [section-key (map keyword (flatten (vals (:sections body))))]
           (count (:links (body section-key))) => 1
@@ -152,7 +152,7 @@
             body (mock/body-from-response response)]
         (:status response) => 200
         (:sections body) =>
-          {:company ["diversity" "values"], :financial ["finances"], :progress ["update" "team" "help"]}
+          {:company ["help" "diversity" "values"], :financial ["finances"], :progress ["update" "team"]}
         ;; verify each section has only a self HATEOAS link
         (doseq [section-key (map keyword (flatten (vals (:sections body))))]
           (count (:links (body section-key))) => 1

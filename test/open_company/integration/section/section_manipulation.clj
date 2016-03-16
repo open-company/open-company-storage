@@ -65,9 +65,9 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:progress ["update" "team" "help"]
-                                   :financial ["finances"]
-                                   :company ["diversity" "values"]}))
+        (:sections db-company) => {:company ["help" "diversity" "values"]
+                                   :progress ["update" "team"]
+                                   :financial ["finances"]}))
 
     (fact "with no JWToken"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -79,9 +79,9 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:progress ["update" "team" "help"]
-                                   :financial ["finances"]
-                                   :company ["diversity" "values"]}))
+        (:sections db-company) => {:company [ "help" "diversity" "values"]
+                                   :progress ["update" "team"]
+                                   :financial ["finances"]}))
 
     (fact "with an organization that doesn't match the company"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -93,9 +93,9 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:progress ["update" "team" "help"]
-                                   :financial ["finances"]
-                                   :company ["diversity" "values"]}))
+        (:sections db-company) => {:company [ "help" "diversity" "values"]
+                                   :progress ["update" "team"]
+                                   :financial ["finances"]}))
 
     (fact "with no company matching the company slug"
       (let [new-order {:company ["diversity" "values"]
@@ -107,18 +107,18 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:progress ["update" "team" "help"]
-                                   :financial ["finances"]
-                                   :company ["diversity" "values"]})))
+        (:sections db-company) => {:company [ "help" "diversity" "values"]
+                                   :progress ["update" "team"]
+                                   :financial ["finances"]})))
 
   (facts "about section reordering"
 
     ;; verify the initial order
     (let [db-company (company/get-company r/slug)]
       (:categories db-company) => categories
-      (:sections db-company) => {:progress ["update" "team" "help"]
-                                 :financial ["finances"]
-                                 :company ["diversity" "values"]})
+      (:sections db-company) => {:company [ "help" "diversity" "values"]
+                                 :progress ["update" "team"]
+                                 :financial ["finances"]})
 
     (facts "when the new order is valid"
 
@@ -172,14 +172,15 @@
       ;; ensure all placeholder sections are in company
       (:sections company) => {:progress ["update" "growth" "challenges" "team" "product"]
                               :financial ["finances"]
-                              :company ["values" "mission"]}
+                              :company ["mission" "values"]}
       (:growth company) => truthy
       (:challenges company) => truthy
       (:team company) => truthy
       (:product company) => truthy
       (:mission company) => truthy
-      (let [new-set {:progress ["update" "finances" "help"]
-                     :company ["values"]}
+      (let [new-set {:company ["values"]
+                     :progress ["update" "finances" "help"]
+                     :financial []}
             response (mock/api-request :patch (company-rep/url slug) {:body {:sections new-set}})
             body     (mock/body-from-response response)
             company  (company/get-company slug)]
@@ -194,9 +195,9 @@
   (facts "about section removal"
 
     ;; verify the initial set of sections
-    (:sections (company/get-company r/slug)) => {:progress ["update" "team" "help"]
-                                                 :financial ["finances"]
-                                                 :company ["diversity" "values"]}
+    (:sections (company/get-company r/slug)) => {:company ["help" "diversity" "values"]
+                                                 :progress ["update" "team"]
+                                                 :financial ["finances"]}
 
       (fact "a section can be removed from the progress category"
         (let [new-set {:progress ["update" "finances" "help"]
