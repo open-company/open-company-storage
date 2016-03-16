@@ -1,138 +1,85 @@
 (ns open-company.unit.db.pool
   (:require [midje.sweet :refer :all]
-            [open-company.db.pool :as pool]))
+            [open-company.db.pool :as p]))
 
-(def counter (atom 0))
+(facts "about claiming & releasing pool inventory"
+         (let [x (atom 0)
+               pool (p/fixed-pool #(swap! x inc) {:size 2 :block-start true})
+               ; Claim both elements
+               a  (p/claim pool)
+               b  (p/claim pool)
+               ; Pool is empty; should throw
+               c  (try (p/claim pool 2/1000)
+                       (catch Exception e
+                         (.getMessage e)))
+               a' (p/release pool a)
+               ; Should re-acquire a
+               d  (p/claim pool)
+               ; Empty
+               e  (try (p/claim pool)
+                       (catch Exception _ :timeout))
+               b' (p/release pool b)
+               ; Re-acquire b
+               f  (p/claim pool)]
+           #{a b} => #{1 2}
+           c => "Couldn't claim a resource from the pool within 2 ms"
+           a => d
+           e => :timeout
+           b => f
+           ; Shouldn't have (open)'d more than twice.
+           @x => 2))
 
-;; simple init function that makes each resource a unique ascending int
-;; (def init (fn [] (swap! counter inc)))
+(facts "about claiming and invalidating"
+         (let [x (atom 0)
+               pool (p/fixed-pool #(swap! x inc) {:size 2 :block-start true})
+               a  (p/claim pool)
+               a' (p/invalidate pool a)
+               b  (p/claim pool)
 
-;; (def rethinkdb-connection-keys #{:ch :db :in :loops :out :pub :r-ch :socket :token :waiting})
+               b' (p/invalidate pool b)
+               c  (p/claim pool 1)
+               d  (p/claim pool 1)
+               e  (try (p/claim pool 1) (catch Exception e nil))
+               c' (p/invalidate pool c)
+               d' (p/invalidate pool d)
+               ; Invalidate nil should be a noop
+               e' (p/invalidate pool e)]
+           ; Wait for futures.
+           a' => truthy
+           b' => truthy
+           c' => truthy
+           d' => truthy
+           e' => nil
 
-;; (defn reset-pool [new-pool] (reset! pool/rethinkdb-pool new-pool))
+           (dorun (map deref [a' b' c' d']))
 
-;; (with-state-changes [(before :facts (reset-pool nil))]
+           a => 1
+           b => 2
+           #{a b c d} #{1 2 3 4}
+           e => nil
+           ; Should have opened twice to start and 4 times after invalidations.
+           @x => 6))
 
-;;   (facts "about resource pools"
+(facts "about with-pool macro"
+         (let [x (atom 0)
+               pool (p/fixed-pool #(swap! x inc) {:size 1 :block-start true})]
 
-;;     (facts "when failing to start resource pools"
+           ; Regular claim
+           (let [a (p/with-pool [a pool] a)]
+             a => 1
+             @x => 1)
 
-;;       ;; Pool size not positive
-;;       (pool/start* 0 0 init) => (throws AssertionError)
+           ; With-pool should have released.
+           (let [a (p/claim pool)]
+             a => 1
+             (p/release pool a))
 
-;;       ;; Pool size not sane
-;;       (pool/start* 5 3 init) => (throws AssertionError)
+           ; Throwing errors
+           (p/with-pool [b pool]
+             b => 1
+             (throw (RuntimeException. "whoops")))
+           => (throws RuntimeException)
 
-;;       ;; No init
-;;       (pool/start* 3 3 nil) => (throws AssertionError))
-
-;;     (with-state-changes [(before :facts (reset! counter 0))]
-
-;;       (facts "when starting resource pools"
-
-;;         (fact "pool starts at low size, not high size"
-
-;;           (pool/start* 3 5 init) =>
-;;             {:connections #{
-;;               {:id 0 :connection 1}
-;;               {:id 1 :connection 2}
-;;               {:id 2 :connection 3}
-;;             }
-;;             :high 5
-;;             :low 3
-;;             :init init})
-
-;;         (fact "pool knows when low and high size are the same"
-
-;;           (pool/start* 5 5 init) =>
-;;             {:connections #{
-;;               {:id 0 :connection 1}
-;;               {:id 1 :connection 2}
-;;               {:id 2 :connection 3}
-;;               {:id 3 :connection 4}
-;;               {:id 4 :connection 5}
-;;             }
-;;             :high 5
-;;             :low 5
-;;             :init init})))
-
-;;     (facts "when using resources"
-
-;;       (fact "it provides 2 resources, then no more"
-
-;;         (pool/start 2 2)
-
-;;         (pool/with-connection [conn]
-;;           (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;           (pool/with-connection [conn]
-;;             (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;             (pool/with-connection [conn] (println conn)) =>
-;;               (throws RuntimeException "No connection available from DB pool")))) ; no more connections
-
-;;       (fact "it grows from 2 to 4, then no more"
-
-;;         (pool/start 2 4)
-
-;;         (pool/with-connection [conn]
-;;           (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;           (pool/with-connection [conn]
-;;             (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;             (pool/with-connection [conn]
-;;               (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;               (pool/with-connection [conn]
-;;                 (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;                 (pool/with-connection [conn] (println conn)) =>
-;;                   (throws RuntimeException "No connection available from DB pool"))))))
-
-
-;;       (fact "it recovers from no more resources"
-
-;;         (pool/start 2 2)
-
-;;         (pool/with-connection [conn]
-;;           (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;           (pool/with-connection [conn]
-;;             (keys @conn) => (just rethinkdb-connection-keys) ; valid connection
-;;             (pool/with-connection [conn] (println conn)) =>
-;;               (throws RuntimeException "No connection available from DB pool") ; no more connections
-;;             (pool/with-connection [conn] (println conn)) =>
-;;               (throws RuntimeException "No connection available from DB pool") ; no more connections
-;;             (pool/with-connection [conn] (println conn)) =>
-;;               (throws RuntimeException "No connection available from DB pool")) ; no more connections
-;;           (pool/with-connection [conn]
-;;             (keys @conn) => (just rethinkdb-connection-keys))))))) ; valid connection
-
-;; (facts "about resource pools"
-
-;;   (fact "it provides the same resource sequentially"
-
-;;     (reset! counter 0)
-;;     (reset-pool (pool/start* 2 4 init))
-
-;;     (pool/with-connection [res]
-;;       res => 1
-;;       (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])))
-
-;;     (pool/with-connection [res]
-;;       res => 1
-;;       (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
-
-;;     (pool/with-connection [res]
-;;       res => 1
-;;       (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}]))
-
-;;     (pool/with-connection [res]
-;;       res => 1
-;;       (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
-;;       (pool/with-connection [res]
-;;         res => 2
-;;         (:connections @pool/rethinkdb-pool) =>
-;;           (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}])))
-
-;;     (pool/with-connection [res]
-;;       res => 1
-;;       (:connections @pool/rethinkdb-pool) => (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2}])
-;;       (pool/with-connection [res]
-;;         res => 2
-;;         (:connections @pool/rethinkdb-pool) =>
-;;           (just [{:id 0 :connection 1 :busy true} {:id 1 :connection 2 :busy true}]))))
+           ; Pool should have regenerated.
+           (Thread/sleep 250)
+           @x => 2))

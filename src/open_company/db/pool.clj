@@ -7,7 +7,7 @@
 
 ;; Opening & closing of connections
 
-(defn init-connection []
+(defn init-conn []
   (apply r/connect config/db-options))
 
 (defn close-conn [conn]
@@ -35,7 +35,9 @@
   (grow [this]
     (loop []
       (if-let [thingy (try (open) (catch Throwable t nil))]
-        (.put ^LinkedBlockingQueue queue thingy)
+        (do
+          (timbre/trace "New connection being added to pool")
+          (.put ^LinkedBlockingQueue queue thingy))
         (do
           (Thread/sleep (* 1000 regenerate-interval))
           (recur)))))
@@ -51,10 +53,11 @@
          (catch java.lang.InterruptedException e
            nil))
        (throw
-        (ex-info (str "Couldn't claim a resource from the pool within " timeout " ms"))))))
+        (ex-info (str "Couldn't claim a resource from the pool within " timeout " ms") {})))))
 
   (release [this thingy]
     (when thingy
+      (timbre/trace "Releasing" thingy "back into pool")
       (.put ^LinkedBlockingQueue queue thingy)))
 
   (invalidate [this thingy]
@@ -125,24 +128,50 @@
 
 ;; --- Define stateful pool & functions to rebuild
 
-(def rethinkdb-pool
-  (fixed-pool init-connection close-conn {:size (or 5 config/db-pool-size)}))
+(defn shutdown-pool!
+  [pool]
+  (doseq [thing (to-array (:queue pool))]
+    ((:close pool) thing))
+  (.clear (:queue pool)))
 
 (defn rebuild-pool!
   "Rebuild the entire pool. This is not atomic so other threads
   taking connections at the same time may get stale ones.
   Those are invalidated as soon as they cause an exception."
   [pool]
-  (dotimes [i (.size (:queue pool))]
-    (invalidate pool (claim pool))))
+  (let [size (.size (:queue pool))]
+    (shutdown-pool! pool)
+    (dotimes [i size]
+      (grow pool))))
+
+(def rethinkdb-pool
+  (do (when (bound? #'rethinkdb-pool) (shutdown-pool! rethinkdb-pool))
+      (fixed-pool init-conn close-conn {:size config/db-pool-size
+                                              :regenerate-interval 15})))
+
 
 (comment
+  (timbre/set-config! (assoc open-company.config/log-config :level :trace))
+
   (.size (:queue rethinkdb-pool))
 
-  (rebuild-pool rethinkdb-pool)
+  (rebuild-pool! rethinkdb-pool)
+
+  (shutdown-pool! rethinkdb-pool)
 
   (def c (.poll (:queue rethinkdb-pool)))
 
   (deref c)
 
-  (rethinkdb.core/close c))
+  (rethinkdb.core/close c)
+
+  (defn repro []
+    (let [mk-conn #(r/connect :host "127.0.0.1" :port 28015 :db "test")
+          n     (-> (Runtime/getRuntime)
+                    (.availableProcessors)
+                    (* 2)
+                    (+ 42))
+          conns (doall (map (fn [_] (mk-conn)) (range n)))]
+      (rethinkdb.core/close (rand-nth conns))))
+
+  (repro))
