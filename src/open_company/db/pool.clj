@@ -7,14 +7,10 @@
 
 ;; Opening & closing of connections
 
-(defn init-conn []
+(defn init-conn
+  "Create a new RethinkDB connection based on global configuration"
+  []
   (apply r/connect config/db-options))
-
-(defn close-conn [conn]
-  ;; Sometimes this blocks for reasons I don't yet understand
-  (timbre/trace "Closing connection...")
-  (rethinkdb.core/close conn)
-  (timbre/trace "Connection closed."))
 
 ;; Taken from the wonderful aphyr's Riemann
 ;; https://github.com/riemann/riemann/blob/master/src/riemann/pool.clj
@@ -129,6 +125,7 @@
 ;; --- Define stateful pool & functions to rebuild
 
 (defn shutdown-pool!
+  "Close all things in the pool and clear it's queue"
   [pool]
   (doseq [thing (to-array (:queue pool))]
     ((:close pool) thing))
@@ -146,8 +143,8 @@
 
 (def rethinkdb-pool
   (do (when (bound? #'rethinkdb-pool) (shutdown-pool! rethinkdb-pool))
-      (fixed-pool init-conn close-conn {:size config/db-pool-size
-                                              :regenerate-interval 15})))
+      (fixed-pool init-conn rethinkdb.core/close {:size config/db-pool-size
+                                                  :regenerate-interval 15})))
 
 
 (comment
