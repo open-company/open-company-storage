@@ -2,6 +2,7 @@
   "Resources are any thing stored in the open company platform: companies, reports"
   (:require [clojure.string :as string]
             [clojure.set :as cset]
+            [clojure.core.async :as async]
             [schema.core :as s]
             [clojure.walk :refer (keywordize-keys)]
             [clj-time.format :as format]
@@ -143,6 +144,22 @@
     (select-keys [:avatar :image :user-id :name])
     (clojure.set/rename-keys {:avatar :image})))
 
+;; ----- Timeouts ----
+
+(def default-timeout 300)
+
+(defmacro with-timeout
+  "A basic macro to wrap things in a timeout.
+  Will throw an exception if the operation times out.
+  Note: This is a simplistic approach and piggiebacks on core.asyncs executor-pool.
+  Read this discussion for more info: https://gist.github.com/martinklepsch/0caf92b5e42eefa3a894"
+  [ms & body]
+  `(let [c# (async/thread-call #(do ~@body))]
+     (let [[v# ch#] (async/alts!! [c# (async/timeout ~ms)])]
+       (if-not (= ch# c#)
+         (throw (ex-info "Operation timed out" {}))
+         v#))))
+
 ;; ----- Resource CRUD funcitons -----
 
 (defn create-resource
@@ -152,9 +169,10 @@
           :created-at timestamp
           :updated-at timestamp})
         insert (pool/with-pool [conn pool/rethinkdb-pool]
-                 (-> (r/table table-name)
-                     (r/insert timed-resource)
-                     (r/run conn)))]
+                 (with-timeout default-timeout
+                   (-> (r/table table-name)
+                       (r/insert timed-resource)
+                       (r/run conn))))]
   (if (= 1 (:inserted insert))
     timed-resource
     (throw (RuntimeException. (str "RethinkDB insert failure: " insert))))))
@@ -177,22 +195,25 @@
   "
   ([table-name fields]
   (pool/with-pool [conn pool/rethinkdb-pool]
-    (-> (r/table table-name)
-      (r/with-fields fields)
-      (r/run conn))))
+    (with-timeout default-timeout
+      (-> (r/table table-name)
+          (r/with-fields fields)
+          (r/run conn)))))
 
   ([table-name index-name index-value]
   (pool/with-pool [conn pool/rethinkdb-pool]
-    (-> (r/table table-name)
-      (r/get-all [index-value] {:index index-name})
-      (r/run conn))))
+    (with-timeout default-timeout
+      (-> (r/table table-name)
+          (r/get-all [index-value] {:index index-name})
+          (r/run conn)))))
 
   ([table-name index-name index-value fields]
   (pool/with-pool [conn pool/rethinkdb-pool]
-    (-> (r/table table-name)
-      (r/get-all [index-value] {:index index-name})
-      (r/pluck fields)
-      (r/run conn)))))
+    (with-timeout default-timeout
+      (-> (r/table table-name)
+          (r/get-all [index-value] {:index index-name})
+          (r/pluck fields)
+          (r/run conn))))))
 
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
@@ -206,10 +227,11 @@
           :created-at (:created-at original-resource)
           :updated-at timestamp})
         update (pool/with-pool [conn pool/rethinkdb-pool]
-                 (-> (r/table table-name)
-                     (r/get (original-resource primary-key-name))
-                     (r/replace timed-resource)
-                     (r/run conn)))]
+                 (with-timeout default-timeout
+                   (-> (r/table table-name)
+                       (r/get (original-resource primary-key-name))
+                       (r/replace timed-resource)
+                       (r/run conn))))]
   (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
     timed-resource
     (throw (RuntimeException. (str "RethinkDB update failure: " update)))))))
@@ -218,20 +240,22 @@
   "Delete the specified resource and return `true`."
   ([table-name primary-key-value]
    (let [delete (pool/with-pool [conn pool/rethinkdb-pool]
-                  (-> (r/table table-name)
-                      (r/get primary-key-value)
-                      (r/delete)
-                      (r/run conn)))]
+                  (with-timeout default-timeout
+                    (-> (r/table table-name)
+                        (r/get primary-key-value)
+                        (r/delete)
+                        (r/run conn))))]
     (if (= 1 (:deleted delete))
       true
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete))))))
 
   ([table-name key-name key-value]
    (let [delete (pool/with-pool [conn pool/rethinkdb-pool]
-                  (-> (r/table table-name)
-                      (r/get-all [key-value] {:index key-name})
-                      (r/delete)
-                      (r/run conn)))]
+                  (with-timeout default-timeout
+                    (-> (r/table table-name)
+                        (r/get-all [key-value] {:index key-name})
+                        (r/delete)
+                        (r/run conn))))]
      (if (zero? (:errors delete))
       true
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))))))
@@ -242,9 +266,10 @@
   "Use with caution! Failure can result in partial deletes of just some resources. Returns `true` if successful."
   [table-name]
   (let [delete (pool/with-pool [conn pool/rethinkdb-pool]
-                 (-> (r/table table-name)
-                     (r/delete)
-                     (r/run conn)))]
+                 (with-timeout default-timeout
+                   (-> (r/table table-name)
+                       (r/delete)
+                       (r/run conn))))]
     (if (pos? (:errors delete))
       (throw (RuntimeException. (str "RethinkDB delete failure: " delete)))
       true)))
