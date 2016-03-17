@@ -115,6 +115,13 @@
   :patch! (fn [ctx] (patch-company slug (add-slug slug (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (company-location-response (:updated-company ctx))))
 
+(defn group-by-authorization [companies user]
+  (group-by (fn [co]
+              (if (common/authorized-to-company? {:company co :user user})
+                :read-write
+                :read-only))
+            companies))
+
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list
   []
@@ -132,7 +139,7 @@
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
 
   ;; Get a list of companies
-  :exists? (fn [_] {:companies (company/list-companies)})
+  :exists? (fn [_] {:companies (company/list-companies ["org-id"])})
 
   :processable? (by-method {
     :get true
@@ -143,7 +150,8 @@
                                  (company/add-placeholder-sections)
                                  (company/create-company!))})
 
-  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
+  :handle-ok (fn [{:keys [companies user]}]
+               (company-rep/render-company-list (group-by-authorization companies user)))
   :handle-created (fn [ctx] (company-location-response (:company ctx)))
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])

@@ -1,5 +1,6 @@
 (ns open-company.representations.company
-  (:require [defun :refer (defun defun-)]
+  (:require [clojure.set :as cset]
+            [defun :refer (defun defun-)]
             [cheshire.core :as json]
             [open-company.representations.common :as common]
             [open-company.representations.section :as section-rep]
@@ -33,26 +34,28 @@
 (defn- section-list-link [company]
   (common/link-map "section-list" common/GET (url company :section-list) section-list-media-type))
 
-(defn- company-link
-  "Add just a single self HATEAOS link to the company"
-  [company]
-  (apply array-map (concat (flatten (vec company))
-    [:links (flatten [(self-link company)])])))
+(defn- company-links*
+  "Return a list if links specified via the `links` argument.
+   If all possible links should be returned pass the namespaced `::all-links` keyword"
+  [company links]
+  {:pre [(or (sequential? links) (set? links) (= links ::all-links))]}
+  (let [recognized-links #{:self :update :partial-update :delete :section-list}]
+    (if (= ::all-links links)
+      (company-links* company recognized-links)
+      (let [links (set links)]
+        (assert (empty? (cset/difference links recognized-links))
+                (str "Unrecognized link types " (cset/difference links recognized-links)))
+        (cond-> []
+          (links :self)           (conj (self-link company))
+          (links :update)         (conj (update-link company))
+          (links :partial-update) (conj (partial-update-link company))
+          (links :delete)         (conj (delete-link company))
+          (links :section-list)   (conj (section-list-link company)))))))
 
 (defun- company-links
   "Add the HATEAOS links to the company"
-
-  ; read/only links
-  ([company false] (assoc company :links [(self-link company)]))
-
-  ; read/write links
-  ([company true]
-  (assoc company :links (flatten [
-      (self-link company)
-      (update-link company)
-      (partial-update-link company)
-      (delete-link company)
-      (section-list-link company)]))))
+  [company links]
+  (assoc company :links (company-links* company links))) 
 
 (defn- clean
   "Remove any properties that shouldn't be returned in the JSON representation"
@@ -88,7 +91,7 @@
   (-> company
     (clean)
     (revision-links)
-    (company-links authorized)
+    (company-links (if authorized ::all-links [:self]))
     (sections authorized)))
 
 (defn render-company
@@ -99,11 +102,11 @@
 
 (defn render-company-list
   "Create a JSON representation of a group of companies for the REST API"
-  [companies]
-  (json/generate-string {
-    :collection (array-map
-      :version common/json-collection-version
-      :href "/companies"
-      :links [(common/self-link (str "/companies") collection-media-type)]
-      :companies (map company-link companies))}
-    {:pretty true}))
+  [{:keys [read-only read-write] :as _companies}]
+  (json/generate-string
+   {:collection {:version common/json-collection-version
+                 :href "/companies"
+                 :links [(common/self-link (str "/companies") collection-media-type)]
+                 :companies (into (map #(company-links % [:self]) read-only)
+                                  (map #(company-links % [:self :partial-update]) read-write))}}
+   {:pretty true}))
