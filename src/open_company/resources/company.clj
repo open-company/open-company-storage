@@ -54,10 +54,12 @@
 
 (declare list-companies)
 
-(def reserved-slugs #{"about" "api" "careers" "companies" "company" "contact" "crowd"
-                      "developer" "developers" "faq" "founder" "founders" "investor"
-                      "investors" "jobs" "login" "logout" "news" "newsletter" "press"
-                      "privacy" "register" "signup" "terms"})
+(def reserved-slugs #{"about" "api" "app" "careers" "companies"
+                      "company" "contact" "crowd" "developer"
+                      "developers" "faq" "founder" "founders"
+                      "investor" "investors" "jobs" "login" "logout"
+                      "news" "newsletter" "press" "privacy" "register"
+                      "signup" "terms"})
 
 (defn taken-slugs
   "Return all slugs which are in use as a set."
