@@ -59,7 +59,7 @@
                       "developers" "faq" "founder" "founders"
                       "investor" "investors" "jobs" "login" "logout"
                       "news" "newsletter" "press" "privacy" "register"
-                      "signup" "terms"})
+                      "signup" "terms" "profile" "create-company"})
 
 (defn taken-slugs
   "Return all slugs which are in use as a set."
