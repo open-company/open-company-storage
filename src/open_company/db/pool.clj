@@ -19,8 +19,8 @@
   (grow [pool]
     "Adds an element to the pool.")
   (claim [pool] [pool timeout]
-    "Take a thingy from the pool. Timeout in seconds; if unspecified, 0.
-     Returns nil if no thingy available.")
+    "Take a thingy from the pool. Timeout of getting a thingy from the pool in seconds (not of using a thingy
+     from the pool); if unspecified, 0. Returns nil if no thingy available.")
   (release [pool thingy]
     "Returns a thingy to the pool.")
   (invalidate [pool thingy]
