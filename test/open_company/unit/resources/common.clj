@@ -4,6 +4,6 @@
 
 (facts "about with-timeout macro"
   (let [s "result"] 
-    (co/with-timeout 100 s) => s
-    (co/with-timeout 100 (do (Thread/sleep 90) s) => s)
-    (co/with-timeout 100 (do (Thread/sleep 110) s)) => (throws Exception)))
+    (co/with-timeout 50 s) => s
+    (co/with-timeout 50 (do (Thread/sleep 40) s) => s)
+    (co/with-timeout 50 (do (Thread/sleep 60) s)) => (throws Exception)))

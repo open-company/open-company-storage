@@ -144,9 +144,9 @@
     (select-keys [:avatar :image :user-id :name])
     (clojure.set/rename-keys {:avatar :image})))
 
-;; ----- Timeouts ----
+;; ----- DB Access Timeouts ----
 
-(def default-timeout 300)
+(def default-timeout 1000) ; 1 sec
 
 (defmacro with-timeout
   "A basic macro to wrap things in a timeout.
