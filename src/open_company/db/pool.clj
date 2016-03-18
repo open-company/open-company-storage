@@ -1,113 +1,174 @@
 (ns open-company.db.pool
-  "RethinkDB database connection pool.
-
-  Simple pool that doesn't account for testing connection for validity
-  or connection reconnection.
-
-  Inspired by: https://github.com/robertluo/clj-poolman"
+  "RethinkDB database connection pool."
   (:require [rethinkdb.query :as r]
-            [taoensso.timbre :as timbre :refer (trace debug info warn error fatal)]
-            [open-company.config :as config]))
+            [taoensso.timbre :as timbre]
+            [open-company.config :as config])
+  (:import [java.util.concurrent LinkedBlockingQueue TimeUnit]))
 
-(timbre/set-config! config/log-config)
+;; Opening & closing of connections
 
-(def rethinkdb-pool (atom nil))
-
-;; ----- Grow the Pool with a New Connection -----
-
-(defn init-connection
+(defn init-conn
+  "Create a new RethinkDB connection based on global configuration"
   []
   (apply r/connect config/db-options))
 
-(defn- next-id
-  "Find the next connection id (sequential numbers)"
-  [connections]
-  (let [ids (set (map :id connections))]
-    (first (remove ids (iterate inc 0)))))
+;; Taken from the wonderful aphyr's Riemann
+;; https://github.com/riemann/riemann/blob/master/src/riemann/pool.clj
 
-(defn- new-connection
-  "Make a new connection for the pool"
-  [init connections]
-  (let [id (next-id connections)]
-    {:id id :connection (init)}))
+(defprotocol Pool
+  (grow [pool]
+    "Adds an element to the pool.")
+  (claim [pool] [pool timeout]
+    "Take a thingy from the pool. Timeout of getting a thingy from the pool in seconds (not of using a thingy
+     from the pool); if unspecified, 0. Returns nil if no thingy available.")
+  (release [pool thingy]
+    "Returns a thingy to the pool.")
+  (invalidate [pool thingy]
+    "Tell the pool a thingy is no longer valid."))
 
-(defn- assoc-new-connection
-  [{:keys [connections init] :as pool}]
-  (assoc pool :connections (conj connections (new-connection init connections))))
+(defrecord FixedQueuePool [queue open close regenerate-interval]
+  Pool
+  (grow [this]
+    (loop []
+      (if-let [thingy (try (open) (catch Throwable t nil))]
+        (do
+          (timbre/trace "New connection being added to pool")
+          (.put ^LinkedBlockingQueue queue thingy))
+        (do
+          (Thread/sleep (* 1000 regenerate-interval))
+          (recur)))))
 
-;; ----- Connection Pool Initialization -----
+  (claim [this]
+    (claim this nil))
 
-(defn start*
-  "Internal function for starting a pool. Use start instead."
-  [low high init]
-  {:pre [(>= high low) (pos? low) init]} ; high and low must be sane, and the init function can't be nil
-  (let [pool {:init init :low low :high high :connections #{}}]
-    (reduce (fn [p _] (assoc-new-connection p)) pool (range low))))
+  (claim [this timeout]
+    (let [timeout (* 1000 (or timeout 0))]
+      (or
+       (try
+         (.poll ^LinkedBlockingQueue queue timeout TimeUnit/MILLISECONDS)
+         (catch java.lang.InterruptedException e
+           nil))
+       (throw
+        (ex-info (str "Couldn't claim a resource from the pool within " timeout " ms") {})))))
 
-;; ----- Get and Release Connections from the Pool -----
+  (release [this thingy]
+    (when thingy
+      (timbre/trace "Releasing" thingy "back into pool")
+      (.put ^LinkedBlockingQueue queue thingy)))
 
-(defn get-connection
-  "Low level function for getting process. Use with-connection macro instead."
-  [{:keys [init high connections] :as pool}]
-  ;; Get a connection that's not busy if we can
-  (trace "Getting DB pool connection from pool size" (count (:connections pool)) "of" high "." )
-  (let [free-connections (remove :busy connections) ; all non-busy connections
-        connection (if (seq free-connections) ; if there are some
-                    (first free-connections) ; get the first one
-                    (when (> high (count connections)) ; if not, can the pool still grow?
-                      (new-connection init connections))) ; create a new connection for the pool
-        ;; mark the connection as busy
-        connection-after (assoc connection :busy true)
-        ;; replace the free connection with the busy one
-        connections (-> connections (disj connection) (conj connection-after))
-        ;; if we got a connection, then update the state of the pool
-        pool (if connection
-                (assoc pool :connections connections)
-                pool)]
+  (invalidate [this thingy]
+    (when thingy
+      (try (close thingy)
+           (catch Throwable t
+             (timbre/warn t "Closing" thingy "threw")))
+      (future (grow this)))))
 
-    ;; handle the case of no connection available
-    (if-not connection (let [msg "No connection available from DB pool"]
-                        (error msg)
-                        (throw (RuntimeException. msg))))
+(defn fixed-pool
+  "A fixed pool of thingys. (open) is called to generate a thingy. (close
+  thingy) is called when a thingy is invalidated. When thingys are invalidated,
+  the pool will immediately try to open a new one; if open throws or returns
+  nil, the pool will sleep for regenerate-interval seconds before retrying
+  (open).
+  :regenerate-interval    How long to wait between retrying (open).
+  :size                   Number of thingys in the pool.
+  :block-start            Should (fixed-pool) wait until the pool is full
+                          before returning?
+  Note that fixed-pool is correct only if every successful (claim) is followed
+  by exactly one of either (invalidate) or (release). If calls are unbalanced;
+  e.g. resources are not released, doubly released, or released *and*
+  invalidated, starvation or unbounded blocking could occur. (with-pool)
+  provides this guarantee."
+  ([open]
+   (fixed-pool open {}))
+  ([open opts]
+   (fixed-pool open identity opts))
+  ([open close opts]
+   (let [^int size            (or (:size opts) (* 2 (.availableProcessors
+                                                      (Runtime/getRuntime))))
+         regenerate-interval  (or (:regenerate-interval opts) 5)
+         block-start          (get opts :block-start true)
+         pool (FixedQueuePool.
+                (LinkedBlockingQueue. size)
+                open
+                close
+                regenerate-interval)
+         openers (doall
+                   (map (fn open-pool [_]
+                          (future (grow pool)))
+                        (range size)))]
+     (when block-start
+       (doseq [worker openers] @worker))
+     pool)))
 
-    ;; return the new state of the pool, and the connection we got
-    (trace "Using connection: " (:id connection))
-    [pool connection]))
+;; --- Handy macro to claim and release things from pool
 
-(defn release-connection
-  "Low level function for releasing. Use with-connection macro instead."
-  [{:keys [connections] :as pool} {res-id :id :as connection}]
-  ;; Get the connection to be released from the pool
-  (trace "Releasing connection:" res-id)
-  (let [busy-connection (first (filter #(= (:id %) res-id) connections))
-        connections (disj connections busy-connection) ; out of the pool
-        connections (conj connections connection)] ; back into the pool w/o busy
-    (assoc pool :connections connections)))
+(defmacro with-pool
+  "Evaluates body in a try expression with a symbol 'thingy claimed from the
+  given pool, with specified claim timeout. Releases thingy at the end of the
+  body, or if an exception is thrown, invalidates them and rethrows. Example:
+  ; With client, taken from connection-pool, waiting 5 seconds to claim, send
+  ; client a message.
+  (with-pool [client connection-pool 5]
+    (send client a-message))"
+  [[thingy pool timeout] & body]
+  ;; Destructuring bind could change nil to a, say, vector, and cause unbalanced claim/release.
+  `(let [thingy# (claim ~pool ~timeout)
+         ~thingy thingy#]
+     (try
+       (let [res# (do ~@body)]
+         (release ~pool thingy#)
+         res#)
+       (catch Throwable t#
+         (invalidate ~pool thingy#)
+         (throw t#)))))
 
-;; ----- External API -----
+;; --- Define stateful pool & functions to rebuild
 
-(defn start
-  "Start a connection pool. Uses pool size from the config or optionally passed in
-  `low` and `high` pool size. Returns `:ok` if pool starts, or `:started` if the
-  pool was already started."
-  ([] (start config/db-pool-size config/db-pool-size))
-  ([low high]
-    (info "Starting DB pool with low:" low " high:" high)
-    (reset! rethinkdb-pool (start* low high init-connection))
-    :ok))
+(defn shutdown-pool!
+  "Close all things in the pool and clear it's queue"
+  [pool]
+  (doseq [thing (to-array (:queue pool))]
+    ((:close pool) thing))
+  (.clear (:queue pool)))
 
-(defmacro with-connection
-  "Get a connection from a pool, bind it to connection, so you can use it in body,
-   after body finish, the connection will be returned to the pool."
-  [[connection] & body]
-  `(do
-    (trace "Starting DB pool connection macro.")
-    (locking rethinkdb-pool
-      (when (nil? @rethinkdb-pool) (debug "DB pool not started. Starting.") (start)))
-    (let [[new-pool# conn#] (get-connection (deref rethinkdb-pool))]
-      (reset! rethinkdb-pool new-pool#)
-      (try
-        (let [~connection (:connection conn#)]
-          (do ~@body))
-        (finally
-          (if conn# (reset! rethinkdb-pool (release-connection (deref rethinkdb-pool) conn#))))))))
+(defn rebuild-pool!
+  "Rebuild the entire pool. This is not atomic so other threads
+  taking connections at the same time may get stale ones.
+  Those are invalidated as soon as they cause an exception."
+  [pool]
+  (let [size (.size (:queue pool))]
+    (shutdown-pool! pool)
+    (dotimes [i size]
+      (grow pool))))
+
+(def rethinkdb-pool
+  (do (when (bound? #'rethinkdb-pool) (shutdown-pool! rethinkdb-pool))
+      (fixed-pool init-conn rethinkdb.core/close {:size config/db-pool-size
+                                                  :regenerate-interval 15})))
+
+
+(comment
+  (timbre/set-config! (assoc open-company.config/log-config :level :trace))
+
+  (.size (:queue rethinkdb-pool))
+
+  (rebuild-pool! rethinkdb-pool)
+
+  (shutdown-pool! rethinkdb-pool)
+
+  (def c (.poll (:queue rethinkdb-pool)))
+
+  (deref c)
+
+  (rethinkdb.core/close c)
+
+  (defn repro []
+    (let [mk-conn #(r/connect :host "127.0.0.1" :port 28015 :db "test")
+          n     (-> (Runtime/getRuntime)
+                    (.availableProcessors)
+                    (* 2)
+                    (+ 42))
+          conns (doall (map (fn [_] (mk-conn)) (range n)))]
+      (rethinkdb.core/close (rand-nth conns))))
+
+  (repro))

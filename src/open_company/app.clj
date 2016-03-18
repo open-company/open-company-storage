@@ -3,7 +3,10 @@
   (:gen-class)
   (:require
     [liberator.dev :refer (wrap-trace)]
-    [raven-clj.ring :refer (wrap-sentry)]
+    [raven-clj.core :as sentry]
+    [raven-clj.interfaces :as sentry-interfaces]
+    [raven-clj.ring :as sentry-mw]
+    [taoensso.timbre :as timbre]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
@@ -42,11 +45,22 @@
 (defonce app
   ;; Use sentry middleware to report runtime errors if we have a raven DSN.
   (if c/dsn
-    (wrap-sentry hot-reload-routes c/dsn)
+    (sentry-mw/wrap-sentry hot-reload-routes c/dsn)
     hot-reload-routes))
 
 (defn start [port]
+  (timbre/set-config! c/log-config)
+  ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
+  (Thread/setDefaultUncaughtExceptionHandler
+   (reify Thread$UncaughtExceptionHandler
+     (uncaughtException [_ thread ex]
+       (timbre/error ex "Uncaught exception on" (.getName thread))
+       (sentry/capture c/dsn (-> {:message (.getMessage ex)}
+                                 (assoc-in [:extra :exception-data] (ex-data ex))
+                                 (sentry-interfaces/stacktrace ex))))))
+
   (run-server app {:port port :join? false})
+
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
     "OpenCompany API Server\n"
     "Running on port: " port "\n"

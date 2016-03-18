@@ -9,8 +9,7 @@
 (defn test-startup
   "Start a minimal DB pool to support running sequential tests."
   []
-  (reset! pool/rethinkdb-pool nil)
-  (pool/start 1 1))
+  (pool/rebuild-pool! pool/rethinkdb-pool))
 
 (defn postdate
   "Push the timestamps of the specified section back to 1 second before the collapse-edit-time time limit."
