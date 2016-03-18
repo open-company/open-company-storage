@@ -117,18 +117,15 @@
 
 ;; ----- Section revisions -----
 
-(defn- revisions-for
-  [company-slug section-name fields]
-  (common/updated-at-order
-    (common/read-resources table-name "company-slug-section-name" [company-slug section-name] fields)))
-
 (defn list-revisions
   "Given the slug of the company, and a section name retrieve the timestamps and author of the section revisions."
-  [company-slug section-name] (revisions-for company-slug section-name [:updated-at :author]))
+  [company-slug section-name]
+  (common/read-resources-in-order table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author]))
 
 (defn- list-revision-ids
   "Given the slug of the company, and a section name retrieve the timestamps and database id of the section revisions."
-  [company-slug section-name] (revisions-for company-slug section-name [:updated-at :id]))
+  [company-slug section-name]
+  (common/read-resources-in-order table-name "company-slug-section-name" [company-slug section-name] [:updated-at :id]))
 
 (defn get-revisions
   "Given the slug of the company a section name, and an optional specific updated-at timestamp,

@@ -54,9 +54,9 @@
           (map #(dissoc % :id :section-name))) ; not needed for sections in company
         ; merge the original company with the updated sections & anything other properties they provided 
         with-section-updates (merge original-company (merge company-updates (zipmap section-names updated-sections)))
-        ; get any sections that we used to have, that have been added back in (come back from the dead)
-        with-prior-sections with-section-updates ; TODO
-        ; add in the placeholder sections for any newly added sections
+        ; get any sections that we used to have, that have been added back in (sections back from the dead)
+        with-prior-sections (company/add-prior-sections with-section-updates)
+        ; add in the placeholder sections for any brand new added sections
         with-placeholders (company/add-placeholder-sections with-prior-sections)]
     ;; update the company
     {:updated-company (company/put-company slug with-placeholders user)}))

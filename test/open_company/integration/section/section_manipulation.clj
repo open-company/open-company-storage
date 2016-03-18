@@ -318,7 +318,27 @@
           (:placeholder db-highlights) => true
           db-highlights => (contains placeholder)))
 
-        (future-fact "that used to exist"))
+      (future-fact "that used to exist"
+        (let [new-sections {:progress [] :company [] :financial []}
+              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+              body (mock/body-from-response response)
+              db-company (company/get-company r/slug)]
+          (:status response) => 200
+          (:sections body) => new-sections
+          ; verify update is not in the response
+          (:update body) => nil
+          ; verify update not in the DB
+          (:update db-company) => nil)
+        (let [new-sections {:progress ["update"] :company [] :financial []}
+              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+              body (mock/body-from-response response)
+              db-company (company/get-company r/slug)]
+          (:status response) => 200
+          (:sections body) => new-sections
+          ; verify update is not in the response
+          (:update body) => (contains r/text-section-1)
+          ; verify update not in the DB
+          (:update db-company) => (contains r/text-section-1))))
 
     (future-fact "with section content")
 
