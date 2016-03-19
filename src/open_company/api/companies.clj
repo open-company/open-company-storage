@@ -92,10 +92,10 @@
   :exists? (fn [ctx] (get-company slug ctx))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
+  :allowed-methods [:options :get :patch :delete]
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))
-    :put false
     :patch (fn [ctx] (common/allow-org-members slug ctx))
     :delete (fn [ctx] (common/allow-org-members slug ctx))})
 
@@ -127,7 +127,7 @@
   :available-charsets [common/UTF8]
   :available-media-types (by-method {:get [company-rep/collection-media-type]
                                      :post [company-rep/media-type]})
-  :allowed-methods [:options :post :get]
+  :allowed-methods [:options :get :post]
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))

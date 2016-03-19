@@ -45,7 +45,7 @@
 (defresource section [company-slug section-name as-of]
   common/open-company-anonymous-resource
 
-  :allowed-methods [:options :get :put :patch] ; remove :delete
+  :allowed-methods [:options :get :put :patch]
   :available-media-types [section-rep/media-type]
   :exists? (fn [_] (get-section company-slug section-name as-of))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
@@ -54,7 +54,9 @@
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))
     :put (fn [ctx] (common/allow-org-members company-slug ctx))
-    :patch (fn [ctx] (common/allow-org-members company-slug ctx))})
+    :patch (fn [ctx] (common/allow-org-members company-slug ctx))
+    :post false
+    :delete false})
 
   ;; TODO: better handle company slug and section name from body not matching URL
   :processable? (by-method {
