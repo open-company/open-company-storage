@@ -102,13 +102,7 @@
         (map :slug companies) => (just (set [(:slug r/open) uni-slug (:slug r/buffer)])) ; verify slugs
         (doseq [company companies] ; verify HATEOAS links
           (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company))
-          (if (#{uni-slug "open"} (:slug company))
-            (do
-              ;; open + uni have been created by coyote/camus respectively which belong to
-              ;; the same org meaning coyote should have write access to both companies
-              (count (:links company)) => 2
-              (hateoas/verify-link "partial-update" "PATCH" (company-rep/url company) company-rep/media-type (:links company)))
-            (count (:links company)) => 1))))
+          (count (:links company)) => 1)))
 
     (fact "removed companies are not listed"
       (company/delete-company (:slug r/buffer))
