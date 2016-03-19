@@ -102,11 +102,10 @@
 
 (defn render-company-list
   "Create a JSON representation of a group of companies for the REST API"
-  [{:keys [read-only read-write] :as _companies}]
+  [companies]
   (json/generate-string
    {:collection {:version common/json-collection-version
                  :href "/companies"
                  :links [(common/self-link (str "/companies") collection-media-type)]
-                 :companies (into (map #(company-links % [:self]) read-only)
-                                  (map #(company-links % [:self :partial-update]) read-write))}}
+                 :companies (map #(company-links % [:self]) companies)}}
    {:pretty true}))
