@@ -36,7 +36,7 @@
 
 (defn- company-links*
   "Return a list of links specified via the `links` argument.
-   If all possible links should be returned pass the namespaced `::all-links` keyword"
+   If all possible links should be returned pass `:open-company.representations.company/all-links`"
   [company links]
   {:pre [(or (sequential? links) (set? links) (= links ::all-links))]}
   (let [recognized-links #{:self :update :partial-update :delete :section-list}]
