@@ -234,9 +234,9 @@ Then enter these commands one-by-one, noting the output:
 (company/list-companies)
 
 ;; Get a company
-(company/get-company "blank-inc")
-(company/get-company "open")
-(company/get-company "buffer")
+(aprint (company/get-company "blank-inc"))
+(aprint (company/get-company "open"))
+(aprint (company/get-company "buffer"))
 
 ;; Create/update a section
 (section/put-section "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
@@ -254,27 +254,32 @@ Then enter these commands one-by-one, noting the output:
   {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
   {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
   {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
-  :notes {:body "We got our second customer! Revenue FTW!"}} author)
+  :notes {:body "We got our second customer! More revenue FTW!"}} author)
+(aprint (company/get-company "blank-inc"))
 
 (section/put-section "buffer" :update {:headline "It's all meh."} author)
+(aprint (company/get-company "buffer"))
 
 ;; Get a section
-(section/get-section "transparency" :finances)
-(section/get-section "buffer" :update)
-(section/get-section "buffer" :finances)
+(aprint (section/get-section "blank-inc" :finances))
+(aprint (section/get-section "buffer" :update))
+(aprint (section/get-section "buffer" :finances))
 
 ;; List revisions
-(section/list-revisions "transparency" :finances)
+(section/list-revisions "blank-inc" :finances)
 (section/list-revisions "buffer" :update)
 (section/list-revisions "buffer" :finances)
+;; Note: due to revision collapsing by same author in a short period, there won't as many revisions as you
+;; might think. The introduction of a new note by the same author in finances section of blank-inc causes
+;; a new revision, but the rest of the updates above are collapsed into one revision.
 
 ;; Get revisions
-(section/get-revisions "transparency" :finances)
+(section/get-revisions "blank-inc" :finances)
 (section/get-revisions "buffer" :update)
 (section/get-revisions "buffer" :finances)
 
 ;; Delete a company
-(company/delete-company "transparency")
+(company/delete-company "blank-inc")
 
 ;; Cleanup
 (company/delete-all-companies!)
@@ -329,7 +334,7 @@ curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/buffer
+http://localhost:3000/companies/hotel-procrastination
 ```
 
 Update a company with cURL:
@@ -341,79 +346,79 @@ curl -i -X PATCH \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/buffer
+http://localhost:3000/companies/hotel-procrastination
 ```
 
 Revise a section for the company with cURL:
 
 ```console
 curl -i -X PUT \
--d '{"body": "It\u0027s all that and a bag of chips.","title": "Founder\u0027s Update"}' \
+-d '{"body": "It\u0027s all that and a bag of chips.","title": "Founder\u0027s Update", "headline": "Make it rain!"}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.section.v1+json" \
-http://localhost:3000/companies/buffer/update
+http://localhost:3000/companies/hotel-procrastination/update
 ```
 
 Reorder a company's sections with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["finances", "growth", "team", "product", "marketing", "customer-service", "help", "update"], "company": ["values", "diversity"]}}' \
+-d '{"sections": {"progress": ["growth", "team", "product", "challenges", "update"], "company": ["values", "mission"], "financial": ["finances"]}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/buffer
+http://localhost:3000/companies/hotel-procrastination
 ```
 
-Remove a section from a company sections with cURL:
+Remove sections from a company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["finances", "growth", "team", "product", "customer-service", "help", "update"], "company": ["values", "diversity"]}}' \
+-d '{"sections": {"progress": ["growth", "team", "update"], "company": ["values"], "financial": []}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/buffer
+http://localhost:3000/companies/hotel-procrastination
 ```
 
 Add a section to the company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["finances", "growth", "team", "product", "fundraising", "customer-service", "help", "update"], "company": ["values", "diversity"]}, "fund-raising": {"title": "Fundraising", "body": "No plans. We have enough monies."}}' \
+-d '{"sections": {"progress": ["growth", "customer-service", "team", "update"], "company": ["values"], "financial": []}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/buffer
+http://localhost:3000/companies/hotel-procrastination
 ```
 
 Delete the company with cURL:
 
 ```console
-curl -i -X DELETE
+curl -i -X DELETE \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
-http://localhost:3000/companies/open
+http://localhost:3000/companies/hotel-procrastination
 ```
 
-Then, try (and fail) to get the section and the company with cURL:
+Then, try (and fail) to get a section and the company with cURL:
 
 ```console
 curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/open/update
+http://localhost:3000/companies/hotel-procrastination/update
 
 curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/open
+http://localhost:3000/companies/hotel-procrastination
 ```
 
 ## Import sample data
