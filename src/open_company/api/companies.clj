@@ -143,7 +143,7 @@
                                  (company/add-placeholder-sections)
                                  (company/create-company!))})
 
-  :handle-ok (fn [{:keys [companies]}] (company-rep/render-company-list companies))
+  :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
   :handle-created (fn [ctx] (company-location-response (:company ctx)))
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])
