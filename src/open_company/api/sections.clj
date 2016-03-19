@@ -75,7 +75,9 @@
 
   ;; Handlers
   :handle-ok (by-method {
-    :get (fn [ctx] (section-rep/render-section (:section ctx)))
+    :get (fn [ctx] (section-rep/render-section (:section ctx)
+                                               (common/allow-org-members company-slug ctx)
+                                               (not (nil? as-of))))
     :put (fn [ctx] (section-rep/render-section (:updated-section ctx)))
     :patch (fn [ctx] (section-rep/render-section (:updated-section ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))
