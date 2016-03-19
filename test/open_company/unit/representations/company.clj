@@ -9,4 +9,7 @@
   (fact "returns only links that have been provided"
     (let [links (#'c/company-links* {:name "Test" :slug "test"} [:self :partial-update])]
       (map (comp keyword :rel) links) => [:self :partial-update]
-      (count links) => 2)))
+      (count links) => 2))
+  (fact "throws assertions when wrong args are passed"
+    (#'c/company-links* {:name "Test" :slug "test"} :bogus) => (throws AssertionError)
+    (#'c/company-links* {:name "Test" :slug "test"} [:bogus]) => (throws AssertionError)))
