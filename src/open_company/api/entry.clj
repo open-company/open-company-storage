@@ -42,5 +42,11 @@
 ;; ----- Routes -----
 
 (defroutes entry-routes
+  ;; (routes ...)
   (OPTIONS "/" [] (entry-point))
   (GET "/" [] (entry-point)))
+
+(defn entry-routes [{:keys [db-pool]}]
+  (routes
+   (OPTIONS "/" [] (entry-point))
+   (GET "/" [] (entry-point))))

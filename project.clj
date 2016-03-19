@@ -33,6 +33,7 @@
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.7.3"] ; Utility functions https://github.com/weavejester/medley
+    [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
  ]
 
   ;; Production plugins

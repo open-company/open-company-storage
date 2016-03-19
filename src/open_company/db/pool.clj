@@ -12,6 +12,9 @@
   []
   (apply r/connect config/db-options))
 
+(defn close-conn [conn]
+  (rethinkdb.core/close conn))
+
 ;; Taken from the wonderful aphyr's Riemann
 ;; https://github.com/riemann/riemann/blob/master/src/riemann/pool.clj
 
