@@ -35,7 +35,7 @@
   (common/link-map "section-list" common/GET (url company :section-list) section-list-media-type))
 
 (defn- company-links*
-  "Return a list if links specified via the `links` argument.
+  "Return a list of links specified via the `links` argument.
    If all possible links should be returned pass the namespaced `::all-links` keyword"
   [company links]
   {:pre [(or (sequential? links) (set? links) (= links ::all-links))]}
