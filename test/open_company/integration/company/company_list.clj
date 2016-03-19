@@ -95,14 +95,13 @@
     (fact "all existing companies are listed when providing a JWToken"
       (let [response (mock/api-request :get "/companies")
             body (mock/body-from-response response)
-            companies (get-in body [:collection :companies])
-            uni-slug  (slugify (:name r/uni))]
+            companies (get-in body [:collection :companies])]
         (:status response) => 200
         (map :name companies) => (just (set (map :name [r/open r/uni r/buffer]))) ; verify names
-        (map :slug companies) => (just (set [(:slug r/open) uni-slug (:slug r/buffer)])) ; verify slugs
+        (map :slug companies) => (just (set [(:slug r/open) (slugify (:name r/uni)) (:slug r/buffer)])) ; verify slugs
         (doseq [company companies] ; verify HATEOAS links
-          (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company))
-          (count (:links company)) => 1)))
+          (count (:links company)) => 1
+          (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company)))))
 
     (fact "removed companies are not listed"
       (company/delete-company (:slug r/buffer))
