@@ -200,8 +200,9 @@
                                                  :financial ["finances"]}
 
       (fact "a section can be removed from the progress category"
-        (let [new-set {:progress ["update" "finances" "help"]
-                         :company ["diversity" "values"]}
+        (let [new-set {:company ["help" "diversity" "values"]
+                       :progress ["update"]
+                       :financial ["finances"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
@@ -223,31 +224,33 @@
           (:values db-company) => (contains r/text-section-1)))
 
       (fact "multiple sections can be removed from the progress category"
-        (let [new-set {:progress ["finances"]
-                       :company ["diversity" "values"]}
+        (let [new-set {:company ["help" "diversity" "values"]
+                       :progress []
+                       :financial ["finances"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
           (:status response) => 200
           (:sections body) => new-set
           (:update body) => nil
-          (:finances body) => (contains r/finances-section-1)
           (:team body) => nil
-          (:help body) => nil
+          (:finances body) => (contains r/finances-section-1)
+          (:help body) => (contains r/text-section-1)
           (:diversity body) => (contains r/text-section-2)
           (:values body) => (contains r/text-section-1)
           ;; verify the new set
           (:sections db-company) => new-set
           (:update db-company) => nil
-          (:finances db-company) => (contains r/finances-section-1)
           (:team db-company) => nil
-          (:help db-company) => nil
+          (:finances db-company) => (contains r/finances-section-1)
+          (:help db-company) => (contains r/text-section-1)
           (:diversity db-company) => (contains r/text-section-2)
           (:values db-company) => (contains r/text-section-1)))
 
       (fact "a section can be removed from the company category"
-        (let [new-order {:progress ["update" "finances" "team" "help"]
-                         :company ["diversity"]}
+        (let [new-order {:company ["help" "diversity"]
+                         :progress ["update" "team"]
+                         :financial ["finances"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
@@ -268,9 +271,10 @@
           (:diversity db-company) => (contains r/text-section-2)
           (:values db-company) => nil))
 
-      (fact "sections can be removed from the progress and company categories at once"
-        (let [new-order {:progress ["update" "help"]
-                         :company ["values"]}
+      (fact "sections can be removed from all the categories at once"
+        (let [new-order {:company ["values"]
+                         :progress ["update" "help"]
+                         :financial []}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
@@ -294,7 +298,7 @@
   (facts "about adding sections"
 
     (fact "that don't really exist"
-      (let [new-sections {:progress ["health"] :company [] :financial []}
+      (let [new-sections {:company [] :progress ["health"] :financial []}
             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
             body (mock/body-from-response response)]
         (:status response) => 422))
@@ -302,7 +306,7 @@
     (facts "without any section content"
     
       (fact "that never existed"
-        (let [new-sections {:progress ["highlights"] :company [] :financial []}
+        (let [new-sections {:company [] :progress ["highlights"] :financial []}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
               body (mock/body-from-response response)
               resp-highlights (:highlights body)
@@ -319,7 +323,7 @@
           db-highlights => (contains placeholder)))
 
       (future-fact "that used to exist"
-        (let [new-sections {:progress [] :company [] :financial []}
+        (let [new-sections {:company [] :progress [] :financial []}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
@@ -329,7 +333,7 @@
           (:update body) => nil
           ; verify update not in the DB
           (:update db-company) => nil)
-        (let [new-sections {:progress ["update"] :company [] :financial []}
+        (let [new-sections {:company [] :progress ["update"] :financial []}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
               body (mock/body-from-response response)
               db-company (company/get-company r/slug)]
@@ -340,10 +344,33 @@
           ; verify update not in the DB
           (:update db-company) => (contains r/text-section-1))))
 
-    (future-fact "with section content")
+    (facts "with section content"
 
-    (future-fact "with too much content"
+      (let [new-sections {:company ["help" "diversity" "values"]
+                            :progress ["update" "team" "kudos"]
+                            :financial ["finances"]}
+            kudos-placeholder (common-res/section-by-name "kudos")]
+
+        (future-fact "with minimal content"
+          (let [kudos-content {:body "Fred is killing it"}
+                response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
+                                                                                 :kudos kudos-content}})
+                body (mock/body-from-response response)
+                db-company (company/get-company r/slug)]
+            (:status response) => 200
+            (:body response) => nil))
+
+        (future-fact "with maximal content"
+          (let [kudos-content {:title "Great Jobs!" :headline "Good stuff" :body "Fred is killing it"}
+                response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
+                                                                                   :kudos kudos-content}})
+                body (mock/body-from-response response)
+                db-company (company/get-company r/slug)]
+            (:status response) => 200
+            (:body response) => nil))
+
+        (future-fact "with too much content"
       
-      (future-fact "extra properties aren't allowed")
+          (future-fact "extra properties aren't allowed")
 
-      (future-fact "read/only properties are ignored"))))
+          (future-fact "read/only properties are ignored"))))))
