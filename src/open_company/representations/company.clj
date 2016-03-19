@@ -52,7 +52,7 @@
           (links :delete)         (conj (delete-link company))
           (links :section-list)   (conj (section-list-link company)))))))
 
-(defun- company-links
+(defn- company-links
   "Add the HATEAOS links to the company"
   [company links]
   (assoc company :links (company-links* company links))) 
