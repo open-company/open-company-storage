@@ -159,28 +159,28 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total registered users"
+            :name "Total users"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
-            :name "Monthly active users"
+            :name "MAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
-            :name "Average daily active users"
+            :name "Avg DAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "arr"
-            :name "Annual recurring revenue"
+            :name "ARR"
             :interval "monthly"
             :unit "currency"
             :target "increase"
@@ -366,28 +366,28 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total registered users"
+            :name "Total users"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
-            :name "Monthly active users"
+            :name "MAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
-            :name "Average daily active users"
+            :name "Avg DAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "arr"
-            :name "Annual recurring revenue"
+            :name "ARR"
             :interval "monthly"
             :unit "currency"
             :target "increase"
@@ -577,7 +577,7 @@
           }
         ]
         :notes {
-          :body "<p>We're delighted to hit almost $7.5M in annual recurring revenue and be fast moving
+          :body "<p>We're delighted to hit almost $7.5M in ARR and be fast moving
           towards the big $10M ARR milestone.</p>
           <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
           in the last few months are starting to take effect.</p>"
@@ -598,28 +598,28 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total registered users"
+            :name "Total users"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
-            :name "Monthly active users"
+            :name "MAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
-            :name "Average daily active users"
+            :name "Avg DAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "arr"
-            :name "Annual recurring revenue"
+            :name "ARR"
             :interval "monthly"
             :unit "currency"
             :target "increase"
@@ -870,28 +870,28 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total registered users"
+            :name "Total users"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
-            :name "Monthly active users"
+            :name "MAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
-            :name "Average daily active users"
+            :name "Avg DAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "arr"
-            :name "Annual recurring revenue"
+            :name "ARR"
             :interval "monthly"
             :unit "currency"
             :target "increase"

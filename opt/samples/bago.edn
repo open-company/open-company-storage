@@ -28,28 +28,28 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total registered users"
+            :name "Total users"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "mau"
-            :name "Monthly active users"
+            :name "MAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "dau"
-            :name "Average daily active users"
+            :name "Avg DAU"
             :interval "monthly"
             :unit "number"
             :target "increase"
           }
           {
             :slug "arr"
-            :name "Annual recurring revenue"
+            :name "ARR"
             :interval "monthly"
             :unit "currency"
             :target "increase"

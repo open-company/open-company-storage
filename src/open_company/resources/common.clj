@@ -1,9 +1,8 @@
 (ns open-company.resources.common
   "Resources are any thing stored in the open company platform: companies, reports"
-  (:require [clojure.string :as string]
-            [clojure.set :as cset]
+  (:require [clojure.string :as s]
             [clojure.core.async :as async]
-            [schema.core :as s]
+            [schema.core :as schema]
             [clojure.walk :refer (keywordize-keys)]
             [clj-time.format :as format]
             [clj-time.core :as time]
@@ -21,7 +20,7 @@
 
 ;; All the categories in default order
 (def categories (:categories (keywordize-keys config/sections)))
-(def category-names (set (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
+(def category-names (vec (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
 
 (def ordered-sections
   (into {} (for [{:keys [sections name]} categories]
@@ -31,7 +30,6 @@
   ^ {:doc "Category->Section lookup structure"}
   (into {} (for [[cat sects] ordered-sections]
              [cat (mapv (comp keyword :section-name) sects)])))
-
 
 (def section-category-tree
   ^ {:doc "Section->Category lookup structure"}
@@ -52,55 +50,68 @@
 
 ;; All possible sections as a set
 (def sections (set (map #(update % :section-name keyword) (flatten (vals ordered-sections)))))
+
+;; All possible section names as a set
 (def section-names (set (flatten (vals category-section-tree))))
 
-;; A set of all sections that can contain notes
+;; All possible sections as a map from their name
+(def sections-by-name (zipmap (map :section-name sections) sections))
+
+(defn section-by-name
+  "Return the canonical placeholder section definition for a named section."
+  [section-name]
+  (sections-by-name (keyword section-name)))
+
+;; A set of all section names that can contain notes
 (def notes-sections #{:growth :finances})
 
 ;; ----- Schemas -----
 
-(def Slug (s/pred slug/valid-slug?))
+(def SectionName (schema/pred #(section-names (keyword %))))
+
+(def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {s/Keyword [s/Keyword]})
+  {schema/Keyword [SectionName]})
 
 (def Section
-  {:section-name                 s/Keyword
-   :title                        s/Str
-   :description                  s/Str
-   :company-slug                 s/Str
-   (s/optional-key :body)        s/Str
-   (s/optional-key :created-at)  s/Str
-   (s/optional-key :updated-at)  s/Str
-   s/Keyword                     s/Any})
+  {(schema/optional-key :section-name) SectionName
+   :title schema/Str
+   :description schema/Str
+   (schema/optional-key :company-slug) schema/Str
+   :image schema/Str
+   (schema/optional-key :body) schema/Str
+   (schema/optional-key :created-at) schema/Str
+   (schema/optional-key :updated-at) schema/Str
+   schema/Keyword schema/Any})
 
 (def InlineSections
-  (into {} (for [sn section-names] [(s/optional-key sn) Section])))
+  (into {} (for [sn section-names] [(schema/optional-key sn) Section])))
 
 ;; TODO check for non-blank?
 (def Company
-  (merge {:name        s/Str
-          :description s/Str
-          :slug        Slug
-          :currency    s/Str
-          :org-id      s/Str
-          :sections    SectionsOrder
-          :categories  (s/pred #(cset/subset? (set %) category-names))
-          (s/optional-key :home-page)   s/Str
-          (s/optional-key :logo)        s/Str
-          (s/optional-key :created-at)  s/Str
-          (s/optional-key :updated-at)  s/Str}
+  (merge {:name schema/Str
+          :description schema/Str
+          :slug Slug
+          :currency schema/Str
+          :org-id schema/Str
+          :sections SectionsOrder
+          :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
+          (schema/optional-key :home-page) schema/Str
+          (schema/optional-key :logo) schema/Str
+          (schema/optional-key :created-at) schema/Str
+          (schema/optional-key :updated-at) schema/Str}
          InlineSections))
 
 (def User
-  {:name        s/Str
-   :org-id      s/Str
-   :user-id     s/Str
-   :avatar      s/Str
-   :image       s/Str
-   (s/optional-key :created-at)  s/Str
-   (s/optional-key :updated-at)  s/Str
-   s/Keyword    s/Any})
+  {:name schema/Str
+   :org-id schema/Str
+   :user-id schema/Str
+   :avatar schema/Str
+   :image schema/Str
+   (schema/optional-key :created-at) schema/Str
+   (schema/optional-key :updated-at) schema/Str
+   schema/Keyword schema/Any})
 
 ;; ----- Properties common to all resources -----
 
@@ -132,7 +143,7 @@
 (defn- name-for
   "Replace :name in the map with :real-name if it's not blank."
   [user]
-  (if (string/blank? (:real-name user))
+  (if (s/blank? (:real-name user))
     user
     (assoc user :name (:real-name user))))
 
@@ -214,6 +225,15 @@
           (r/get-all [index-value] {:index index-name})
           (r/pluck fields)
           (r/run conn))))))
+
+(defn read-resources-in-order
+  "
+  Given a table name, an index name and value, and a set of fields, retrieve
+  the resources from the database in updated-at property order.
+  "
+  [table-name index-name index-value fields]
+  (updated-at-order
+    (read-resources table-name index-name index-value fields)))
 
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,

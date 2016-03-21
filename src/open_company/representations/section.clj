@@ -52,6 +52,7 @@
   "Remove properties of the section that aren't needed in the REST API representation"
   [section]
   (-> section
+    (dissoc :core)
     (dissoc :id)
     (dissoc :company-slug)
     (dissoc :section-name)))
@@ -66,5 +67,9 @@
 
 (defn render-section
   "Create a JSON representation of the section for the REST API"
-  [section]
-  (json/generate-string (section-for-rendering section true) {:pretty true}))
+  ([section]
+    (render-section section true false))
+  ([section authorized]
+    (render-section section authorized false))
+  ([section authorized read-only]
+    (json/generate-string (section-for-rendering section (and authorized (not read-only))) {:pretty true})))

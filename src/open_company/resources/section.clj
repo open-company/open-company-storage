@@ -117,18 +117,15 @@
 
 ;; ----- Section revisions -----
 
-(defn- revisions-for
-  [company-slug section-name fields]
-  (common/updated-at-order
-    (common/read-resources table-name "company-slug-section-name" [company-slug section-name] fields)))
-
 (defn list-revisions
   "Given the slug of the company, and a section name retrieve the timestamps and author of the section revisions."
-  [company-slug section-name] (revisions-for company-slug section-name [:updated-at :author]))
+  [company-slug section-name]
+  (common/read-resources-in-order table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author]))
 
 (defn- list-revision-ids
   "Given the slug of the company, and a section name retrieve the timestamps and database id of the section revisions."
-  [company-slug section-name] (revisions-for company-slug section-name [:updated-at :id]))
+  [company-slug section-name]
+  (common/read-resources-in-order table-name "company-slug-section-name" [company-slug section-name] [:updated-at :id]))
 
 (defn get-revisions
   "Given the slug of the company a section name, and an optional specific updated-at timestamp,
@@ -202,8 +199,9 @@
   (put-section company-slug (keyword section-name) section user timestamp))
 
   ([company-slug section-name section user timestamp]
-  (let [original-company (company/get-company company-slug)
-        original-section (get-section company-slug section-name)
+  (let [original-company (company/get-company company-slug) ; company before the update
+        original-section (get-section company-slug section-name) ; section before the update
+        template-section (common/section-by-name section-name) ; canonical version of this section
         author (common/author-for-user user)
         updated-section (-> section
           (clean)
@@ -212,6 +210,9 @@
           (assoc :section-name section-name)
           (assoc :author author)
           (assoc :updated-at timestamp)
+          (assoc :image (:image template-section)); read-only property
+          (assoc :description (:description template-section)); read-only property
+          (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section)))
           (update-notes-for (original-company section-name) author timestamp))
         updated-sections (sections-with (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)

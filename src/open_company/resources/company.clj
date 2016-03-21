@@ -1,8 +1,7 @@
 (ns open-company.resources.company
-  (:require [clojure.set :as cset]
-            [medley.core :as med]
-            [schema.core :as s]
-            [defun :refer (defun defun-)]
+  (:require [medley.core :as med]
+            [schema.core :as schema]
+            [defun :refer (defun)]
             [open-company.lib.slugify :as slug]
             [open-company.resources.common :as common]))
 
@@ -27,12 +26,12 @@
 (defn- categories-for
   "Add the :categories vector in the company with the definitive initial list of categories."
   [company]
-  (assoc company :categories (vec common/category-names)))
+  (assoc company :categories common/category-names))
 
 (defn- section-list
   "Return the set of section names that are contained in the provided company."
   [company]
-  (set (cset/intersection common/section-names (set (keys company)))))
+  (set (clojure.set/intersection common/section-names (set (keys company)))))
 
 (defn- sections-for
   "Add a :sections key to given company containing category->ordered-sections mapping
@@ -48,7 +47,7 @@
   "Remove any sections from the company that are not in the :sections property"
   [company]
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
-    (apply dissoc company (cset/difference (section-list company) sections))))
+    (apply dissoc company (clojure.set/difference (section-list company) sections))))
 
 ;; ----- Company Slug -----
 
@@ -73,6 +72,11 @@
   [slug]
   (not (contains? (taken-slugs) slug)))
 
+;; ----- Validations -----
+
+(defn valid-company [slug company]
+  (schema/check common/Company (assoc company :slug slug)))
+
 ;; ----- Company CRUD -----
 
 (defn get-company
@@ -81,8 +85,8 @@
   {:pre [(string? slug)]}
   (common/read-resource table-name slug))
 
-(defn- placeholder-sections
-  "Return a map of section-name -> section containing all
+(defn- core-placeholder-sections
+  "Return a map of section-name -> section containing just the core
    placeholder sections in sections.json"
   [company-slug]
   (reduce (fn [s sec]
@@ -95,31 +99,63 @@
           {}
           (filter :core common/sections)))
 
-(defn add-placeholder-sections [company]
-  (-> (placeholder-sections (:slug company))
+(defn add-core-placeholder-sections
+  "Add the placeholder for any core sections that are missing from the provided company."
+  [company]
+  (-> (core-placeholder-sections (:slug company))
       (merge company)
       (sections-for)))
 
-;; ----- Create saveable company doc ----
+(defn add-placeholder-sections
+  "Add the canonical placeholder section for any section names listed in the :sections property of the company,
+  but that aren't present in the company."
+  [company]
+  (let [sections (-> company :sections vals flatten vec)
+        missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
+        missing-sections (map common/section-by-name missing-section-names)
+        ; add :placeholder flag and remove :core flag
+        placeholder-sections (map #(dissoc % :core) (map #(assoc % :placeholder true) missing-sections))]
+    (merge company (zipmap missing-section-names placeholder-sections))))
+
+(defn add-prior-sections
+  "Add the most recent section revision (if there are any) for any section names listed in the :sections property
+  of the company, but that aren't present in the company."
+  [company]
+  (let [slug (:slug company)
+        sections (-> company :sections vals flatten vec)
+        ; names of sections in the sections property, but not present in company
+        missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
+        ; IDs of the most recent prior section of those missing sections (where found)
+        prior-section-ids (map :id (flatten (remove nil? (map #(common/read-resources-in-order
+                                                common/section-table-name
+                                                "company-slug-section-name"
+                                                [slug %]
+                                                [:id]) missing-section-names))))
+        prior-sections (map #(common/read-resource common/section-table-name %) prior-section-ids)
+        prior-section-names (map #(keyword (:section-name %)) prior-sections)]
+    (merge company (zipmap prior-section-names (map #(dissoc % :section-name) prior-sections)))))
 
 (defn- real-sections
   "Select all non-placeholder sections from a company map"
   [company]
   (med/remove-vals :placeholder (select-keys company common/section-names)))
 
-(defn complete-real-sections
+(defn- complete-real-sections
   "For each non-placeholder section in the company add an author,
-   the company's slug and the section name"
+   the company's slug, and the section's name, description and image.
+   Section image and description are from the canonical section definitions."
   [company user]
   (let [rs (real-sections company)
-        add-info (fn [[k section-data]]
-                   [k (-> section-data
+        add-info (fn [[section-name section-data]]
+                   [section-name (-> section-data
                           (assoc :author (common/author-for-user user))
                           (assoc :company-slug (:slug company))
-                          (assoc :section-name k))])]
+                          (assoc :section-name section-name)
+                          (assoc :description (:description (common/section-by-name section-name)))
+                          (assoc :image (:image (common/section-by-name section-name))))])]
     (merge company (into {} (map add-info rs)))))
 
-(s/defn ->company :- common/Company
+(schema/defn ->company :- common/Company
   "Take a minimal map describing a company and a user and 'fill the blanks'"
   [company-props user]
   (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]
@@ -131,7 +167,7 @@
         (categories-for)
         (sections-for))))
 
-(s/defn ^:private add-updated-at
+(schema/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section.
    If the section has a `:notes` key also add the timestamp there."
   [{:keys [section-name] :as section} :- common/Section ts]
@@ -139,7 +175,7 @@
     (cond-> (assoc section :updated-at ts)
       (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
 
-(s/defn ^:always-validate create-company!
+(schema/defn ^:always-validate create-company!
   "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
   [company :- common/Company]
   (let [real-sections (real-sections company)

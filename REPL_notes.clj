@@ -27,3 +27,54 @@
 (def sections*
   (->> common/sections (map #(assoc % :company-slug "x"))))
 (map #(schema/check common/Section %) sections*)
+
+;; RethinkDB usage
+(def conn [:host "127.0.0.1" :port 28015 :db "open_company"])
+
+(aprint (with-open [c (apply r/connect conn)]
+  (-> (r/table "companies")
+      (r/get "buffer")
+      (r/run c))))
+
+(aprint (with-open [c (apply r/connect conn)]
+  (-> (r/table "companies")
+      (r/get "open-company")
+      (r/run c))))
+
+(with-open [c (apply r/connect conn)]
+  (-> (r/table "companies")
+      (r/get "prompt")
+      (r/update {:mission {:image "https://open-company.s3.amazonaws.com/mission.svg"}})
+      (r/run c)))
+
+(with-open [c (apply r/connect conn)]
+  (-> (r/table "companies")
+      (r/get "open-company")
+      (r/update {:finances {:image "https://open-company.s3.amazonaws.com/finances.svg"}})
+      (r/run c)))
+
+(aprint (with-open [c (apply r/connect conn)]
+  (-> (r/table "sections")
+  (r/get-all ["buffer"] {:index "company-slug"})
+  (r/run c))))
+
+(aprint (with-open [c (apply r/connect conn)]
+  (-> (r/table "sections")
+  (r/get-all [["buffer" "update"]] {:index "company-slug-section-name"})
+  (r/run c))))
+
+(aprint (with-open [c (apply r/connect conn)]
+  (-> (r/table "sections")
+  (r/get-all ["21c9ddd4-6d1c-47a5-b6c1-1308fed08523"] {:index "id"})
+  (r/run c))))
+
+(with-open [c (apply r/connect conn)]
+  (-> (r/table "sections")
+  (r/get-all ["70733852-21f7-4aba-bff6-de93ce699be2"] {:index "id"})
+  (r/update {:image "https://open-company.s3.amazonaws.com/diversity.svg"})
+  (r/run c)))
+
+;; for more RethinkDB help, see:
+;; https://github.com/apa512/clj-rethinkdb
+;; http://apa512.github.io/clj-rethinkdb/
+;; https://rethinkdb.com/api/python/
