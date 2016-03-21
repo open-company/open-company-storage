@@ -53,10 +53,20 @@
 ;; ----- Company Slug -----
 
 (declare list-companies)
+
+(def reserved-slugs #{"about" "android" "api" "app" "careers" "companies"
+                      "company" "contact" "crowd" "developer"
+                      "developers" "download" "faq" "founder" "founders"
+                      "home" "investor" "investors" "ios" "jobs" "login"
+                      "logout" "news" "newsletter" "press" "privacy" "register"
+                      "section" "sections" "signup" "stakeholder"
+                      "stakeholder-update" "terms" "topic" "topics"
+                      "update" "updates" "profile" "create-company"})
+
 (defn taken-slugs
   "Return all slugs which are in use as a set."
   []
-  (set (map :slug (list-companies))))
+  (into reserved-slugs (map :slug (list-companies))))
 
 (defn slug-available?
   "Return true if the slug is not used by any company in the database."

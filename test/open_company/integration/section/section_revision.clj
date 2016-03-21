@@ -289,7 +289,7 @@
               (check/timestamp? updated-at) => true
               (check/about-now? updated-at) => true
               (check/before? (:created-at updated-section) updated-at) => true)
-            (count (s/get-revisions r/slug :finances)) => 1)))) ; but there is still just 1 revision
+            (count (s/get-revisions r/slug :finances)) => 1))))) ; but there is still just 1 revision
 
   (facts "about updating a placeholder section"
 
@@ -333,4 +333,4 @@
 
     (future-facts "with PUT")
 
-    (future-facts "with PATCH"))))
+    (future-facts "with PATCH")))
