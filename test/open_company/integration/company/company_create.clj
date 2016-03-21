@@ -72,6 +72,7 @@
       (let [payload  {:name "hello"}
             response (mock/api-request :post "/companies" {:body payload})]
         (:status response) => 422))
+
     (fact "superflous fields cause 422"
       (let [payload  {:bogus "xx" :name "hello" :description "x"}
             response (mock/api-request :post "/companies" {:body payload})]
@@ -86,9 +87,32 @@
         (:description body) => "x"
         (:name body) => "Hello World"))
 
+    (facts "about conflicting company slugs"
+      
+      (fact "used company slugs get a new suggested slug"
+        (let [payload  {:name "Open" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})
+              body     (mock/body-from-response response)]
+          (:status response) => 201
+          (:slug body) => "open-1"
+          (:name body) => "Open"))
+      
+      (fact "reserved company slugs get a new suggested slug"
+        (let [payload  {:name "About" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})
+              body     (mock/body-from-response response)]
+          (:status response) => 201
+          (:slug body) => "about-1"
+          (:name body) => "About")))
+
+
     (facts "slug"
       (fact "provided slug is taken causes 422"
         (let [payload  {:slug "open" :name "hello" :description "x"}
+              response (mock/api-request :post "/companies" {:body payload})]
+          (:status response) => 422))
+       (fact "provided slug is reserved causes 422"
+        (let [payload  {:slug "about" :name "hello" :description "x"}
               response (mock/api-request :post "/companies" {:body payload})]
           (:status response) => 422))
       (fact "provided slug does not follow slug format causes 422"
