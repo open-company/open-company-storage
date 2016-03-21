@@ -10,6 +10,8 @@
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 (def section-list-media-type "application/vnd.open-company.section-list.v1+json")
 
+(def recognized-links #{:self :update :partial-update :delete :section-list})
+
 (defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
   ([company :guard map?] (url (name (:slug company))))
@@ -36,21 +38,20 @@
 
 (defn- company-links*
   "Return a list of links specified via the `links` argument.
-   If all possible links should be returned pass `:open-company.representations.company/all-links`"
+   If all possible links should be returned pass `:all-links`"
   [company links]
-  {:pre [(or (sequential? links) (set? links) (= links ::all-links))]}
-  (let [recognized-links #{:self :update :partial-update :delete :section-list}]
-    (if (= ::all-links links)
-      (company-links* company recognized-links)
-      (let [links (set links)]
-        (assert (empty? (cset/difference links recognized-links))
-                (str "Unrecognized link types " (cset/difference links recognized-links)))
-        (cond-> []
-          (links :self)           (conj (self-link company))
-          (links :update)         (conj (update-link company))
-          (links :partial-update) (conj (partial-update-link company))
-          (links :delete)         (conj (delete-link company))
-          (links :section-list)   (conj (section-list-link company)))))))
+  {:pre [(or (sequential? links) (set? links) (= links :all-links))]}
+  (if (= :all-links links)
+    (company-links* company recognized-links)
+    (let [links (set links)]
+      (assert (empty? (cset/difference links recognized-links))
+              (str "Unrecognized link types " (cset/difference links recognized-links)))
+      (cond-> []
+        (:self links)           (conj (self-link company))
+        (:update links)         (conj (update-link company))
+        (:partial-update links) (conj (partial-update-link company))
+        (:delete links)         (conj (delete-link company))
+        (:section-list links)   (conj (section-list-link company))))))
 
 (defn- company-links
   "Add the HATEAOS links to the company"
@@ -60,7 +61,7 @@
 (defn- clean
   "Remove any properties that shouldn't be returned in the JSON representation"
   [company]
-  (dissoc company :org-id))
+  (dissoc company :org-id :id))
 
 (defun- sections
   "Get a representation of each section for the REST API"
@@ -91,7 +92,7 @@
   (-> company
     (clean)
     (revision-links)
-    (company-links (if authorized ::all-links [:self]))
+    (company-links (if authorized :all-links [:self]))
     (sections authorized)))
 
 (defn render-company
