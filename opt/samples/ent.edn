@@ -177,9 +177,9 @@
             :costs 1378848
           }
         ]
-      }
-      :notes {
+        :notes {
           :body "I'll be notating the notes here."
+        }
       }
       :section-name "finances"
       :author {

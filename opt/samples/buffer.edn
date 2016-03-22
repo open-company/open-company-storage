@@ -1740,6 +1740,7 @@
     {
       :section {
         :title "Key metrics"
+        :headline "Seeing an impact from our move from 7-day to 30-day trials for Buffer for Business"
         :metrics [
           {
             :slug "total-registered-users"
