@@ -14,8 +14,8 @@
       :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
     }
     :sections {
-      :progress ["finances"]
-      :financial []
+      :progress []
+      :financial ["finances"]
       :company []
     }
   }
@@ -144,6 +144,7 @@
     {
       :section {
         :title "Finances"
+        :headline "Revenue is up and to the right. Stay thirsty my friends."
         :data [
           {
             :period "2015-05"
@@ -176,6 +177,9 @@
             :costs 1378848
           }
         ]
+      }
+      :notes {
+          :body "I'll be notating the notes here."
       }
       :section-name "finances"
       :author {
