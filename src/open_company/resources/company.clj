@@ -64,13 +64,13 @@
 
 (defn taken-slugs
   "Return all slugs which are in use as a set."
-  []
-  (into reserved-slugs (map :slug (list-companies))))
+  [conn]
+  (into reserved-slugs (map :slug (list-companies conn))))
 
 (defn slug-available?
   "Return true if the slug is not used by any company in the database."
-  [slug]
-  (not (contains? (taken-slugs) slug)))
+  [conn slug]
+  (not (contains? (taken-slugs conn) slug)))
 
 ;; ----- Validations -----
 
@@ -81,9 +81,9 @@
 
 (defn get-company
   "Given the slug of the company, retrieve it from the database, or return nil if it doesn't exist."
-  [slug]
+  [conn slug]
   {:pre [(string? slug)]}
-  (common/read-resource table-name slug))
+  (common/read-resource conn table-name slug))
 
 (defn- core-placeholder-sections
   "Return a map of section-name -> section containing just the core
@@ -157,15 +157,16 @@
 
 (schema/defn ->company :- common/Company
   "Take a minimal map describing a company and a user and 'fill the blanks'"
-  [company-props user]
-  (let [slug (or (:slug company-props) (slug/find-available-slug (:name company-props) (taken-slugs)))]
-    (-> company-props
-        (assoc :slug slug)
-        (update :currency #(or % "USD"))
-        (assoc :org-id (:org-id user))
-        (complete-real-sections user)
-        (categories-for)
-        (sections-for))))
+  ([company-props user]
+   (->company company-props user (:slug company-props)))
+  ([company-props user slug]
+   (-> company-props
+       (assoc :slug slug)
+       (update :currency #(or % "USD"))
+       (assoc :org-id (:org-id user))
+       (complete-real-sections user)
+       (categories-for)
+       (sections-for))))
 
 (schema/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section.
@@ -177,13 +178,13 @@
 
 (schema/defn ^:always-validate create-company!
   "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
-  [company :- common/Company]
+  [conn company :- common/Company]
   (let [real-sections (real-sections company)
         ts (common/current-timestamp)
         rs-w-ts (med/map-vals #(add-updated-at % ts) real-sections)]
     (doseq [[_ section] real-sections]
-      (common/create-resource common/section-table-name section ts))
-    (common/create-resource table-name (merge company rs-w-ts) ts)))
+      (common/create-resource conn common/section-table-name section ts))
+    (common/create-resource conn table-name (merge company rs-w-ts) ts)))
 
 (defn update-company
   "
@@ -192,9 +193,9 @@
   TODO: handle case of slug change.
   TODO: handle new and updated sections.
   "
-  [slug company]
+  [conn slug company]
   {:pre [(string? slug) (map? company)]}
-  (if-let [original-company (get-company slug)]
+  (if-let [original-company (get-company conn slug)]
     (let [org-id (:org-id company)
           updated-company (-> company
                             (clean)
@@ -202,60 +203,62 @@
                             (remove-sections)
                             (assoc :org-id org-id)
                             (assoc :slug slug))]
-      (common/update-resource table-name primary-key original-company updated-company))))
+      (common/update-resource conn table-name primary-key original-company updated-company))))
 
-(defun put-company
+(defn put-company
   "Given the slug of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
   TODO: handle case of slug change."
-  ([slug :guard get-company company _user] (update-company slug company))
-  ([_slug company user] (create-company! (->company company user))))
+  [conn slug company user]
+  (if (get-company conn slug)
+    (update-company conn slug company)
+    (create-company! conn (->company company user))))
 
 (defn delete-company
   "Given the slug of the company, delete it and all its sections and return `true` on success."
-  [slug]
+  [conn slug]
   {:pre [(string? slug)]}
   (try
-    (common/delete-resource common/section-table-name :company-slug slug)
+    (common/delete-resource conn common/section-table-name :company-slug slug)
     (catch java.lang.RuntimeException e)) ; it's OK if there are no sections to delete
   (try
-    (common/delete-resource table-name slug)
+    (common/delete-resource conn table-name slug)
     (catch java.lang.RuntimeException e))) ; it's OK if there is no company to delete
 
 ;; ----- Company revisions -----
 
 (defn list-revisions
   "Given the slug of the company retrieve the timestamps and author of the revisions from the database."
-  [slug]
+  [conn slug]
   {:pre [(string? slug)]}
   (common/updated-at-order
-    (common/read-resources common/section-table-name "company-slug" slug [:updated-at :author])))
+    (common/read-resources conn common/section-table-name "company-slug" slug [:updated-at :author])))
 
 ;; ----- Collection of companies -----
 
 (defn list-companies
   "Return a sequence of company property maps with slugs and names, sorted by slug.
   Note: if additional-keys are supplied only documents containing those keys will be returned"
-  ([] (list-companies []))
-  ([additional-keys]
+  ([conn] (list-companies conn []))
+  ([conn additional-keys]
     (->> (into [primary-key "name"] additional-keys)
-      (common/read-resources table-name)
+      (common/read-resources conn table-name)
       (sort-by primary-key)
       vec)))
 
 (defn get-companies-by-index
   "Given the name of a secondary index and a value, retrieve all matching companies"
   ;; e.g.: (get-companies-by-index "org-id" "slack:T06SBMH60")
-  [index-key v]
+  [conn index-key v]
   {:pre [(string? index-key)]}
-  (common/read-resources table-name index-key v))
+  (common/read-resources conn table-name index-key v))
 
 ;; ----- Armageddon -----
 
 (defn delete-all-companies!
   "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."
-  []
+  [conn]
   ;; Delete all sections and all companies
-  (common/delete-all-resources! common/section-table-name)
-  (common/delete-all-resources! table-name))
+  (common/delete-all-resources! conn common/section-table-name)
+  (common/delete-all-resources! conn table-name))
