@@ -3,8 +3,8 @@
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
-            [open-company.lib.test-setup :as ts]
             [open-company.db.pool :as pool]
+            [open-company.lib.test-setup :as ts]
             [open-company.resources.common :as common]
             [open-company.resources.company :as c]))
 
@@ -45,46 +45,17 @@
           (= created-at (:created-at retrieved-company)) => true
           (= updated-at (:updated-at retrieved-company)) => true))
 
-<<<<<<< d3ab26991d01cd84e6a745774dcd70ad92009ff4
-    (facts "it adds timestamps to notes"
-      (let [co (c/->company (assoc r/open :finances r/finances-notes-section-1) r/coyote)
-            company (c/create-company! co)
-            from-db (c/get-company (:slug r/open))]
-        (get-in from-db [:updated-at]) => (:updated-at company)
-        (get-in from-db [:finances :notes :updated-at]) => (:updated-at company)))
+      (facts "it adds timestamps to notes"
+        (let [co (c/->company (assoc r/open :finances r/finances-notes-section-1) r/coyote)
+              company (c/create-company! conn co)
+              from-db (c/get-company conn (:slug r/open))]
+          (get-in from-db [:updated-at]) => (:updated-at company)
+          (get-in from-db [:finances :notes :updated-at]) => (:updated-at company)))
 
-    (fact "it returns the pre-defined categories"
-      (:categories (c/create-company! (c/->company r/open r/coyote))) => common/category-names)
+      (fact "it returns the pre-defined categories"
+        (:categories (c/create-company! conn (c/->company r/open r/coyote))) => common/category-names)
 
-    (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
-      (facts "it returns the sections in the company in the pre-defined order"
-        (:sections (c/create-company! (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
-        (c/delete-company r/slug)
-        (:sections (c/create-company! (c/->company (add-section r/open :update) r/coyote))) =>
-        {:progress [:update] :financial [] :company []}
-        (c/delete-company r/slug)
-        (:sections (c/create-company! (c/->company (add-section r/open :values) r/coyote))) =>
-        {:progress [] :financial [] :company [:values]}
-        (c/delete-company r/slug)
-        (:sections (c/create-company!
-                    (c/->company (-> r/open
-                                     (add-section :mission) (add-section :press) (add-section :help)
-                                     (add-section :challenges) (add-section :diversity) (add-section :update))
-                                 r/coyote)))
-        => {:progress [:update :challenges :press] :financial [] :company [:mission :diversity :help]}))))
-=======
       (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
-        (facts "it adds timestamps to notes"
-          (let [w-note  (-> r/open (add-section :growth) (assoc-in [:growth :notes :body] "A Note"))
-                co      (c/->company w-note r/coyote)
-                company (c/create-company! conn co)
-                from-db (c/get-company conn (:slug r/open))]
-            (get-in from-db [:updated-at]) => (:updated-at company)
-            (get-in from-db [:growth :notes :updated-at]) => (:updated-at company)))
-
-        (fact "it returns the pre-defined categories"
-          (:categories (c/create-company! conn (c/->company r/open r/coyote))) => (contains common/category-names))
-
         (facts "it returns the sections in the company in the pre-defined order"
           (:sections (c/create-company! conn (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
           (c/delete-company conn r/slug)
@@ -100,5 +71,4 @@
                                        (add-section :mission) (add-section :press) (add-section :help)
                                        (add-section :challenges) (add-section :diversity) (add-section :update))
                                    r/coyote)))
-          => {:progress [:update :challenges :press :help] :financial [] :company [:diversity :mission]})))))
->>>>>>> provide testing setup & fix all tests
+          => {:progress [:update :challenges :press] :financial [] :company [:mission :diversity :help]})))))
