@@ -119,43 +119,42 @@
 
 (defn list-revisions
   "Given the slug of the company, and a section name retrieve the timestamps and author of the section revisions."
-  [company-slug section-name]
-  (common/read-resources-in-order table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author]))
+  [conn company-slug section-name]
+  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author]))
 
 (defn- list-revision-ids
   "Given the slug of the company, and a section name retrieve the timestamps and database id of the section revisions."
-  [company-slug section-name]
-  (common/read-resources-in-order table-name "company-slug-section-name" [company-slug section-name] [:updated-at :id]))
+  [conn company-slug section-name]
+  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:updated-at :id]))
 
 (defn get-revisions
   "Given the slug of the company a section name, and an optional specific updated-at timestamp,
   retrieve the section revisions from the database."
-  ([company-slug section-name]
+  ([conn company-slug section-name]
   (common/updated-at-order
-    (common/read-resources table-name "company-slug-section-name" [company-slug section-name])))
+    (common/read-resources conn table-name "company-slug-section-name" [company-slug section-name])))
 
-  ([slug section-name updated-at]
+  ([conn slug section-name updated-at]
   (common/updated-at-order
-    (common/read-resources table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
+    (common/read-resources conn table-name "company-slug-section-name-updated-at" [slug section-name updated-at]))))
 
 
 (defun- revise-or-update
-
   ; this is the first time for the section, so create it
-  ([[nil updated-section] timestamp]
-    (common/create-resource table-name updated-section timestamp))
+  ([conn [nil updated-section] timestamp]
+    (common/create-resource conn table-name updated-section timestamp))
 
   ; it's been more than the allowed time since the last revision, so create a new revision
-  ([[_original-section updated-section] :guard revision-time-gt? timestamp]
-    (common/create-resource table-name updated-section timestamp))
+  ([conn [_original-section updated-section] :guard revision-time-gt? timestamp]
+    (common/create-resource conn table-name updated-section timestamp))
 
   ; it's a different author than the last revision, so create a new revision
-  ([[_original-section updated-section] :guard different-author? timestamp]
-    (common/create-resource table-name updated-section timestamp))
+  ([conn [_original-section updated-section] :guard different-author? timestamp]
+    (common/create-resource conn table-name updated-section timestamp))
 
   ; it's both the same author and less than the allowed time, so just update the current revision
-  ([[original-section updated-section] timestamp]
-    (common/update-resource table-name primary-key original-section updated-section timestamp)))
+  ([conn [original-section updated-section] timestamp]
+    (common/update-resource conn table-name primary-key original-section updated-section timestamp)))
 
 ;; ----- Section CRUD -----
 
@@ -164,19 +163,19 @@
   Given the company slug, section name, and optional as-of timestamp of a section, retrieve the section from
   the database at the revision that matches the as-of timestamp or the most recent revision prior to that timestamp.
   Return nil if no section revision exists that satisfies this."
-  ([company-slug section-name] (get-section company-slug section-name nil))
+  ([conn company-slug section-name] (get-section conn company-slug section-name nil))
 
-  ([company-slug section-name _as-of :guard nil?]
+  ([conn company-slug section-name _as-of :guard nil?]
   ;; retrieve the id most recent revision of this section
-  (if-let [id (:id (first (list-revision-ids company-slug section-name)))]
+  (if-let [id (:id (first (list-revision-ids conn company-slug section-name)))]
     ;; retrieve the section by its id
-    (common/read-resource table-name id)))
+    (common/read-resource conn table-name id)))
 
-  ([company-slug section-name as-of]
+  ([conn company-slug section-name as-of]
   ;; retrieve the id of the section revision that matches the as-of or is the first revision prior to it
-  (if-let [id (some #(time-lte % as-of) (list-revision-ids company-slug section-name))]
+  (if-let [id (some #(time-lte % as-of) (list-revision-ids conn company-slug section-name))]
     ;; retrieve the section by its id
-    (common/read-resource table-name id))))
+    (common/read-resource conn table-name id))))
 
 (defun put-section
   "
@@ -187,20 +186,20 @@
 
   TODO: only :author and :updated-at for notes if it's what has changed
   "
-  ([company-slug section-name section user]
-  (put-section company-slug section-name section user (common/current-timestamp)))
+  ([conn company-slug section-name section user]
+  (put-section conn company-slug section-name section user (common/current-timestamp)))
 
   ;; invalid section or user
-  ([_company-slug _section-name _section :guard #(not (map? %)) _user _timestamp] false)
-  ([_company-slug _section-name _section _user :guard #(not (map? %)) _timestamp] false)
+  ([conn _company-slug _section-name _section :guard #(not (map? %)) _user _timestamp] false)
+  ([conn _company-slug _section-name _section _user :guard #(not (map? %)) _timestamp] false)
 
   ;; force section-name to a keyword
-  ([company-slug section-name :guard #(not (keyword? %)) section user timestamp]
-  (put-section company-slug (keyword section-name) section user timestamp))
+  ([conn company-slug section-name :guard #(not (keyword? %)) section user timestamp]
+  (put-section conn company-slug (keyword section-name) section user timestamp))
 
-  ([company-slug section-name section user timestamp]
-  (let [original-company (company/get-company company-slug) ; company before the update
-        original-section (get-section company-slug section-name) ; section before the update
+  ([conn company-slug section-name section user timestamp]
+  (let [original-company (company/get-company conn company-slug) ; company before the update
+        original-section (get-section conn company-slug section-name) ; section before the update
         template-section (common/section-by-name section-name) ; canonical version of this section
         author (common/author-for-user user)
         updated-section (-> section
@@ -224,13 +223,14 @@
              (true? (valid-section company-slug section-name updated-section))) ; update is valid
       (do
         ;; update the company
-        (company/update-company company-slug updated-company)
+        (company/update-company conn company-slug updated-company)
         ;; create a new section revision or update the latest section
-        (revise-or-update [original-section updated-section] timestamp))
+        (revise-or-update conn [original-section updated-section] timestamp))
       false))))
 
 ;; ----- Armageddon -----
 
 (defn delete-all-sections!
   "Use with caution! Failure can result in partial deletes of just some sections. Returns `true` if successful."
-  [] (common/delete-all-resources! table-name))
+  [conn]
+  (common/delete-all-resources! conn table-name))

@@ -222,9 +222,9 @@
   Given a table name, an index name and value, and a set of fields, retrieve
   the resources from the database in updated-at property order.
   "
-  [table-name index-name index-value fields]
+  [conn table-name index-name index-value fields]
   (updated-at-order
-    (read-resources table-name index-name index-value fields)))
+    (read-resources conn table-name index-name index-value fields)))
 
 (defn update-resource
   "Given a table name, the name of the primary key, and the original and updated resource,
