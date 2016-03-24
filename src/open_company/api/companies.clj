@@ -94,7 +94,7 @@
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-media-types [company-rep/media-type]
-  :exists? (fn [_] (pool/with-pool [conn db-pool] (get-company conn slug ctx)))
+  :exists? (fn [ctx] (pool/with-pool [conn db-pool] (get-company conn slug ctx)))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
   :allowed-methods [:options :get :patch :delete]
@@ -107,7 +107,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (processable-patch-req? slug ctx))})
+    :patch (fn [ctx] (pool/with-pool [conn db-pool] (processable-patch-req? conn slug ctx)))})
 
   ;; Handlers
   :handle-ok (by-method {
@@ -177,7 +177,7 @@
                       (common/missing-response)))
 
   ;; Get a list of sections
-  :exists? (fn [_] (pool/with-pool [conn db-pool] (get-company conn slug ctx)))
+  :exists? (fn [ctx] (pool/with-pool [conn db-pool] (get-company conn slug ctx)))
   :handle-ok (fn [_] sections))
 
 ;; ----- Routes -----

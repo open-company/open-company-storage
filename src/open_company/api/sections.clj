@@ -81,7 +81,7 @@
   ;; Handlers
   :handle-ok (by-method {
     :get (fn [ctx] (pool/with-pool [conn db-pool]
-                    (section-rep/render-section (:section ctx) (common/allow-org-members company-slug ctx) (not (nil? as-of)))))
+                    (section-rep/render-section conn (:section ctx) (common/allow-org-members company-slug ctx) (not (nil? as-of)))))
     :put (fn [ctx] (pool/with-pool [conn db-pool] (section-rep/render-section conn (:updated-section ctx))))
     :patch (fn [ctx] (pool/with-pool [conn db-pool] (section-rep/render-section conn (:updated-section ctx))))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))

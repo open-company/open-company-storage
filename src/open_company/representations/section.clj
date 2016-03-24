@@ -60,8 +60,8 @@
 (defn render-section
   "Create a JSON representation of the section for the REST API"
   ([conn section]
-    (render-section section true false))
+    (render-section conn section true false))
   ([conn section authorized]
-    (render-section section authorized false))
+    (render-section conn section authorized false))
   ([conn section authorized read-only]
     (json/generate-string (section-for-rendering conn section (and authorized (not read-only))) {:pretty true})))
