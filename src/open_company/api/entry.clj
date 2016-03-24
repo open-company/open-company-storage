@@ -1,6 +1,7 @@
 (ns open-company.api.entry
-  (:require [compojure.core :refer (defroutes GET OPTIONS)]
+  (:require [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
             [liberator.core :refer (defresource)]
+            [open-company.db.pool :as pool]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.representations.common :as common-rep]
@@ -17,15 +18,15 @@
     user      (conj (common-rep/link-map "company-create" "POST" "/companies/" company-rep/media-type))
     companies (into (mapv company-link companies))))
 
-(defn- render-entry [{:keys [user] :as _ctx}]
-  (let [companies (when user (company-res/get-companies-by-index "org-id" (:org-id user)))]
+(defn- render-entry [conn {:keys [user] :as _ctx}]
+  (let [companies (when user (company-res/get-companies-by-index conn "org-id" (:org-id user)))]
     (json/generate-string
-      {:links (links user companies)}
-      {:pretty true})))
+     {:links (links user companies)}
+     {:pretty true})))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-(defresource entry-point []
+(defresource entry-point [db-pool]
   common/anonymous-resource
 
   :allowed-methods [:options :get]
@@ -35,18 +36,13 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 "application/json"))
 
-  :handle-ok render-entry
+  :handle-ok (fn [ctx] (pool/with-pool [conn db-pool] (render-entry conn ctx)))
 
   :handle-options (common/options-response [:options :get]))
 
 ;; ----- Routes -----
 
-(defroutes entry-routes
-  ;; (routes ...)
-  (OPTIONS "/" [] (entry-point))
-  (GET "/" [] (entry-point)))
-
-(defn entry-routes [{:keys [db-pool]}]
-  (routes
-   (OPTIONS "/" [] (entry-point))
-   (GET "/" [] (entry-point))))
+(defn entry-routes [sys]
+  (compojure/routes
+   (OPTIONS "/" [] (entry-point (-> sys :db-pool :pool)))
+   (GET "/" [] (entry-point (-> sys :db-pool :pool)))))

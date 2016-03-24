@@ -2,51 +2,35 @@
   "Namespace for the web application which serves the REST API."
   (:gen-class)
   (:require
-    [liberator.dev :refer (wrap-trace)]
     [raven-clj.core :as sentry]
     [raven-clj.interfaces :as sentry-interfaces]
     [raven-clj.ring :as sentry-mw]
     [taoensso.timbre :as timbre]
+    [liberator.dev :refer (wrap-trace)]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
-    [org.httpkit.server :refer (run-server)]
-    [compojure.core :refer (defroutes ANY)]
+    [compojure.core :as compojure]
+    [com.stuartsierra.component :as component]
+    [open-company.components :as components]
     [open-company.config :as c]
-    [open-company.api.entry :refer (entry-routes)]
-    [open-company.api.companies :refer (company-routes)]
-    [open-company.api.sections :refer (section-routes)]))
+    [open-company.api.entry :as entry]
+    [open-company.api.companies :as company]
+    [open-company.api.sections :as section]))
 
-(defroutes routes
-  entry-routes
-  company-routes
-  section-routes)
+(defn routes [sys]
+  (compojure/routes
+   (entry/entry-routes sys)
+   (company/company-routes sys)
+   (section/section-routes sys)))
 
-(defonce params-routes
-  ;; Parse urlencoded parameters from the query string and form body and add the to the request map
-  (wrap-params routes))
-
-;; see: header response, or http://localhost:3000/x-liberator/requests/ for trace results
-(defonce trace-app
-  (if c/liberator-trace
-    (wrap-trace params-routes :header :ui)
-    params-routes))
-
-(defonce cors-routes
-  ;; Use CORS middleware to support in-browser JavaScript requests.
-  (wrap-cors trace-app #".*"))
-
-(defonce hot-reload-routes
-  ;; Reload changed files without server restart
-  (if c/hot-reload
-    (wrap-reload #'cors-routes)
-    cors-routes))
-
-(defonce app
-  ;; Use sentry middleware to report runtime errors if we have a raven DSN.
-  (if c/dsn
-    (sentry-mw/wrap-sentry hot-reload-routes c/dsn)
-    hot-reload-routes))
+(defn app [sys]
+  (cond-> (routes sys)
+   true              wrap-params
+   c/liberator-trace (wrap-trace :header :ui)
+   true              (wrap-cors #".*")
+   c/hot-reload      wrap-reload
+   c/dsn             (sentry-mw/wrap-sentry c/dsn)))
 
 (defn start [port]
   (timbre/set-config! c/log-config)
@@ -59,7 +43,9 @@
                                  (assoc-in [:extra :exception-data] (ex-data ex))
                                  (sentry-interfaces/stacktrace ex))))))
 
-  (run-server app {:port port :join? false})
+  (-> {:handler-fn app :port port}
+      components/oc-system 
+      component/start)
 
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
     "OpenCompany API Server\n"
