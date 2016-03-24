@@ -1,5 +1,7 @@
 (ns open-company.integration.company.company-create
   (:require [cheshire.core :as json]
+            [open-company.lib.test-setup :as ts]
+            [open-company.db.pool :as pool]
             [schema.test]
             [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
@@ -61,8 +63,12 @@
 ;       (company/get-company r/TICKER) => (contains r/OPEN)
 ;       ;; Reports are empty?
 ;       (report/report-count r/TICKER) => 0)))
-(with-state-changes [(before :facts (do (company/delete-all-companies!)
-                                        (company/create-company! (company/->company r/open r/coyote))))]
+
+(with-state-changes [(before :contents (ts/setup-system!))
+                     (after :contents (ts/teardown-system!))
+                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                      (company/delete-all-companies! conn)
+                                      (company/create-company! conn (company/->company r/open r/coyote))))]
   ;; -------------------
   ;; JWToken things are covered in open-company.integration.company.company-list
   ;; -------------------
@@ -126,15 +132,16 @@
               response (mock/api-request :post "/companies" {:body payload})]
          (:status response) => 422))
       (facts "known user supplied sections"
-        (let [diversity {:title "Diversity" :body "TBD" :section-name "diversity"}
-              payload  {:name "Diverse Co" :description "Diversity is important to us." :diversity diversity}
-              response (mock/api-request :post "/companies" {:body payload})
-              company  (company/get-company "diverse-co")
-              sect     (section/get-section "diverse-co" :diversity)]
-          (fact "are added with author, updated-at, image and description"
-            (:status response) => 201
-            (:placeholder sect) => falsey
-            (:author sect) => truthy
-            (:updated-at sect) => truthy
-            (:image sect) => (:image (common/section-by-name :diversity))
-            (:description sect) => (:description (common/section-by-name :diversity))))))))
+        (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+          (let [diversity {:title "Diversity" :body "TBD" :section-name "diversity"}
+                payload  {:name "Diverse Co" :description "Diversity is important to us." :diversity diversity}
+                response (mock/api-request :post "/companies" {:body payload})
+                company  (company/get-company conn "diverse-co")
+                sect     (section/get-section conn "diverse-co" :diversity)]
+            (fact "are added with author, updated-at, image and description"
+              (:status response) => 201
+              (:placeholder sect) => falsey
+              (:author sect) => truthy
+              (:updated-at sect) => truthy
+              (:image sect) => (:image (common/section-by-name :diversity))
+              (:description sect) => (:description (common/section-by-name :diversity)))))))))

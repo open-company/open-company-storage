@@ -1,5 +1,7 @@
 (ns open-company.integration.section.section-manipulation
   (:require [midje.sweet :refer :all]
+            [open-company.db.pool :as pool]
+            [open-company.lib.test-setup :as ts]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
@@ -8,10 +10,6 @@
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]))
-
-;; ----- Startup -----
-
-(db/test-startup)
 
 ;; ----- Test Cases -----
 
@@ -43,15 +41,20 @@
 (def categories (map name common-res/category-names))
 
 (with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
-                     (before :facts (do (company/delete-all-companies!)
-                                        (company/create-company! (company/->company r/open r/coyote))
-                                        (section/put-section r/slug :update r/text-section-1 r/coyote)
-                                        (section/put-section r/slug :finances r/finances-section-1 r/coyote)
-                                        (section/put-section r/slug :team r/text-section-2 r/coyote)
-                                        (section/put-section r/slug :help r/text-section-1 r/coyote)
-                                        (section/put-section r/slug :diversity r/text-section-2 r/coyote)
-                                        (section/put-section r/slug :values r/text-section-1 r/coyote)))
-                     (after :facts (company/delete-all-companies!))]
+                     (before :contents (ts/setup-system!))
+                     (after :contents (ts/teardown-system!))
+                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                      (company/delete-all-companies! conn)
+                                      (company/create-company! conn (company/->company r/open r/coyote))
+                                      (section/put-section conn r/slug :update r/text-section-1 r/coyote)
+                                      (section/put-section conn r/slug :finances r/finances-section-1 r/coyote)
+                                      (section/put-section conn r/slug :team r/text-section-2 r/coyote)
+                                      (section/put-section conn r/slug :help r/text-section-1 r/coyote)
+                                      (section/put-section conn r/slug :diversity r/text-section-2 r/coyote)
+                                      (section/put-section conn r/slug :values r/text-section-1 r/coyote)))
+                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                     (company/delete-all-companies! conn)))]
+  (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
 
   (facts "about failing to reorder sections"
 
@@ -158,17 +161,20 @@
                          :company ["values" "diversity"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
-          (:sections (mock/body-from-response response)) => new-order
-          ;; verify the new order
-          (:sections (company/get-company r/slug)) => new-order)))
+          (:sections company) => new-set
+          (:growth company) => falsey
+          (:challenges company) => falsey
+          (:team company) => falsey
+          (:product company) => falsey
+          (:mission company) => falsey)))
 
-    (future-facts "when the new order is NOT valid"))
+    (facts "about section removal"
 
   (facts "about placeholder section removal"
     (let [slug     "hello-world"
           payload  {:name "Hello World" :description "x"}
           response (mock/api-request :post "/companies" {:body payload})
-          company  (company/get-company slug)]
+          company  (company/get-company conn slug)]
       ;; ensure all placeholder sections are in company
       (:sections company) => {:progress ["update" "growth" "challenges" "team" "product"]
                               :financial ["finances"]
@@ -183,7 +189,7 @@
                      :financial []}
             response (mock/api-request :patch (company-rep/url slug) {:body {:sections new-set}})
             body     (mock/body-from-response response)
-            company  (company/get-company slug)]
+            company  (company/get-company conn slug)]
         (:status response) => 200
         (:sections company) => new-set
         (:growth company) => falsey
@@ -195,7 +201,7 @@
   (facts "about section removal"
 
     ;; verify the initial set of sections
-    (:sections (company/get-company r/slug)) => {:company ["help" "diversity" "values"]
+    (:sections (company/get-company conn r/slug)) => {:company ["help" "diversity" "values"]
                                                  :progress ["update" "team"]
                                                  :financial ["finances"]}
 
@@ -205,7 +211,7 @@
                        :financial ["finances"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
               body (mock/body-from-response response)
-              db-company (company/get-company r/slug)]
+              db-company (company/get-company conn r/slug)]
           (:status response) => 200
           (:sections body) => new-set
           (:update body) => (contains r/text-section-1)
@@ -229,7 +235,7 @@
                        :financial ["finances"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
               body (mock/body-from-response response)
-              db-company (company/get-company r/slug)]
+              db-company (company/get-company conn r/slug)]
           (:status response) => 200
           (:sections body) => new-set
           (:update body) => nil
@@ -253,7 +259,7 @@
                          :financial ["finances"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
               body (mock/body-from-response response)
-              db-company (company/get-company r/slug)]
+              db-company (company/get-company conn r/slug)]
           (:status response) => 200
           (:sections body) => new-order
           (:update body) => (contains r/text-section-1)
@@ -277,7 +283,7 @@
                          :financial []}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
               body (mock/body-from-response response)
-              db-company (company/get-company r/slug)]
+              db-company (company/get-company conn r/slug)]
           (:status response) => 200
           (:sections body) => new-order
           (:update body) => (contains r/text-section-1)
@@ -373,4 +379,4 @@
       
           (future-fact "extra properties aren't allowed")
 
-          (future-fact "read/only properties are ignored"))))))
+          (future-fact "read/only properties are ignored")))))))))
