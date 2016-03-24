@@ -1,8 +1,6 @@
 (ns open-company.resources.company
   (:require [medley.core :as med]
             [schema.core :as schema]
-            [defun :refer (defun)]
-            [open-company.lib.slugify :as slug]
             [open-company.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----

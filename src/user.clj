@@ -1,9 +1,6 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :as ctnrepl]
-            [taoensso.timbre :as timbre]
-            
-            [open-company.config :as c]
             [open-company.app :as app]
             [open-company.components :as components]))
 

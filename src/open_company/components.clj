@@ -1,6 +1,5 @@
 (ns open-company.components
   (:require [com.stuartsierra.component :as component]
-            [taoensso.timbre :as timbre]
             [open-company.db.pool :as pool]
             [org.httpkit.server :as httpkit]))
 

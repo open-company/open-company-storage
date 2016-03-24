@@ -8,8 +8,7 @@
             [clj-time.core :as time]
             [rethinkdb.query :as r]
             [open-company.lib.slugify :as slug]
-            [open-company.config :as config]
-            [open-company.db.pool :as pool]))
+            [open-company.config :as config]))
 
 ;; ----- RethinkDB metadata -----
 
