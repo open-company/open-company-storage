@@ -144,26 +144,8 @@
     (dotimes [i size]
       (grow pool))))
 
-(def rethinkdb-pool
-  (do (when (bound? #'rethinkdb-pool) (shutdown-pool! rethinkdb-pool))
-      (fixed-pool init-conn rethinkdb.core/close {:size config/db-pool-size
-                                                  :regenerate-interval 15})))
-
-
 (comment
   (timbre/set-config! (assoc open-company.config/log-config :level :trace))
-
-  (.size (:queue rethinkdb-pool))
-
-  (rebuild-pool! rethinkdb-pool)
-
-  (shutdown-pool! rethinkdb-pool)
-
-  (def c (.poll (:queue rethinkdb-pool)))
-
-  (deref c)
-
-  (rethinkdb.core/close c)
 
   (defn repro []
     (let [mk-conn #(r/connect :host "127.0.0.1" :port 28015 :db "test")
