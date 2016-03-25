@@ -60,21 +60,21 @@
                                           (dissoc :core))))
 
     (fact "with missing prior sections"
-                                      ; add the sections to be priors
+      ;; add the sections to be priors
       (s/put-section conn r/slug :update r/text-section-1 r/coyote)
       (s/put-section conn r/slug :values r/text-section-2 r/coyote)
       (s/put-section conn r/slug :finances r/finances-section-1 r/coyote)
-                                      ; remove the sections
+      ;; remove the sections
       (let [company (c/get-company conn r/slug)
             updated-company (-> company 
                                 (assoc :sections {:sections {:progress [] :company [] :financial []}})
                                 (dissoc :update))]
         (c/update-company conn r/slug updated-company))
-                                      ; verify the sections are gone
+      ;; verify the sections are gone
       (:update (c/get-company conn r/slug)) => nil
       (:values (c/get-company conn r/slug)) => nil
       (:finances (c/get-company conn r/slug)) => nil
-                                      ; velify missing prior sections comes back
+      ;; velify missing prior sections comes back
       (let [company (c/get-company conn r/slug)
             missing-sections {:sections {:progress ["update"] :company ["values"] :financial []}}
             fixed-company (c/add-prior-sections conn (merge company missing-sections))] ; this is what's tested
