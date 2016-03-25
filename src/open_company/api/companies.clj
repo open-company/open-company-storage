@@ -78,8 +78,8 @@
     [true {}])) ; it will fail later on :exists?
 
 (defn processable-post-req? [conn {:keys [user data]}]
-  (let [company (company/->company data user (find-slug conn data))
-        invalid? (schema/check common-res/Company company)
+  (let [company     (company/->company data user (find-slug conn data))
+        invalid?    (schema/check common-res/Company company)
         slug-taken? (not (company/slug-available? conn (:slug company)))]
     (cond
       invalid? [false {:reason invalid?}]
