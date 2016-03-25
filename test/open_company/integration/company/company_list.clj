@@ -44,12 +44,6 @@
 (def options  "OPTIONS, GET")
 (def authenticated-options  "OPTIONS, GET, POST")
 
-
-;; (ts/setup-system!)
-;; (into {} (deref ts/test-system))
-
-;; (mock/api-request :get "/companies")
-
 (with-state-changes [(before :contents (ts/setup-system!))
                      (after :contents (ts/teardown-system!))
                      (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]

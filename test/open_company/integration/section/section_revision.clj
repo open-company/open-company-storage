@@ -323,15 +323,15 @@
             (:placeholder body) => falsey))))
 
     (future-facts "with DELETE"
-                  #_(with-state-changes [(before :facts (c/create-company! conn (c/->company r/buffer r/coyote)))
-                                         (after :facts (c/delete-company conn (:slug r/buffer)))]
-                      (fact "update existing revision title"
-                        (let [response (mock/api-request :delete (section-rep/url (:slug r/buffer) :update))
-                              body     (mock/body-from-response response)
-                              company  (c/get-company conn (:slug r/buffer))]
-                          (:status response) => 200
-                          (-> company :update) => nil)))))
+      #_(with-state-changes [(before :facts (c/create-company! conn (c/->company r/buffer r/coyote)))
+                             (after :facts (c/delete-company conn (:slug r/buffer)))]
+          (fact "update existing revision title"
+            (let [response (mock/api-request :delete (section-rep/url (:slug r/buffer) :update))
+                  body     (mock/body-from-response response)
+                  company  (c/get-company conn (:slug r/buffer))]
+              (:status response) => 200
+              (-> company :update) => nil)))))
 
   (future-facts "about creating a new section revision"
-                (future-facts "with PUT")
-                (future-facts "with PATCH"))))
+    (future-facts "with PUT")
+    (future-facts "with PATCH"))))
