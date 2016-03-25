@@ -20,14 +20,14 @@
                                      (c/delete-all-companies! conn)))]
 
   (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-    (facts "about listing companies"
-      (fact "all existing companies are listed"
-        (map :name (c/list-companies conn)) => (just (set (map :name [r/open r/uni r/buffer]))))
+  (facts "about listing companies"
+    (fact "all existing companies are listed"
+      (map :name (c/list-companies conn)) => (just (set (map :name [r/open r/uni r/buffer]))))
 
-      (fact "removed companies are not listed"
-        (c/delete-company conn (:slug r/buffer))
-        (map :name (c/list-companies conn)) => (just (set (map :name [r/open r/uni]))))
+    (fact "removed companies are not listed"
+      (c/delete-company conn (:slug r/buffer))
+      (map :name (c/list-companies conn)) => (just (set (map :name [r/open r/uni]))))
 
-      (fact "companies can be queried via secondary indexes"
-        (count (c/get-companies-by-index conn "org-id" (:org-id r/sartre))) => 1
-        (:slug (first (c/get-companies-by-index conn "org-id" (:org-id r/sartre)))) => (:slug r/buffer)))))
+    (fact "companies can be queried via secondary indexes"
+      (count (c/get-companies-by-index conn "org-id" (:org-id r/sartre))) => 1
+      (:slug (first (c/get-companies-by-index conn "org-id" (:org-id r/sartre)))) => (:slug r/buffer)))))
