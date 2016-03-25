@@ -127,13 +127,12 @@
         (:diversity body) => (contains r/text-section-2)
         (:values body) => (contains r/text-section-1)
          ;; verify each section has all the HATEOAS links
-        ;; (prn (:sections body))
         (doseq [section-key (map keyword (flatten (vals (:sections body))))]
           (hateoas/verify-section-links (:slug r/open) section-key (:links (body section-key))))
         ;; verify the company has all the HATEOAS links
         (hateoas/verify-company-links (:slug r/open) (:links body))))
 
-    #_(fact "anonymously with no JWToken"
+    (fact "anonymously with no JWToken"
       ;; retrieve with no JWToken
       (let [response (mock/api-request :get (company-rep/url r/open) {:skip-auth true})
             body (mock/body-from-response response)]
@@ -149,7 +148,7 @@
         (count (:links body)) => 1
         (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))
 
-    #_(fact "that doesn't match the retrieving user's organization"
+    (fact "that doesn't match the retrieving user's organization"
       ;; retrieve with Sartre (different org)
       (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-sartre})
             body (mock/body-from-response response)]
