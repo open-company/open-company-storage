@@ -322,34 +322,34 @@
                   placeholder (dissoc (common-res/section-by-name :highlights) :section-name :core)]
               (:status response) => 200
               (:sections body) => new-sections
-                                      ; verify placeholder flag and content in response
+              ;; verify placeholder flag and content in response
               (:placeholder resp-highlights) => true 
               resp-highlights => (contains placeholder)
-                                      ; verify placeholder flag and content in DB
+              ;; verify placeholder flag and content in DB
               (:placeholder db-highlights) => true
               db-highlights => (contains placeholder)))
 
           (future-fact "that used to exist"
-                       (let [new-sections {:company [] :progress [] :financial []}
-                             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-                             body (mock/body-from-response response)
-                             db-company (company/get-company conn r/slug)]
-                         (:status response) => 200
-                         (:sections body) => new-sections
-                                      ; verify update is not in the response
-                         (:update body) => nil
-                                      ; verify update not in the DB
-                         (:update db-company) => nil)
-                       (let [new-sections {:company [] :progress ["update"] :financial []}
-                             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-                             body (mock/body-from-response response)
-                             db-company (company/get-company conn r/slug)]
-                         (:status response) => 200
-                         (:sections body) => new-sections
-                                      ; verify update is not in the response
-                         (:update body) => (contains r/text-section-1)
-                                      ; verify update not in the DB
-                         (:update db-company) => (contains r/text-section-1))))
+            (let [new-sections {:company [] :progress [] :financial []}
+                  response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+                  body (mock/body-from-response response)
+                  db-company (company/get-company conn r/slug)]
+              (:status response) => 200
+              (:sections body) => new-sections
+              ;; verify update is not in the response
+              (:update body) => nil
+              ;; verify update not in the DB
+              (:update db-company) => nil)
+            (let [new-sections {:company [] :progress ["update"] :financial []}
+                  response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+                  body (mock/body-from-response response)
+                  db-company (company/get-company conn r/slug)]
+              (:status response) => 200
+              (:sections body) => new-sections
+              ;; verify update is not in the response
+              (:update body) => (contains r/text-section-1)
+              ;; verify update not in the DB
+              (:update db-company) => (contains r/text-section-1))))
 
         (facts "with section content"
 
@@ -359,25 +359,25 @@
                 kudos-placeholder (common-res/section-by-name "kudos")]
 
             (future-fact "with minimal content"
-                         (let [kudos-content {:body "Fred is killing it"}
-                               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
-                                                                                                  :kudos kudos-content}})
-                               body (mock/body-from-response response)
-                               db-company (company/get-company conn r/slug)]
-                           (:status response) => 200
-                           (:body response) => nil))
+              (let [kudos-content {:body "Fred is killing it"}
+                    response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
+                                                                                       :kudos kudos-content}})
+                    body (mock/body-from-response response)
+                    db-company (company/get-company conn r/slug)]
+                (:status response) => 200
+                (:body response) => nil))
 
             (future-fact "with maximal content"
-                         (let [kudos-content {:title "Great Jobs!" :headline "Good stuff" :body "Fred is killing it"}
-                               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
-                                                                                                  :kudos kudos-content}})
-                               body (mock/body-from-response response)
-                               db-company (company/get-company conn r/slug)]
-                           (:status response) => 200
-                           (:body response) => nil))
+              (let [kudos-content {:title "Great Jobs!" :headline "Good stuff" :body "Fred is killing it"}
+                    response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
+                                                                                       :kudos kudos-content}})
+                    body (mock/body-from-response response)
+                    db-company (company/get-company conn r/slug)]
+                (:status response) => 200
+                (:body response) => nil))
 
             (future-fact "with too much content"
-                         
-                         (future-fact "extra properties aren't allowed")
+              
+              (future-fact "extra properties aren't allowed")
 
-                         (future-fact "read/only properties are ignored")))))))))
+              (future-fact "read/only properties are ignored")))))))))
