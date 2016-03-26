@@ -149,7 +149,7 @@
 
   :post! (fn [ctx] {:company (pool/with-pool [conn db-pool]
                                (->> (company/->company (:data ctx) (:user ctx) (find-slug conn (:data ctx)))
-                                    (company/add-placeholder-sections)
+                                    (company/add-core-placeholder-sections)
                                     (company/create-company! conn)))})
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))

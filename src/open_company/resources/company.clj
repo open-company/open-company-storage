@@ -108,11 +108,11 @@
   "Add the canonical placeholder section for any section names listed in the :sections property of the company,
   but that aren't present in the company."
   [company]
-  (let [sections (-> company :sections vals flatten vec)
-        missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
-        missing-sections (map common/section-by-name missing-section-names)
-        ; add :placeholder flag and remove :core flag
-        placeholder-sections (map #(dissoc % :core) (map #(assoc % :placeholder true) missing-sections))]
+  (let [sections              (-> company :sections vals flatten vec)
+        missing-section-names (->> sections (map keyword) (remove #(get company %)))
+        missing-sections      (map common/section-by-name missing-section-names)
+        ;; add :placeholder flag and remove :core flag
+        placeholder-sections (->> missing-sections (map #(dissoc % :core)) (map #(assoc % :placeholder true)))]
     (merge company (zipmap missing-section-names placeholder-sections))))
 
 (defn add-prior-sections
