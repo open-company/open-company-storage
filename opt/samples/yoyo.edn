@@ -18,6 +18,12 @@
       :financial []
       :company []
     }
+    :stakeholder-update {
+      :intro {
+        :body ""
+      }
+      :sections ["finances"]
+    }
   }
   :sections [
 

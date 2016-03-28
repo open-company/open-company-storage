@@ -162,6 +162,7 @@
     (-> company-props
         (assoc :slug slug)
         (update :currency #(or % "USD"))
+        (update :stakeholder-update #(or % {:intro {:body ""} :sections []}))
         (assoc :org-id (:org-id user))
         (complete-real-sections user)
         (categories-for)

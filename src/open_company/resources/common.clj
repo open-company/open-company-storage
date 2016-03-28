@@ -67,12 +67,19 @@
 
 ;; ----- Schemas -----
 
+(def CategoryName (schema/pred #((set category-names) (keyword %))))
+
 (def SectionName (schema/pred #(section-names (keyword %))))
 
 (def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {schema/Keyword [SectionName]})
+  {CategoryName [SectionName]})
+
+(def Author {
+  :name schema/Str
+  :user-id schema/Str
+  :image schema/Str})
 
 (def Section
   {(schema/optional-key :section-name) SectionName
@@ -83,6 +90,7 @@
    (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
    (schema/optional-key :updated-at) schema/Str
+   (schema/optional-key :author) Author
    schema/Keyword schema/Any})
 
 (def InlineSections
@@ -97,6 +105,14 @@
           :org-id schema/Str
           :sections SectionsOrder
           :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
+          :stakeholder-update {
+            :intro {
+              :body schema/Str
+              (schema/optional-key :updated-at) schema/Str
+              (schema/optional-key :author) Author
+            }
+            :sections [SectionName]
+          }
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :created-at) schema/Str

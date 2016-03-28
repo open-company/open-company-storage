@@ -19,6 +19,12 @@
       :financial ["finances"]
       :company ["diversity" "values"]
     }
+    :stakeholder-update {
+      :intro {
+        :body ""
+      }
+      :sections ["update" "growth" "finances" "help" "team" "product" "marketing" "customer-service"]
+    }
   }
 
   :sections [

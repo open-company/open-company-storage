@@ -18,6 +18,12 @@
       :financial ["finances"]
       :company []
     }
+    :stakeholder-update {
+      :intro {
+        :body ""
+      }
+      :sections ["growth" "finances"]
+    }
   }
 
   :sections [
@@ -25,7 +31,7 @@
     {
       :section {
         :title "Finances"
-        :data[
+        :data [
           {
             :period "2015-02"
             :cash 1200000
