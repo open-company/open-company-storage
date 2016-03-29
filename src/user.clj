@@ -2,13 +2,18 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :as ctnrepl]
             [open-company.app :as app]
+            [open-company.db.pool :as pool]
             [open-company.components :as components]))
 
 (def system nil)
+(def conn nil)
 
 (defn init []
   (alter-var-root #'system (constantly (components/oc-system {:handler-fn app/app
                                                               :port 3000}))))
+
+(defn bind-conn! []
+  (alter-var-root #'conn (constantly (pool/claim (get-in system [:db-pool :pool])))))
 
 (defn start []
   (alter-var-root #'system component/start))
@@ -18,7 +23,8 @@
 
 (defn go []
   (init)
-  (start))
+  (start)
+  (bind-conn!))
 
 (defn reset []
   (stop)
@@ -30,7 +36,7 @@
 
   (go)
 
-  (do 
+  (do
     (clojure.tools.namespace.repl/set-refresh-dirs "src")
     (reset))
 
