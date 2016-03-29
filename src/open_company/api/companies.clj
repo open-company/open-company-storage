@@ -90,42 +90,42 @@
 
 ;; A resource for a specific company.
 (defresource company
-  [db-pool slug]
+  [conn slug]
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-media-types [company-rep/media-type]
-  :exists? (fn [ctx] (pool/with-pool [conn db-pool] (get-company conn slug ctx)))
+  :exists? (fn [ctx] (get-company conn slug ctx))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx company-rep/media-type))
 
   :allowed-methods [:options :get :patch :delete]
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))
-    :patch (fn [ctx] (pool/with-pool [conn db-pool] (common/allow-org-members conn slug ctx)))
-    :delete (fn [ctx] (pool/with-pool [conn db-pool] (common/allow-org-members conn slug ctx)))})
+    :patch (fn [ctx] (common/allow-org-members conn slug ctx))
+    :delete (fn [ctx] (common/allow-org-members conn slug ctx))})
 
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (pool/with-pool [conn db-pool] (processable-patch-req? conn slug ctx)))})
+    :patch (fn [ctx] (processable-patch-req? conn slug ctx))})
 
   ;; Handlers
   :handle-ok (by-method {
-    :get (fn [ctx] (pool/with-pool [conn db-pool] (company-rep/render-company conn (:company ctx) (common/authorized-to-company? ctx))))
-    :patch (fn [ctx] (pool/with-pool [conn db-pool] (company-rep/render-company conn (:updated-company ctx))))})
+    :get (fn [ctx] (company-rep/render-company conn (:company ctx) (common/authorized-to-company? ctx)))
+    :patch (fn [ctx] (company-rep/render-company conn (:updated-company ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 company-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 company-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
-  :handle-options (fn [ctx] (pool/with-pool [conn db-pool] (options-for-company conn slug ctx)))
+  :handle-options (fn [ctx] (options-for-company conn slug ctx))
 
   ;; Delete a company
-  :delete! (fn [_] (pool/with-pool [conn db-pool] (company/delete-company conn slug)))
+  :delete! (fn [_] (company/delete-company conn slug))
 
   ;; Update a company
-  :patch! (fn [ctx] (pool/with-pool [conn db-pool] (patch-company conn slug (add-slug slug (:data ctx)) (:user ctx)))))
+  :patch! (fn [ctx] (patch-company conn slug (add-slug slug (:data ctx)) (:user ctx))))
 
 ;; A resource for a list of all the companies the user has access to.
-(defresource company-list [db-pool]
+(defresource company-list [conn]
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :available-charsets [common/UTF8]
@@ -140,20 +140,19 @@
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
 
   ;; Get a list of companies
-  :exists? (fn [_] {:companies (pool/with-pool [conn db-pool] (company/list-companies conn))})
+  :exists? (fn [_] {:companies (company/list-companies conn)})
 
   :processable? (by-method {
     :get true
     :options true
-    :post (fn [ctx] (pool/with-pool [conn db-pool] (processable-post-req? conn ctx)))})
+    :post (fn [ctx] (processable-post-req? conn ctx))})
 
-  :post! (fn [ctx] {:company (pool/with-pool [conn db-pool]
-                               (->> (company/->company (:data ctx) (:user ctx) (find-slug conn (:data ctx)))
-                                    (company/add-core-placeholder-sections)
-                                    (company/create-company! conn)))})
+  :post! (fn [ctx] {:company (->> (company/->company (:data ctx) (:user ctx) (find-slug conn (:data ctx)))
+                                  (company/add-core-placeholder-sections)
+                                  (company/create-company! conn))})
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
-  :handle-created (fn [ctx] (pool/with-pool [conn db-pool] (company-location-response conn (:company ctx))))
+  :handle-created (fn [ctx] (company-location-response conn (:company ctx)))
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])
                               (common/options-response [:options :get])))
@@ -162,22 +161,21 @@
 
 ;; A resource for the available sections for a specific company.
 (defresource section-list
-  [db-pool slug]
+  [conn slug]
   common/authenticated-resource ; verify validity and presence of required JWToken
 
   :available-charsets [common/UTF8]
   :available-media-types [company-rep/section-list-media-type]
   :allowed-methods [:options :get]
-  :allowed? (fn [ctx] (pool/with-pool [conn db-pool] (common/allow-org-members conn slug ctx)))
+  :allowed? (fn [ctx] (common/allow-org-members conn slug ctx))
 
   :handle-not-acceptable (common/only-accept 406 company-rep/section-list-media-type)
-  :handle-options (pool/with-pool [conn db-pool]
-                    (if (company/get-company conn slug)
-                      (common/options-response [:options :get])
-                      (common/missing-response)))
+  :handle-options (if (company/get-company conn slug)
+                    (common/options-response [:options :get])
+                    (common/missing-response))
 
   ;; Get a list of sections
-  :exists? (fn [ctx] (pool/with-pool [conn db-pool] (get-company conn slug ctx)))
+  :exists? (fn [ctx] (get-company conn slug ctx))
   :handle-ok (fn [_] sections))
 
 ;; ----- Routes -----
@@ -185,15 +183,15 @@
 (defn company-routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
-     (OPTIONS "/companies/:slug/section/new" [slug] (section-list db-pool slug))
-     (OPTIONS "/companies/:slug/section/new/" [slug] (section-list db-pool slug))
-     (GET "/companies/:slug/section/new" [slug] (section-list db-pool slug))
-     (GET "/companies/:slug/section/new/" [slug] (section-list db-pool slug))
-     (ANY "/companies/:slug" [slug] (company db-pool slug))
-     (ANY "/companies/:slug/" [slug] (company db-pool slug))
-     (OPTIONS "/companies/" [] (company-list db-pool))
-     (OPTIONS "/companies" [] (company-list db-pool))
-     (GET "/companies/" [] (company-list db-pool))
-     (GET "/companies" [] (company-list db-pool))
-     (POST "/companies/" [] (company-list db-pool))
-     (POST "/companies" [] (company-list db-pool)))))
+     (OPTIONS "/companies/:slug/section/new" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+     (OPTIONS "/companies/:slug/section/new/" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+     (GET "/companies/:slug/section/new" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+     (GET "/companies/:slug/section/new/" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+     (ANY "/companies/:slug" [slug] (pool/with-pool [conn db-pool] (company conn slug)))
+     (ANY "/companies/:slug/" [slug] (pool/with-pool [conn db-pool] (company conn slug)))
+     (OPTIONS "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
+     (OPTIONS "/companies" [] (pool/with-pool [conn db-pool] (company-list conn)))
+     (GET "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
+     (GET "/companies" [] (pool/with-pool [conn db-pool] (company-list conn)))
+     (POST "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
+     (POST "/companies" [] (pool/with-pool [conn db-pool] (company-list conn))))))

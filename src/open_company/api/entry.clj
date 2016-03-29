@@ -26,7 +26,7 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-(defresource entry-point [db-pool]
+(defresource entry-point [conn]
   common/anonymous-resource
 
   :allowed-methods [:options :get]
@@ -36,13 +36,16 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 "application/json"))
 
-  :handle-ok (fn [ctx] (pool/with-pool [conn db-pool] (render-entry conn ctx)))
+  :handle-ok (fn [ctx]
+               (prn conn)
+               (render-entry conn ctx))
 
   :handle-options (common/options-response [:options :get]))
 
 ;; ----- Routes -----
 
 (defn entry-routes [sys]
-  (compojure/routes
-   (OPTIONS "/" [] (entry-point (-> sys :db-pool :pool)))
-   (GET "/" [] (entry-point (-> sys :db-pool :pool)))))
+  (let [db-pool (-> sys :db-pool :pool)]
+    (compojure/routes
+     (OPTIONS "/" [] (pool/with-pool [conn db-pool] (entry-point conn)))
+     (GET "/" [] (pool/with-pool [conn db-pool] (entry-point conn))))))
