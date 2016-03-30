@@ -204,114 +204,91 @@ Then enter these commands one-by-one, noting the output:
 })
 
 
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (company/create-company!
-   conn
-   (company/->company {:name "Blank Inc."
-                       :description "We're busy ideating."
-                       :currency "GBP"}
-                      author)))
+(company/create-company!
+ user/conn
+ (company/->company {:name "Blank Inc."
+                                            :slug "blank-inc"
+                                            :description "We're busy ideating."
+                                            :currency "GBP"}
+                                           author))
 
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (company/create-company!
-   conn
-   (company/->company {:name "OpenCompany"
-                       :description "Startup Transparency Made Simple"
-                       :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
-                       :slug "open"
-                       :home-page "https://opencompany.com/"
-                       :currency "USD"
-                       :finances {:title "Finances" :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
-                      author)))
+(company/create-company!
+ user/conn
+ (company/->company {:name "OpenCompany"
+                     :description "Startup Transparency Made Simple"
+                     :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
+                     :slug "open"
+                     :home-page "https://opencompany.com/"
+                     :currency "USD"
+                     :finances {:title "Finances" :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
+                    author))
 
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (company/create-company!
-   conn
-   (company/->company {:name "Buffer"
-                       :currency "USD"
-                       :description "A better way to share on social media."
-                       :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
-                       :home-page "https://buffer.com/"
-                       :update {:title "Founder's Update"
-                                :headline "Buffer in October."
-                                :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
-                       :finances {:title "Finances"
-                                  :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
-                                         {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
-                                  :notes {:body "Good stuff! Revenue is up."}}}
-                      author)))
+(company/create-company!
+ user/conn
+ (company/->company {:name "Buffer"
+                     :currency "USD"
+                     :description "A better way to share on social media."
+                     :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
+                     :home-page "https://buffer.com/"
+                     :update {:title "Founder's Update"
+                              :headline "Buffer in October."
+                              :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
+                     :finances {:title "Finances"
+                                :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
+                                       {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
+                                :notes {:body "Good stuff! Revenue is up."}}}
+                    author))
 
 ;; list companies
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (company/list-companies conn))
+(company/list-companies user/conn)
 
 ;; get a company
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (company/get-company conn "blank-inc")))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (company/get-company conn "open")))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (company/get-company conn "buffer")))
+(aprint (company/get-company user/conn "blank-inc"))
+(aprint (company/get-company user/conn "open"))
+(aprint (company/get-company user/conn "buffer"))
 
 ;; create/update a section
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                          {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-                                                   :notes {:body "we got our first customer! revenue ftw!"}} author))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
-                                                          {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                          {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-  :notes {:body "we got our first customer! revenue ftw!"}} author))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
-                                                          {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                          {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
-                                                          {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
-                                                   :notes {:body "we got our second customer! more revenue ftw!"}} author))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (company/get-company conn "blank-inc")))
+(section/put-section user/conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
+(section/put-section user/conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                             {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+                                                      :notes {:body "we got our first customer! revenue ftw!"}} author)
+(section/put-section user/conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+                                                             {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                             {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+                                                      :notes {:body "we got our first customer! revenue ftw!"}} author)
+(section/put-section user/conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+                                                             {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                             {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
+                                                             {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
+                                                      :notes {:body "we got our second customer! more revenue ftw!"}} author)
+(aprint (company/get-company user/conn "blank-inc"))
 
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/put-section conn "buffer" :update {:headline "it's all meh."} author)
-  (aprint (company/get-company conn "buffer")))
+(section/put-section user/conn "buffer" :update {:headline "it's all meh."} author)
+(aprint (company/get-company user/conn "buffer"))
 
 ;; get a section
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (section/get-section conn "blank-inc" :finances)))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (section/get-section conn "buffer" :update)))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (aprint (section/get-section conn "buffer" :finances)))
+(aprint (section/get-section user/conn "blank-inc" :finances))
+(aprint (section/get-section user/conn "buffer" :update))
+(aprint (section/get-section user/conn "buffer" :finances))
 
 ;; list revisions
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/list-revisions conn "blank-inc" :finances))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/list-revisions conn "buffer" :update))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/list-revisions conn "buffer" :finances))
+(section/list-revisions user/conn "blank-inc" :finances)
+(section/list-revisions user/conn "buffer" :update)
+(section/list-revisions user/conn "buffer" :finances)
 ;; note: due to revision collapsing by same author in a short period, there won't as many revisions as you
 ;; might think. the introduction of a new note by the same author in finances section of blank-inc causes
 ;; a new revision, but the rest of the updates above are collapsed into one revision.
 
 ;; get revisions
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/get-revisions conn "blank-inc" :finances))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/get-revisions conn "buffer" :update))
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (section/get-revisions conn "buffer" :finances))
+(section/get-revisions user/conn "blank-inc" :finances)
+(section/get-revisions user/conn "buffer" :update)
+(section/get-revisions user/conn "buffer" :finances)
 
 ;; delete a company
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (company/delete-company conn "blank-inc"))
+(company/delete-company user/conn "blank-inc")
 
 ;; cleanup
-(pool/with-pool [conn (-> user/system :db-pool :pool)]
-  (company/delete-all-companies! conn))
+(company/delete-all-companies! user/conn)
 ```
 
 
