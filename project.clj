@@ -124,7 +124,7 @@
     :welcome (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
                       "OpenCompany REPL\n"
                       "Database: " open-company.config/db-name "\n"
-                      "Ready to do your bidding... I suggest (go) or (go <port>) as your first command\n"))
+                      "Ready to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
     :init-ns user
   }
 
