@@ -1,6 +1,7 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :as ctnrepl]
+            [open-company.config :as c]
             [open-company.app :as app]
             [open-company.db.pool :as pool]
             [open-company.components :as components]))
@@ -8,9 +9,11 @@
 (def system nil)
 (def conn nil)
 
-(defn init []
+(defn init
+  ([] (init c/api-server-port))
+  ([port]
   (alter-var-root #'system (constantly (components/oc-system {:handler-fn app/app
-                                                              :port 3000}))))
+                                                              :port port})))))
 
 (defn bind-conn! []
   (alter-var-root #'conn (constantly (pool/claim (get-in system [:db-pool :pool])))))
@@ -21,10 +24,12 @@
 (defn stop []
   (alter-var-root #'system (fn [s] (when s (component/stop s)))))
 
-(defn go []
-  (init)
+(defn go
+  ([] (go c/api-server-port)) 
+  ([port]
+  (init port)
   (start)
-  (bind-conn!))
+  (bind-conn!)))
 
 (defn reset []
   (stop)

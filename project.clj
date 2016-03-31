@@ -92,7 +92,21 @@
                  '[clojure.stacktrace :refer (print-stack-trace)]
                  '[clj-time.core :as t]
                  '[clj-time.format :as f]
-                 '[clojure.string :as s])
+                 '[clojure.string :as s]
+                 '[rethinkdb.query :as r]
+                 '[schema.core :as schema]
+                 '[cheshire.core :as json]
+                 '[ring.mock.request :refer (request body content-type header)]
+                 '[open-company.lib.rest-api-mock :refer (api-request)]
+                 '[open-company.app :refer (app)]
+                 '[open-company.config :as c]
+                 '[open-company.db.init :as db]
+                 '[open-company.lib.slugify :as slug]
+                 '[open-company.resources.common :as common]
+                 '[open-company.resources.company :as company]
+                 '[open-company.resources.section :as section]
+                 '[open-company.representations.company :as company-rep]
+                 '[open-company.representations.section :as section-rep])
       ]
     }]
 
@@ -104,6 +118,14 @@
         :hot-reload "false"
       }
     }
+  }
+
+  :repl-options {
+    :welcome (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
+                      "OpenCompany REPL\n"
+                      "Database: " open-company.config/db-name "\n"
+                      "Ready to do your bidding... I suggest (go) or (go <port>) as your first command\n"))
+    :init-ns user
   }
 
   :aliases {

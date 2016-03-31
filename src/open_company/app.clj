@@ -14,15 +14,15 @@
     [com.stuartsierra.component :as component]
     [open-company.components :as components]
     [open-company.config :as c]
-    [open-company.api.entry :as entry]
-    [open-company.api.companies :as company]
-    [open-company.api.sections :as section]))
+    [open-company.api.entry :as entry-api]
+    [open-company.api.companies :as comp-api]
+    [open-company.api.sections :as sect-api]))
 
 (defn routes [sys]
   (compojure/routes
-   (entry/entry-routes sys)
-   (company/company-routes sys)
-   (section/section-routes sys)))
+   (entry-api/entry-routes sys)
+   (comp-api/company-routes sys)
+   (sect-api/section-routes sys)))
 
 (defn app [sys]
   (cond-> (routes sys)
