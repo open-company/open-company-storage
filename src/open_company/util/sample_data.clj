@@ -3,6 +3,7 @@
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
             [defun :refer (defun-)]
+            [open-company.db.pool :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section])
@@ -16,9 +17,9 @@
 
 (defun- import-sections
   "Add each section to the company recursively."
-  ([_company-slug _sections :guard empty? _org-id] true)
+  ([conn _company-slug _sections :guard empty? _org-id] true)
 
-  ([company-slug sections org-id]
+  ([conn company-slug sections org-id]
   (let [section (first sections)
         section-name (:section-name section)
         timestamp (:timestamp section)
@@ -26,39 +27,40 @@
         message (str "'" section-name "' at " timestamp " by " (:name author) ".")]
     (println (str "Creating " message))
     (if
-      (section/put-section company-slug section-name (:section section) (assoc author :org-id org-id) timestamp)
+      (section/put-section conn company-slug section-name (:section section) (assoc author :org-id org-id) timestamp)
       (println (str "SUCCESS: created " message))
       (println (str "FAILURE: creating " message))))
-  (recur company-slug (rest sections) org-id)))
+  (recur conn company-slug (rest sections) org-id)))
 
 (defn- import-sections-map
   "Update the company with the specified slug with the specified :sections map."
-  [slug sections]
+  [conn slug sections]
   (println (str "Updating company sections for '" slug "'."))
-  (if-let [original-company (common/read-resource company/table-name slug)]
-    (common/update-resource company/table-name :slug original-company (assoc original-company :sections sections))))
+  (if-let [original-company (common/read-resource conn company/table-name slug)]
+    (common/update-resource conn company/table-name :slug original-company (assoc original-company :sections sections))))
 
 ;; ----- Company import -----
 
-(defn import-company [options data]
+(defn import-company [conn options data]
   (let [company (:company data)
         slug (:slug company)
         delete (:delete options)
         author (:author company)
         org-id (:org-id company)]
-    (when (and delete (company/get-company slug))
+    (when (and delete (company/get-company conn slug))
       (println (str "Deleting company '" slug "'."))
-      (company/delete-company slug))
+      (company/delete-company conn slug))
     (when-not delete
-      (when (company/get-company slug)
+      (when (company/get-company conn slug)
         (exit 1 (str "A company for '" slug "' already exists. Use the -d flag to delete the company on import."))))
     (println (str "Creating company '" slug "' by " (:name author)"."))
     (company/create-company!
+     conn
      (company/->company
       (dissoc company :author :timestamp :sections :org-id)
       (assoc author :org-id org-id)))
-    (import-sections slug (:sections data) org-id)
-    (import-sections-map slug (:sections company)))
+    (import-sections conn slug (:sections data) org-id)
+    (import-sections-map conn slug (:sections company)))
   (println "\nImport complete!\n"))
 
 ;; ----- CLI -----
@@ -101,6 +103,7 @@
     ;; Get the list of files to import
     (try
       (let [arg (first arguments)
+            conn (db/init-conn)
             edn-file #".*\.edn$"
             filenames (if (re-matches edn-file arg)
                         [arg] ; they specified just 1 file
@@ -109,7 +112,7 @@
         (doseq [filename filenames]
           (let [data (read-string (slurp filename))]
             (if (and (map? data) (:company data) (:sections data))
-              (import-company options data)
+              (import-company conn options data)
               (exit 1 (data-msg))))))
       (catch Exception e
         (println e)

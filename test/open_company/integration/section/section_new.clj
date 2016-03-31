@@ -3,15 +3,12 @@
             [cheshire.core :as json]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
-            [open-company.lib.db :as db]
+            [open-company.db.pool :as pool]
+            [open-company.lib.test-setup :as ts]
             [open-company.config :as config]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
-
-;; ----- Startup -----
-
-(db/test-startup)
 
 ;; ----- Test Cases -----
 
@@ -49,10 +46,12 @@
 
 (def url (str (company-rep/url r/slug) "/section/new"))
 
-(with-state-changes [(before :facts (do
-                                      (company/delete-all-companies!)
-                                      (company/create-company! (company/->company r/open r/coyote))))
-                     (after :facts (company/delete-all-companies!))]
+(with-state-changes [(before :contents (ts/setup-system!))
+                     (after :contents (ts/teardown-system!))
+                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                      (company/delete-all-companies! conn)
+                                      (company/create-company! conn (company/->company r/open r/coyote))))
+                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)] (company/delete-all-companies! conn)))]
 
   (facts "about available options for new section templates"
 

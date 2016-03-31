@@ -63,43 +63,34 @@
   [company]
   (dissoc company :org-id :id))
 
-(defun- sections
-  "Get a representation of each section for the REST API"
-  ([company authorized] (sections company (flatten (vals (:sections company))) authorized))
-  ([company _sections :guard empty? _authorized] company)
-  ([company sections authorized]
-    (let [company-slug (:slug company)
-          section-name (keyword (first sections))
-          section (-> (company section-name)
-                    (assoc :company-slug company-slug)
-                    (assoc :section-name section-name))]
-      (recur
-        (assoc company section-name (section-rep/section-for-rendering section authorized))
-        (rest sections)
-        authorized))))
-
-(defn- revision-links
-  "Add the HATEAOS revision links to the company"
-  [company]
-  (let [company-slug (:slug company)
-        revisions (company/list-revisions company-slug)]
-    (assoc company :revisions (flatten
-      (map #(revision-link company-slug (:updated-at %)) revisions)))))
+(defn sections*
+  [{:keys [slug] :as company} conn authorized]
+  (reduce (fn [company section]
+            (update company section (fn update-fn [s]
+                                      (section-rep/section-for-rendering
+                                       conn
+                                       (merge s {:company-slug slug
+                                                 :section-name section})
+                                       authorized))))
+          company
+          (map keyword (flatten (vals (:sections company))))))
 
 (defn- company-for-rendering
   "Get a representation of the company for the REST API"
-  [company authorized]
+  [conn company authorized]
   (-> company
     (clean)
-    (revision-links)
+    (assoc :revisions (company/list-revisions conn (:slug company)))
+    (update :revisions #(map (fn [rev] (revision-link (:slug company) (:updated-at rev))) %))
     (company-links (if authorized :all-links [:self]))
-    (sections authorized)))
+    (sections* conn authorized)))
 
 (defn render-company
   "Create a JSON representation of a company for the REST API"
-  ([company] (render-company company true))
-  ([company authorized]
-  (json/generate-string (company-for-rendering company authorized) {:pretty true})))
+  ([conn company]
+   (render-company conn company true))
+  ([conn company authorized]
+  (json/generate-string (company-for-rendering conn company authorized) {:pretty true})))
 
 (defn render-company-list
   "Create a JSON representation of a group of companies for the REST API"
