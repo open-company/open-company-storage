@@ -18,6 +18,15 @@
     [open-company.api.companies :as comp-api]
     [open-company.api.sections :as sect-api]))
 
+;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
+(Thread/setDefaultUncaughtExceptionHandler
+ (reify Thread$UncaughtExceptionHandler
+   (uncaughtException [_ thread ex]
+     (timbre/error ex "Uncaught exception on" (.getName thread))
+     (sentry/capture c/dsn (-> {:message (.getMessage ex)}
+                               (assoc-in [:extra :exception-data] (ex-data ex))
+                               (sentry-interfaces/stacktrace ex))))))
+
 (defn routes [sys]
   (compojure/routes
    (entry-api/entry-routes sys)
@@ -32,19 +41,22 @@
    c/hot-reload      wrap-reload
    c/dsn             (sentry-mw/wrap-sentry c/dsn)))
 
+(declare handler)
+(when c/prod?
+  (timbre/set-config! c/log-config)
+  (timbre/info "Starting production system without HTTP server")
+  (def handler
+    (-> (components/oc-system {:handler-fn app})
+        (dissoc :server)
+        component/start
+        (get-in [:handler :handler])))
+  (timbre/info "Started"))
+
 (defn start [port]
   (timbre/set-config! c/log-config)
-  ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
-  (Thread/setDefaultUncaughtExceptionHandler
-   (reify Thread$UncaughtExceptionHandler
-     (uncaughtException [_ thread ex]
-       (timbre/error ex "Uncaught exception on" (.getName thread))
-       (sentry/capture c/dsn (-> {:message (.getMessage ex)}
-                                 (assoc-in [:extra :exception-data] (ex-data ex))
-                                 (sentry-interfaces/stacktrace ex))))))
 
   (-> {:handler-fn app :port port}
-      components/oc-system 
+      components/oc-system
       component/start)
 
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"

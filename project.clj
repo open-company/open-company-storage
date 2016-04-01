@@ -114,6 +114,7 @@
     :prod {
       :env {
         :db-name "open_company"
+        :env "production"
         :liberator-trace "false"
         :hot-reload "false"
       }
@@ -125,7 +126,7 @@
                       "OpenCompany REPL\n"
                       "Database: " open-company.config/db-name "\n"
                       "Ready to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
-    :init-ns user
+    :init-ns dev
   }
 
   :aliases {

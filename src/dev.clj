@@ -1,4 +1,4 @@
-(ns user
+(ns dev
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :as ctnrepl]
             [open-company.config :as c]
@@ -25,7 +25,7 @@
   (alter-var-root #'system (fn [s] (when s (component/stop s)))))
 
 (defn go
-  ([] (go c/api-server-port)) 
+  ([] (go c/api-server-port))
   ([port]
   (init port)
   (start)
