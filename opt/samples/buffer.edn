@@ -2134,7 +2134,7 @@
       :section {
         :title "Asks"
         :headline "One quick ask."
-        :body "<p>One quick ask: Recently we launched a brand new feature:
+        :body "<p>Recently we launched a brand new feature:
         <a href=\"https://blog.bufferapp.com/social-media-calendar\">Social Media Calendar</a>.
         We'd love your help to spread the word. <a href=\"https://twitter.com/intent/tweet?text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:%20https://blog.bufferapp.com/social-media-calendar%20pic.twitter.com/Y8XdRyU9ie\">Tweet</a>
         or <a href=\"https://buffer.com/add?url=https%3A%2F%2Fblog.bufferapp.com%2Fsocial-media-calendar&text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:&picture=https%3A%2F%2Fbufferblog-wpengine.netdna-ssl.com%2Fwp-content%2Fuploads%2F2015%2F11%2Fcalendar-launch-600x410%402x.png&version=2.13.12&placement=hover_button_image\">Buffer</a>!</p>"
