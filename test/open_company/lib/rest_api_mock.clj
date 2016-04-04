@@ -5,6 +5,7 @@
             [ring.mock.request :refer (request body content-type header)]
             [cheshire.core :as json]
             [open-company.app :refer (app)]
+            [open-company.lib.test-setup :as ts]
             [open-company.representations.company :as company-rep]))
 
 ;; JWToken for use with QA profile - matches open-company.lib.resources/coyote
@@ -49,7 +50,7 @@
         headers-request (apply-headers initial-request headers-auth)
         body-value (:body options)
         body-request (if (:skip-body options) headers-request (body headers-request (json/generate-string body-value)))]
-    (app body-request))))
+    ((-> ts/test-system deref :handler :handler) body-request))))
 
 (defn body-from-response
   "Return just the parsed JSON body from an API REST response, or return the raw result

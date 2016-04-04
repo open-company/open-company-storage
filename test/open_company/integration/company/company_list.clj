@@ -4,14 +4,12 @@
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
+            [open-company.db.pool :as pool]
+            [open-company.lib.test-setup :as ts]
             [open-company.lib.slugify :refer (slugify)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
-
-;; ----- Startup -----
-
-(db/test-startup)
 
 ;; ----- Test Cases -----
 
@@ -46,12 +44,15 @@
 (def options  "OPTIONS, GET")
 (def authenticated-options  "OPTIONS, GET, POST")
 
-(with-state-changes [(before :facts (do
-                                      (company/delete-all-companies!)
-                                      (company/create-company! (company/->company r/open r/coyote))
-                                      (company/create-company! (company/->company r/uni r/camus))
-                                      (company/create-company! (company/->company r/buffer r/sartre))))
-                     (after :facts (company/delete-all-companies!))]
+(with-state-changes [(before :contents (ts/setup-system!))
+                     (after :contents (ts/teardown-system!))
+                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                      (company/delete-all-companies! conn)
+                                      (company/create-company! conn (company/->company r/open r/coyote))
+                                      (company/create-company! conn (company/->company r/uni r/camus (slugify (:name r/uni))))
+                                      (company/create-company! conn (company/->company r/buffer r/sartre))))
+                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                     (company/delete-all-companies! conn)))]
 
   (facts "about available options in listing companies"
 
@@ -104,7 +105,8 @@
           (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company)))))
 
     (fact "removed companies are not listed"
-      (company/delete-company (:slug r/buffer))
+      (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+        (company/delete-company conn (:slug r/buffer)))
       (let [response (mock/api-request :get "/companies")
             body (mock/body-from-response response)
             companies (get-in body [:collection :companies])]

@@ -33,6 +33,7 @@
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.7.3"] ; Utility functions https://github.com/weavejester/medley
+    [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
  ]
 
   ;; Production plugins
@@ -91,7 +92,21 @@
                  '[clojure.stacktrace :refer (print-stack-trace)]
                  '[clj-time.core :as t]
                  '[clj-time.format :as f]
-                 '[clojure.string :as s])
+                 '[clojure.string :as s]
+                 '[rethinkdb.query :as r]
+                 '[schema.core :as schema]
+                 '[cheshire.core :as json]
+                 '[ring.mock.request :refer (request body content-type header)]
+                 '[open-company.lib.rest-api-mock :refer (api-request)]
+                 '[open-company.app :refer (app)]
+                 '[open-company.config :as c]
+                 '[open-company.db.init :as db]
+                 '[open-company.lib.slugify :as slug]
+                 '[open-company.resources.common :as common]
+                 '[open-company.resources.company :as company]
+                 '[open-company.resources.section :as section]
+                 '[open-company.representations.company :as company-rep]
+                 '[open-company.representations.section :as section-rep])
       ]
     }]
 
@@ -99,10 +114,19 @@
     :prod {
       :env {
         :db-name "open_company"
+        :env "production"
         :liberator-trace "false"
         :hot-reload "false"
       }
     }
+  }
+
+  :repl-options {
+    :welcome (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
+                      "OpenCompany REPL\n"
+                      "Database: " open-company.config/db-name "\n"
+                      "Ready to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
+    :init-ns dev
   }
 
   :aliases {
@@ -123,7 +147,7 @@
 
   :eastwood {
     ;; Disable some linters that are enabled by default
-    :exclude-linters [:wrong-arity]
+    :exclude-linters [:constant-test :wrong-arity]
     ;; Enable some linters that are disabled by default
     :add-linters [:unused-namespaces :unused-private-vars] ; :unused-locals]
 

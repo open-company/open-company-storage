@@ -39,15 +39,6 @@
     (update-link company-slug section-name)
     (partial-update-link company-slug section-name)]))))
 
-(defn revision-links
-  "Add the HATEAOS revision links to the section"
-  ([section] (revision-links (:company-slug section) (:section-name section) section))
-
-  ([company-slug section-name section]
-  (assoc section :revisions (flatten
-    (map #(revision-link company-slug section-name (:updated-at %))
-      (section/list-revisions company-slug (name section-name)))))))
-
 (defn- clean
   "Remove properties of the section that aren't needed in the REST API representation"
   [section]
@@ -59,17 +50,18 @@
 
 (defn section-for-rendering
   "Get a representation of the section for the REST API"
-  [section authorized]
+  [conn {:keys [company-slug section-name] :as section} authorized]
   (-> section
-    (revision-links)
+    (assoc :revisions (section/list-revisions conn company-slug section-name))
+    (update :revisions #(map (fn [rev] (revision-link company-slug section-name (:updated-at rev))) %))
     (section-links authorized)
     (clean)))
 
 (defn render-section
   "Create a JSON representation of the section for the REST API"
-  ([section]
-    (render-section section true false))
-  ([section authorized]
-    (render-section section authorized false))
-  ([section authorized read-only]
-    (json/generate-string (section-for-rendering section (and authorized (not read-only))) {:pretty true})))
+  ([conn section]
+    (render-section conn section true false))
+  ([conn section authorized]
+    (render-section conn section authorized false))
+  ([conn section authorized read-only]
+    (json/generate-string (section-for-rendering conn section (and authorized (not read-only))) {:pretty true})))

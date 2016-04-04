@@ -1,5 +1,7 @@
 (ns open-company.integration.entry
   (:require [midje.sweet :refer :all]
+            [open-company.db.pool :as pool]
+            [open-company.lib.test-setup :as ts]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
@@ -9,12 +11,6 @@
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
 
-;; ----- Startup -----
-
-(db/test-startup)
-
-;; ----- Tests -----
-
 (defn get-links-by-rel [rel response]
   (let [links (:links (mock/body-from-response response))]
     (-> (group-by :rel links)
@@ -22,12 +18,15 @@
 
 (def options  "OPTIONS, GET")
 
-(with-state-changes [(before :facts (do
-                                      (company/delete-all-companies!)
-                                      (company/create-company! (company/->company r/open r/coyote))
-                                      (company/create-company! (company/->company r/uni r/camus))
-                                      (company/create-company! (company/->company r/buffer r/sartre))))
-                     (after :facts (company/delete-all-companies!))]
+(with-state-changes [(before :contents (ts/setup-system!))
+                     (after :contents (ts/teardown-system!))
+                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                      (company/delete-all-companies! conn)
+                                      (company/create-company! conn (company/->company r/open r/coyote))
+                                      (company/create-company! conn (company/->company r/uni r/camus (slugify (:name r/uni))))
+                                      (company/create-company! conn (company/->company r/buffer r/sartre))))
+                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                     (company/delete-all-companies! conn)))]
 
   (facts "about available options in entry point"
     (fact "with a bad JWToken"

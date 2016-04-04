@@ -15,6 +15,8 @@
 (defonce processors (.availableProcessors (Runtime/getRuntime)))
 (defonce core-async-limit (+ 42 (* 2 processors)))
 
+(defonce prod? (= "production" (env :env)))
+
 ;; ----- RethinkDB -----
 
 (defonce db-host (or (env :db-host) "localhost"))

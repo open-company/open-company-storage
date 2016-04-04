@@ -137,9 +137,9 @@
 
 (defn allow-org-members
   "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
-  [company-slug ctx]
+  [conn company-slug ctx]
   (let [user    (:user ctx)
-        company (company/get-company company-slug)]
+        company (company/get-company conn company-slug)]
     (cond
       (and user company) (authorized-to-company? {:company company :user user})
       (nil? company)     true

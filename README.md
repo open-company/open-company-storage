@@ -178,14 +178,13 @@ lein repl
 Then enter these commands one-by-one, noting the output:
 
 ```clojure
-(require '[open-company.db.init :as db])
-(require '[open-company.resources.company :as company])
-(require '[open-company.resources.section :as section])
+;; start the development system
+(go) ; NOTE: if you are already running the API externally to the REPL, use `(go 3737)` to change the port
 
-;; Create DB and tables and indexes
+;; create db and tables and indexes
 (db/init)
 
-;; Create some companies
+;; create some companies
 
 (def author {
   :user-id "slack:123456"
@@ -199,90 +198,91 @@ Then enter these commands one-by-one, noting the output:
 })
 
 (company/create-company!
- (company/->company {:name "Blank Inc."
-                     :description "We're busy ideating."
-                     :currency "GBP"}
+  conn
+  (company/->company {:name "Blank Inc."
+                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
+                      :description "We're busy ideating."
+                      :currency "GBP"}
                     author))
 
 (company/create-company!
- (company/->company {:name "OpenCompany"
-                     :description "Startup Transparency Made Simple"
-                     :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
-                     :slug "open"
-                     :home-page "https://opencompany.com/"
-                     :currency "USD"
-                     :finances {:title "Finances"
-                     :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
-                     author))
-
-(company/create-company!
- (company/->company {:name "Buffer"
-                     :currency "USD"
-                     :description "A better way to share on social media."
-                     :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
-                     :home-page "https://buffer.com/"
-                     :update {:title "Founder's Update"
-                              :headline "Buffer in October."
-                              :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
-                     :finances {:title "Finances"
-                                :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
-                                       {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
-                                :notes {:body "Good stuff! Revenue is up."}}}
+  conn
+  (company/->company {:name "OpenCompany"
+                      :slug "open"
+                      :description "Startup Transparency Made Simple"
+                      :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
+                      :home-page "https://opencompany.com/"
+                      :currency "USD"
+                      :finances {:title "Finances" :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
                     author))
 
-;; List companies
-(company/list-companies)
+(company/create-company!
+  conn
+  (company/->company {:name "Buffer"
+                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
+                      :currency "USD"
+                      :description "A better way to share on social media."
+                      :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
+                      :home-page "https://buffer.com/"
+                      :update {:title "Founder's Update"
+                               :headline "Buffer in October."
+                               :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
+                      :finances {:title "Finances"
+                                 :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
+                                        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
+                                 :notes {:body "Good stuff! Revenue is up."}}}
+                    author))
 
-;; Get a company
-(aprint (company/get-company "blank-inc"))
-(aprint (company/get-company "open"))
-(aprint (company/get-company "buffer"))
+;; list companies
+(company/list-companies conn)
 
-;; Create/update a section
-(section/put-section "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
-(section/put-section "blank-inc" :finances {:data [
-  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-  :notes {:body "We got our first customer! Revenue FTW!"}} author)
-(section/put-section "blank-inc" :finances {:data [
-  {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
-  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-  :notes {:body "We got our first customer! Revenue FTW!"}} author)
-(section/put-section "blank-inc" :finances {:data [
-  {:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
-  {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-  {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
-  {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
-  :notes {:body "We got our second customer! More revenue FTW!"}} author)
-(aprint (company/get-company "blank-inc"))
+;; get a company
+(aprint (company/get-company conn "blank-inc"))
+(aprint (company/get-company conn "open"))
+(aprint (company/get-company conn "buffer"))
 
-(section/put-section "buffer" :update {:headline "It's all meh."} author)
-(aprint (company/get-company "buffer"))
+;; create/update a section
+(section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
+(section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+                                                 :notes {:body "we got our first customer! revenue ftw!"}} author)
+(section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+                                                        {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
+                                                 :notes {:body "we got our first customer! revenue ftw!"}} author)
+(section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+                                                        {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
+                                                        {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
+                                                 :notes {:body "we got our second customer! more revenue ftw!"}} author)
+(aprint (company/get-company conn "blank-inc"))
 
-;; Get a section
-(aprint (section/get-section "blank-inc" :finances))
-(aprint (section/get-section "buffer" :update))
-(aprint (section/get-section "buffer" :finances))
+(section/put-section conn "buffer" :update {:headline "it's all meh."} author)
+(aprint (company/get-company conn "buffer"))
 
-;; List revisions
-(section/list-revisions "blank-inc" :finances)
-(section/list-revisions "buffer" :update)
-(section/list-revisions "buffer" :finances)
-;; Note: due to revision collapsing by same author in a short period, there won't as many revisions as you
-;; might think. The introduction of a new note by the same author in finances section of blank-inc causes
+;; get a section
+(aprint (section/get-section conn "blank-inc" :finances))
+(aprint (section/get-section conn "buffer" :update))
+(aprint (section/get-section conn "buffer" :finances))
+
+;; list revisions
+(section/list-revisions conn "blank-inc" :finances)
+(section/list-revisions conn "buffer" :update)
+(section/list-revisions conn "buffer" :finances)
+;; note: due to revision collapsing by same author in a short period, there won't as many revisions as you
+;; might think. the introduction of a new note by the same author in finances section of blank-inc causes
 ;; a new revision, but the rest of the updates above are collapsed into one revision.
 
-;; Get revisions
-(section/get-revisions "blank-inc" :finances)
-(section/get-revisions "buffer" :update)
-(section/get-revisions "buffer" :finances)
+;; get revisions
+(section/get-revisions conn "blank-inc" :finances)
+(section/get-revisions conn "buffer" :update)
+(section/get-revisions conn "buffer" :finances)
 
-;; Delete a company
-(company/delete-company "blank-inc")
+;; delete a company
+(company/delete-company conn "blank-inc")
 
-;; Cleanup
-(company/delete-all-companies!)
+;; cleanup
+(company/delete-all-companies! conn)
 ```
 
 
