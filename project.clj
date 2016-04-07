@@ -23,8 +23,8 @@
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [http-kit "2.2.0-alpha1"] ; Web server http://http-kit.org/
     [compojure "1.5.0"] ; Web routing https://github.com/weavejester/compojure
-    [liberator "0.14.0"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
-    [com.apa512/rethinkdb "0.15.11"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
+    [com.apa512/rethinkdb "0.15.12"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.0"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.2"] ; Environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.3.1"] ; Logging https://github.com/ptaoussanis/timbre
@@ -32,7 +32,7 @@
     [clj-http "2.1.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
-    [medley "0.7.3"] ; Utility functions https://github.com/weavejester/medley
+    [medley "0.7.4"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
  ]
 
@@ -75,7 +75,7 @@
         [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-pprint "1.1.2"] ; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
-        [lein-ancient "0.6.9"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
+        [lein-ancient "0.6.10"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
