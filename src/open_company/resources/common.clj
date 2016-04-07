@@ -78,7 +78,6 @@
    :title schema/Str
    :description schema/Str
    (schema/optional-key :company-slug) schema/Str
-   :image schema/Str
    :icon schema/Str
    (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
