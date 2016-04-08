@@ -2,26 +2,43 @@
   "Commandline client to import sample data into OpenCompany."
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
-            [defun :refer (defun-)]
             [open-company.db.pool :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
-            [open-company.resources.section :as section])
+            [open-company.resources.section :as section]
+            [open-company.resources.stakeholder-update :as su])
   (:gen-class))
 
 (defn exit [status msg]
   (println msg)
   (System/exit status))
 
+;; ----- Stakeholder updates import -----
+
+(defn- import-stakeholder-update
+  "Add a stakeholder update."
+  [conn company-slug company update]
+  (let [title (:title update)
+        as-of (:timestamp update)
+        author (get-in update [:intro :author])
+        message (str "stakeholder update '" title "' at " as-of " by " (:name author) ".")]
+    (println (str "Creating " message))
+    (if
+      (su/create-stakeholder-update! conn
+        (su/->stakeholder-update conn
+          company-slug
+          (dissoc update :timestamp)
+          as-of
+          author))
+        (println (str "SUCCESS: created " message))
+        (println (str "FAILURE: creating " message)))))
+
 ;; ----- Sections import -----
 
-(defun- import-sections
-  "Add each section to the company recursively."
-  ([conn _company-slug _sections :guard empty? _org-id] true)
-
-  ([conn company-slug sections org-id]
-  (let [section (first sections)
-        section-name (:section-name section)
+(defn- import-section
+  "Add a section to the company."
+  [conn company-slug section org-id]
+  (let [section-name (:section-name section)
         timestamp (:timestamp section)
         author (:author section)
         message (str "'" section-name "' at " timestamp " by " (:name author) ".")]
@@ -29,8 +46,7 @@
     (if
       (section/put-section conn company-slug section-name (:section section) (assoc author :org-id org-id) timestamp)
       (println (str "SUCCESS: created " message))
-      (println (str "FAILURE: creating " message))))
-  (recur conn company-slug (rest sections) org-id)))
+      (println (str "FAILURE: creating " message)))))
 
 (defn- import-sections-map
   "Update the company with the specified slug with the specified :sections map."
@@ -59,8 +75,11 @@
      (company/->company
       (dissoc company :author :timestamp :sections :org-id)
       (assoc author :org-id org-id)))
-    (import-sections conn slug (:sections data) org-id)
-    (import-sections-map conn slug (:sections company)))
+    (doseq [section (:sections data)]
+      (import-section conn slug section org-id))
+    (import-sections-map conn slug (:sections company))
+    (doseq [stakeholder-update (:stakeholder-updates data)]
+      (import-stakeholder-update conn slug company stakeholder-update)))
   (println "\nImport complete!\n"))
 
 ;; ----- CLI -----

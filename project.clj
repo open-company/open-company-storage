@@ -105,6 +105,7 @@
                  '[open-company.resources.common :as common]
                  '[open-company.resources.company :as company]
                  '[open-company.resources.section :as section]
+                 '[open-company.resources.stakeholder-update :as su]
                  '[open-company.representations.company :as company-rep]
                  '[open-company.representations.section :as section-rep])
       ]

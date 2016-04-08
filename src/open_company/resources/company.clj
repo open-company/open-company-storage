@@ -217,6 +217,9 @@
   [conn slug]
   {:pre [(string? slug)]}
   (try
+    (common/delete-resource conn common/stakeholder-update-table-name :company-slug slug)
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no stakeholder updates to delete
+  (try
     (common/delete-resource conn common/section-table-name :company-slug slug)
     (catch java.lang.RuntimeException e)) ; it's OK if there are no sections to delete
   (try
@@ -254,8 +257,9 @@
 ;; ----- Armageddon -----
 
 (defn delete-all-companies!
-  "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
-  ;; Delete all sections and all companies
+  ;; Delete all stakeholder udpates, sections and all companies
+  (common/delete-all-resources! conn common/stakeholder-update-table-name)
   (common/delete-all-resources! conn common/section-table-name)
   (common/delete-all-resources! conn table-name))

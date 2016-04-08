@@ -278,6 +278,15 @@ Then enter these commands one-by-one, noting the output:
 (section/get-revisions conn "buffer" :update)
 (section/get-revisions conn "buffer" :finances)
 
+;; create a stakeholder update
+(su/create-stakeholder-update!
+  conn
+  (su/->stakeholder-update
+    conn
+    "buffer"
+    {:title "OpenCompany" :sections ["update" "finances"]}
+    author))
+
 ;; delete a company
 (company/delete-company conn "blank-inc")
 

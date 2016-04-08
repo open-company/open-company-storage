@@ -14,6 +14,7 @@
 
 (def company-table-name "companies")
 (def section-table-name "sections")
+(def stakeholder-update-table-name "stakeholder_updates")
 
 ;; ----- Category/Section definitions -----
 
@@ -116,7 +117,21 @@
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :created-at) schema/Str
           (schema/optional-key :updated-at) schema/Str}
-         InlineSections))
+        InlineSections))
+
+(def Stakeholder-update
+  (merge {:company-slug Slug
+          :slug schema/Str ; slug of the update, made from the slugified title and a short UUID
+          :title schema/Str
+          :sections [SectionName]
+          :intro {
+            :body schema/Str
+            (schema/optional-key :updated-at) schema/Str
+            (schema/optional-key :author) Author ; user that last modified the intro
+          }
+          :created-at schema/Str
+          :author Author} ; user that created the update
+        InlineSections))
 
 (def User
   {:name schema/Str

@@ -12,30 +12,57 @@ The API for Stakeholder Updates supports the following:
 * remove a prior update
 * remove section from the stakeholder updates section property when it's removed from the dashboard
 
-## Live View
 
-The template for the "live" and next stakeholder update exists as a property of the company with the following
+## "Live" View
+
+The template for the "live" and next pending stakeholder update exists as a property of the company with the following
 format:
 
 ```
 :stakeholder-update {
-  :intro "Text"
+  :intro {
+    :body ""
+  }
   :sections ["name" "name"]
 }
 ```
 
-A "live" stakeholder update can always be shown by showing the intro message and the latest contents of each of the
-included sections in the specified order. Any section that's in the stakeholder update but is not currently in the
-dashboard (shouldn't actually happen) should be skipped. Any section that's still a placeholder should be skipped.
+Or with an intro:
+
+```
+:stakeholder-update {
+  :intro {
+    :body "Some text."
+    :updated-at: "ISO8601"
+    "author" : {
+      "image" : "Avatar URL",
+      "name" : "Full Name",
+      "user-id" : "Slack ID"
+    }
+  }
+  :sections ["name" "name"]
+}
+```
+
+A "live" stakeholder update can always be shown by showing the intro message (if there is one) and the latest contents
+ of each of the included sections in the specified order. Any section that's in the stakeholder update but is not
+currently in the dashboard (shouldn't actually happen) should be skipped. Any section that's still a placeholder
+should be skipped.
+
 
 ## Stakeholder Content Editing / Ordering
 
-The intro for the "live" and next shared stakeholder update can be edited by `PATCH`ing the company.
+The intro for the "live" and next pending shared stakeholder update can be edited by `PATCH`ing the company.
 
-Sections in the stakeholder update can be added, removed, reordered by `PATCH`ing the company. Only sections
-active in the dashboard can be included. Including other sections returns a `422` error.
+Sections in the next pending stakeholder update can be added, removed, reordered by `PATCH`ing the company. Only
+sections active in the dashboard can be included. Including other sections returns a `422` error.
+
 
 ## Stakeholder Update Creating
+
+A blank POST to `/companies/{slug}/updates` creates a new stakeholder update from the current "live" pending
+stakeholeder update and resets the intro to the blank state (no author, no timestamp, blank body). The authorized
+user doing the POST is captured in the created stakeholder update as the author.
 
 
 ## List of Prior Stakeholder Updates
