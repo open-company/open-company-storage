@@ -12,8 +12,9 @@
 
 ;; ----- Utility functions -----
 
-(defn- slug-for [title]
+(defn- slug-for
   "Create a slug for the stakeholder update from the slugified title and a short UUID."
+  [title]
   (str (slug/slugify title) "-" (subs (str (java.util.UUID/randomUUID)) 0 4)))
 
 (defun- sections-for
