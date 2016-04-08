@@ -203,10 +203,12 @@
       (common/update-resource conn table-name primary-key original-company updated-company))))
 
 (defn put-company
-  "Given the slug of the company and a company property map, create or update the company
+  "
+  Given the slug of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
-  TODO: handle case of slug change."
+  TODO: handle case of slug change.
+  "
   [conn slug company user]
   (if (get-company conn slug)
     (update-company conn slug company)
@@ -238,8 +240,11 @@
 ;; ----- Collection of companies -----
 
 (defn list-companies
-  "Return a sequence of company property maps with slugs and names, sorted by slug.
-  Note: if additional-keys are supplied only documents containing those keys will be returned"
+  "
+  Return a sequence of maps with slugs and names, sorted by slug.
+  Note: if additional-keys are supplied, they will be included in the map, and only companies
+  containing those keys will be returned.
+  "
   ([conn] (list-companies conn []))
   ([conn additional-keys]
     (->> (into [primary-key "name"] additional-keys)
