@@ -47,3 +47,29 @@
   "Create a stakeholder-update document in RethinkDB."
   [conn stakeholder-update :- common/Stakeholder-update]
   (common/create-resource conn table-name stakeholder-update (:created-at stakeholder-update)))
+
+(defn get-stakeholder-update
+  "
+  Given the company slug, and stakeholder update slug, retrieve the stakeholder update from
+  the database. Return nil if the specified stakeholder doesn't exist.
+  "
+  ([conn company-slug update-slug]
+    (first (common/read-resources conn table-name "company-slug-slug" [company-slug update-slug]))))
+
+(defn list-stakeholder-updates
+  "Return a sequence of maps for each stakeholder update for the specified company
+  with slug and created-at, sorted by created-at.
+  Note: if additional-keys are supplied only documents containing those keys will be returned"
+  ([conn company-slug] (list-stakeholder-updates conn company-slug []))
+  ([conn company-slug additional-keys]
+    (->> (into ["company-slug" "created-at"] additional-keys)
+      (common/read-resources conn table-name "company-slug" company-slug)
+      (sort-by :created-at)
+      vec)))
+
+;; ----- Armageddon -----
+
+(defn delete-all-stakeholder-updates!
+  "Use with caution! Failure can result in partial deletes of just some sections. Returns `true` if successful."
+  [conn]
+  (common/delete-all-resources! conn table-name))
