@@ -322,7 +322,7 @@
           summary of the current cap table. What percentage of the company is owned by founders, employees, and
           investors? What terms and preferences do current investors have and what do those terms mean in the
           case of a liquidity event?",
-          "icon": "pie-35",
+          "icon": "chart-pie-35",
           "core": false
         },
 
