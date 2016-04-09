@@ -87,7 +87,7 @@ The response:
       "type" : "application/vnd.collection+vnd.open-company.stakeholder-update+json;version=1"
     } ],
     "stakeholder-updates" : [ {
-      "name" : "December Update",
+      "title" : "December Update",
       "created-at": "2016-01-02T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
@@ -96,7 +96,7 @@ The response:
         "type" : "application/vnd.open-company.stakeholder-update.v1+json"
       } ]
     }, {
-      "name" : "January Update",
+      "title" : "January Update",
       "created-at": "2016-03-08T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
@@ -105,7 +105,7 @@ The response:
         "type" : "application/vnd.open-company.stakeholder-update.v1+json"
       } ]
     }, {
-      "name" : "February Update",
+      "title" : "February Update",
       "created-at": "2016-03-12T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
