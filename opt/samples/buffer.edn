@@ -365,7 +365,8 @@
     {
       :section {
         :title "Update"
-        :body "<h3>Key changes to self-management at Buffer</h3>
+        :headline "Key changes to self-management at Buffer"
+        :body "
         <p>Building on our self-management learnings, we have started to make some key changes to how we view
         self-management and work together.</p>
         <p>We're moving away from self-management being synonymous with 'no structure'. We've realized that hierarchy
@@ -1203,8 +1204,9 @@
     {
       :section {
         :title "Update"
+        :headline "We reached the 50 team members mark in September!"
         :body "
-        <p>We reached the 50 team members mark in September! This feels like a big milestone and a special moment to reflect on.</p>
+        <p>This feels like a big milestone and a special moment to reflect on.</p>
         <p>For me, the most exciting part of this is that 50 people are able to join our journey of working as a fully distributed
         team, where you choose to live and work from the place which makes you happiest and most productive.</p>
         <p>We've had several examples of teammates moving or traveling to find their happy place, or being able to move easily to help
@@ -1729,7 +1731,7 @@
     {
       :section {
         :title "Key metrics"
-        :headline "Seeing an impact from our move from 7-day to 30-day trials for Buffer for Business"
+        :headline "Seeing an impact from our move from 7 to 30-day trials for Buffer for Business"
         :metrics [
           {
             :slug "total-registered-users"
