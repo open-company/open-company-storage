@@ -8,6 +8,7 @@
 (require '[open-company.resources.common :as common] :reload)
 (require '[open-company.resources.company :as company] :reload)
 (require '[open-company.resources.section :as section] :reload)
+(require '[open-company.resources.stakeholder-update :as su] :reload)
 
 ;; productive set of development namespaces (REST API)
 (require '[cheshire.core :as json])

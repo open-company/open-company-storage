@@ -197,11 +197,10 @@ Then enter these commands one-by-one, noting the output:
   :org-id "slack:98765"
 })
 
-
 (company/create-company!
   conn
   (company/->company {:name "Blank Inc."
-                      :slug "blank-inc"
+                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
                       :description "We're busy ideating."
                       :currency "GBP"}
                     author))
@@ -209,9 +208,9 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company!
   conn
   (company/->company {:name "OpenCompany"
+                      :slug "open"
                       :description "Startup Transparency Made Simple"
                       :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
-                      :slug "open"
                       :home-page "https://opencompany.com/"
                       :currency "USD"
                       :finances {:title "Finances" :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
@@ -220,6 +219,7 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company!
   conn
   (company/->company {:name "Buffer"
+                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
                       :currency "USD"
                       :description "A better way to share on social media."
                       :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
@@ -277,6 +277,15 @@ Then enter these commands one-by-one, noting the output:
 (section/get-revisions conn "blank-inc" :finances)
 (section/get-revisions conn "buffer" :update)
 (section/get-revisions conn "buffer" :finances)
+
+;; create a stakeholder update
+(su/create-stakeholder-update!
+  conn
+  (su/->stakeholder-update
+    conn
+    "buffer"
+    {:title "OpenCompany" :sections ["update" "finances"]}
+    author))
 
 ;; delete a company
 (company/delete-company conn "blank-inc")

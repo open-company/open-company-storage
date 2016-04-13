@@ -18,6 +18,12 @@
       :financial ["finances"]
       :company []
     }
+    :stakeholder-update {
+      :intro {
+        :body ""
+      }
+      :sections ["finances"]
+    }
   }
   :sections [
 
@@ -190,4 +196,5 @@
       :timestamp "2015-10-13T12:59:28.000Z"
     }
   ]
+  :stakeholder-updates []
 }

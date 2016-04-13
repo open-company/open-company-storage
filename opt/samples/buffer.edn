@@ -15,9 +15,15 @@
       :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     }
     :sections {
-      :progress ["update" "growth" "team" "product" "marketing" "customer-service" "help"]
+      :progress ["update" "growth" "team" "product" "marketing" "customer-service"]
       :financial ["finances"]
-      :company ["diversity" "values"]
+      :company ["help" "diversity" "values"]
+    }
+    :stakeholder-update {
+      :intro {
+        :body ""
+      }
+      :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]
     }
   }
 
@@ -1647,23 +1653,6 @@
     ;; October Update https://open.buffer.com/buffer-october-2015/
     {
       :section {
-        :title "Update"
-        :headline "Buffer in October."
-        :body "
-        <p>October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of
-        Buffer for Business.</p>"
-      }
-      :section-name "update"
-      :author {
-        :name "Joel Gascoigne"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
-      }
-      :timestamp "2015-11-20T08:00:46.000Z"
-    }
-
-    {
-      :section {
         :title "Finances"
         :data[
           {
@@ -2128,7 +2117,7 @@
       :section {
         :title "Asks"
         :headline "One quick ask."
-        :body "<p>One quick ask: Recently we launched a brand new feature:
+        :body "<p>Recently we launched a brand new feature:
         <a href=\"https://blog.bufferapp.com/social-media-calendar\">Social Media Calendar</a>.
         We'd love your help to spread the word. <a href=\"https://twitter.com/intent/tweet?text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:%20https://blog.bufferapp.com/social-media-calendar%20pic.twitter.com/Y8XdRyU9ie\">Tweet</a>
         or <a href=\"https://buffer.com/add?url=https%3A%2F%2Fblog.bufferapp.com%2Fsocial-media-calendar&text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:&picture=https%3A%2F%2Fbufferblog-wpengine.netdna-ssl.com%2Fwp-content%2Fuploads%2F2015%2F11%2Fcalendar-launch-600x410%402x.png&version=2.13.12&placement=hover_button_image\">Buffer</a>!</p>"
@@ -2142,5 +2131,80 @@
       :timestamp "2015-11-20T08:00:46.000Z"
     }
 
+  ]
+  
+  :stakeholder-updates [
+    {
+      :title "Buffer in June 2015: Fastest-Ever Team Growth, $6.6M ARR"
+      :intro {
+        :body "<p>We’re officially halfway through the year. Very excited to share the latest update for Buffer.</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
+      :sections ["growth" "finances" "help" "team" "product" "update"]
+      :timestamp "2015-07-13T12:59:35.000Z"
+    }
+
+    {
+      :title "Buffer Investors’ Report: $6.86M ARR, Sixth Retreat, New ‘Areas’ Structure"
+      :intro {
+        :body "<p>I’m excited to share the latest update of everything going on at Buffer.</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
+      :sections ["growth" "finances" "help" "team" "update" "product"]
+      :timestamp "2015-08-13T16:26:47.000Z"
+    }
+
+    {
+      :title "Buffer in August: $7.49M ARR, Buffer for Video, Continued Growth"
+      :intro {
+        :body "<p>Here are all the latest numbers and updates from all corners of what’s going on in the Buffer team!</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
+      :sections ["growth" "finances" "team" "product" "customer-service" "help"]
+      :timestamp "2015-09-18T18:33:45.000Z"
+    }
+
+    {
+      :title "50 Teammates, 17 Open Roles, New Calendar View & More: Buffer’s September Update"
+      :intro {
+        :body "<p>Here are all the latest insights from the Buffer team in September.</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
+      :sections ["update" "growth" "finances" "team" "product" "customer-service" "marketing"]
+      :timestamp "2015-10-23T11:21:42.000Z"
+    }
+
+    {
+      :title "Buffer in October: $7.8M Annual Revenue, Pablo 2.0 Launch, Customer Happiness at 95%"
+      :intro {
+        :body "
+        <p>October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials
+        of Buffer for Business. Here’s more about that and everything else going on at Buffer in our October 2015
+        investors’ report.</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
+      :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]
+      :timestamp "2015-11-20T08:00:47.000Z"
+    }
   ]
 }

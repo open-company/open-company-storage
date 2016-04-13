@@ -147,21 +147,23 @@
                           (assoc :company-slug (:slug company))
                           (assoc :section-name section-name)
                           (assoc :description (:description (common/section-by-name section-name)))
-                          (assoc :image (:image (common/section-by-name section-name))))])]
+                          (assoc :icon (:icon (common/section-by-name section-name))))])]
     (merge company (into {} (map add-info rs)))))
 
 (schema/defn ->company :- common/Company
   "Take a minimal map describing a company and a user and 'fill the blanks'"
   ([company-props user]
-   (->company company-props user (:slug company-props)))
+  (->company company-props user (:slug company-props)))
+
   ([company-props user slug]
-   (-> company-props
-       (assoc :slug slug)
-       (update :currency #(or % "USD"))
-       (assoc :org-id (:org-id user))
-       (complete-real-sections user)
-       (categories-for)
-       (sections-for))))
+  (-> company-props
+      (assoc :slug slug)
+      (update :currency #(or % "USD"))
+      (update :stakeholder-update #(or % {:intro {:body ""} :sections []}))
+      (assoc :org-id (:org-id user))
+      (complete-real-sections user)
+      (categories-for)
+      (sections-for))))
 
 (schema/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section.
@@ -201,10 +203,12 @@
       (common/update-resource conn table-name primary-key original-company updated-company))))
 
 (defn put-company
-  "Given the slug of the company and a company property map, create or update the company
+  "
+  Given the slug of the company and a company property map, create or update the company
   and return `true` on success.
   TODO: handle case of slug mismatch between URL and properties.
-  TODO: handle case of slug change."
+  TODO: handle case of slug change.
+  "
   [conn slug company user]
   (if (get-company conn slug)
     (update-company conn slug company)
@@ -214,6 +218,9 @@
   "Given the slug of the company, delete it and all its sections and return `true` on success."
   [conn slug]
   {:pre [(string? slug)]}
+  (try
+    (common/delete-resource conn common/stakeholder-update-table-name :company-slug slug)
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no stakeholder updates to delete
   (try
     (common/delete-resource conn common/section-table-name :company-slug slug)
     (catch java.lang.RuntimeException e)) ; it's OK if there are no sections to delete
@@ -233,8 +240,11 @@
 ;; ----- Collection of companies -----
 
 (defn list-companies
-  "Return a sequence of company property maps with slugs and names, sorted by slug.
-  Note: if additional-keys are supplied only documents containing those keys will be returned"
+  "
+  Return a sequence of maps with slugs and names, sorted by slug.
+  Note: if additional-keys are supplied, they will be included in the map, and only companies
+  containing those keys will be returned.
+  "
   ([conn] (list-companies conn []))
   ([conn additional-keys]
     (->> (into [primary-key "name"] additional-keys)
@@ -252,8 +262,9 @@
 ;; ----- Armageddon -----
 
 (defn delete-all-companies!
-  "Use with caution! Failure can result in partial deletes of sections and companies. Returns `true` if successful."
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
-  ;; Delete all sections and all companies
+  ;; Delete all stakeholder udpates, sections and all companies
+  (common/delete-all-resources! conn common/stakeholder-update-table-name)
   (common/delete-all-resources! conn common/section-table-name)
   (common/delete-all-resources! conn table-name))

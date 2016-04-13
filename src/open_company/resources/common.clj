@@ -14,6 +14,7 @@
 
 (def company-table-name "companies")
 (def section-table-name "sections")
+(def stakeholder-update-table-name "stakeholder_updates")
 
 ;; ----- Category/Section definitions -----
 
@@ -66,22 +67,30 @@
 
 ;; ----- Schemas -----
 
+(def CategoryName (schema/pred #((set category-names) (keyword %))))
+
 (def SectionName (schema/pred #(section-names (keyword %))))
 
 (def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {schema/Keyword [SectionName]})
+  {CategoryName [SectionName]})
+
+(def Author {
+  :name schema/Str
+  :user-id schema/Str
+  :image schema/Str})
 
 (def Section
   {(schema/optional-key :section-name) SectionName
    :title schema/Str
    :description schema/Str
    (schema/optional-key :company-slug) schema/Str
-   :image schema/Str
+   :icon schema/Str
    (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
    (schema/optional-key :updated-at) schema/Str
+   (schema/optional-key :author) Author
    schema/Keyword schema/Any})
 
 (def InlineSections
@@ -96,11 +105,33 @@
           :org-id schema/Str
           :sections SectionsOrder
           :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
+          :stakeholder-update {
+            :intro {
+              :body schema/Str
+              (schema/optional-key :updated-at) schema/Str
+              (schema/optional-key :author) Author
+            }
+            :sections [SectionName]
+          }
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :created-at) schema/Str
           (schema/optional-key :updated-at) schema/Str}
-         InlineSections))
+        InlineSections))
+
+(def Stakeholder-update
+  (merge {:company-slug Slug
+          :slug schema/Str ; slug of the update, made from the slugified title and a short UUID
+          :title schema/Str
+          :sections [SectionName]
+          :intro {
+            :body schema/Str
+            (schema/optional-key :updated-at) schema/Str
+            (schema/optional-key :author) Author ; user that last modified the intro
+          }
+          :created-at schema/Str
+          :author Author} ; user that created the update
+        InlineSections))
 
 (def User
   {:name schema/Str

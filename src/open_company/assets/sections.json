@@ -11,7 +11,7 @@
           "description": "Why the company exists",
           "headline": "",
           "body": "Does everyone know what they’re fighting for? What is your mission?",
-          "image": "https://open-company.s3.amazonaws.com/mission.svg",
+          "icon": "goal-64",
           "core": true
         },
 
@@ -23,7 +23,7 @@
           "body": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
           they came from, why they're important, and provide examples of how people can use them to guide their
           decisions, behavior, and actions.",
-          "image": "https://open-company.s3.amazonaws.com/values.svg",
+          "icon": "scale",
           "core": true
         },
 
@@ -35,7 +35,7 @@
           "body": "Discuss company policy and goals around gender, race and ethnicity, age, and sexuality.
           What is the current state of diversity at the company? What are the goals? What changes in hiring,
           culture and retention are you working on to achieve those goals?",
-          "image": "https://open-company.s3.amazonaws.com/diversity.svg",
+          "icon": "world",
           "core": false
         },
 
@@ -47,7 +47,7 @@
           "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
           apply to the company? What agreements exist with customers about their data? What
           do these agreements say in Plain English?",
-          "image": "https://open-company.s3.amazonaws.com/privacy.svg",
+          "icon": "lock",
           "core": false
         },
 
@@ -58,7 +58,7 @@
           "description": "Key competitors and competitive threats",
           "body": "Who are the competitors you’re paying attention to? How do they compare? Besides your competitors,
           what are the other major external threats to your business?",
-          "image": "https://open-company.s3.amazonaws.com/competition.svg",
+          "icon": "shark",
           "core": false
         },
 
@@ -68,7 +68,7 @@
           "headline": "",
           "description": "Ask your company stakeholders for help and ideas",
           "body": "Where do you need the most help from your team and investors? Be specific.",
-          "image": "https://open-company.s3.amazonaws.com/help.svg",
+          "icon": "bulb-63",
           "core": false
         },
 
@@ -78,10 +78,10 @@
           "headline": "",
           "description": "Celebrate great actions that helped the company",
           "body": "Who went above and beyond to help the company? What did they do?",
-          "image": "https://open-company.s3.amazonaws.com/kudos.svg",
+          "icon": "award-48",
           "core": false
         }
-      ]      
+      ]
     },
     {
       "name": "progress",
@@ -94,7 +94,7 @@
           "description": "Company update",
           "headline": "",
           "body": "Provide an overview of important happenings in the company since the last update.",
-          "image": "https://open-company.s3.amazonaws.com/update.svg",
+          "icon": "send",
           "core": true
         },
 
@@ -104,7 +104,7 @@
           "description": "Company milestones and accomplishments",
           "headline": "",
           "body": "What new company milestones or accomplishments are you most proud of? List up to three.",
-          "image": "https://open-company.s3.amazonaws.com/highlights.svg",
+          "icon": "light",
           "core": false
         },
 
@@ -170,13 +170,13 @@
               "unit": "%",
               "name": "%"
             }
-          ],          
+          ],
           "goal": [
             "increase",
             "decrease"
           ],
           "note": "Provide context about recent growth with a note.",
-          "image": "https://open-company.s3.amazonaws.com/growth.svg",
+          "icon": "chart-growth",
           "core": true
         },
 
@@ -187,7 +187,7 @@
           "headline": "",
           "body": "What are you most disappointed about? What’s your plan to fix it going forward?
           What is the company stuck on? What are the systemic or existential threats everyone needs to be focused on?",
-          "image": "https://open-company.s3.amazonaws.com/challenges.svg",
+          "icon": "tactic",
           "core": true
         },
 
@@ -198,7 +198,7 @@
           "headline": "",
           "body": "What’s something you recently learned about your bunsiness, market, customers, or product?
           What changes are you making as a result?",
-          "image": "https://open-company.s3.amazonaws.com/takeaways.svg",
+          "icon": "board-51",
           "core": false
         },
 
@@ -210,7 +210,7 @@
           "body": "Announce and welcome new hires. Discuss what positions are currently open and what's being
           done to fill them. How many candidates are applying for the positions? Which employees are no longer
           with the company and why they left.",
-          "image": "https://open-company.s3.amazonaws.com/team.svg",
+          "icon": "multiple-19",
           "core": true
         },
 
@@ -222,7 +222,7 @@
           "body": "What tests have you run to validate your product? What did you learn? What's
           shipped recently and how has the roadmap changed? How is the product performing? What's not working? What's
           the evidence you are making something some people love?",
-          "image": "https://open-company.s3.amazonaws.com/product.svg",
+          "icon": "atom",
           "core": true
         },
 
@@ -234,7 +234,7 @@
           "body": "What issues are customers having with your product? How are your service metrics and
           SLA's performing? How are customer service costs and support metrics trending? What new content
           and policies have been created to improve customer success?",
-          "image": "https://open-company.s3.amazonaws.com/customer-service.svg",
+          "icon": "like",
           "core": false
         },
 
@@ -245,7 +245,7 @@
           "headline": "",
           "body": "List any notable marketing activities since the last update. How are the current marketing
           efforts performing? What changes and new activities are planned?",
-          "image": "https://open-company.s3.amazonaws.com/marketing.svg",
+          "icon": "funnel-41",
           "core": false
         },
 
@@ -255,7 +255,7 @@
           "description": "Press mentions and PR activities",
           "headline": "",
           "body": "List any notable press mentions since the last update. Provide an update on PR activities.",
-          "image": "https://open-company.s3.amazonaws.com/press.svg",
+          "icon": "notification-69",
           "core": false
         },
 
@@ -265,7 +265,7 @@
           "description": "Notable sales activity and wins and losses",
           "headline": "",
           "body": "Did you close any notable sales? What opportunities are in the pipeline?",
-          "image": "https://open-company.s3.amazonaws.com/sales.svg",
+          "icon": "handout",
           "core": false
         },
 
@@ -275,7 +275,7 @@
           "description": "Notable partnership activity and new deals",
           "headline": "",
           "body": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
-          "image": "https://open-company.s3.amazonaws.com/business-development.svg",
+          "icon": "handshake",
           "core": false
         }
 
@@ -292,7 +292,7 @@
           "headline": "",
           "description": "Cash on hand, burn and runway",
           "note": "Provide context about recent changes in company finances with a note.",
-          "image": "https://open-company.s3.amazonaws.com/finances.svg",
+          "icon": "money-bag",
           "core": true
         },
 
@@ -307,7 +307,7 @@
           discuss compensation spend by various departments (engineering, marketing, sales...). If it's part of
           your company culture, you could link to a spreadsheet of all employee salaries. Provide as much
           information as you can in accordance with your company culture.",
-          "image": "https://open-company.s3.amazonaws.com/compensation.svg",
+          "icon": "cheque",
           "core": false
         },
 
@@ -322,7 +322,7 @@
           summary of the current cap table. What percentage of the company is owned by founders, employees, and
           investors? What terms and preferences do current investors have and what do those terms mean in the
           case of a liquidity event?",
-          "image": "https://open-company.s3.amazonaws.com/ownership.svg",
+          "icon": "chart-pie-35",
           "core": false
         },
 
@@ -334,7 +334,7 @@
           "body": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
           pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
           meetings go? After the raise, discuss who the investors are and the terms of the deal.",
-          "image": "https://open-company.s3.amazonaws.com/fundraising.svg",
+          "icon": "pig",
           "core": false
         }
 

@@ -22,10 +22,11 @@
 (Thread/setDefaultUncaughtExceptionHandler
  (reify Thread$UncaughtExceptionHandler
    (uncaughtException [_ thread ex]
-     (timbre/error ex "Uncaught exception on" (.getName thread))
-     (sentry/capture c/dsn (-> {:message (.getMessage ex)}
-                               (assoc-in [:extra :exception-data] (ex-data ex))
-                               (sentry-interfaces/stacktrace ex))))))
+     (timbre/error ex "Uncaught exception on" (.getName thread) (.getMessage ex))
+     (when c/dsn
+       (sentry/capture c/dsn (-> {:message (.getMessage ex)}
+                                 (assoc-in [:extra :exception-data] (ex-data ex))
+                                 (sentry-interfaces/stacktrace ex)))))))
 
 (defn routes [sys]
   (compojure/routes

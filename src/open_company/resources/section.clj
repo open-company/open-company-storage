@@ -209,7 +209,7 @@
           (assoc :section-name section-name)
           (assoc :author author)
           (assoc :updated-at timestamp)
-          (assoc :image (:image template-section)); read-only property
+          (assoc :icon (:icon template-section)); read-only property
           (assoc :description (:description template-section)); read-only property
           (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section)))
           (update-notes-for (original-company section-name) author timestamp))

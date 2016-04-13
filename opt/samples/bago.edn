@@ -18,6 +18,13 @@
       :financial ["finances"]
       :company []
     }
+    :stakeholder-update {
+      :intro {
+        :body "Bago is AOK."
+        :updated-at "2015-07-13T12:59:28.000Z"
+      }
+      :sections ["growth" "finances"]
+    }
   }
 
   :sections [
@@ -534,4 +541,5 @@
       :timestamp "2015-11-23T11:12:02.000Z"
     }
   ]
+  :stakeholder-updates []
 }

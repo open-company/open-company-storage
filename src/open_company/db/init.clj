@@ -3,7 +3,8 @@
   (:require [rethinkdb.query :as r]
             [open-company.config :as c]
             [open-company.resources.company :as company]
-            [open-company.resources.section :as section]))
+            [open-company.resources.section :as section]
+            [open-company.resources.stakeholder-update :as su]))
 
 (defn- create-database
   "Create a RethinkDB database if it doesn't already exist."
@@ -41,31 +42,42 @@
 (defn- create-index
   "Create RethinkDB table index for the specified field if it doesn't exist."
   ([conn table-name index-name]
-    (when (not-any? #(= index-name %) (index-list conn table-name))
-      (-> (r/table table-name)
-        (r/index-create index-name)
-        (r/run conn))
-      (wait-for-index conn table-name index-name))))
+  (when (not-any? #(= index-name %) (index-list conn table-name))
+    (-> (r/table table-name)
+      (r/index-create index-name)
+      (r/run conn))
+    (wait-for-index conn table-name index-name))))
 
-(defn- create-sections-indexes
-  "Create RethinkDB table indexes for the sections table if they doesn't exist."
+(defn- create-sections-compound-indexes
+  "Create RethinkDB table indexes for the sections table if they don't exist."
   [conn]
-    (let [indexes (index-list conn section/table-name)]
-      (when (not-any? #(= "company-slug-section-name" %) indexes)
-        (-> (r/table section/table-name)
-          (r/index-create "company-slug-section-name"
-            (r/fn [row] [(r/get-field row :company-slug) (r/get-field row :section-name)]))
-          (r/run conn))
-        (wait-for-index conn section/table-name "company-slug-section-name"))
-      (when (not-any? #(= "company-slug-section-name-updated-at" %) indexes)
-        (-> (r/table section/table-name)
-          (r/index-create "company-slug-section-name-updated-at"
-            (r/fn [row] [
-              (r/get-field row :company-slug)
-              (r/get-field row :section-name)
-              (r/get-field row :updated-at)]))
-          (r/run conn))
-        (wait-for-index conn section/table-name "company-slug-section-name-updated-at"))))
+  (let [indexes (index-list conn section/table-name)]
+    (when (not-any? #(= "company-slug-section-name" %) indexes)
+      (-> (r/table section/table-name)
+        (r/index-create "company-slug-section-name"
+          (r/fn [row] [(r/get-field row :company-slug) (r/get-field row :section-name)]))
+        (r/run conn))
+      (wait-for-index conn section/table-name "company-slug-section-name"))
+    (when (not-any? #(= "company-slug-section-name-updated-at" %) indexes)
+      (-> (r/table section/table-name)
+        (r/index-create "company-slug-section-name-updated-at"
+          (r/fn [row] [
+            (r/get-field row :company-slug)
+            (r/get-field row :section-name)
+            (r/get-field row :updated-at)]))
+        (r/run conn))
+      (wait-for-index conn section/table-name "company-slug-section-name-updated-at"))))
+
+(defn- create-stakeholder-updates-compound-index
+  "Create RethinkDB table indexes for the stakeholder-updates table if they don't exist."
+  [conn]
+  (let [indexes (index-list conn su/table-name)]
+    (when (not-any? #(= "company-slug-slug" %) indexes)
+      (-> (r/table su/table-name)
+        (r/index-create "company-slug-slug"
+          (r/fn [row] [(r/get-field row :company-slug) (r/get-field row :slug)]))
+        (r/run conn))
+      (wait-for-index conn su/table-name "company-slug-slug"))))
 
 (defn init
   "Create any missing tables and indexes in RethinkDB."
@@ -82,7 +94,13 @@
         (print ".")
         (create-index conn section/table-name "company-slug")
         (print ".")
-        (create-sections-indexes conn)
+        (create-sections-compound-indexes conn)
+        (print ".")
+        (create-table conn db-name su/table-name su/primary-key)
+        (print ".")
+        (create-index conn su/table-name "company-slug")
+        (print ".")
+        (create-stakeholder-updates-compound-index conn)
         (print ".")
         (println "\nOpen Company: Database initialization complete - " db-name "\n")))))
 

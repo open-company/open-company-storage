@@ -19,6 +19,12 @@
       :financial ["finances"]
       :company ["diversity" "values"]
     }
+    :stakeholder-update {
+      :intro {
+        :body ""
+      }
+      :sections ["update" "growth" "finances" "team" "product" "marketing" "customer-service" "help"]
+    }
   }
 
   :sections [
@@ -1130,4 +1136,5 @@
       :timestamp "2015-08-24T16:11:12.000Z"
     }
   ]
+  :stakeholder-updates []
 }
