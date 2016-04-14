@@ -9,8 +9,11 @@
 (def json-collection-version "1.0")
 
 (defn link-map [rel method url media-type & others]
-  (apply array-map
-    (flatten (into [:rel rel :method method :href url :type media-type] others))))
+  (let [link-map (apply array-map (flatten (into
+          [:rel rel :method method :href url] others)))]
+    (if media-type
+      (assoc link-map :type media-type)
+      link-map)))
 
 (defn self-link [url media-type]
   (link-map "self" GET url media-type))
@@ -26,3 +29,6 @@
 
 (defn revision-link [url updated-at media-type]
   (assoc (link-map "revision" GET url media-type) :updated-at updated-at))
+
+(defn clean [rep clean-props]
+  (apply dissoc rep clean-props))

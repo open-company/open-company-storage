@@ -6,6 +6,8 @@
 
 (def media-type "application/vnd.open-company.section.v1+json")
 
+(def ^:private clean-properties [:core :id :company-slug :section-name])
+
 (defn url
   ([company-slug section-name]
   (str "/companies/" (name company-slug) "/" (name section-name)))
@@ -39,15 +41,6 @@
     (update-link company-slug section-name)
     (partial-update-link company-slug section-name)]))))
 
-(defn- clean
-  "Remove properties of the section that aren't needed in the REST API representation"
-  [section]
-  (-> section
-    (dissoc :core)
-    (dissoc :id)
-    (dissoc :company-slug)
-    (dissoc :section-name)))
-
 (defn section-for-rendering
   "Get a representation of the section for the REST API"
   [conn {:keys [company-slug section-name] :as section} authorized]
@@ -55,7 +48,7 @@
     (assoc :revisions (section/list-revisions conn company-slug section-name))
     (update :revisions #(map (fn [rev] (revision-link company-slug section-name (:updated-at rev))) %))
     (section-links authorized)
-    (clean)))
+    (common/clean clean-properties)))
 
 (defn render-section
   "Create a JSON representation of the section for the REST API"

@@ -107,7 +107,8 @@
                  '[open-company.resources.section :as section]
                  '[open-company.resources.stakeholder-update :as su]
                  '[open-company.representations.company :as company-rep]
-                 '[open-company.representations.section :as section-rep])
+                 '[open-company.representations.section :as section-rep]
+                 '[open-company.representations.stakeholder-update :as su-rep])
       ]
     }]
 

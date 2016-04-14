@@ -4,13 +4,17 @@
             [cheshire.core :as json]
             [open-company.representations.common :as common]
             [open-company.representations.section :as section-rep]
-            [open-company.resources.company :as company]))
+            [open-company.resources.company :as company]
+            [open-company.resources.stakeholder-update :as su]
+            [open-company.representations.stakeholder-update :as su-rep]))
 
 (def media-type "application/vnd.open-company.company.v1+json")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 (def section-list-media-type "application/vnd.open-company.section-list.v1+json")
 
 (def recognized-links #{:self :update :partial-update :delete :section-list})
+
+(def ^:private clean-properties [:id :org-id])
 
 (defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
@@ -58,12 +62,7 @@
   [company links]
   (assoc company :links (company-links* company links))) 
 
-(defn- clean
-  "Remove any properties that shouldn't be returned in the JSON representation"
-  [company]
-  (dissoc company :org-id :id))
-
-(defn sections*
+(defn- sections*
   [{:keys [slug] :as company} conn authorized]
   (reduce (fn [company section]
             (update company section (fn update-fn [s]
@@ -75,14 +74,20 @@
           company
           (map keyword (flatten (vals (:sections company))))))
 
+(defn- stakeholder-update-links [company conn authorized]
+  (if authorized
+    (assoc company :links (conj (:links company) (su-rep/create-link (url company))))
+    company))
+
 (defn- company-for-rendering
   "Get a representation of the company for the REST API"
   [conn company authorized]
   (-> company
-    (clean)
+    (common/clean clean-properties)
     (assoc :revisions (company/list-revisions conn (:slug company)))
     (update :revisions #(map (fn [rev] (revision-link (:slug company) (:updated-at rev))) %))
     (company-links (if authorized :all-links [:self]))
+    (stakeholder-update-links conn authorized)
     (sections* conn authorized)))
 
 (defn render-company
