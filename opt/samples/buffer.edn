@@ -20,9 +20,13 @@
       :company ["help" "diversity" "values"]
     }
     :stakeholder-update {
+      :title ""
       :intro {
         :body ""
       }
+      :outro {
+        :body ""
+      }      
       :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]
     }
   }
@@ -2136,6 +2140,7 @@
   ]
   
   :stakeholder-updates [
+    ;; June update https://open.bufferapp.com/buffer-june-2015/
     {
       :title "Buffer in June 2015: Fastest-Ever Team Growth, $6.6M ARR"
       :intro {
@@ -2146,10 +2151,21 @@
           :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
         }
       }
+      :outro {
+        :body "
+          <h3>Over to you</h3>
+          <p>Thanks for being part of our journey. If you have any questions or thoughts, I’d be keen to hear them.</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
       :sections ["growth" "finances" "help" "team" "product" "update"]
       :timestamp "2015-07-13T12:59:35.000Z"
     }
 
+    ;; July update https://open.bufferapp.com/buffer-july-2015-investors-report/
     {
       :title "Buffer Investors’ Report: $6.86M ARR, Sixth Retreat, New ‘Areas’ Structure"
       :intro {
@@ -2160,10 +2176,20 @@
           :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
         }
       }
+      :outro {
+        :body "
+          <p>Thanks again for being part of the Buffer journey. We’d be excited to hear have any thoughts you have for us!</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
       :sections ["growth" "finances" "help" "team" "update" "product"]
       :timestamp "2015-08-13T16:26:47.000Z"
     }
 
+    ;; August Update https://open.bufferapp.com/investors-report-august-2015/
     {
       :title "Buffer in August: $7.49M ARR, Buffer for Video, Continued Growth"
       :intro {
@@ -2174,10 +2200,22 @@
           :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
         }
       }
+      :outro {
+        :body "
+        <p>Thanks for your help and support :-)</p>
+        <p>Best,</p>
+        <p>Joel Gascoigne</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
       :sections ["growth" "finances" "team" "product" "customer-service" "help"]
       :timestamp "2015-09-18T18:33:45.000Z"
     }
 
+    ;; September Update https://open.buffer.com/the-50-teammates-milestone-buffers-september-investors-report/
     {
       :title "50 Teammates, 17 Open Roles, New Calendar View & More: Buffer’s September Update"
       :intro {
@@ -2188,10 +2226,21 @@
           :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
         }
       }
+      :outro {
+        :body "
+        <p><b>We’ll have lots more to report next month. Thanks for your support!</b></p>
+        <p>Are there any questions about our team or growth that you’d like to know? We’d be happy to answer them!</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
       :sections ["update" "growth" "finances" "team" "product" "customer-service" "marketing"]
       :timestamp "2015-10-23T11:21:42.000Z"
     }
 
+    ;; October Update https://open.buffer.com/buffer-october-2015/
     {
       :title "Buffer in October: $7.8M Annual Revenue, Pablo 2.0 Launch, Customer Happiness at 95%"
       :intro {
@@ -2199,6 +2248,15 @@
         <p>October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials
         of Buffer for Business. Here’s more about that and everything else going on at Buffer in our October 2015
         investors’ report.</p>"
+        :author {
+          :name "Joel Gascoigne"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
+        }
+      }
+      :outro {
+        :body "
+        <p>Thanks again for being part of the Buffer journey!</p>"
         :author {
           :name "Joel Gascoigne"
           :user-id "123456"

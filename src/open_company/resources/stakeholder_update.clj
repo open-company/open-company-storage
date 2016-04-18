@@ -39,7 +39,9 @@
   (-> su-props
     (assoc :slug (slug-for title))
     (assoc :company-slug company-slug)
+    (update :title #(or % ""))
     (update :intro #(or % {:body ""}))
+    (update :outro #(or % {:body ""}))
     (assoc :author (common/author-for-user user))
     (assoc :created-at timestamp)
     (sections-for conn))))

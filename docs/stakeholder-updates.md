@@ -20,7 +20,11 @@ format:
 
 ```
 :stakeholder-update {
+  :title ""
   :intro {
+    :body ""
+  }
+  :outro {
     :body ""
   }
   :sections ["name" "name"]
@@ -31,8 +35,37 @@ Or with an intro:
 
 ```
 :stakeholder-update {
+  :title "Our Great Update"
   :intro {
     :body "Some text."
+    :updated-at: "ISO8601"
+    "author" : {
+      "image" : "Avatar URL",
+      "name" : "Full Name",
+      "user-id" : "Slack ID"
+    }
+  :outro {
+    :body ""
+  }
+  :sections ["name" "name"]
+}
+```
+
+And on outro:
+
+```
+:stakeholder-update {
+  :title "Our Great Update"
+  :intro {
+    :body "Some text."
+    :updated-at: "ISO8601"
+    "author" : {
+      "image" : "Avatar URL",
+      "name" : "Full Name",
+      "user-id" : "Slack ID"
+    }
+  :outro {
+    :body "Other text."
     :updated-at: "ISO8601"
     "author" : {
       "image" : "Avatar URL",
@@ -44,10 +77,10 @@ Or with an intro:
 }
 ```
 
-A "live" stakeholder update can always be shown by showing the intro message (if there is one) and the latest contents
- of each of the included sections in the specified order. Any section that's in the stakeholder update but is not
-currently in the dashboard (shouldn't actually happen) should be skipped. Any section that's still a placeholder
-should be skipped.
+A "live" or "pending" stakeholder update can always be shown by showing the title, intro message (if there is one) and
+the latest contents of each of the included sections in the specified order, then the outro message (if there is one).
+When displaying a stakeholder update, any section that's in the stakeholder update but is not currently in the
+dashboard (shouldn't actually happen) should be skipped. Any section that's still a placeholder should be skipped.
 
 
 ## Stakeholder Content Editing / Ordering

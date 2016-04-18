@@ -8,6 +8,14 @@
 (def table-name common/company-table-name)
 (def primary-key :slug)
 
+;; ----- Template Data -----
+
+(def empty-stakeholder-update {
+  :title ""
+  :intro {:body ""} 
+  :outro {:body ""}
+  :sections []})
+
 ;; ----- Metadata -----
 
 (def reserved-properties
@@ -159,7 +167,7 @@
   (-> company-props
       (assoc :slug slug)
       (update :currency #(or % "USD"))
-      (update :stakeholder-update #(or % {:intro {:body ""} :sections []}))
+      (update :stakeholder-update #(or % empty-stakeholder-update))
       (assoc :org-id (:org-id user))
       (complete-real-sections user)
       (categories-for)

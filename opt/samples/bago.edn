@@ -19,8 +19,13 @@
       :company []
     }
     :stakeholder-update {
+      :title "Bago's Updates"
       :intro {
         :body "Bago is AOK."
+        :updated-at "2015-07-13T12:59:28.000Z"
+      }
+      :outro {
+        :body "AOK is Bago."
         :updated-at "2015-07-13T12:59:28.000Z"
       }
       :sections ["growth" "finances"]
