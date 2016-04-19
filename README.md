@@ -210,7 +210,7 @@ Then enter these commands one-by-one, noting the output:
   (company/->company {:name "OpenCompany"
                       :slug "open"
                       :description "Startup Transparency Made Simple"
-                      :logo "https://open-company-assets.s3.amazonaws.com/oc-logo.png"
+                      :logo "https://open-company-assets.s3.amazonaws.com/open-company.png"
                       :home-page "https://opencompany.com/"
                       :currency "USD"
                       :finances {:title "Finances" :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}

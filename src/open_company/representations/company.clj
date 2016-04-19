@@ -118,6 +118,6 @@
   (json/generate-string
    {:collection {:version common/json-collection-version
                  :href "/companies"
-                 :links [(common/self-link (str "/companies") collection-media-type)]
+                 :links [(common/self-link "/companies" collection-media-type)]
                  :companies (map #(company-links % [:self]) companies)}}
    {:pretty true}))

@@ -171,10 +171,6 @@
               "name": "%"
             }
           ],
-          "goal": [
-            "increase",
-            "decrease"
-          ],
           "note": "Provide context about recent growth with a note.",
           "icon": "chart-growth",
           "core": true

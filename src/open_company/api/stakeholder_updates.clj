@@ -11,7 +11,7 @@
 ;; ----- Actions -----
 
 (defn- list-stakeholder-updates [conn company-slug]
-  )
+  (su-res/list-stakeholder-updates conn company-slug [:slug :title :intro]))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -31,7 +31,7 @@
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
 
   ;; Get a list of stakeholder updates
-  :exists? (fn [_] {:stakeholder-updates (list-stakeholder-updates conn (company-rep/url company-slug))})
+  :exists? (fn [_] {:stakeholder-updates (list-stakeholder-updates conn company-slug)})
 
   :processable? (by-method {
     :get true
