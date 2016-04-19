@@ -118,6 +118,8 @@
           }
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
+          (schema/optional-key :logo-width) schema/Int
+          (schema/optional-key :logo-height) schema/Int
           (schema/optional-key :created-at) schema/Str
           (schema/optional-key :updated-at) schema/Str}
         InlineSections))

@@ -5,6 +5,8 @@
     :name "Pied Piper"
     :description "A Middle-Out Compression Solution Making Data Storage Problems Smaller"
     :logo "https://open-company-assets.s3.amazonaws.com/pied-piper.png"
+    :logo-width 438
+    :logo-height 540
     :home-page "http://www.piedpiper.com/"
     :org-id "slack:T06SBMH60"
     :currency "USD"
