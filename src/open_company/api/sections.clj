@@ -43,10 +43,6 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-;; (pool/with-pool [conn (-> user/system :db-pool :pool)]
-;;   (get-section conn "buffer" "team" nil)
-;;   (company-res/get-company conn "buffer"))
-
 (defresource section [conn company-slug section-name as-of]
   common/open-company-anonymous-resource
 
@@ -63,27 +59,24 @@
     :post false
     :delete false})
 
-  ;; TODO: better handle company slug and section name from body not matching URL
+  ;; TODO: handle with prismatic schema check
   :processable? (by-method {
     :options true
     :get true
-    :put (fn [ctx] (common/check-input
-                      (section-res/valid-section company-slug section-name
-                        (-> (:data ctx)
-                          (assoc :company-slug company-slug)
-                          (assoc :section-name section-name)))))
-    :patch (fn [ctx] (common/check-input
-                        (section-res/valid-section company-slug section-name
-                          (-> (merge (:section ctx) (:data ctx))
-                            (assoc :company-slug company-slug)
-                            (assoc :section-name section-name)))))})
+    :put true
+    :patch true})
+    ; (fn [ctx] (common/check-input
+    ;   (section-res/valid-section company-slug section-name
+    ;     (-> (:data ctx)
+    ;       (assoc :company-slug company-slug)
+    ;       (assoc :section-name section-name)))))
 
   ;; Handlers
   :handle-ok
-  (by-method
-   {:get (fn [ctx] (section-rep/render-section conn (:section ctx) (common/allow-org-members conn company-slug ctx) (not (nil? as-of))))
-    :put (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
-    :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
+    (by-method {
+      :get (fn [ctx] (section-rep/render-section conn (:section ctx) (common/allow-org-members conn company-slug ctx) (not (nil? as-of))))
+      :put (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
+      :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 section-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))

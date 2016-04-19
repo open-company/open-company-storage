@@ -121,6 +121,14 @@ The response:
     } ],
     "stakeholder-updates" : [ {
       "title" : "December Update",
+      "intro": {
+        "body": "It's been a helluva month!",
+        "author" : {
+          "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+          "name" : "Joel Gascoigne",
+          "user-id" : "123456"
+        }
+      }
       "created-at": "2016-01-02T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
@@ -130,6 +138,14 @@ The response:
       } ]
     }, {
       "title" : "January Update",
+      "intro": {
+        "body": "It's been a helluva month!",
+        "author" : {
+          "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+          "name" : "Joel Gascoigne",
+          "user-id" : "123456"
+        }
+      }
       "created-at": "2016-03-08T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
@@ -139,6 +155,14 @@ The response:
       } ]
     }, {
       "title" : "February Update",
+      "intro": {
+        "body": "It's been a helluva month!",
+        "author" : {
+          "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+          "name" : "Joel Gascoigne",
+          "user-id" : "123456"
+        }
+      }
       "created-at": "2016-03-12T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",

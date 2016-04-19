@@ -16,7 +16,8 @@
     [open-company.config :as c]
     [open-company.api.entry :as entry-api]
     [open-company.api.companies :as comp-api]
-    [open-company.api.sections :as sect-api]))
+    [open-company.api.sections :as sect-api]
+    [open-company.api.stakeholder-updates :as su-api]))
 
 ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 (Thread/setDefaultUncaughtExceptionHandler
@@ -32,7 +33,8 @@
   (compojure/routes
    (entry-api/entry-routes sys)
    (comp-api/company-routes sys)
-   (sect-api/section-routes sys)))
+   (sect-api/section-routes sys)
+   (su-api/stakeholder-update-routes sys)))
 
 (defn app [sys]
   (cond-> (routes sys)

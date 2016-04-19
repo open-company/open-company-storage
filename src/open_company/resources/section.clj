@@ -103,18 +103,6 @@
     (= (get-in original-section [:notes :author :user-id])
        (get-in updated-section [:notes :author :user-id])))))
 
-;; ----- Validations -----
-
-(defun valid-section
-  "
-  Validate the company, and section name of the section
-  returning `:bad-company`, `:bad-section-name` respectively.
-
-  TODO: take company slug and section name separately and validate they match
-  TODO: Use prismatic schema to validate section properties.
-  "
-  ([_company-slug _section-name _section] true))
-
 ;; ----- Section revisions -----
 
 (defn list-revisions
@@ -182,8 +170,6 @@
   Given the company slug, section name, and section property map, create a new section revision,
   updating the company with a new revision and returning the property map for the resource or `false`.
 
-  If you get a false response and aren't sure why, use the `valid-section` function to get a reason keyword.
-
   TODO: only :author and :updated-at for notes if it's what has changed
   "
   ([conn company-slug section-name section user]
@@ -219,8 +205,7 @@
           (dissoc :placeholder)
           (dissoc :company-slug)
           (dissoc :section-name)))]
-    (if (and (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
-             (true? (valid-section company-slug section-name updated-section))) ; update is valid
+    (if (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
       (do
         ;; update the company
         (company/update-company conn company-slug updated-company)
