@@ -30,28 +30,24 @@
 (map #(schema/check common/Section %) sections*)
 
 ;; RethinkDB usage
-(def conn [:host "127.0.0.1" :port 28015 :db "open_company"])
+(def conn [:host "127.0.0.1" :port 28015 :db "open_company_dev"])
 
 (aprint (with-open [c (apply r/connect conn)]
   (-> (r/table "companies")
       (r/get "buffer")
       (r/run c))))
 
-(aprint (with-open [c (apply r/connect conn)]
-  (-> (r/table "companies")
-      (r/get "open-company")
-      (r/run c))))
-
 (with-open [c (apply r/connect conn)]
   (-> (r/table "companies")
       (r/get "prompt")
-      (r/update {:mission {:image "https://open-company.s3.amazonaws.com/mission.svg"}})
+      (r/update {:stakeholder-update {:title "" :intro {:body ""} :outro {:body ""} :sections []}})
       (r/run c)))
 
 (with-open [c (apply r/connect conn)]
   (-> (r/table "companies")
-      (r/get "open-company")
-      (r/update {:finances {:image "https://open-company.s3.amazonaws.com/finances.svg"}})
+      (r/get "open")
+      (r/replace (r/fn [company]
+        (r/without company [:mission])))
       (r/run c)))
 
 (aprint (with-open [c (apply r/connect conn)]

@@ -10,6 +10,7 @@
 
 (def media-type "application/vnd.open-company.company.v1+json")
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
+
 (def section-list-media-type "application/vnd.open-company.section-list.v1+json")
 
 (def recognized-links #{:self :update :partial-update :delete :section-list})
@@ -58,7 +59,7 @@
         (:section-list links)   (conj (section-list-link company))))))
 
 (defn- company-links
-  "Add the HATEAOS links to the company"
+  "Add the company HATEAOS links to the company"
   [company links]
   (assoc company :links (company-links* company links))) 
 
@@ -74,10 +75,24 @@
           company
           (map keyword (flatten (vals (:sections company))))))
 
-(defn- stakeholder-update-links [company conn authorized]
+(defn- stakeholder-updates-link
+  "Add HATEOAS links to existing stakeholder updates"
+  [company]
+  (assoc company :links (conj (:links company) (su-rep/stakeholder-updates-link (url company)))))
+
+(defn- stakeholder-update-create-link
+  "Add the HATEOAS link to create a new stakeholder update if authorized"
+  [company authorized]
   (if authorized
     (assoc company :links (conj (:links company) (su-rep/create-link (url company))))
     company))
+
+(defn- stakeholder-update-links
+  "Add the stakeholder update HATEOAS links to the company"
+  [company authorized]
+  (-> company
+    (stakeholder-update-create-link authorized)
+    (stakeholder-updates-link)))
 
 (defn- company-for-rendering
   "Get a representation of the company for the REST API"
@@ -87,7 +102,7 @@
     (assoc :revisions (company/list-revisions conn (:slug company)))
     (update :revisions #(map (fn [rev] (revision-link (:slug company) (:updated-at rev))) %))
     (company-links (if authorized :all-links [:self]))
-    (stakeholder-update-links conn authorized)
+    (stakeholder-update-links authorized)
     (sections* conn authorized)))
 
 (defn render-company

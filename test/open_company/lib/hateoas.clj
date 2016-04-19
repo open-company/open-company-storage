@@ -3,7 +3,8 @@
   (:require [open-company.lib.check :refer (check)]
             [open-company.representations.common :refer (GET POST PUT PATCH DELETE)]
             [open-company.representations.company :as company-rep]
-            [open-company.representations.section :as section-rep]))
+            [open-company.representations.section :as section-rep]
+            [open-company.representations.stakeholder-update :as su-rep]))
 
 (defn- find-link [rel links]
   (some (fn [link] (if (= rel (:rel link)) link nil)) links))
@@ -19,14 +20,16 @@
     (check (= rel :link_not_present))))
 
 (defn verify-company-links [slug links]
-  (check (= (count links) 6))
-  (let [url (company-rep/url slug)]
+  (check (= (count links) 7))
+  (let [url (company-rep/url slug)
+        updates-url (str url "/updates")]
     (verify-link "self" GET url company-rep/media-type links)
     (verify-link "update" PUT url company-rep/media-type links)
     (verify-link "partial-update" PATCH url company-rep/media-type links)
     (verify-link "delete" DELETE url :no links)
     (verify-link "section-list" GET (company-rep/url slug :section-list) company-rep/section-list-media-type links)
-    (verify-link "share" POST (str url "/updates") nil links)))
+    (verify-link "share" POST updates-url nil links)
+    (verify-link "stakeholder-updates" GET updates-url su-rep/collection-media-type links)))
 
 (defn verify-section-links [company-slug section-name links]
   (check (= (count links) 3))

@@ -145,7 +145,7 @@
           (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
             section-rep/media-type (:links (body section-key))))
         ;; verify the company has only a self HATEOAS link
-        (count (:links body)) => 1
+        (count (:links body)) => 2
         (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))
 
     (fact "that doesn't match the retrieving user's organization"
@@ -161,5 +161,5 @@
           (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
             section-rep/media-type (:links (body section-key))))
         ;; verify the company has only a self HATEOAS link
-        (count (:links body)) => 1
+        (count (:links body)) => 2
         (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))))
