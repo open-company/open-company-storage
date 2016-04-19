@@ -128,7 +128,7 @@ The response:
           "name" : "Joel Gascoigne",
           "user-id" : "123456"
         }
-      }
+      },
       "created-at": "2016-01-02T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
@@ -145,7 +145,7 @@ The response:
           "name" : "Joel Gascoigne",
           "user-id" : "123456"
         }
-      }
+      },
       "created-at": "2016-03-08T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
@@ -162,7 +162,7 @@ The response:
           "name" : "Joel Gascoigne",
           "user-id" : "123456"
         }
-      }
+      },
       "created-at": "2016-03-12T12:28:20.454Z",
       "links" : [ {
         "rel" : "self",
