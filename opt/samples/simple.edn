@@ -5,6 +5,8 @@
     :name "Simple, LLC"
     :description "Keeping it Simple Since 2015"
     :logo "https://open-company-assets.s3.amazonaws.com/simple.png"
+    :logo-width 146
+    :logo-height 174
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"

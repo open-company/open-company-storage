@@ -5,6 +5,8 @@
     :name "YoYo"
     :description "Bouncing Around Since 2015"
     :logo "https://open-company-assets.s3.amazonaws.com/yoyo.png"
+    :logo-width 360
+    :logo-height 192
     :org-id "slack:T06SBMH60"
     :currency "USD"
     :timestamp "2015-03-01T12:59:28.000Z"

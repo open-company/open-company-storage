@@ -5,6 +5,8 @@
     :name "ReadOnly"
     :description "All our data belong to us."
     :logo "https://open-company-assets.s3.amazonaws.com/read-only.png"
+    :logo-width 95
+    :logo-height 129
     :org-id "slack:not-your-org"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"
