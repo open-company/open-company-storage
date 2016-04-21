@@ -121,6 +121,7 @@ The response:
     } ],
     "stakeholder-updates" : [ {
       "title" : "December Update",
+      "slug" : "december-update-4a6f",
       "intro": {
         "body": "It's been a helluva month!",
         "author" : {
@@ -138,6 +139,7 @@ The response:
       } ]
     }, {
       "title" : "January Update",
+      "slug" : "january-update-65b5",
       "intro": {
         "body": "It's been a helluva month!",
         "author" : {
@@ -155,6 +157,7 @@ The response:
       } ]
     }, {
       "title" : "February Update",
+      "slug" : "february-update-d786",
       "intro": {
         "body": "It's been a helluva month!",
         "author" : {

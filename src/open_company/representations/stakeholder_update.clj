@@ -22,10 +22,16 @@
 (defn- stakeholder-update-fragment [company-url update]
   {
     :title (:title update)
+    :slug (:slug update)
     :intro (:intro update)
     :created-at (:created-at update)
     :links [(stakeholder-update-link company-url (:slug update))]
   })
+
+(defn render-stakeholder-update
+  "Create a JSON representation of a stakeholder updates for the REST API"
+  [company-url update authorized]
+  )
 
 (defn render-stakeholder-update-list
   "Create a JSON representation of a group of stakeholder updates for the REST API"

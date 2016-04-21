@@ -59,6 +59,14 @@
   ([conn company-slug update-slug]
     (first (common/read-resources conn table-name "company-slug-slug" [company-slug update-slug]))))
 
+(defn delete-stakeholder-update
+  "Given the slug of the company and the stakeholder update, delete the stakeholder update and return `true` on success."
+  [conn company-slug slug]
+  {:pre [(string? company-slug) (string? slug)]}
+  (try
+    (common/delete-resource conn table-name "company-slug-slug" [company-slug slug])
+    (catch java.lang.RuntimeException e))) ; it's OK if there is no stakeholder updates to delete
+
 (defn list-stakeholder-updates
   "Return a sequence of maps for each stakeholder update for the specified company
   with slug and created-at, sorted by created-at.
