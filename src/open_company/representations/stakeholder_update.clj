@@ -11,7 +11,7 @@
   (str company-url "/updates"))
 
 (defn stakeholder-update-link [company-url slug]
-  (common/link-map "self" common/GET (str (stakeholder-updates-url company-url) "/updates/" slug) media-type))
+  (common/link-map "self" common/GET (str (stakeholder-updates-url company-url) "/" slug) media-type))
 
 (defn create-link [company-url]
   (common/link-map "share" common/POST (stakeholder-updates-url company-url) nil))
