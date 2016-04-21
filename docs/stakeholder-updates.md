@@ -210,10 +210,12 @@ The response:
 ```json
 {
   "name" : "Buffer",
+  "slug": "january-update-65b5",
   "logo" : "https://open-company-assets.s3.amazonaws.com/buffer.png",
+  "logo-width" : 300,
+  "logo-height" : 96,
   "description" : "A better way to share on social media.",
   "created-at" : "2016-02-12T12:28:20.454Z",
-  "slug" : "buffer",
   "title": "January Update",
   "sections" : ["product", "team", "help"],
   "intro": {
@@ -260,12 +262,24 @@ The response:
     "image" : "https://open-company.s3.amazonaws.com/help.svg",
     "body" : "<p>One quick ask: Recently we launched a brand new feature:\n        <a href=\"https://blog.bufferapp.com/social-media-calendar\">Social Media Calendar</a>.\n        We'd love your help to spread the word. <a href=\"https://twitter.com/intent/tweet?text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:%20https://blog.bufferapp.com/social-media-calendar%20pic.twitter.com/Y8XdRyU9ie\">Tweet</a>\n        or <a href=\"https://buffer.com/add?url=https%3A%2F%2Fblog.bufferapp.com%2Fsocial-media-calendar&text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:&picture=https%3A%2F%2Fbufferblog-wpengine.netdna-ssl.com%2Fwp-content%2Fuploads%2F2015%2F11%2Fcalendar-launch-600x410%402x.png&version=2.13.12&placement=hover_button_image\">Buffer</a>!</p>"
   },
-  "links" : [ {
-    "rel" : "self",
-    "method" : "GET",
-    "href" : "/companies/buffer/updates/january-update-65b5",
-    "type" : "application/vnd.open-company.stakeholder-update.v1+json"
-  } ]
+  "links" : [ 
+    {
+      "rel" : "self",
+      "method" : "GET",
+      "href" : "/companies/buffer/updates/january-update-65b5",
+      "type" : "application/vnd.open-company.stakeholder-update.v1+json"
+    },
+    {
+      "rel" : "delete",
+      "method" : "DELETE",
+      "href" : "/companies/buffer/updates/january-update-65b5"
+    },
+    {
+      "rel" : "company",
+      "method" : "GET",
+      "href" : "/companies/buffer",
+      "type" : "application/vnd.open-company.company.v1+json"
+    }]
 }
 ```
 

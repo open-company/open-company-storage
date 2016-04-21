@@ -1,5 +1,5 @@
 (ns open-company.api.stakeholder-updates
-  (:require [if-let.core :refer (if-let*)]
+  (:require [if-let.core :refer (if-let* when-let*)]
             [compojure.core :refer (routes OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [open-company.db.pool :as pool]
@@ -23,8 +23,10 @@
 ;; ----- Actions -----
 
 (defn- get-stakeholder-update [conn company-slug slug]
-  (when-let [su (su-res/get-stakeholder-update conn company-slug slug)]
-    {:stakeholder-update su}))
+  (when-let* [company (company-res/get-company conn company-slug)
+              su (su-res/get-stakeholder-update conn company-slug slug)]
+    {:company company
+     :stakeholder-update su}))
 
 (defn- list-stakeholder-updates [conn company-slug]
   (su-res/list-stakeholder-updates conn company-slug [:slug :title :intro]))
@@ -50,7 +52,7 @@
   :handle-ok
     (by-method {
       :get (fn [ctx] (su-rep/render-stakeholder-update
-                        (company-rep/url company-slug)
+                        (:company ctx)
                         (:stakeholder-update ctx)
                         (common/allow-org-members conn company-slug ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 su-rep/media-type))
