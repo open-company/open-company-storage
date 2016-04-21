@@ -8,6 +8,8 @@
 
 (def json-collection-version "1.0")
 
+(def company-media-type "application/vnd.open-company.company.v1+json")
+
 (defn link-map [rel method url media-type & others]
   (let [link-map (apply array-map (flatten (into
           [:rel rel :method method :href url] others)))]

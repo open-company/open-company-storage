@@ -4,7 +4,7 @@ The API for Stakeholder Updates supports the following:
 
 * initial selected sections for a new company
 * data for the live view
-* edit the live intro
+* edit the live title/intro/outro
 * add/remove/reorder live sections
 * create/share a stakeholder update (turns live view into a saved prior) 
 * list of prior updates
@@ -113,12 +113,20 @@ The response (assuming a user auth'd to the company, otherwise DELETE links will
   "collection" : {
     "version" : "1.0",
     "href" : "/companies/buffer/updates",
-    "links" : [ {
-      "rel" : "self",
-      "method" : "GET",
-      "href" : "/companies/buffer/updates",
-      "type" : "application/vnd.collection+vnd.open-company.stakeholder-update+json;version=1"
-    } ],
+    "links" : [
+      {
+        "rel" : "self",
+        "method" : "GET",
+        "href" : "/companies/buffer/updates",
+        "type" : "application/vnd.collection+vnd.open-company.stakeholder-update+json;version=1"
+      },
+      {
+        "rel" : "company",
+        "method" : "GET",
+        "href" : "/companies/buffer",
+        "type" : "application/vnd.open-company.company+json;version=1"
+      }
+    ],
     "stakeholder-updates" : [ {
       "title" : "December Update",
       "slug" : "december-update-4a6f",
@@ -199,21 +207,29 @@ The response (assuming a user auth'd to the company, otherwise DELETE links will
 }
 ```
 
-If the user is auth'd to the company, the company response's HATEOAS links will include a `POST` link to share a new
-stakeholder update:
+If the user is auth'd to the company, the stakeholder update list response's HATEOAS links will include a `POST`
+link to share a new stakeholder update:
 
 ```json
 ...
-    "links" : [ {
-      "rel" : "self",
-      "method" : "GET",
-      "href" : "/companies/buffer/updates",
-      "type" : "application/vnd.collection+vnd.open-company.stakeholder-update+json;version=1"
-    }, {
-      "rel" : "share",
-      "method" : "POST",
-      "href" : "/companies/buffer/updates"
-    } ],
+    "links" : [ 
+      {
+        "rel" : "self",
+        "method" : "GET",
+        "href" : "/companies/buffer/updates",
+        "type" : "application/vnd.collection+vnd.open-company.stakeholder-update+json;version=1"
+      }, {
+        "rel" : "share",
+        "method" : "POST",
+        "href" : "/companies/buffer/updates"
+      },
+      {
+        "rel" : "company",
+        "method" : "GET",
+        "href" : "/companies/buffer",
+        "type" : "application/vnd.open-company.company+json;version=1"
+      }
+    ]
 ...
 ```
 

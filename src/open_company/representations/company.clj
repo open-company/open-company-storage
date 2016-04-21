@@ -8,7 +8,7 @@
             [open-company.resources.stakeholder-update :as su]
             [open-company.representations.stakeholder-update :as su-rep]))
 
-(def media-type "application/vnd.open-company.company.v1+json")
+(def media-type common/company-media-type)
 (def collection-media-type "application/vnd.collection+vnd.open-company.company+json;version=1")
 
 (def section-list-media-type "application/vnd.open-company.section-list.v1+json")

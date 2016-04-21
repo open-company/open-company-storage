@@ -87,7 +87,8 @@
 
   :handle-ok (fn [ctx] (su-rep/render-stakeholder-update-list
                           (company-rep/url company-slug)
-                          (:stakeholder-updates ctx)))
+                          (:stakeholder-updates ctx)
+                          (common/allow-org-members conn company-slug ctx)))
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])
                               (common/options-response [:options :get]))))
