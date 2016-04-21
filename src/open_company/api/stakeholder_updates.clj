@@ -53,6 +53,7 @@
     (by-method {
       :get (fn [ctx] (su-rep/render-stakeholder-update
                         (:company ctx)
+                        (company-rep/url company-slug)
                         (:stakeholder-update ctx)
                         (common/allow-org-members conn company-slug ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 su-rep/media-type))
