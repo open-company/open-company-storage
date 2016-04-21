@@ -106,7 +106,7 @@ The list of past stakeholder updates can be retrieved by all users (auth'd and n
 /companies/{slug}/updates
 ```
 
-The response:
+The response (assuming a user auth'd to the company, otherwise DELETE links will be missing):
 
 ```json
 {
@@ -131,12 +131,19 @@ The response:
         }
       },
       "created-at": "2016-01-02T12:28:20.454Z",
-      "links" : [ {
-        "rel" : "self",
-        "method" : "GET",
-        "href" : "/companies/buffer/updates/december-update-4a6f",
-        "type" : "application/vnd.open-company.stakeholder-update.v1+json"
-      } ]
+      "links" : [ 
+        {
+          "rel" : "self",
+          "method" : "GET",
+          "href" : "/companies/buffer/updates/december-update-4a6f",
+          "type" : "application/vnd.open-company.stakeholder-update.v1+json"
+        },
+        {
+          "rel" : "delete",
+          "method" : "DELETE",
+          "href" : "/companies/buffer/updates/december-update-4a6f"
+        }
+      ]
     }, {
       "title" : "January Update",
       "slug" : "january-update-65b5",
@@ -149,12 +156,19 @@ The response:
         }
       },
       "created-at": "2016-03-08T12:28:20.454Z",
-      "links" : [ {
-        "rel" : "self",
-        "method" : "GET",
-        "href" : "/companies/buffer/updates/january-update-65b5",
-        "type" : "application/vnd.open-company.stakeholder-update.v1+json"
-      } ]
+      "links" : [
+        {
+          "rel" : "self",
+          "method" : "GET",
+          "href" : "/companies/buffer/updates/january-update-65b5",
+          "type" : "application/vnd.open-company.stakeholder-update.v1+json"
+        },
+        {
+          "rel" : "delete",
+          "method" : "DELETE",
+          "href" : "/companies/buffer/updates/january-update-65b5"
+        }
+      ]
     }, {
       "title" : "February Update",
       "slug" : "february-update-d786",
@@ -167,18 +181,25 @@ The response:
         }
       },
       "created-at": "2016-03-12T12:28:20.454Z",
-      "links" : [ {
-        "rel" : "self",
-        "method" : "GET",
-        "href" : "/companies/buffer/updates/february-update-d786",
-        "type" : "application/vnd.open-company.stakeholder-update.v1+json"
-      } ]
+      "links" : [
+        {
+          "rel" : "self",
+          "method" : "GET",
+          "href" : "/companies/buffer/updates/february-update-d786",
+          "type" : "application/vnd.open-company.stakeholder-update.v1+json"
+        },
+        {
+          "rel" : "delete",
+          "method" : "DELETE",
+          "href" : "/companies/buffer/updates/february-update-d786"
+        }
+      ]
     }]
   }
 }
 ```
 
-If the user is auth'd to the company, the response HATEOAS links will include a `POST` link to share a new
+If the user is auth'd to the company, the company response's HATEOAS links will include a `POST` link to share a new
 stakeholder update:
 
 ```json

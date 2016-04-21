@@ -111,6 +111,10 @@
         (pool/with-pool [conn db-pool] (stakeholder-update-list conn company-slug)))
       (POST "/companies/:company-slug/updates/" [company-slug]
         (pool/with-pool [conn db-pool] (stakeholder-update-list conn company-slug)))
+      (OPTIONS "/companies/:company-slug/updates/:slug" [company-slug slug]
+        (pool/with-pool [conn db-pool] (stakeholder-update conn company-slug slug)))
+      (OPTIONS "/companies/:company-slug/updates/:slug/" [company-slug slug]
+        (pool/with-pool [conn db-pool] (stakeholder-update conn company-slug slug)))
       (GET "/companies/:company-slug/updates/:slug" [company-slug slug]
         (pool/with-pool [conn db-pool] (stakeholder-update conn company-slug slug)))
       (GET "/companies/:company-slug/updates/:slug/" [company-slug slug]
