@@ -26,7 +26,7 @@
     (if
       (su/create-stakeholder-update! conn
         (su/->stakeholder-update conn
-          company-slug
+          company
           (dissoc update :timestamp)
           as-of
           author))
