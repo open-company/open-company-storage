@@ -12,7 +12,7 @@
             [open-company.representations.company :as company-rep]
             [cheshire.core :as json]))
 
-;; Round-trip it through Cheshire to ensure the embedded HTML gets encodedod or the client has issues parsing it
+;; Round-trip it through Cheshire to ensure the embedded HTML gets encoded or the client has issues parsing it
 (defonce sections (json/generate-string config/sections {:pretty true}))
 
 (defn add-slug
@@ -183,15 +183,15 @@
 (defn company-routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
-     (OPTIONS "/companies/:slug/section/new" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
-     (OPTIONS "/companies/:slug/section/new/" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
-     (GET "/companies/:slug/section/new" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
-     (GET "/companies/:slug/section/new/" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
-     (ANY "/companies/:slug" [slug] (pool/with-pool [conn db-pool] (company conn slug)))
-     (ANY "/companies/:slug/" [slug] (pool/with-pool [conn db-pool] (company conn slug)))
-     (OPTIONS "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
-     (OPTIONS "/companies" [] (pool/with-pool [conn db-pool] (company-list conn)))
-     (GET "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
-     (GET "/companies" [] (pool/with-pool [conn db-pool] (company-list conn)))
-     (POST "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
-     (POST "/companies" [] (pool/with-pool [conn db-pool] (company-list conn))))))
+      (OPTIONS "/companies/:slug/section/new" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+      (OPTIONS "/companies/:slug/section/new/" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+      (GET "/companies/:slug/section/new" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+      (GET "/companies/:slug/section/new/" [slug] (pool/with-pool [conn db-pool] (section-list conn slug)))
+      (ANY "/companies/:slug" [slug] (pool/with-pool [conn db-pool] (company conn slug)))
+      (ANY "/companies/:slug/" [slug] (pool/with-pool [conn db-pool] (company conn slug)))
+      (OPTIONS "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
+      (OPTIONS "/companies" [] (pool/with-pool [conn db-pool] (company-list conn)))
+      (GET "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
+      (GET "/companies" [] (pool/with-pool [conn db-pool] (company-list conn)))
+      (POST "/companies/" [] (pool/with-pool [conn db-pool] (company-list conn)))
+      (POST "/companies" [] (pool/with-pool [conn db-pool] (company-list conn))))))

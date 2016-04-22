@@ -45,21 +45,19 @@
 
 (defn- stakeholder-update-for-rendering
   "Get a representation of the stakeholder update for the REST API"
-  [company company-url update authorized]
+  [company-url update authorized]
   (-> update
-    (merge (select-keys company [:name :description :logo :logo-width :logo-height]))
     (stakeholder-update-links company-url authorized)
     (common/clean clean-properties)))
 
 (defn render-stakeholder-update
   "Create a JSON representation of a stakeholder updates for the REST API"
-  [company company-url update authorized]
-  (json/generate-string (stakeholder-update-for-rendering company company-url update authorized) {:pretty true}))
+  [company-url update authorized]
+  (json/generate-string (stakeholder-update-for-rendering company-url update authorized) {:pretty true}))
 
 (defn render-stakeholder-update-list
   "Create a JSON representation of a group of stakeholder updates for the REST API"
   [company-url updates authorized]
-  (println authorized)
   (let [su-url (stakeholder-updates-url company-url)]
     (json/generate-string
       {:collection {:version common/json-collection-version

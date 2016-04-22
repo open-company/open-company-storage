@@ -12,7 +12,13 @@
 
 ;; ----- Responses -----
 
-(defn- options-for-stakeholder-update [conn company-slug slug ctx]
+(defn- options-for-stakeholder-update
+  "
+  List of HTTP methods for the stakeholder update resource.
+
+  Only return DELETE if the user is authorized for this company.
+  "
+  [conn company-slug slug ctx]
   (if-let* [company (company-res/get-company conn company-slug)
             _stakeholder-update (su-res/get-stakeholder-update conn company-slug slug)]
     (if (common/authorized-to-company? (assoc ctx :company company))
@@ -20,87 +26,102 @@
       (common/options-response [:options :get]))
     (common/missing-response)))
 
+(defn- stakeholder-update-location-response [update]
+  )
+  ; (common/location-response ["companies" (:symbol company)]
+  ;   (company-rep/render-company conn company) company-rep/media-type))
+
 ;; ----- Actions -----
 
 (defn- get-stakeholder-update [conn company-slug slug]
   (when-let* [company (company-res/get-company conn company-slug)
               su (su-res/get-stakeholder-update conn company-slug slug)]
-    {:company company
-     :stakeholder-update su}))
+    {:company company :stakeholder-update su}))
 
 (defn- list-stakeholder-updates [conn company-slug]
-  (su-res/list-stakeholder-updates conn company-slug [:slug :title :intro]))
+  (if-let* [company (company-res/get-company conn company-slug)
+            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title :intro])]
+    {:company company :stakeholder-updates su-list}
+    false))
+
+(defn- create-stakeholder-update [conn {:keys [company user] :as ctx}]
+  (assoc ctx :stakeholder-update (su-res/create-stakeholder-update!
+    conn
+    (su-res/->stakeholder-update
+      conn
+      company
+      (:stakeholder-update company)
+      user))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
+;; A resource for a specific stakeholder update for a company.
 (defresource stakeholder-update [conn company-slug slug]
-  common/open-company-anonymous-resource
+  common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
   :allowed-methods [:options :get :delete]
   :available-media-types [su-rep/media-type]
   :exists? (fn [_] (get-stakeholder-update conn company-slug slug))
   :known-content-type? (fn [ctx] (common/known-content-type? ctx su-rep/media-type))
+  :malformed? false
+  :processable? true
 
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))
     :delete (fn [ctx] (common/allow-org-members conn company-slug ctx))})
 
-  :processable? true
+  ;; Delete a stakeholder update
+  :delete! (fn [_] (su-res/delete-stakeholder-update conn company-slug slug))
 
   ;; Handlers
   :handle-ok
     (by-method {
       :get (fn [ctx] (su-rep/render-stakeholder-update
-                        (:company ctx)
                         (company-rep/url company-slug)
                         (:stakeholder-update ctx)
                         (common/allow-org-members conn company-slug ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 su-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 su-rep/media-type))
-  :handle-options (fn [ctx] (options-for-stakeholder-update conn company-slug slug ctx))
-
-  ;; Delete a stakeholder update
-  :delete! (fn [_] (su-res/delete-stakeholder-update conn company-slug slug)))
+  :handle-options (fn [ctx] (options-for-stakeholder-update conn company-slug slug ctx)))
 
 ;; A resource for a list of all the stakeholder updates for a company.
 (defresource stakeholder-update-list [conn company-slug]
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
 
-  :available-charsets [common/UTF8]
   :available-media-types (by-method {:get [su-rep/collection-media-type]
                                      :post nil})
   :allowed-methods [:options :get :post]
+  :exists? (fn [_] (list-stakeholder-updates conn company-slug))
+  :malformed? false
+  :processable? true
+  
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
     :get (fn [ctx] (common/allow-anonymous ctx))
     :post (fn [ctx] (common/allow-authenticated ctx))})
 
+  ;; Create a new stakeholder update
+  :post-to-missing? false ; 404 if company doesn't exist
+  :post! (fn [ctx] (println "POST!"))
+
+  ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
-
-  ;; Get a list of stakeholder updates
-  :exists? (fn [_] {:stakeholder-updates (list-stakeholder-updates conn company-slug)})
-
-  :processable? (by-method {
-    :get true
-    :options true
-    :post false})
-
   :handle-ok (fn [ctx] (su-rep/render-stakeholder-update-list
                           (company-rep/url company-slug)
                           (:stakeholder-updates ctx)
                           (common/allow-org-members conn company-slug ctx)))
+  :handle-created (fn [ctx] (stakeholder-update-location-response (:stakeholder-update ctx)))
   :handle-options (fn [ctx] (if (common/authenticated? ctx)
                               (common/options-response [:options :get :post])
                               (common/options-response [:options :get]))))
-
-  ;:handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx))))
 
 ;; ----- Routes -----
 
 (defn stakeholder-update-routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (routes
+      ;; List of stakeholder updates
       (OPTIONS "/companies/:company-slug/updates" [company-slug]
         (pool/with-pool [conn db-pool] (stakeholder-update-list conn company-slug)))
       (OPTIONS "/companies/:company-slug/updates/" [company-slug]
@@ -113,6 +134,7 @@
         (pool/with-pool [conn db-pool] (stakeholder-update-list conn company-slug)))
       (POST "/companies/:company-slug/updates/" [company-slug]
         (pool/with-pool [conn db-pool] (stakeholder-update-list conn company-slug)))
+      ;; Specific stakeholder update
       (OPTIONS "/companies/:company-slug/updates/:slug" [company-slug slug]
         (pool/with-pool [conn db-pool] (stakeholder-update conn company-slug slug)))
       (OPTIONS "/companies/:company-slug/updates/:slug/" [company-slug slug]

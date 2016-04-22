@@ -65,6 +65,14 @@
 ;; A set of all section names that can contain notes
 (def notes-sections #{:growth :finances})
 
+;; ----- Template Data -----
+
+(def empty-stakeholder-update {
+  :title ""
+  :intro {:body ""} 
+  :outro {:body ""}
+  :sections []})
+
 ;; ----- Schemas -----
 
 (def CategoryName (schema/pred #((set category-names) (keyword %))))
@@ -127,6 +135,11 @@
 (def Stakeholder-update
   (merge {:company-slug Slug
           :slug schema/Str ; slug of the update, made from the slugified title and a short UUID
+          :name schema/Str
+          :description schema/Str
+          (schema/optional-key :logo) schema/Str
+          (schema/optional-key :logo-width) schema/Int
+          (schema/optional-key :logo-height) schema/Int          
           :title schema/Str
           :sections [SectionName]
           :intro UpdateSection

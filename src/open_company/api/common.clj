@@ -122,7 +122,7 @@
     (let [jwtoken (last (s/split authorization #" "))]
       (if (jwt/check-token jwtoken)
         {:jwtoken jwtoken
-         :user    (:claims (jwt/decode jwtoken))}
+         :user (:claims (jwt/decode jwtoken))}
         {:jwtoken false}))))
 
 (defn allow-anonymous
@@ -138,12 +138,12 @@
 (defn allow-org-members
   "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
   [conn company-slug ctx]
-  (let [user    (:user ctx)
+  (let [user (:user ctx)
         company (company/get-company conn company-slug)]
     (cond
       (and user company) (authorized-to-company? {:company company :user user})
-      (nil? company)     true
-      :else              false)))
+      (nil? company) true
+      :else false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
