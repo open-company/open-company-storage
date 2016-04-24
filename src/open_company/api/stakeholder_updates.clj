@@ -103,7 +103,7 @@
 
   ;; Create a new stakeholder update
   :post-to-missing? false ; 404 if company doesn't exist
-  :post! (fn [ctx] (println "POST!"))
+  :post! (fn [ctx] (create-stakeholder-update conn ctx))
 
   ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
