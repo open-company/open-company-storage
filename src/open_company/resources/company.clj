@@ -19,7 +19,7 @@
   Properties of the `sections.json` section placeholder data that are NOT valid properties of a section, but are
   simply meta-data for the UI.
   "
-  #{:core :prompt :section-name :standard-metrics :units :intervals})
+  #{:core :prompt :standard-metrics :units :intervals})
 ;; ----- Utility functions -----
 
 (defn- clean
