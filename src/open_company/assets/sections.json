@@ -115,42 +115,52 @@
           "headline": "",
           "prompt": "Enter the most important growth metric for the stakeholders of your company. You'll be able
           to add more later.",
-          "metrics": [
+          "metrics": [],
+          "standard-metrics": [
             {
               "slug": "dau",
-              "name": "Daily active users"
+              "name": "DAU",
+              "description": "Average Daily Active Users"
             },
             {
               "slug": "mau",
-              "name": "Monthly active users"
+              "name": "MAU",
+              "description": "Monthly Active Users"
             },
             {
               "slug": "wau",
-              "name": "Weekly active users"
+              "name": "WAU",
+              "description": "Weekly Active Users"
             },
             {
               "slug": "mrr",
-              "name": "Monthly recurring revenue"
+              "name": "MRR",
+              "description": "Monthly Recurring Revenue"
             },
             {
               "slug": "arr",
-              "name": "Annual recurring revenue"
+              "name": "ARR",
+              "description": "Annual Recurring Revenue"
             },
             {
               "slug": "subscribers",
-              "name": "Subscribers"
+              "name": "Subscribers",
+              "description": "Total active subscribers"
             },
             {
-              "slug": "subscribers",
-              "name": "Registrations"
+              "slug": "registrations",
+              "name": "Registrations",
+              "description": "Total registered users"
             },
             {
               "slug": "followers",
-              "name": "Followers"
+              "name": "Followers",
+              "description": "Total active followers"
             },
             {
               "slug": "views",
-              "name": "Views"
+              "name": "Views",
+              "description": "Total page views"
             }
           ],
           "intervals": [
@@ -170,10 +180,6 @@
               "unit": "%",
               "name": "%"
             }
-          ],
-          "goal": [
-            "increase",
-            "decrease"
           ],
           "note": "Provide context about recent growth with a note.",
           "icon": "chart-growth",

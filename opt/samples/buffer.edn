@@ -197,31 +197,31 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total users"
+            :name "Users"
+            :description "Total number of registered users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "mau"
             :name "MAU"
+            :description "Monthly Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "dau"
-            :name "Avg DAU"
+            :name "DAU"
+            :description "Average Daily Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "arr"
             :name "ARR"
+            :description "Annual Recurring Revenue"
             :interval "monthly"
             :unit "currency"
-            :target "increase"
           }
         ]
 
@@ -534,31 +534,31 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total users"
+            :name "Users"
+            :description "Total number of registered users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "mau"
             :name "MAU"
+            :description "Monthly Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "dau"
             :name "Avg DAU"
+            :description "Average Daily Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "arr"
             :name "ARR"
+            :description "Annual Recurring Revenue"
             :interval "monthly"
             :unit "currency"
-            :target "increase"
           }
 
         ]
@@ -896,31 +896,31 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total users"
+            :name "Users"
+            :description "Total number of registered users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "mau"
             :name "MAU"
+            :description "Monthly Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "dau"
             :name "Avg DAU"
+            :description "Average Daily Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "arr"
             :name "ARR"
+            :description "Annual Recurring Revenue"
             :interval "monthly"
             :unit "currency"
-            :target "increase"
           }
         ]
         :data [
@@ -1296,31 +1296,31 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total users"
+            :name "Users"
+            :description "Total number of registered users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "mau"
             :name "MAU"
+            :description "Monthly Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "dau"
             :name "Avg DAU"
+            :description "Average Daily Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "arr"
             :name "ARR"
+            :description "Annual Recurring Revenue"
             :interval "monthly"
             :unit "currency"
-            :target "increase"
           }
         ]
         :data [
@@ -1735,31 +1735,31 @@
         :metrics [
           {
             :slug "total-registered-users"
-            :name "Total users"
+            :name "Users"
+            :description "Total number of registered users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "mau"
             :name "MAU"
+            :description "Monthly Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "dau"
             :name "Avg DAU"
+            :description "Average Daily Active Users"
             :interval "monthly"
             :unit "number"
-            :target "increase"
           }
           {
             :slug "arr"
             :name "ARR"
+            :description "Annual Recurring Revenue"
             :interval "monthly"
             :unit "currency"
-            :target "increase"
           }
         ]
         :data [
