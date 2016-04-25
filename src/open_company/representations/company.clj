@@ -83,7 +83,7 @@
   "Add the HATEOAS link to create a new stakeholder update if authorized"
   [company authorized]
   (if authorized
-    (update-in company :links conj (su-rep/create-link (url company)))
+    (update-in company [:links] conj (su-rep/create-link (url company)))
     company))
 
 (defn- stakeholder-update-links
