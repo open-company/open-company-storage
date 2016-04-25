@@ -47,7 +47,7 @@
          (or (map? outro) (nil? outro))
          (sequential? sections)
          (map? user)]
-   :post [map?]} ; title and sections required
+   :post [(map? %)]} ; title and sections required
   (-> su-props
     (assoc :slug (slug-for title))
     (assoc :company-slug (:slug company))
@@ -105,7 +105,7 @@
   ([conn company-slug] (list-stakeholder-updates conn company-slug []))
   ([conn company-slug additional-keys]
   {:pre [(map? conn) (string? company-slug) (sequential? additional-keys)]
-   :post [sequential?]}
+   :post [(sequential? %)]}
   (->> (into ["slug" "company-slug" "created-at"] additional-keys)
     (common/read-resources conn table-name "company-slug" company-slug)
     (sort-by :created-at)

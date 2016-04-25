@@ -5,7 +5,6 @@
             [open-company.representations.common :as common]
             [open-company.representations.section :as section-rep]
             [open-company.resources.company :as company]
-            [open-company.resources.stakeholder-update :as su]
             [open-company.representations.stakeholder-update :as su-rep]))
 
 (def media-type common/company-media-type)
@@ -78,13 +77,13 @@
 (defn- stakeholder-updates-link
   "Add HATEOAS links to existing stakeholder updates"
   [company]
-  (assoc company :links (conj (:links company) (su-rep/stakeholder-updates-link (url company)))))
+  (update-in company [:links] conj (su-rep/stakeholder-updates-link (url company))))
 
 (defn- stakeholder-update-create-link
   "Add the HATEOAS link to create a new stakeholder update if authorized"
   [company authorized]
   (if authorized
-    (assoc company :links (conj (:links company) (su-rep/create-link (url company))))
+    (update-in company :links conj (su-rep/create-link (url company)))
     company))
 
 (defn- stakeholder-update-links

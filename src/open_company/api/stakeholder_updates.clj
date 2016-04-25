@@ -4,7 +4,6 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.db.pool :as pool]
             [open-company.api.common :as common]
-            [open-company.resources.common :as common-res]
             [open-company.resources.company :as company-res]
             [open-company.resources.stakeholder-update :as su-res]
             [open-company.representations.company :as company-rep]
