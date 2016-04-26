@@ -96,10 +96,12 @@
   (reduce (fn [s sec]
             (assoc s
                    (:section-name sec)
-                   (-> sec
-                       (assoc :company-slug company-slug)
-                       (assoc :placeholder true)
-                       (dissoc :name))))
+                   (apply dissoc 
+                      (-> sec
+                        (assoc :company-slug company-slug)
+                        (assoc :placeholder true)
+                        (dissoc :name))
+                      metadata-properties)))
           {}
           (filter :core common/sections)))
 
