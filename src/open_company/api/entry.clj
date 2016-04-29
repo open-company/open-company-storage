@@ -36,9 +36,7 @@
   :handle-not-acceptable (fn [_] (common/only-accept 406 "application/json"))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 "application/json"))
 
-  :handle-ok (fn [ctx]
-               (prn conn)
-               (render-entry conn ctx))
+  :handle-ok (fn [ctx] (render-entry conn ctx))
 
   :handle-options (common/options-response [:options :get]))
 
