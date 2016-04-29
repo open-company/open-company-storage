@@ -11,7 +11,6 @@
           server  (httpkit/run-server handler options)]
       (assoc component :server server)))
   (stop [component]
-    ;; (prn component)
     (if-not server
       component
       (do
