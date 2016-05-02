@@ -14,6 +14,12 @@
   "Properties of a resource that can't be specified during a create and are ignored during an update."
   #{:slug :org-id :categories})
 
+(def metadata-properties
+  "
+  Properties of the `sections.json` section placeholder data that are NOT valid properties of a section, but are
+  simply meta-data for the UI.
+  "
+  #{:core :prompt :standard-metrics :units :intervals})
 ;; ----- Utility functions -----
 
 (defn- clean
@@ -90,10 +96,12 @@
   (reduce (fn [s sec]
             (assoc s
                    (:section-name sec)
-                   (-> sec
-                       (assoc :company-slug company-slug)
-                       (assoc :placeholder true)
-                       (dissoc :name))))
+                   (apply dissoc 
+                      (-> sec
+                        (assoc :company-slug company-slug)
+                        (assoc :placeholder true)
+                        (dissoc :name))
+                      metadata-properties)))
           {}
           (filter :core common/sections)))
 
@@ -112,7 +120,9 @@
         missing-section-names (->> sections (map keyword) (remove #(get company %)))
         missing-sections      (map common/section-by-name missing-section-names)
         ;; add :placeholder flag and remove :core flag
-        placeholder-sections (->> missing-sections (map #(dissoc % :core)) (map #(assoc % :placeholder true)))]
+        placeholder-sections (->> missing-sections
+                                (map #(apply dissoc % metadata-properties))
+                                (map #(assoc % :placeholder true)))]
     (merge company (zipmap missing-section-names placeholder-sections))))
 
 (defn add-prior-sections
