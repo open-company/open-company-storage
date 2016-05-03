@@ -1210,7 +1210,7 @@
     {
       :section {
         :title "Update"
-        :headline "We reached the 50 team members mark in September!"
+        :headline "We reached the 50 team members mark in September! :boom:"
         :body "
         <p>This feels like a big milestone and a special moment to reflect on.</p>
         <p>For me, the most exciting part of this is that 50 people are able to join our journey of working as a fully distributed
@@ -2034,7 +2034,7 @@
     {
       :section {
         :title "Product"
-        :headline "We launched Pablo 2.0!"
+        :headline "We launched :rocket: Pablo 2.0! :tada:"
         :body "
         <p>We launched <a href=\"https://blog.bufferapp.com/pablo-images-for-instagram-pinterest-twitter-facebook\">Pablo 2.0!</a>
         More than 500,000 Pablo images have been created so far, and we're excited to keep going with our quick
