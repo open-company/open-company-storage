@@ -880,7 +880,7 @@
           }
         ]
         :notes {
-          :body "<p>We're delighted to hit almost $7.5M in ARR and be fast moving
+          :body "<p>We're delighted to hit almost $7.5M :dollar: in ARR and be fast moving
           towards the big $10M ARR milestone.</p>
           <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
           in the last few months are starting to take effect.</p>"
@@ -1971,7 +1971,7 @@
           }
         ]
         :notes {
-          :body "<p>It can clearly be seen in the numbers here that our move from 7-day to 30-day trials for Buffer
+          :body "<p>It can clearly be seen :see_no_evil: in the numbers here that our move from 7-day to 30-day trials for Buffer
           for Business has significantly impacted metrics (most noticeably MRR).</p>
           <p>The reason this has stalled our revenue growth is that it created a 30-day gap with no expiring trials
           and therefore no new converting Buffer for Business customers.</p>
@@ -2000,7 +2000,7 @@
           to go entirely remote and distributed.</p>
           <p>As we grow, we started experimenting with
           <a href=\"https://open.buffer.com/why-we-ask-our-team-to-grade-us-every-month-buffers-october-hiring-report/\">NPS</a>
-          to get the \"pulse\" of Buffer regularly.</p>
+          to get the :heartbeat: of Buffer regularly.</p>
           <p>We also evolved some of our team tools: we left HipChat & Sqwiggle for Slack & Zoom and joined Okta as a
           security solution. On the transparency front, Leo shared more details on
           <a href=\"https://open.buffer.com/explaining-equity/\">How We Explain Stock Options to Team Members</a>.</p>
