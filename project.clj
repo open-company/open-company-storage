@@ -24,22 +24,22 @@
     [http-kit "2.2.0-alpha1"] ; Web server http://http-kit.org/
     [compojure "1.5.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
-    [com.apa512/rethinkdb "0.15.17"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    [com.apa512/rethinkdb "0.15.18"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.1"] ; Data validation https://github.com/Prismatic/schema
-    [environ "1.0.2"] ; Environment settings from different sources https://github.com/weavejester/environ
+    [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.4.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.3.1"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.0.1"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.3"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
-    [medley "0.7.4"] ; Utility functions https://github.com/weavejester/medley
+    [medley "0.8.1"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
  ]
 
   ;; Production plugins
   :plugins [
     [lein-ring "0.9.7"] ; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-environ "1.0.2"] ; Get environment settings from different sources https://github.com/weavejester/environ
+    [lein-environ "1.0.3"] ; Get environment settings from different sources https://github.com/weavejester/environ
   ]
 
   :profiles {
