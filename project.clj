@@ -33,6 +33,14 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.1"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
+    ;; A comprehensive Clojure client for the entire Amazon AWS api.
+    ;; https://github.com/mcohen01/amazonica
+    [amazonica "0.3.56" :exclusions [com.amazonaws/aws-java-sdk]]
+    [com.amazonaws/aws-java-sdk-core "1.10.76"]
+    [com.amazonaws/aws-java-sdk-sqs "1.10.76"]
+    ;; Asynchronous communication for clojure (http-client)
+    ;; https://github.com/ztellman/aleph
+    [aleph "0.4.2-alpha3"]
  ]
 
   ;; Production plugins
