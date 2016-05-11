@@ -77,6 +77,9 @@
         :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
+        :aws-access-key nil
+        :aws-secret-key nil
+        :aws-sqs-queue nil}
       }
       :plugins [
         [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
