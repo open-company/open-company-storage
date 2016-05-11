@@ -5,6 +5,7 @@
             [open-company.config :as config]
             [open-company.db.pool :as pool]
             [open-company.lib.slugify :as slug]
+            [open-company.lib.bot :as bot]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
             [open-company.resources.company :as company]
@@ -147,9 +148,14 @@
     :options true
     :post (fn [ctx] (processable-post-req? conn ctx))})
 
-  :post! (fn [ctx] {:company (->> (company/->company (:data ctx) (:user ctx) (find-slug conn (:data ctx)))
-                                  (company/add-core-placeholder-sections)
-                                  (company/create-company! conn))})
+  :post! (fn [{:keys [user data] :as ctx}]
+           (let [company (->> (company/->company data user (find-slug conn data))
+                              (company/add-core-placeholder-sections)
+                              (company/create-company! conn))
+                 ctx (assoc ctx :company company)]
+             (when (:owner user) ;only owners will have a bot token
+               (bot/send-trigger! (bot/ctx->trigger :onboard ctx)))
+             ctx))
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
   :handle-created (fn [ctx] (company-location-response conn (:company ctx)))
