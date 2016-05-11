@@ -35,7 +35,8 @@
   :email "albert@combat.org"
   :owner true
   :admin true
-  :org-id "slack:98765"})
+  :org-id "slack:98765"
+  :bot {:id "abc" :token "xyz"}})
 
 (def sartre {
   :user-id "slack:1980-06-21"

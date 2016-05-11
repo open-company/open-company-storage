@@ -7,6 +7,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
+            [open-company.lib.bot :as bot]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
@@ -92,6 +93,24 @@
         (:slug body) => "hello-world"
         (:description body) => "x"
         (:name body) => "Hello World"))
+
+    (facts "about triggering bot onboarding"
+        (fact "trigger is sent if user is owner of Slack Team"
+          (let [sqs-msg (atom nil)]
+            (with-redefs [bot/send-trigger! #(reset! sqs-msg %)]
+              (let [payload  {:name "Hello World" :description "x"}
+                    response (mock/api-request :post "/companies" {:body payload :auth mock/jwtoken-camus})]
+                (:bot @sqs-msg) =>    {:id "abc" :token "xyz"}
+                (:script @sqs-msg) => {:id :onboard :params {:user/name "Albert" :company/name "Hello World"
+                                                             :company/description "x" :company/slug "hello-world" :company/currency "USD"}}
+                (:receiver @sqs-msg) => {:type :channel :id "1960-01-04"}
+                (str "Bearer " (:api-token @sqs-msg)) => mock/jwtoken-camus)))
+        (fact "trigger is sent if user is owner of Slack Team"
+          (let [sqs-msg (atom nil)]
+            (with-redefs [bot/send-trigger! #(reset! sqs-msg %)]
+              (let [payload  {:name "Hello World" :description "x"}
+                    response (mock/api-request :post "/companies" {:body payload})]
+                @sqs-msg) => nil)))))
 
     (facts "about conflicting company slugs"
       
