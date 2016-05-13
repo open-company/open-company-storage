@@ -15,7 +15,6 @@
     }
     :sections {
       :progress []
-      :financial []
       :company []
     }
     :stakeholder-update {
