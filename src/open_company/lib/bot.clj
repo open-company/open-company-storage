@@ -16,18 +16,6 @@
    :receiver {:type (s/eq :channel) :id s/Str}
    :bot      {:token s/Str :id s/Str}})
 
-(defn slack-api [method params]
-  (-> (http/get (str "https://slack.com/api/" (name method))
-                {:query-params params :as :json})
-      (d/chain #(if (-> % :body :ok)
-                  %
-                  (throw (ex-info "Error after calling Slack API"
-                                  {:method method :params params
-                                   :response (select-keys % [:body :status])}))))))
-
-(defn get-im-channel [token user-id]
-  (-> @(slack-api :im.open {:token token :user user-id}) :body :channel :id))
-
 (defn strip-prefix
   "Remove potential prefixes from supplied `id`"
   [id]
@@ -51,12 +39,8 @@
         bot (-> ctx :user :bot)]
     {:api-token   (:jwtoken ctx)
      :bot         bot
-     :script      {:id script-id
-                   :params (script-params ctx)}
-     :receiver    {:type :channel
-                   :id   (if (= \U (first rid))
-                           (get-im-channel (:token bot) rid)
-                           rid)}}))
+     :script      {:id script-id, :params (script-params ctx)}
+     :receiver    {:type :channel, :id rid}}))
 
 (defn send-trigger! [trigger]
   (s/validate BotTrigger trigger)
