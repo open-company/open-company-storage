@@ -72,6 +72,6 @@
 
   (send-trigger! {:abc :d})
 
-  (-> @(slack :users.list {:token tkn}) :body)
+  (:body @(slack :users.list {:token tkn}))
 
   )
