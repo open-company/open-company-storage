@@ -16,8 +16,7 @@
       :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
     }
     :sections {
-      :progress ["growth"]
-      :financial ["finances"]
+      :progress ["growth" "finances"]
       :company []
     }
     :stakeholder-update {

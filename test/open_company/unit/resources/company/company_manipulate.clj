@@ -23,7 +23,7 @@
 
     (fact "with missing placeholder sections"
       (let [company (c/get-company conn r/slug)
-            missing-sections {:sections {:progress ["highlights"] :company ["help"] :financial ["ownership"]}}
+            missing-sections {:sections {:progress ["highlights" "help"] :company ["ownership"]}}
             fixed-company (c/add-placeholder-sections (merge company missing-sections))] ; this is what's tested
         (:highlights fixed-company) => (-> (common/section-by-name "highlights")
                                            (assoc :placeholder true)
@@ -37,7 +37,7 @@
 
     (future-fact "with partially specified placeholder sections"
       (let [company (c/get-company conn r/slug)
-            updated-sections {:sections {:progress ["highlights"] :company ["help"] :financial ["ownership"]}}
+            updated-sections {:sections {:progress ["highlights" "help"] :company ["ownership"]}}
             updated-content (-> updated-sections
                                 (assoc :highlights {:body "body a"})
                                 (assoc :help {:title "title b" :body "body b"})
@@ -67,7 +67,7 @@
       ;; remove the sections
       (let [company (c/get-company conn r/slug)
             updated-company (-> company 
-                                (assoc :sections {:sections {:progress [] :company [] :financial []}})
+                                (assoc :sections {:sections {:progress [] :company []}})
                                 (dissoc :update))]
         (c/update-company conn r/slug updated-company))
       ;; verify the sections are gone
@@ -76,7 +76,7 @@
       (:finances (c/get-company conn r/slug)) => nil
       ;; velify missing prior sections comes back
       (let [company (c/get-company conn r/slug)
-            missing-sections {:sections {:progress ["update"] :company ["values"] :financial []}}
+            missing-sections {:sections {:progress ["update"] :company ["values"]}}
             fixed-company (c/add-prior-sections conn (merge company missing-sections))] ; this is what's tested
         (:update fixed-company) => (contains r/text-section-1)
         (:values fixed-company) => (contains r/text-section-2)

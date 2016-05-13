@@ -57,13 +57,13 @@
 
     (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
       (facts "it returns the sections in the company in the pre-defined order"
-        (:sections (c/create-company! conn (c/->company r/open r/coyote))) => {:progress [] :financial [] :company []}
+        (:sections (c/create-company! conn (c/->company r/open r/coyote))) => {:progress [] :company []}
         (c/delete-company conn r/slug)
         (:sections (c/create-company! conn (c/->company (add-section r/open :update) r/coyote))) =>
-        {:progress [:update] :financial [] :company []}
+        {:progress [:update] :company []}
         (c/delete-company conn r/slug)
         (:sections (c/create-company! conn (c/->company (add-section r/open :values) r/coyote))) =>
-        {:progress [] :financial [] :company [:values]}
+        {:progress [] :company [:values]}
         (c/delete-company conn r/slug)
         (:sections (c/create-company!
                     conn
@@ -71,4 +71,4 @@
                                      (add-section :mission) (add-section :press) (add-section :help)
                                      (add-section :challenges) (add-section :diversity) (add-section :update))
                                  r/coyote)))
-        => {:progress [:update :challenges :press] :financial [] :company [:mission :diversity :help]})))))
+        => {:progress [:update :challenges :press] :company [:mission :diversity :help]})))))
