@@ -79,7 +79,7 @@
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
         :aws-access-key nil
         :aws-secret-key nil
-        :aws-sqs-queue nil}
+        :aws-sqs-queue nil
       }
       :plugins [
         [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
