@@ -1,8 +1,6 @@
 (ns open-company.lib.bot
   (:require [amazonica.aws.sqs :as sqs]
             [environ.core :as e]
-            [manifold.deferred :as d]
-            [aleph.http :as http]
             [medley.core :as med]
             [clojure.string :as string]
             [schema.core :as s]))
