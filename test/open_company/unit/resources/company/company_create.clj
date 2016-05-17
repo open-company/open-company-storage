@@ -71,4 +71,4 @@
                                      (add-section :mission) (add-section :press) (add-section :help)
                                      (add-section :challenges) (add-section :diversity) (add-section :update))
                                  r/coyote)))
-        => {:progress [:update :challenges :press] :company [:mission :diversity :help]})))))
+        => {:progress [:update :challenges :press :help] :company [:mission :diversity]})))))
