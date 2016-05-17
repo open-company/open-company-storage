@@ -69,7 +69,11 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
+<<<<<<< HEAD
                                    :progress ["update" "finances" "team" "help"]}))
+=======
+                                   :progress ["help" "update" "team" "finances"]}))
+>>>>>>> 6dfda8307cb9a8e2efbf4ae69d5e1b9193625957
 
     (fact "with no JWToken"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -82,7 +86,11 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
+<<<<<<< HEAD
                                    :progress ["update" "finances" "team" "help"]}))
+=======
+                                   :progress ["help" "update" "team" "finances"]}))
+>>>>>>> 6dfda8307cb9a8e2efbf4ae69d5e1b9193625957
 
     (fact "with an organization that doesn't match the company"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -95,7 +103,11 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
+<<<<<<< HEAD
                                    :progress ["update" "finances" "team" "help"]}))
+=======
+                                   :progress ["help" "update" "team" "finances"]}))
+>>>>>>> 6dfda8307cb9a8e2efbf4ae69d5e1b9193625957
 
     (fact "with no company matching the company slug"
       (let [new-order {:company ["diversity" "values"]
@@ -107,7 +119,11 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
+<<<<<<< HEAD
                                    :progress ["update" "finances" "team" "help"]})))
+=======
+                                   :progress ["help" "update" "team" "finances"]})))
+>>>>>>> 6dfda8307cb9a8e2efbf4ae69d5e1b9193625957
 
   (facts "about section reordering"
 
@@ -115,7 +131,11 @@
     (let [db-company (company/get-company conn r/slug)]
       (:categories db-company) => categories
       (:sections db-company) => {:company ["diversity" "values"]
+<<<<<<< HEAD
                                  :progress ["update" "finances" "team" "help"]})
+=======
+                                 :progress ["help" "update" "team" "finances"]})
+>>>>>>> 6dfda8307cb9a8e2efbf4ae69d5e1b9193625957
 
     (facts "when the new order is valid"
 
@@ -187,7 +207,7 @@
 
     ;; verify the initial set of sections
     (:sections (company/get-company conn r/slug)) => {:company ["diversity" "values"]
-                                                 :progress ["update" "finances" "team" "help"]}
+                                                      :progress ["update" "finances" "team" "help"]}
 
       (fact "a section can be removed from the progress category"
         (let [new-set {:company ["diversity" "values"]
