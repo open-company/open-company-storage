@@ -69,7 +69,7 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["help" "update" "team" "finances"]}))
+                                   :progress ["update" "finances" "team" "help"]}))
 
     (fact "with no JWToken"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -82,7 +82,7 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["help" "update" "team" "finances"]}))
+                                   :progress ["update" "finances" "team" "help"]}))
 
     (fact "with an organization that doesn't match the company"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -95,7 +95,7 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["help" "update" "team" "finances"]}))
+                                   :progress ["update" "finances" "team" "help"]}))
 
     (fact "with no company matching the company slug"
       (let [new-order {:company ["diversity" "values"]
@@ -107,7 +107,7 @@
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
         (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["help" "update" "team" "finances"]})))
+                                   :progress ["update" "finances" "team" "help"]})))
 
   (facts "about section reordering"
 
@@ -115,7 +115,7 @@
     (let [db-company (company/get-company conn r/slug)]
       (:categories db-company) => categories
       (:sections db-company) => {:company ["diversity" "values"]
-                                 :progress ["help" "update" "team" "finances"]})
+                                 :progress ["update" "finances" "team" "help"]})
 
     (facts "when the new order is valid"
 
@@ -187,7 +187,7 @@
 
     ;; verify the initial set of sections
     (:sections (company/get-company conn r/slug)) => {:company ["diversity" "values"]
-                                                 :progress ["help" "update" "team" "finances"]}
+                                                 :progress ["update" "finances" "team" "help"]}
 
       (fact "a section can be removed from the progress category"
         (let [new-set {:company ["diversity" "values"]
@@ -222,7 +222,7 @@
           (:sections body) => new-set
           (:update body) => nil
           (:team body) => nil
-          (:finances body) => (contains r/finances-section-1)
+          (:finances body) => nil
           (:help body) => (contains r/text-section-1)
           (:diversity body) => (contains r/text-section-2)
           (:values body) => (contains r/text-section-1)
@@ -230,7 +230,7 @@
           (:sections db-company) => new-set
           (:update db-company) => nil
           (:team db-company) => nil
-          (:finances db-company) => (contains r/finances-section-1)
+          (:finances db-company) => nil
           (:help db-company) => (contains r/text-section-1)
           (:diversity db-company) => (contains r/text-section-2)
           (:values db-company) => (contains r/text-section-1)))
