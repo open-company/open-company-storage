@@ -24,7 +24,7 @@
     [http-kit "2.2.0-alpha1"] ; Web server http://http-kit.org/
     [compojure "1.5.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
-    [com.apa512/rethinkdb "0.15.19"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    [com.apa512/rethinkdb "0.15.20"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.1"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.4.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
@@ -33,14 +33,12 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.1"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
-    ;; A comprehensive Clojure client for the entire Amazon AWS api.
-    ;; https://github.com/mcohen01/amazonica
+    [aleph "0.4.2-alpha3"] ;; Asynchronous communication for clojure (http-client) https://github.com/ztellman/aleph
+    
+    ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
     [amazonica "0.3.56" :exclusions [com.amazonaws/aws-java-sdk]]
     [com.amazonaws/aws-java-sdk-core "1.10.76" :exclusions [org.apache.httpcomponents/httpclient]]
     [com.amazonaws/aws-java-sdk-sqs "1.10.76"]
-    ;; Asynchronous communication for clojure (http-client)
-    ;; https://github.com/ztellman/aleph
-    [aleph "0.4.2-alpha3"]
  ]
 
   ;; Production plugins
