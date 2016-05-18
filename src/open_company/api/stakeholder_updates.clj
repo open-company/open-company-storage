@@ -39,7 +39,7 @@
 
 (defn- list-stakeholder-updates [conn company-slug]
   (if-let* [company (company-res/get-company conn company-slug)
-            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title :intro])]
+            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title])]
     {:company company :stakeholder-updates su-list}
     false))
 

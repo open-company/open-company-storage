@@ -21,12 +21,6 @@
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections ["update" "help" "team" "product" "marketing" "customer-service" "growth" "finances"]
     }
   }

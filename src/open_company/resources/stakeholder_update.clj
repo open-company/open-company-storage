@@ -53,8 +53,6 @@
     (assoc :company-slug (:slug company))
     (merge (select-keys company [:name :description :logo :logo-width :logo-height])) ; freeze some props of company
     (update :title #(or % ""))
-    (update :intro #(or % {:body ""}))
-    (update :outro #(or % {:body ""}))
     (assoc :author (common/author-for-user user))
     (assoc :created-at timestamp)
     (sections-for conn))))

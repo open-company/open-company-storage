@@ -28,7 +28,6 @@
     {
       :title (:title update)
       :slug slug
-      :intro (:intro update)
       :created-at (:created-at update)
       :links (if authorized [su-link (common/delete-link (stakeholder-update-url company-url slug))] [su-link])
     }))

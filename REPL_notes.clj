@@ -40,7 +40,7 @@
 (with-open [c (apply r/connect conn)]
   (-> (r/table "companies")
       (r/get "prompt")
-      (r/update {:stakeholder-update {:title "" :intro {:body ""} :outro {:body ""} :sections []}})
+      (r/update {:stakeholder-update {:title "" :sections []}})
       (r/run c)))
 
 (with-open [c (apply r/connect conn)]

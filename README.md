@@ -284,9 +284,7 @@ Then enter these commands one-by-one, noting the output:
   (su/->stakeholder-update
     conn
     (company/get-company conn "open")
-    {:title "OpenCompany"
-     :intro {:body "This is what is up."}
-     :outro {:body "Peace out!"}
+    {:title "OpenCompany Update"
      :sections ["update" "finances"]}
     author))
 
