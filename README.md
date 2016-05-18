@@ -285,7 +285,7 @@ Then enter these commands one-by-one, noting the output:
     conn
     (company/get-company conn "open")
     {:title "OpenCompany Update"
-     :sections ["update" "finances"]}
+     :sections ["finances"]}
     author))
 
 ;; delete a company
