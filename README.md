@@ -219,7 +219,7 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company!
   conn
   (company/->company {:name "Buffer"
-                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
+                      :slug (slug/find-available-slug "Buffer" (company/taken-slugs conn))
                       :currency "USD"
                       :description "A better way to share on social media."
                       :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
