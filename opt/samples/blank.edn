@@ -15,17 +15,10 @@
     }
     :sections {
       :progress []
-      :financial []
       :company []
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections []
     }
   }

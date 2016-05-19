@@ -17,18 +17,11 @@
       :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     }
     :sections {
-      :progress ["update" "growth" "team" "product" "marketing" "customer-service" "help"]
-      :financial ["finances"]
+      :progress ["update" "growth" "team" "product" "marketing" "customer-service" "help" "finances"]
       :company ["diversity" "values"]
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections ["update" "growth" "finances" "team" "product" "marketing" "customer-service" "help"]
     }
   }

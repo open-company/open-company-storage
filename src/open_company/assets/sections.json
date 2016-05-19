@@ -40,18 +40,6 @@
         },
 
         {
-          "section-name": "privacy",
-          "title": "Data Privacy",
-          "description": "Company policy on customer information privacy",
-          "headline": "",
-          "body": "How does the company use customer data? What regulations such as US HIPAA or European GDPR
-          apply to the company? What agreements exist with customers about their data? What
-          do these agreements say in Plain English?",
-          "icon": "lock",
-          "core": false
-        },
-
-        {
           "section-name": "competition",
           "title": "Competition",
           "headline": "",
@@ -60,27 +48,8 @@
           what are the other major external threats to your business?",
           "icon": "shark",
           "core": false
-        },
-
-        {
-          "section-name": "help",
-          "title": "How You Can Help",
-          "headline": "",
-          "description": "Ask your company stakeholders for help and ideas",
-          "body": "Where do you need the most help from your team and investors? Be specific.",
-          "icon": "bulb-63",
-          "core": false
-        },
-
-        {
-          "section-name": "kudos",
-          "title": "Kudos",
-          "headline": "",
-          "description": "Celebrate great actions that helped the company",
-          "body": "Who went above and beyond to help the company? What did they do?",
-          "icon": "award-48",
-          "core": false
         }
+
       ]
     },
     {
@@ -283,14 +252,27 @@
           "body": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
           "icon": "handshake",
           "core": false
-        }
+        },
 
-      ]
-    },
-    {
-      "name": "financial",
-      "title": "Financial",
-      "sections": [
+        {
+          "section-name": "help",
+          "title": "How You Can Help",
+          "headline": "",
+          "description": "Ask your company stakeholders for help and ideas",
+          "body": "Where do you need the most help from your team and investors? Be specific.",
+          "icon": "bulb-63",
+          "core": false
+        },
+
+        {
+          "section-name": "kudos",
+          "title": "Kudos",
+          "headline": "",
+          "description": "Celebrate great actions that helped the company",
+          "body": "Who went above and beyond to help the company? What did they do?",
+          "icon": "award-48",
+          "core": false
+        },
 
         {
           "section-name": "finances",

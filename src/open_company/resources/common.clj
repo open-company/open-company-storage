@@ -69,8 +69,6 @@
 
 (def empty-stakeholder-update {
   :title ""
-  :intro {:body ""} 
-  :outro {:body ""}
   :sections []})
 
 ;; ----- Schemas -----
@@ -101,11 +99,6 @@
    (schema/optional-key :author) Author
    schema/Keyword schema/Any})
 
-(def UpdateSection {
-  :body schema/Str
-  (schema/optional-key :updated-at) schema/Str
-  (schema/optional-key :author) Author}) ; user that last modified the intro
-
 (def InlineSections
   (into {} (for [sn section-names] [(schema/optional-key sn) Section])))
 
@@ -120,8 +113,6 @@
           :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
           :stakeholder-update {
             :title schema/Str
-            :intro UpdateSection
-            :outro UpdateSection
             :sections [SectionName]
           }
           (schema/optional-key :home-page) schema/Str
@@ -142,8 +133,6 @@
           (schema/optional-key :logo-height) schema/Int          
           :title schema/Str
           :sections [SectionName]
-          :intro UpdateSection
-          :outro UpdateSection
           :created-at schema/Str
           :author Author} ; user that created the update
         InlineSections))

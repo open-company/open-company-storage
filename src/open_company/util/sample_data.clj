@@ -20,7 +20,7 @@
   [conn company-slug company update]
   (let [title (:title update)
         as-of (:timestamp update)
-        author (get-in update [:intro :author])
+        author (:author update)
         message (str "stakeholder update '" title "' at " as-of " by " (:name author) ".")]
     (println (str "Creating " message))
     (if
