@@ -153,7 +153,7 @@
                               (company/add-core-placeholder-sections)
                               (company/create-company! conn))
                  ctx (assoc ctx :company company)]
-             (when (:owner user) ;only owners will have a bot token
+             (when (:bot user) ; Some JWTokens might not have a bot token
                (bot/send-trigger! (bot/ctx->trigger :onboard ctx)))
              ctx))
 
