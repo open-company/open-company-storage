@@ -1,5 +1,6 @@
 (ns open-company.resources.stakeholder-update
-  (:require [schema.core :as schema]
+  (:require [clojure.string :as s]
+            [schema.core :as schema]
             [if-let.core :refer (if-let*)]
             [defun :refer (defun-)]
             [open-company.lib.slugify :as slug]
@@ -17,7 +18,8 @@
 (defn- slug-for
   "Create a slug for the stakeholder update from the slugified title and a short UUID."
   [title]
-  (str (slug/slugify title) "-" (subs (str (java.util.UUID/randomUUID)) 0 4)))
+  (let [non-blank-title (if (s/blank? title) "update" title)]
+    (str (slug/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 4))))
 
 (defun- sections-for
   "Recursive function to get each specified section and add it to the stakeholder update."
