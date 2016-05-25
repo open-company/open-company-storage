@@ -137,7 +137,11 @@
         missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
         ; IDs of the most recent prior section of those missing sections (where found)
         read-in-order #(common/read-resources-in-order conn common/section-table-name "company-slug-section-name" [slug %] [:id])
-        prior-section-ids (->> missing-section-names (map read-in-order) (remove nil?) flatten (map :id))
+        prior-section-ids (->> missing-section-names
+                            (map read-in-order)
+                            (remove nil?)
+                            flatten
+                            (map :id))
         prior-sections (map #(common/read-resource conn common/section-table-name %) prior-section-ids)
         prior-section-names (map #(keyword (:section-name %)) prior-sections)]
     (merge company (zipmap prior-section-names (map #(dissoc % :section-name) prior-sections)))))
@@ -150,13 +154,12 @@
             ; just the sections currently in use in the company
             current-sections (section-set company)
             ; get all sections for the company
-            all-sections (common/read-resources conn common/section-table-name "company-slug" slug
+            all-sections (common/read-resources-in-order conn common/section-table-name "company-slug" slug
               [:section-name :title :updated-at])
             ; diff the current and all sections to get missing (archived) sections
             archived-sections (remove #(current-sections (keyword (:section-name %))) all-sections)
-            sorted-archived-sections (sort-by :updated-at archived-sections)
             ; only get the latest revision of each archived section
-            latest-archived (zipmap (map :section-name sorted-archived-sections) sorted-archived-sections)]
+            latest-archived (zipmap (map :section-name archived-sections) archived-sections)]
       ; for each archived section, remove the :update-at key, and swap :section-name key name for :section
       (->> latest-archived
         (vals)

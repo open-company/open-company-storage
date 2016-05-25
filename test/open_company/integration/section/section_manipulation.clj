@@ -245,9 +245,9 @@
             (:values body) => (contains r/text-section-1))
           ;; verify removed section is archived
           (doseq [body [patch-body get-body]]
-            (:archived body) => [{:section "update" :title "Text Section 1"}
-                                  {:section "finances" :title "Finances Section 1"}
-                                  {:section "team" :title "Text Section 2"}])))
+            (:archived body) => [{:section "team" :title "Text Section 2"}
+                                 {:section "finances" :title "Finances Section 1"}
+                                 {:section "update" :title "Text Section 1"}])))
 
       (fact "a section can be removed from the company category"
         (let [new-order {:company ["diversity"]
@@ -295,9 +295,9 @@
             (:values body) => (contains r/text-section-1))
           ;; verify removed section is archived
           (doseq [body [patch-body get-body]]
-            (:archived body) => [{:section "finances" :title "Finances Section 1"}
+            (:archived body) => [{:section "diversity" :title "Text Section 2"}
                                  {:section "team" :title "Text Section 2"}
-                                 {:section "diversity" :title "Text Section 2"}]))))
+                                 {:section "finances" :title "Finances Section 1"}]))))
   
   (facts "about adding sections"
 
@@ -327,8 +327,9 @@
           db-highlights => (contains placeholder)))
 
       (fact "that used to exist"
-        ; First, update the content using another user to create a newer revision
-        (let [new-content {:title "Update" :headline "Headline #2" :body "Update #2."}
+        (let [_delay (Thread/sleep 1000) ; wait long enough for timestamps of the new revision to differ definitively
+              new-content {:title "Update" :headline "Headline #2" :body "Update #2."}
+              ; Update the content using another user to create a newer revision
               patch1-response (mock/api-request :patch (section-rep/url r/slug "update") {:auth mock/jwtoken-camus 
                                                                                           :body new-content})
               ; Then remove the content
@@ -353,7 +354,7 @@
           (:sections patch3-body) => newer-sections
           (:update patch3-body) => (contains new-content)
           ; verify update is in the DB AND contains the latest content
-          (:update db2-company) => (contains new-content))))
+          (:update db2-company) => (contains new-content)))))
 
     (facts "with section content"
 
