@@ -9,7 +9,8 @@
             [open-company.resources.common :as common-res]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
-            [open-company.representations.company :as company-rep]))
+            [open-company.representations.company :as company-rep]
+            [open-company.representations.section :as section-rep]))
 
 ;; ----- Test Cases -----
 
@@ -206,7 +207,7 @@
               db-company (company/get-company conn r/slug)
               get-response (mock/api-request :get (company-rep/url r/slug))
               get-body (mock/body-from-response get-response)]
-          ;; verify the response status
+          ;; verify the response statuses
           (doseq [response [patch-response get-response]]  
             (:status response) => 200)
           ;; verify the DB data and API responses
@@ -230,7 +231,7 @@
               db-company (company/get-company conn r/slug)
               get-response (mock/api-request :get (company-rep/url r/slug))
               get-body (mock/body-from-response get-response)]
-          ;; verify the response status
+          ;; verify the response statuses
           (doseq [response [patch-response get-response]]  
             (:status response) => 200)
           ;; verify the DB data and API responses
@@ -256,7 +257,7 @@
               db-company (company/get-company conn r/slug)
               get-response (mock/api-request :get (company-rep/url r/slug))
               get-body (mock/body-from-response get-response)]
-          ;; verify the response status
+          ;; verify the response statuses
           (doseq [response [patch-response get-response]]  
             (:status response) => 200)
           ;; verify the DB data and API responses
@@ -280,7 +281,7 @@
               db-company (company/get-company conn r/slug)
               get-response (mock/api-request :get (company-rep/url r/slug))
               get-body (mock/body-from-response get-response)]
-          ;; verify the response status
+          ;; verify the response statuses
           (doseq [response [patch-response get-response]]  
             (:status response) => 200)
           ;; verify the DB data and API responses
@@ -325,27 +326,34 @@
           (:placeholder db-highlights) => true
           db-highlights => (contains placeholder)))
 
-      (future-fact "that used to exist"
-        (let [new-sections {:company [] :progress []}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-sections
-          ; verify update is not in the response
-          (:update body) => nil
-          ; verify update not in the DB
-          (:update db-company) => nil)
-        (let [new-sections {:company [] :progress ["update"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-sections
-          ; verify update is not in the response
-          (:update body) => (contains r/text-section-1)
-          ; verify update not in the DB
-          (:update db-company) => (contains r/text-section-1))))
+      (fact "that used to exist"
+        ; First, update the content using another user to create a newer revision
+        (let [new-content {:title "Update" :headline "Headline #2" :body "Update #2."}
+              patch1-response (mock/api-request :patch (section-rep/url r/slug "update") {:auth mock/jwtoken-camus 
+                                                                                          :body new-content})
+              ; Then remove the content
+              new-sections {:company [] :progress []}
+              patch2-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+              patch2-body (mock/body-from-response patch2-response)
+              db1-company (company/get-company conn r/slug)
+              ; Now add the section again
+              newer-sections {:company [] :progress ["update"]}
+              patch3-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections newer-sections}})
+              patch3-body (mock/body-from-response patch3-response)
+              db2-company (company/get-company conn r/slug)]
+          ;; verify the response statuses
+          (doseq [response [patch1-response patch2-response patch3-response]]  
+            (:status response) => 200)
+          ;; verify update is not in the removal response
+          (:sections patch2-body) => new-sections
+          (:update patch2-body) => nil
+          ;; verify update is not in the DB
+          (:update db1-company) => nil
+          ;; verify update is in the re-add response AND contains the latest content
+          (:sections patch3-body) => newer-sections
+          (:update patch3-body) => (contains new-content)
+          ; verify update is in the DB AND contains the latest content
+          (:update db2-company) => (contains new-content))))
 
     (facts "with section content"
 
