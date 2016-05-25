@@ -354,7 +354,7 @@
           (:sections patch3-body) => newer-sections
           (:update patch3-body) => (contains new-content)
           ; verify update is in the DB AND contains the latest content
-          (:update db2-company) => (contains new-content)))))
+          (:update db2-company) => (contains new-content))))
 
     (facts "with section content"
 

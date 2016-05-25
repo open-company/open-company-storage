@@ -135,14 +135,18 @@
         sections (-> company :sections vals flatten vec)
         ; names of sections in the sections property, but not present in company
         missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
-        ; IDs of the most recent prior section of those missing sections (where found)
-        read-in-order #(common/read-resources-in-order conn common/section-table-name "company-slug-section-name" [slug %] [:id])
+        ; function to get the ID of the most recent prior section of those missing sections (where found)
+        read-in-order #(first (common/read-resources-in-order conn common/section-table-name
+                                "company-slug-section-name" [slug %] [:id :updated-at]))
+        ; get the ID of the most recent prior section for each missing section (where found)
         prior-section-ids (->> missing-section-names
                             (map read-in-order)
                             (remove nil?)
                             flatten
                             (map :id))
+        ; get the section for each ID
         prior-sections (map #(common/read-resource conn common/section-table-name %) prior-section-ids)
+        ; marry the section up with the section name
         prior-section-names (map #(keyword (:section-name %)) prior-sections)]
     (merge company (zipmap prior-section-names (map #(dissoc % :section-name) prior-sections)))))
 
