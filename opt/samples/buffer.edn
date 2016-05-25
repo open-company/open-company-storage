@@ -18,7 +18,7 @@
     }
     :sections {
       :progress ["update" "growth" "team" "product" "marketing" "customer-service" "finances" "help"]
-      :company ["diversity" "values"]
+      :company ["diversity" "values" "mission"]
     }
     :stakeholder-update {
       :title ""
