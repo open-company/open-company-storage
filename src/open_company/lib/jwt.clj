@@ -7,18 +7,18 @@
 
 (defn expired?
   [jwt-claims]
-  (t/after? (t/now) (tc/from-long (:expire jwt-claims))))
+  (if-let [expire (:expire jwt-claims)]
+    (t/after? (t/now) (tc/from-long expire))
+    (timbre/error "No expire field found in JWToken" jwt-claims)))
 
 (defn check-token
   "Verify a JSON Web Token"
   [token]
   (try
-    (let [jwt (-> token jwt/str->jwt)]
+    (let [jwt (jwt/str->jwt token)]
       (when (expired? (:claims jwt))
         (timbre/error "Request made with expired JWToken" (:claims jwt)))
-      (do
-        (-> token jwt/str->jwt (jwt/verify config/passphrase))
-        true))
+      (boolean (jwt/verify jwt config/passphrase)))
     (catch Exception e
       false)))
 
