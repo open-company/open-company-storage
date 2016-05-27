@@ -1,5 +1,6 @@
 (ns open-company.resources.company
-  (:require [medley.core :as med]
+  (:require [if-let.core :refer (if-let*)]
+            [medley.core :as med]
             [schema.core :as schema]
             [open-company.resources.common :as common]))
 
@@ -20,6 +21,7 @@
   simply meta-data for the UI.
   "
   #{:core :prompt :standard-metrics :units :intervals})
+
 ;; ----- Utility functions -----
 
 (defn- clean
@@ -32,7 +34,7 @@
   [company]
   (assoc company :categories common/category-names))
 
-(defn- section-list
+(defn- section-set
   "Return the set of section names that are contained in the provided company."
   [company]
   (set (clojure.set/intersection common/section-names (set (keys company)))))
@@ -41,7 +43,7 @@
   "Add a :sections key to given company containing category->ordered-sections mapping
   Only add sections to the ordered-sections list that are used in the company map"
   [company]
-  (let [seclist (section-list company)]
+  (let [seclist (section-set company)]
     (->> (for [[cat sects] common/category-section-tree]
           [cat (vec (filter (set seclist) sects))])
       (into {})
@@ -51,7 +53,7 @@
   "Remove any sections from the company that are not in the :sections property"
   [company]
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
-    (apply dissoc company (clojure.set/difference (section-list company) sections))))
+    (apply dissoc company (clojure.set/difference (section-set company) sections))))
 
 ;; ----- Company Slug -----
 
@@ -92,16 +94,16 @@
 (defn- core-placeholder-sections
   "Return a map of section-name -> section containing just the core
    placeholder sections in sections.json"
-  [company-slug]
+  [slug]
   (reduce (fn [s sec]
             (assoc s
-                   (:section-name sec)
-                   (apply dissoc 
-                      (-> sec
-                        (assoc :company-slug company-slug)
-                        (assoc :placeholder true)
-                        (dissoc :name))
-                      metadata-properties)))
+              (:section-name sec)
+              (apply dissoc 
+                (-> sec
+                  (assoc :company-slug slug)
+                  (assoc :placeholder true)
+                  (dissoc :name))
+                metadata-properties)))
           {}
           (filter :core common/sections)))
 
@@ -133,13 +135,42 @@
         sections (-> company :sections vals flatten vec)
         ; names of sections in the sections property, but not present in company
         missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
-        ; IDs of the most recent prior section of those missing sections (where found)
-        read-in-order #(common/read-resources-in-order conn common/section-table-name "company-slug-section-name" [slug %] [:id])
-        prior-section-ids (->> missing-section-names (map read-in-order) (remove nil?) flatten (map :id))
+        ; function to get the ID of the most recent prior section of those missing sections (where found)
+        read-in-order #(first (common/read-resources-in-order conn common/section-table-name
+                                "company-slug-section-name" [slug %] [:id :updated-at]))
+        ; get the ID of the most recent prior section for each missing section (where found)
+        prior-section-ids (->> missing-section-names
+                            (map read-in-order)
+                            (remove nil?)
+                            flatten
+                            (map :id))
+        ; get the section for each ID
         prior-sections (map #(common/read-resource conn common/section-table-name %) prior-section-ids)
+        ; marry the section up with the section name
         prior-section-names (map #(keyword (:section-name %)) prior-sections)]
     (merge company (zipmap prior-section-names (map #(dissoc % :section-name) prior-sections)))))
 
+(defn archived-sections
+  "Return just the archived sections for the specified company. Response is a sequence of maps with `:section-name`
+  and `:title` for each archived section."
+  [conn slug]
+  (if-let* [company (get-company conn slug)
+            ; just the sections currently in use in the company
+            current-sections (section-set company)
+            ; get all sections for the company
+            all-sections (common/read-resources-in-order conn common/section-table-name "company-slug" slug
+              [:section-name :title :updated-at])
+            ; diff the current and all sections to get missing (archived) sections
+            archived-sections (remove #(current-sections (keyword (:section-name %))) all-sections)
+            ; only get the latest revision of each archived section
+            latest-archived (zipmap (map :section-name archived-sections) archived-sections)]
+      ; for each archived section, remove the :update-at key, and swap :section-name key name for :section
+      (->> latest-archived
+        (vals)
+        (map #(dissoc % :updated-at))
+        (map #(clojure.set/rename-keys % {:section-name :section}))  
+        (vec))))
+        
 (defn- real-sections
   "Select all non-placeholder sections from a company map"
   [company]

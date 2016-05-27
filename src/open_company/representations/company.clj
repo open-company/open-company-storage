@@ -96,13 +96,15 @@
 (defn- company-for-rendering
   "Get a representation of the company for the REST API"
   [conn company authorized]
+  (let [slug (:slug company)]
   (-> company
     (common/clean clean-properties)
-    (assoc :revisions (company/list-revisions conn (:slug company)))
-    (update :revisions #(map (fn [rev] (revision-link (:slug company) (:updated-at rev))) %))
+    (assoc :revisions (company/list-revisions conn slug))
+    (update :revisions #(map (fn [rev] (revision-link slug (:updated-at rev))) %))
     (company-links (if authorized :all-links [:self]))
     (stakeholder-update-links authorized)
-    (sections* conn authorized)))
+    (sections* conn authorized)
+    (assoc :archived (company/archived-sections conn slug)))))
 
 (defn render-company
   "Create a JSON representation of a company for the REST API"
