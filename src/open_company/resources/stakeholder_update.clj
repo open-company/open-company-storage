@@ -42,11 +42,9 @@
   
   ([conn company su-props user] (->stakeholder-update conn company su-props (common/current-timestamp) user))
   
-  ([conn company {:keys [title intro outro sections] :as su-props} timestamp user]
+  ([conn company {:keys [title sections] :as su-props} timestamp user]
   {:pre [(map? conn)
          (string? title)
-         (or (map? intro) (nil? intro))
-         (or (map? outro) (nil? outro))
          (sequential? sections)
          (map? user)]
    :post [(map? %)]} ; title and sections required

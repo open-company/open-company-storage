@@ -33,7 +33,7 @@ dashboard (shouldn't actually happen) should be skipped. Any section that's stil
 
 ## Stakeholder Content Editing / Ordering
 
-The intro for the "live" and next pending shared stakeholder update can be edited by `PATCH`ing the company.
+The title for the "live" next pending shared stakeholder update can be edited by `PATCH`ing the company.
 
 Sections in the next pending stakeholder update can be added, removed, reordered by `PATCH`ing the company. Only
 sections active in the dashboard can be included. Including other sections returns a `422` error.
@@ -42,8 +42,8 @@ sections active in the dashboard can be included. Including other sections retur
 ## Stakeholder Update Creating
 
 A blank POST to `/companies/{slug}/updates` creates a new stakeholder update from the current "live" pending
-stakeholeder update and resets the intro to the blank state (no author, no timestamp, blank body). The authorized
-user doing the POST is captured in the created stakeholder update as the author.
+stakeholeder update and resets the title to blank. The authorized user doing the POST is captured in the created
+stakeholder update as the author.
 
 
 ## List of Prior Stakeholder Updates
