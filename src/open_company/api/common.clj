@@ -145,6 +145,12 @@
       (nil? company) true
       :else false)))
 
+(defn allow-public
+  "Allow only if the company is public"
+  [conn company-slug ctx]
+  (and (allow-anonymous ctx)
+       (boolean (:public (company/get-company conn company-slug)))))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; verify validity of JWToken if it's provided, but it's not required

@@ -100,7 +100,7 @@
   :allowed-methods [:options :get :patch :delete]
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (or (common/allow-public conn slug ctx) (common/allow-org-members conn slug ctx)))
     :patch (fn [ctx] (common/allow-org-members conn slug ctx))
     :delete (fn [ctx] (common/allow-org-members conn slug ctx))})
 
