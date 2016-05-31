@@ -2,6 +2,7 @@
 {
   :company {
     :slug "blank-inc"
+    :public false
     :name "Blank Inc."
     :description "We're busy ideating."
     :logo ""

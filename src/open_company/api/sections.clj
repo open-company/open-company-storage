@@ -53,7 +53,8 @@
 
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (or (common/allow-public conn company-slug ctx)
+                       (common/allow-org-members conn company-slug ctx)))
     :put (fn [ctx] (common/allow-org-members conn company-slug ctx))
     :patch (fn [ctx] (common/allow-org-members conn company-slug ctx))
     :post false

@@ -2,6 +2,7 @@
 {
   :company {
     :slug "uni"
+    :public false
     :name "Ūnīcõdé.īõ"
     :description "Wė’ré vérÿ fõnd ôf Ūnīcõdé."
     :logo "https://open-company-assets.s3.amazonaws.com/unicode.png"

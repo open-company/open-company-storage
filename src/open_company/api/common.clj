@@ -138,12 +138,18 @@
 (defn allow-org-members
   "Allow only if there is no company, or the user's JWToken indicates membership in the company's org."
   [conn company-slug ctx]
-  (let [user (:user ctx)
+  (let [user    (:user ctx)
         company (company/get-company conn company-slug)]
     (cond
       (and user company) (authorized-to-company? {:company company :user user})
       (nil? company) true
       :else false)))
+
+(defn allow-public
+  "Allow only if the company is public"
+  [conn company-slug ctx]
+  (and (allow-anonymous ctx)
+       (boolean (:public (company/get-company conn company-slug)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

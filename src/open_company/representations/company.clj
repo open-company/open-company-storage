@@ -14,7 +14,7 @@
 
 (def recognized-links #{:self :update :partial-update :delete :section-list})
 
-(def ^:private clean-properties [:id :org-id])
+(def ^:private clean-properties [:id :org-id :public])
 
 (defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
@@ -120,5 +120,7 @@
    {:collection {:version common/json-collection-version
                  :href "/companies"
                  :links [(common/self-link "/companies" collection-media-type)]
-                 :companies (map #(company-links % [:self]) companies)}}
+                 :companies (->> companies
+                                 (map #(common/clean % clean-properties))
+                                 (map #(company-links % [:self])))}}
    {:pretty true}))
