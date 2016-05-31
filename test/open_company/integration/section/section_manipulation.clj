@@ -310,21 +310,44 @@
     (facts "without any section content"
     
       (fact "that never existed"
-        (let [new-sections {:company [] :progress ["highlights"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-              body (mock/body-from-response response)
-              resp-highlights (:highlights body)
-              db-company (company/get-company conn r/slug)
-              db-highlights (:highlights db-company)
-              placeholder (dissoc (common-res/section-by-name :highlights) :section-name :core)]
-          (:status response) => 200
-          (:sections body) => new-sections
-          ; verify placeholder flag and content in response
-          (:placeholder resp-highlights) => true 
-          resp-highlights => (contains placeholder)
-          ; verify placeholder flag and content in DB
-          (:placeholder db-highlights) => true
-          db-highlights => (contains placeholder)))
+
+        (fact "and are known"
+          (let [new-sections {:company [] :progress ["highlights"]}
+                response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+                resp-body (mock/body-from-response response)
+                resp-highlights (:highlights resp-body)
+                db-company (company/get-company conn r/slug)
+                db-highlights (:highlights db-company)
+                placeholder (dissoc (common-res/section-by-name :highlights) :section-name :core)]
+            (:status response) => 200
+            ; verify section list in response and DB
+            (doseq [body [resp-body db-company]]
+              (:sections body) => new-sections)
+            ; verify placeholder flag and content in response and DB
+            (doseq [highlights [resp-highlights db-highlights]]
+              (:placeholder highlights) => true 
+              highlights => (contains placeholder))))
+
+        (fact "and are custom"
+          (let [custom-name (str "custom-" (subs (str (java.util.UUID/randomUUID)) 0 4))
+                custom-title (str "Custom " custom-name)
+                custom-body {:title custom-title :headline "" :body ""}
+                new-sections {:company [] :progress [custom-name]}
+                response (mock/api-request :patch (company-rep/url r/slug) {:body 
+                  {:sections new-sections
+                   custom-name custom-body}})
+                resp-body (mock/body-from-response response)
+                resp-custom-section (resp-body (keyword custom-name))
+                db-company (company/get-company conn r/slug)
+                db-custom-section (db-company (keyword custom-name))]
+            (:status response) => 200
+            ; verify section list in response and DB
+            (doseq [body [resp-body db-company]]
+              (:sections body) => new-sections)
+            ; verify placeholder flag and content in response and DB
+            (doseq [section [resp-custom-section db-custom-section]]
+              (:placeholder section) => falsey
+              section => (contains custom-body)))))
 
       (fact "that used to exist"
         (let [_delay (Thread/sleep 1000) ; wait long enough for timestamps of the new revision to differ definitively
