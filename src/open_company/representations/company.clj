@@ -120,5 +120,7 @@
    {:collection {:version common/json-collection-version
                  :href "/companies"
                  :links [(common/self-link "/companies" collection-media-type)]
-                 :companies (map #(company-links % [:self]) companies)}}
+                 :companies (->> companies
+                                 (map #(common/clean % clean-properties))
+                                 (map #(company-links % [:self])))}}
    {:pretty true}))
