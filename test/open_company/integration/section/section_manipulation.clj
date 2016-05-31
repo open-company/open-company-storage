@@ -9,7 +9,8 @@
             [open-company.resources.common :as common-res]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
-            [open-company.representations.company :as company-rep]))
+            [open-company.representations.company :as company-rep]
+            [open-company.representations.section :as section-rep]))
 
 ;; ----- Test Cases -----
 
@@ -68,9 +69,8 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:company ["help" "diversity" "values"]
-                                   :progress ["update" "team"]
-                                   :financial ["finances"]}))
+        (:sections db-company) => {:company ["diversity" "values"]
+                                   :progress ["update" "finances" "team" "help"]}))
 
     (fact "with no JWToken"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -82,9 +82,8 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:company [ "help" "diversity" "values"]
-                                   :progress ["update" "team"]
-                                   :financial ["finances"]}))
+        (:sections db-company) => {:company ["diversity" "values"]
+                                   :progress ["update" "finances" "team" "help"]}))
 
     (fact "with an organization that doesn't match the company"
       (let [new-order {:progress ["team" "update" "finances" "help"]
@@ -96,38 +95,33 @@
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:company [ "help" "diversity" "values"]
-                                   :progress ["update" "team"]
-                                   :financial ["finances"]}))
+        (:sections db-company) => {:company ["diversity" "values"]
+                                   :progress ["update" "finances" "team" "help"]}))
 
     (fact "with no company matching the company slug"
       (let [new-order {:company ["diversity" "values"]
-                       :progress ["team" "update" "finances" "help"]
-                       :financial []}
+                       :progress ["team" "update" "finances" "help"]}
             response (mock/api-request :patch (company-rep/url "foo") {:body {:sections new-order}})]
         (:status response) => 404
         (:body response) => "")
       ;; verify the initial order is unchanged
       (let [db-company (company/get-company conn r/slug)]
         (:categories db-company) => categories
-        (:sections db-company) => {:company [ "help" "diversity" "values"]
-                                   :progress ["update" "team"]
-                                   :financial ["finances"]})))
+        (:sections db-company) => {:company ["diversity" "values"]
+                                   :progress ["update" "finances" "team" "help"]})))
 
   (facts "about section reordering"
 
     ;; verify the initial order
     (let [db-company (company/get-company conn r/slug)]
       (:categories db-company) => categories
-      (:sections db-company) => {:company [ "help" "diversity" "values"]
-                                 :progress ["update" "team"]
-                                 :financial ["finances"]})
+      (:sections db-company) => {:company ["diversity" "values"]
+                                 :progress ["update" "finances" "team" "help"]})
 
     (facts "when the new order is valid"
 
       (fact "the section order in the progress category can be gently adjusted"
-        (let [new-order {:progress ["team" "update" "help"]
-                         :financial ["finances"]
+        (let [new-order {:progress ["team" "update" "help" "finances"]
                          :company ["diversity" "values"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -136,8 +130,7 @@
           (:sections (company/get-company conn r/slug)) => new-order))
 
       (fact "the sections order in the progress category can be greatly adjusted"
-        (let [new-order {:progress ["help" "team" "update"]
-                         :financial ["finances"]
+        (let [new-order {:progress ["help" "team" "update" "finances"]
                          :company ["diversity" "values"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -146,8 +139,7 @@
           (:sections (company/get-company conn r/slug)) => new-order))
 
       (fact "the section order in the company category can be adjusted"
-        (let [new-order {:progress ["update" "team" "help"]
-                         :financial ["finances"]
+        (let [new-order {:progress ["update" "team" "help" "finances"]
                          :company ["values" "diversity"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -156,8 +148,7 @@
           (:sections (company/get-company conn r/slug)) => new-order))
 
       (fact "the section order in the progress and company category can both be adjusted at once"
-        (let [new-order {:progress ["help" "team" "update"]
-                         :financial ["finances"]
+        (let [new-order {:progress ["help" "team" "update" "finances"]
                          :company ["values" "diversity"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
@@ -173,8 +164,7 @@
           response (mock/api-request :post "/companies" {:body payload})
           company  (company/get-company conn slug)]
       ;; ensure all placeholder sections are in company
-      (:sections company) => {:progress ["update" "growth" "challenges" "team" "product"]
-                              :financial ["finances"]
+      (:sections company) => {:progress ["update" "growth" "challenges" "team" "product" "finances"]
                               :company ["mission" "values"]}
       (:growth company) => truthy
       (:challenges company) => truthy
@@ -182,126 +172,137 @@
       (:product company) => truthy
       (:mission company) => truthy
       (let [new-set {:company ["values"]
-                     :progress ["update" "finances" "help"]
-                     :financial []}
-            response (mock/api-request :patch (company-rep/url slug) {:body {:sections new-set}})
-            body     (mock/body-from-response response)
-            company  (company/get-company conn slug)]
-        (:status response) => 200
-        (:sections company) => new-set
-        (:growth company) => falsey
-        (:challenges company) => falsey
-        (:team company) => falsey
-        (:product company) => falsey
-        (:mission company) => falsey)))
+                     :progress ["update" "finances" "help"]}
+            patch-response (mock/api-request :patch (company-rep/url slug) {:body {:sections new-set}})
+            patch-body     (mock/body-from-response patch-response)
+            db-company  (company/get-company conn slug)
+            get-response (mock/api-request :get (company-rep/url slug))
+            get-body (mock/body-from-response get-response)]
+        ;; verify the response status
+        (doseq [response [patch-response get-response]]  
+          (:status response) => 200)
+        ;; verify the DB data and API responses
+        (doseq [body [patch-body db-company get-body]]
+          (:sections body) => new-set
+          (:growth body) => falsey
+          (:challenges body) => falsey
+          (:team body) => falsey
+          (:product body) => falsey
+          (:mission body) => falsey)
+        ;; verify placeholders don't archive
+        (doseq [body [patch-body get-body]]
+          (:archived body) => [])))) 
 
   (facts "about section removal"
 
     ;; verify the initial set of sections
-    (:sections (company/get-company conn r/slug)) => {:company ["help" "diversity" "values"]
-                                                 :progress ["update" "team"]
-                                                 :financial ["finances"]}
+    (:sections (company/get-company conn r/slug)) => {:company ["diversity" "values"]
+                                                      :progress ["update" "finances" "team" "help"]}
 
       (fact "a section can be removed from the progress category"
-        (let [new-set {:company ["help" "diversity" "values"]
-                       :progress ["update"]
-                       :financial ["finances"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-set
-          (:update body) => (contains r/text-section-1)
-          (:finances body) => (contains r/finances-section-1)
-          (:team body) => nil
-          (:help body) => (contains r/text-section-1)
-          (:diversity body) => (contains r/text-section-2)
-          (:values body) => (contains r/text-section-1)
-          ;; verify the new set
-          (:sections db-company) => new-set
-          (:update db-company) => (contains r/text-section-1)
-          (:finances db-company) => (contains r/finances-section-1)
-          (:team db-company) => nil
-          (:help db-company) => (contains r/text-section-1)
-          (:diversity db-company) => (contains r/text-section-2)
-          (:values db-company) => (contains r/text-section-1)))
+        (let [new-set {:company ["diversity" "values"]
+                       :progress ["help" "update" "finances"]}
+              patch-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
+              patch-body (mock/body-from-response patch-response)
+              db-company (company/get-company conn r/slug)
+              get-response (mock/api-request :get (company-rep/url r/slug))
+              get-body (mock/body-from-response get-response)]
+          ;; verify the response statuses
+          (doseq [response [patch-response get-response]]  
+            (:status response) => 200)
+          ;; verify the DB data and API responses
+          (doseq [body [patch-body db-company get-body]]
+            (:sections body) => new-set
+            (:update body) => (contains r/text-section-1)
+            (:finances body) => (contains r/finances-section-1)
+            (:team body) => nil
+            (:help body) => (contains r/text-section-1)
+            (:diversity body) => (contains r/text-section-2)
+            (:values body) => (contains r/text-section-1))
+          ;; verify removed section is archived
+          (doseq [body [patch-body get-body]]
+            (:archived body) => [{:section "team" :title "Text Section 2"}])))
 
       (fact "multiple sections can be removed from the progress category"
-        (let [new-set {:company ["help" "diversity" "values"]
-                       :progress []
-                       :financial ["finances"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-set
-          (:update body) => nil
-          (:team body) => nil
-          (:finances body) => (contains r/finances-section-1)
-          (:help body) => (contains r/text-section-1)
-          (:diversity body) => (contains r/text-section-2)
-          (:values body) => (contains r/text-section-1)
-          ;; verify the new set
-          (:sections db-company) => new-set
-          (:update db-company) => nil
-          (:team db-company) => nil
-          (:finances db-company) => (contains r/finances-section-1)
-          (:help db-company) => (contains r/text-section-1)
-          (:diversity db-company) => (contains r/text-section-2)
-          (:values db-company) => (contains r/text-section-1)))
+        (let [new-set {:company ["diversity" "values"]
+                       :progress ["help"]}
+              patch-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-set}})
+              patch-body (mock/body-from-response patch-response)
+              db-company (company/get-company conn r/slug)
+              get-response (mock/api-request :get (company-rep/url r/slug))
+              get-body (mock/body-from-response get-response)]
+          ;; verify the response statuses
+          (doseq [response [patch-response get-response]]  
+            (:status response) => 200)
+          ;; verify the DB data and API responses
+          (doseq [body [patch-body db-company get-body]]
+            (:sections body) => new-set
+            (:update body) => nil
+            (:team body) => nil
+            (:finances body) => nil
+            (:help body) => (contains r/text-section-1)
+            (:diversity body) => (contains r/text-section-2)
+            (:values body) => (contains r/text-section-1))
+          ;; verify removed section is archived
+          (doseq [body [patch-body get-body]]
+            (:archived body) => [{:section "team" :title "Text Section 2"}
+                                 {:section "finances" :title "Finances Section 1"}
+                                 {:section "update" :title "Text Section 1"}])))
 
       (fact "a section can be removed from the company category"
-        (let [new-order {:company ["help" "diversity"]
-                         :progress ["update" "team"]
-                         :financial ["finances"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-order
-          (:update body) => (contains r/text-section-1)
-          (:finances body) => (contains r/finances-section-1)
-          (:team body) => (contains r/text-section-2)
-          (:help body) => (contains r/text-section-1)
-          (:diversity body) => (contains r/text-section-2)
-          (:values body) => nil
-          ;; verify the new set
-          (:sections db-company) => new-order
-          (:update db-company) => (contains r/text-section-1)
-          (:finances db-company) => (contains r/finances-section-1)
-          (:team db-company) => (contains r/text-section-2)
-          (:help db-company) => (contains r/text-section-1)
-          (:diversity db-company) => (contains r/text-section-2)
-          (:values db-company) => nil))
+        (let [new-order {:company ["diversity"]
+                         :progress ["help" "update" "team" "finances"]}
+              patch-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
+              patch-body (mock/body-from-response patch-response)
+              db-company (company/get-company conn r/slug)
+              get-response (mock/api-request :get (company-rep/url r/slug))
+              get-body (mock/body-from-response get-response)]
+          ;; verify the response statuses
+          (doseq [response [patch-response get-response]]  
+            (:status response) => 200)
+          ;; verify the DB data and API responses
+          (doseq [body [patch-body db-company get-body]]
+            (:sections body) => new-order
+            (:update body) => (contains r/text-section-1)
+            (:finances body) => (contains r/finances-section-1)
+            (:team body) => (contains r/text-section-2)
+            (:help body) => (contains r/text-section-1)
+            (:diversity body) => (contains r/text-section-2)
+            (:values body) => nil)
+          ;; verify removed section is archived
+          (doseq [body [patch-body get-body]]
+            (:archived body) => [{:section "values" :title "Text Section 1"}])))
 
       (fact "sections can be removed from all the categories at once"
         (let [new-order {:company ["values"]
-                         :progress ["update" "help"]
-                         :financial []}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-order
-          (:update body) => (contains r/text-section-1)
-          (:finances body) => nil
-          (:team body) => nil
-          (:help body) => (contains r/text-section-1)
-          (:diversity body) => nil
-          (:values body) => (contains r/text-section-1)
-          ;; verify the new set
-          (:sections db-company) => new-order
-          (:update db-company) => (contains r/text-section-1)
-          (:finances db-company) => nil
-          (:team db-company) => nil
-          (:help db-company) => (contains r/text-section-1)
-          (:diversity db-company) => nil
-          (:values db-company) => (contains r/text-section-1))))
+                         :progress ["update" "help"]}
+              patch-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})
+              patch-body (mock/body-from-response patch-response)
+              db-company (company/get-company conn r/slug)
+              get-response (mock/api-request :get (company-rep/url r/slug))
+              get-body (mock/body-from-response get-response)]
+          ;; verify the response statuses
+          (doseq [response [patch-response get-response]]  
+            (:status response) => 200)
+          ;; verify the DB data and API responses
+          (doseq [body [patch-body db-company get-body]]
+            (:sections body) => new-order
+            (:update body) => (contains r/text-section-1)
+            (:finances body) => nil
+            (:team body) => nil
+            (:help body) => (contains r/text-section-1)
+            (:diversity body) => nil
+            (:values body) => (contains r/text-section-1))
+          ;; verify removed section is archived
+          (doseq [body [patch-body get-body]]
+            (:archived body) => [{:section "diversity" :title "Text Section 2"}
+                                 {:section "team" :title "Text Section 2"}
+                                 {:section "finances" :title "Finances Section 1"}]))))
   
   (facts "about adding sections"
 
     (fact "that don't really exist"
-      (let [new-sections {:company [] :progress ["health"] :financial []}
+      (let [new-sections {:company [] :progress ["health"]}
             response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
             body (mock/body-from-response response)]
         (:status response) => 422))
@@ -309,7 +310,7 @@
     (facts "without any section content"
     
       (fact "that never existed"
-        (let [new-sections {:company [] :progress ["highlights"] :financial []}
+        (let [new-sections {:company [] :progress ["highlights"]}
               response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
               body (mock/body-from-response response)
               resp-highlights (:highlights body)
@@ -325,33 +326,40 @@
           (:placeholder db-highlights) => true
           db-highlights => (contains placeholder)))
 
-      (future-fact "that used to exist"
-        (let [new-sections {:company [] :progress [] :financial []}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-sections
-          ; verify update is not in the response
-          (:update body) => nil
-          ; verify update not in the DB
-          (:update db-company) => nil)
-        (let [new-sections {:company [] :progress ["update"] :financial []}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
-              body (mock/body-from-response response)
-              db-company (company/get-company conn r/slug)]
-          (:status response) => 200
-          (:sections body) => new-sections
-          ; verify update is not in the response
-          (:update body) => (contains r/text-section-1)
-          ; verify update not in the DB
-          (:update db-company) => (contains r/text-section-1))))
+      (fact "that used to exist"
+        (let [_delay (Thread/sleep 1000) ; wait long enough for timestamps of the new revision to differ definitively
+              new-content {:title "Update" :headline "Headline #2" :body "Update #2."}
+              ; Update the content using another user to create a newer revision
+              patch1-response (mock/api-request :patch (section-rep/url r/slug "update") {:auth mock/jwtoken-camus 
+                                                                                          :body new-content})
+              ; Then remove the content
+              new-sections {:company [] :progress []}
+              patch2-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+              patch2-body (mock/body-from-response patch2-response)
+              db1-company (company/get-company conn r/slug)
+              ; Now add the section again
+              newer-sections {:company [] :progress ["update"]}
+              patch3-response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections newer-sections}})
+              patch3-body (mock/body-from-response patch3-response)
+              db2-company (company/get-company conn r/slug)]
+          ;; verify the response statuses
+          (doseq [response [patch1-response patch2-response patch3-response]]  
+            (:status response) => 200)
+          ;; verify update is not in the removal response
+          (:sections patch2-body) => new-sections
+          (:update patch2-body) => nil
+          ;; verify update is not in the DB
+          (:update db1-company) => nil
+          ;; verify update is in the re-add response AND contains the latest content
+          (:sections patch3-body) => newer-sections
+          (:update patch3-body) => (contains new-content)
+          ; verify update is in the DB AND contains the latest content
+          (:update db2-company) => (contains new-content))))
 
     (facts "with section content"
 
-      (let [new-sections {:company ["help" "diversity" "values"]
-                            :progress ["update" "team" "kudos"]
-                            :financial ["finances"]}
+      (let [new-sections {:company ["diversity" "values"]
+                            :progress ["help" "update" "team" "kudos" "finances"]}
             kudos-placeholder (common-res/section-by-name "kudos")]
 
         (future-fact "with minimal content"

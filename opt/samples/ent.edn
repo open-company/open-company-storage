@@ -2,6 +2,7 @@
 {
   :company {
     :slug "ent-inc"
+    :public false
     :name "Enterprise Inc."
     :description "Big serious stuff for big serious people."
     :logo "https://open-company-assets.s3.amazonaws.com/ent-inc.png"
@@ -16,18 +17,11 @@
       :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
     }
     :sections {
-      :progress []
-      :financial ["finances"]
+      :progress ["finances"]
       :company []
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections ["finances"]
     }
   }

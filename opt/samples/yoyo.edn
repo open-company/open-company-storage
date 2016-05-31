@@ -2,6 +2,7 @@
 {
   :company {
     :slug "yoyo"
+    :public false
     :name "YoYo"
     :description "Bouncing Around Since 2015"
     :logo "https://open-company-assets.s3.amazonaws.com/yoyo.png"
@@ -17,17 +18,10 @@
     }
     :sections {
       :progress ["finances"]
-      :financial []
       :company []
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections ["finances"]
     }
   }

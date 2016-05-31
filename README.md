@@ -219,7 +219,7 @@ Then enter these commands one-by-one, noting the output:
 (company/create-company!
   conn
   (company/->company {:name "Buffer"
-                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
+                      :slug (slug/find-available-slug "Buffer" (company/taken-slugs conn))
                       :currency "USD"
                       :description "A better way to share on social media."
                       :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
@@ -284,10 +284,8 @@ Then enter these commands one-by-one, noting the output:
   (su/->stakeholder-update
     conn
     (company/get-company conn "open")
-    {:title "OpenCompany"
-     :intro {:body "This is what is up."}
-     :outro {:body "Peace out!"}
-     :sections ["update" "finances"]}
+    {:title "OpenCompany Update"
+     :sections ["finances"]}
     author))
 
 ;; delete a company
@@ -377,7 +375,7 @@ Reorder a company's sections with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["growth", "team", "product", "challenges", "update"], "company": ["values", "mission"], "financial": ["finances"]}}' \
+-d '{"sections": {"progress": ["growth", "team", "product", "challenges", "update", "finances"], "company": ["values", "mission"]}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -389,7 +387,7 @@ Remove sections from a company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["growth", "team", "update"], "company": ["values"], "financial": []}}' \
+-d '{"sections": {"progress": ["growth", "team", "update"], "company": ["values"]}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -401,7 +399,7 @@ Add a section to the company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["growth", "customer-service", "team", "update"], "company": ["values"], "financial": []}}' \
+-d '{"sections": {"progress": ["growth", "customer-service", "team", "update"], "company": ["values"]}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \

@@ -101,7 +101,7 @@
   :allowed-methods [:options :get :patch :delete]
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (or (common/allow-public conn slug ctx) (common/allow-org-members conn slug ctx)))
     :patch (fn [ctx] (common/allow-org-members conn slug ctx))
     :delete (fn [ctx] (common/allow-org-members conn slug ctx))})
 
@@ -125,6 +125,9 @@
   ;; Update a company
   :patch! (fn [ctx] (patch-company conn slug (add-slug slug (:data ctx)) (:user ctx))))
 
+(defn- public-or-authorized? [user company]
+  (or (:public company) (common/authorized-to-company? {:company company :user user})))
+
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list [conn]
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
@@ -141,7 +144,8 @@
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
 
   ;; Get a list of companies
-  :exists? (fn [_] {:companies (company/list-companies conn)})
+  :exists? (fn [{:keys [user]}] {:companies (filter #(public-or-authorized? user %)
+                                                    (company/list-companies conn [:org-id :public]))})
 
   :processable? (by-method {
     :get true

@@ -2,6 +2,7 @@
 {
   :company {
     :slug "blank-inc"
+    :public false
     :name "Blank Inc."
     :description "We're busy ideating."
     :logo ""
@@ -15,17 +16,10 @@
     }
     :sections {
       :progress []
-      :financial []
       :company []
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections []
     }
   }

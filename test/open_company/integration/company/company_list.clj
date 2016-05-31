@@ -82,18 +82,18 @@
 
   (facts "about listing companies"
 
-    (fact "all existing companies are listed anonymously with NO JWToken"
+    (fact "all existing, public companies are listed anonymously with NO JWToken"
       (let [response (mock/api-request :get "/companies" {:skip-auth true})
             body (mock/body-from-response response)
             companies (get-in body [:collection :companies])]
         (:status response) => 200
-        (map :name companies) => (just (set (map :name [r/open r/uni r/buffer]))) ; verify names
-        (map :slug companies) => (just (set [(:slug r/open) (slugify (:name r/uni)) (:slug r/buffer)])) ; verify slugs
+        (map :name companies) => (just (set (map :name [r/buffer]))) ; verify names
+        (map :slug companies) => (just (set [(:slug r/buffer)])) ; verify slugs
         (doseq [company companies] ; verify HATEOAS links
           (count (:links company)) => 1
           (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company)))))
 
-    (fact "all existing companies are listed when providing a JWToken"
+    (fact "all existing, public or member companies are listed when providing a JWToken"
       (let [response (mock/api-request :get "/companies")
             body (mock/body-from-response response)
             companies (get-in body [:collection :companies])]

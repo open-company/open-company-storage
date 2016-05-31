@@ -4,7 +4,7 @@ The API for Stakeholder Updates supports the following:
 
 * initial selected sections for a new company
 * data for the live view
-* edit the live title/intro/outro
+* edit the title
 * add/remove/reorder live sections
 * create/share a stakeholder update (turns live view into a saved prior) 
 * list of prior updates
@@ -21,71 +21,19 @@ format:
 ```
 :stakeholder-update {
   :title ""
-  :intro {
-    :body ""
-  }
-  :outro {
-    :body ""
-  }
   :sections ["name" "name"]
 }
 ```
 
-Or with an intro:
-
-```
-:stakeholder-update {
-  :title "Our Great Update"
-  :intro {
-    :body "Some text."
-    :updated-at: "ISO8601"
-    "author" : {
-      "image" : "Avatar URL",
-      "name" : "Full Name",
-      "user-id" : "Slack ID"
-    }
-  :outro {
-    :body ""
-  }
-  :sections ["name" "name"]
-}
-```
-
-And on outro:
-
-```
-:stakeholder-update {
-  :title "Our Great Update"
-  :intro {
-    :body "Some text."
-    :updated-at: "ISO8601"
-    "author" : {
-      "image" : "Avatar URL",
-      "name" : "Full Name",
-      "user-id" : "Slack ID"
-    }
-  :outro {
-    :body "Other text."
-    :updated-at: "ISO8601"
-    "author" : {
-      "image" : "Avatar URL",
-      "name" : "Full Name",
-      "user-id" : "Slack ID"
-    }
-  }
-  :sections ["name" "name"]
-}
-```
-
-A "live" or "pending" stakeholder update can always be shown by showing the title, intro message (if there is one) and
-the latest contents of each of the included sections in the specified order, then the outro message (if there is one).
+A "live" or "pending" stakeholder update can always be shown by showing the title and
+the latest contents of each of the included sections in the specified order.
 When displaying a stakeholder update, any section that's in the stakeholder update but is not currently in the
 dashboard (shouldn't actually happen) should be skipped. Any section that's still a placeholder should be skipped.
 
 
 ## Stakeholder Content Editing / Ordering
 
-The intro for the "live" and next pending shared stakeholder update can be edited by `PATCH`ing the company.
+The title for the "live" next pending shared stakeholder update can be edited by `PATCH`ing the company.
 
 Sections in the next pending stakeholder update can be added, removed, reordered by `PATCH`ing the company. Only
 sections active in the dashboard can be included. Including other sections returns a `422` error.
@@ -94,8 +42,8 @@ sections active in the dashboard can be included. Including other sections retur
 ## Stakeholder Update Creating
 
 A blank POST to `/companies/{slug}/updates` creates a new stakeholder update from the current "live" pending
-stakeholeder update and resets the intro to the blank state (no author, no timestamp, blank body). The authorized
-user doing the POST is captured in the created stakeholder update as the author.
+stakeholeder update and resets the title to blank. The authorized user doing the POST is captured in the created
+stakeholder update as the author.
 
 
 ## List of Prior Stakeholder Updates
@@ -130,13 +78,10 @@ The response (assuming a user auth'd to the company, otherwise DELETE links will
     "stakeholder-updates" : [ {
       "title" : "December Update",
       "slug" : "december-update-4a6f",
-      "intro": {
-        "body": "It's been a helluva month!",
-        "author" : {
-          "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
-          "name" : "Joel Gascoigne",
-          "user-id" : "123456"
-        }
+      "author" : {
+        "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+        "name" : "Joel Gascoigne",
+        "user-id" : "123456"
       },
       "created-at": "2016-01-02T12:28:20.454Z",
       "links" : [ 
@@ -155,13 +100,10 @@ The response (assuming a user auth'd to the company, otherwise DELETE links will
     }, {
       "title" : "January Update",
       "slug" : "january-update-65b5",
-      "intro": {
-        "body": "It's been a helluva month!",
-        "author" : {
-          "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
-          "name" : "Joel Gascoigne",
-          "user-id" : "123456"
-        }
+      "author" : {
+        "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+        "name" : "Joel Gascoigne",
+        "user-id" : "123456"
       },
       "created-at": "2016-03-08T12:28:20.454Z",
       "links" : [
@@ -180,13 +122,10 @@ The response (assuming a user auth'd to the company, otherwise DELETE links will
     }, {
       "title" : "February Update",
       "slug" : "february-update-d786",
-      "intro": {
-        "body": "It's been a helluva month!",
-        "author" : {
-          "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
-          "name" : "Joel Gascoigne",
-          "user-id" : "123456"
-        }
+      "author" : {
+        "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+        "name" : "Joel Gascoigne",
+        "user-id" : "123456"
       },
       "created-at": "2016-03-12T12:28:20.454Z",
       "links" : [
@@ -255,13 +194,10 @@ The response:
   "created-at" : "2016-02-12T12:28:20.454Z",
   "title": "January Update",
   "sections" : ["product", "team", "help"],
-  "intro": {
-    "body": "It's been a helluva month!",
-    "author" : {
-      "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
-      "name" : "Joel Gascoigne",
-      "user-id" : "123456"
-    }
+  "author" : {
+    "image" : "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g",
+    "name" : "Joel Gascoigne",
+    "user-id" : "123456"
   },
   "product" : {
     "updated-at" : "2015-11-20T08:00:46.000Z",

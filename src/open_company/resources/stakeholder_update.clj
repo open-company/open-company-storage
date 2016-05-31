@@ -1,5 +1,6 @@
 (ns open-company.resources.stakeholder-update
-  (:require [schema.core :as schema]
+  (:require [clojure.string :as s]
+            [schema.core :as schema]
             [if-let.core :refer (if-let*)]
             [defun :refer (defun-)]
             [open-company.lib.slugify :as slug]
@@ -17,7 +18,8 @@
 (defn- slug-for
   "Create a slug for the stakeholder update from the slugified title and a short UUID."
   [title]
-  (str (slug/slugify title) "-" (subs (str (java.util.UUID/randomUUID)) 0 4)))
+  (let [non-blank-title (if (s/blank? title) "update" title)]
+    (str (slug/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 4))))
 
 (defun- sections-for
   "Recursive function to get each specified section and add it to the stakeholder update."
@@ -40,11 +42,9 @@
   
   ([conn company su-props user] (->stakeholder-update conn company su-props (common/current-timestamp) user))
   
-  ([conn company {:keys [title intro outro sections] :as su-props} timestamp user]
+  ([conn company {:keys [title sections] :as su-props} timestamp user]
   {:pre [(map? conn)
          (string? title)
-         (or (map? intro) (nil? intro))
-         (or (map? outro) (nil? outro))
          (sequential? sections)
          (map? user)]
    :post [(map? %)]} ; title and sections required
@@ -53,8 +53,6 @@
     (assoc :company-slug (:slug company))
     (merge (select-keys company [:name :description :logo :logo-width :logo-height])) ; freeze some props of company
     (update :title #(or % ""))
-    (update :intro #(or % {:body ""}))
-    (update :outro #(or % {:body ""}))
     (assoc :author (common/author-for-user user))
     (assoc :created-at timestamp)
     (sections-for conn))))

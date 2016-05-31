@@ -2,6 +2,7 @@
 {
   :company {
     :slug "simple"
+    :public false
     :name "Simple, LLC"
     :description "Keeping it Simple Since 2015"
     :logo "https://open-company-assets.s3.amazonaws.com/simple.png"
@@ -16,18 +17,11 @@
       :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
     }
     :sections {
-      :progress ["growth"]
-      :financial ["finances"]
+      :progress ["growth" "finances"]
       :company []
     }
     :stakeholder-update {
       :title ""
-      :intro {
-        :body ""
-      }
-      :outro {
-        :body ""
-      }
       :sections ["growth" "finances"]
     }
   }

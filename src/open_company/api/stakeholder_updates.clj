@@ -26,9 +26,10 @@
     (common/missing-response)))
 
 (defn- stakeholder-update-location-response [update]
-  )
-  ; (common/location-response ["companies" (:symbol company)]
-  ;   (company-rep/render-company conn company) company-rep/media-type))
+  (let [company-slug (:company-slug update)
+        company-url (company-rep/url company-slug)]
+    (common/location-response ["companies" company-slug "updates" (:slug update)]
+      (su-rep/render-stakeholder-update company-url update true) su-rep/media-type)))
 
 ;; ----- Actions -----
 
@@ -39,18 +40,16 @@
 
 (defn- list-stakeholder-updates [conn company-slug]
   (if-let* [company (company-res/get-company conn company-slug)
-            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title :intro])]
+            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title])]
     {:company company :stakeholder-updates su-list}
     false))
 
 (defn- create-stakeholder-update [conn {:keys [company user] :as ctx}]
-  (assoc ctx :stakeholder-update (su-res/create-stakeholder-update!
-    conn
-    (su-res/->stakeholder-update
-      conn
+  (su-res/create-stakeholder-update! conn
+    (su-res/->stakeholder-update conn
       company
       (:stakeholder-update company)
-      user))))
+      user)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -102,7 +101,7 @@
 
   ;; Create a new stakeholder update
   :post-to-missing? false ; 404 if company doesn't exist
-  :post! (fn [ctx] (create-stakeholder-update conn ctx))
+  :post! (fn [ctx] {:stakeholder-update (create-stakeholder-update conn ctx)})
 
   ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
