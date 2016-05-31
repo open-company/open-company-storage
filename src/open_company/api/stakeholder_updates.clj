@@ -45,13 +45,11 @@
     false))
 
 (defn- create-stakeholder-update [conn {:keys [company user] :as ctx}]
-  (assoc ctx :stakeholder-update (su-res/create-stakeholder-update!
-    conn
-    (su-res/->stakeholder-update
-      conn
+  (su-res/create-stakeholder-update! conn
+    (su-res/->stakeholder-update conn
       company
       (:stakeholder-update company)
-      user))))
+      user)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -103,7 +101,7 @@
 
   ;; Create a new stakeholder update
   :post-to-missing? false ; 404 if company doesn't exist
-  :post! (fn [ctx] (create-stakeholder-update conn ctx))
+  :post! (fn [ctx] {:stakeholder-update (create-stakeholder-update conn ctx)})
 
   ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
