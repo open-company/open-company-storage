@@ -14,7 +14,7 @@
 
 (def recognized-links #{:self :update :partial-update :delete :section-list})
 
-(def ^:private clean-properties [:id :org-id])
+(def ^:private clean-properties [:id :org-id :public])
 
 (defun url
   ([slug :guard string?] (str "/companies/" (name slug)))
