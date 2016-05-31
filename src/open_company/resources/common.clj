@@ -107,14 +107,13 @@
   (merge {:name schema/Str
           :description schema/Str
           :slug Slug
+          :public schema/Bool
           :currency schema/Str
           :org-id schema/Str
           :sections SectionsOrder
           :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
-          :stakeholder-update {
-            :title schema/Str
-            :sections [SectionName]
-          }
+          :stakeholder-update {:title schema/Str
+                               :sections [SectionName]}
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :logo-width) schema/Int
