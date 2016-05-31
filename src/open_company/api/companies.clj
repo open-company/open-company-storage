@@ -140,7 +140,7 @@
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
 
   ;; Get a list of companies
-  :exists? (fn [_] {:companies (company/list-companies conn)})
+  :exists? (fn [_] {:companies (filter :public (company/list-companies conn))})
 
   :processable? (by-method {
     :get true
