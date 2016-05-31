@@ -16,7 +16,7 @@
       :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
     }
     :sections {
-      :progress ["growth" "finances"]
+      :progress ["growth" "finances" "custom-a1b2"]
       :company []
     }
     :stakeholder-update {
@@ -424,7 +424,7 @@
       :timestamp "2015-11-01T21:12:43.000Z"
     }
     
-    ;; November Update - test
+    ;; November Update
     {
       :section {
         :title "Finances"
@@ -537,6 +537,21 @@
         :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
       }
       :timestamp "2015-11-23T11:12:02.000Z"
+    }
+
+    {
+      :section {
+        :title "Bago Badassery"
+        :headline "Bago Bago Bago"
+        :body "Bago rocks it custom style!"
+      }
+      :section-name "custom-a1b2"
+      :author {
+          :name "Iacopo Carraro"
+          :user-id "123456"
+          :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
+      }
+      :timestamp "2015-05-30T11:12:43.000Z"
     }
   ]
   :stakeholder-updates []
