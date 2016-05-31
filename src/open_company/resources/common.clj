@@ -75,7 +75,8 @@
 
 (def CategoryName (schema/pred #((set category-names) (keyword %))))
 
-(def SectionName (schema/pred #(section-names (keyword %))))
+; Allow known section names and custom section names
+(def SectionName (schema/pred #(or (section-names (keyword %)) (re-matches #"^custom-.{4}$" (name %)))))
 
 (def Slug (schema/pred slug/valid-slug?))
 
@@ -119,7 +120,8 @@
           (schema/optional-key :logo-width) schema/Int
           (schema/optional-key :logo-height) schema/Int
           (schema/optional-key :created-at) schema/Str
-          (schema/optional-key :updated-at) schema/Str}
+          (schema/optional-key :updated-at) schema/Str
+          schema/Keyword schema/Any}
         InlineSections))
 
 (def Stakeholder-update
