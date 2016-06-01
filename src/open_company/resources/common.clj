@@ -105,7 +105,6 @@
 ;; TODO check for non-blank?
 (def Company
   (merge {:name schema/Str
-          :description schema/Str
           :slug Slug
           :public schema/Bool
           :currency schema/Str
@@ -114,6 +113,7 @@
           :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
           :stakeholder-update {:title schema/Str
                                :sections [SectionName]}
+          (schema/optional-key :description) schema/Str
           (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :logo-width) schema/Int
