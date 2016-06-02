@@ -21,6 +21,7 @@
 ;; All the categories in default order
 (def categories (:categories (keywordize-keys config/sections)))
 (def category-names (vec (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
+(def default-category :progress) ; default for custom sections
 
 (def ordered-sections
   (into {} (for [{:keys [sections name]} categories]

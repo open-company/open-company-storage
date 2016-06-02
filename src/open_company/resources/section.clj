@@ -44,7 +44,7 @@
   [sections section-name]
   (if ((set (map keyword (flatten (vals sections)))) (keyword section-name))
     sections ; already contains the section-name
-    (let [category-name (common/category-for section-name)] ; get the category for this section name
+    (let [category-name (or (common/category-for section-name) common/default-category)] ; category for this section
       (update-in sections [category-name] conj section-name)))) ; add the section name to the category
 
 (defun update-notes-for
@@ -186,7 +186,7 @@
   ([conn company-slug section-name section user timestamp]
   (let [original-company (company/get-company conn company-slug) ; company before the update
         original-section (get-section conn company-slug section-name) ; section before the update
-        template-section (common/section-by-name section-name) ; canonical version of this section
+        template-section (common/section-by-name section-name) ; canonical version of this section (unless custom)
         author (common/author-for-user user)
         updated-section (-> section
           (clean)
