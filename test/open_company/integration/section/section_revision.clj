@@ -227,7 +227,9 @@
 
     (facts "with PATCH"
 
-      (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
+      (with-state-changes [(before :facts (do
+                              (s/put-section conn r/slug :update r/text-section-1 r/coyote)
+                              (s/put-section conn r/slug :custom-a1b1 r/text-section-1 r/coyote)))]
 
         (fact "update existing revision title"
           (let [updated {:title "New Title"}

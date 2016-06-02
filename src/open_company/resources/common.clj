@@ -66,6 +66,9 @@
 ;; A set of all section names that can contain notes
 (def notes-sections #{:growth :finances})
 
+;; Regex that matches properly named custom sections
+(def custom-section-name #"^custom-.{4}$")
+
 ;; ----- Template Data -----
 
 (def empty-stakeholder-update {
@@ -77,7 +80,7 @@
 (def CategoryName (schema/pred #((set category-names) (keyword %))))
 
 ; Allow known section names and custom section names
-(def SectionName (schema/pred #(or (section-names (keyword %)) (re-matches #"^custom-.{4}$" (name %)))))
+(def SectionName (schema/pred #(or (section-names (keyword %)) (re-matches custom-section-name (name %)))))
 
 (def Slug (schema/pred slug/valid-slug?))
 
