@@ -2,6 +2,7 @@
 {
   :company {
     :slug "simple"
+    :public false
     :name "Simple, LLC"
     :description "Keeping it Simple Since 2015"
     :logo "https://open-company-assets.s3.amazonaws.com/simple.png"

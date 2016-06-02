@@ -30,7 +30,7 @@
 (map #(schema/check common/Section %) sections*)
 
 ;; RethinkDB usage
-(def conn2 [:host "127.0.0.1" :port 28015 :db "open_company_dev"])
+(def conn2 [:host "127.0.0.1" :port 28015 :db "open_company"])
 
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")
@@ -51,34 +51,40 @@
 
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")
+      (r/get "startup-city")
+      (r/update {:public true})
+      (r/run c)))
+
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "companies")
       (r/get "open")
       (r/update {:sections (r/literal 
         {:company ["competition" "mission" "values"], :progress ["update" "challenges" "growth" "fundraising" "finances"]})})
       (r/run c)))
 
-(with-open [c (apply r/connect conn)]
+(with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")
       (r/get "open")
       (r/replace (r/fn [company]
         (r/without company [:mission])))
       (r/run c)))
 
-(aprint (with-open [c (apply r/connect conn)]
+(aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
   (r/get-all ["buffer"] {:index "company-slug"})
   (r/run c))))
 
-(aprint (with-open [c (apply r/connect conn)]
+(aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
-  (r/get-all [["buffer" "update"]] {:index "company-slug-section-name"})
+  (r/get-all [["green-labs" "update"]] {:index "company-slug-section-name"})
   (r/run c))))
 
-(aprint (with-open [c (apply r/connect conn)]
+(aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
   (r/get-all ["21c9ddd4-6d1c-47a5-b6c1-1308fed08523"] {:index "id"})
   (r/run c))))
 
-(with-open [c (apply r/connect conn)]
+(with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
   (r/get-all ["70733852-21f7-4aba-bff6-de93ce699be2"] {:index "id"})
   (r/update {:image "https://open-company.s3.amazonaws.com/diversity.svg"})

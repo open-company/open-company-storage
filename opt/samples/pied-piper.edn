@@ -2,6 +2,7 @@
 {
   :company {
     :slug "pied-piper"
+    :public false
     :name "Pied Piper"
     :description "A Middle-Out Compression Solution Making Data Storage Problems Smaller"
     :logo "https://open-company-assets.s3.amazonaws.com/pied-piper.png"

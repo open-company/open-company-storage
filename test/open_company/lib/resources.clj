@@ -54,6 +54,7 @@
            :currency "USD"})
 
 (def buffer {:slug "buffer"
+             :public true
              :name "Buffer"
              :description "Social Media LaLaLa"
              :currency "USD"})
