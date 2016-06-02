@@ -187,8 +187,7 @@
                           (assoc :author (common/author-for-user user))
                           (assoc :company-slug (:slug company))
                           (assoc :section-name section-name)
-                          (assoc :description (:description (common/section-by-name section-name)))
-                          (assoc :icon (:icon (common/section-by-name section-name))))])]
+                          (assoc :description (:description (common/section-by-name section-name))))])]
     (merge company (into {} (map add-info rs)))))
 
 (schema/defn ->company :- common/Company
