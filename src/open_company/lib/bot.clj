@@ -42,7 +42,6 @@
 
 (defn send-trigger! [trigger]
   (s/validate BotTrigger trigger)
-  (prn trigger)
   (sqs/send-message
    {:access-key c/aws-access-key-id
     :secret-key c/aws-secret-access-key}
