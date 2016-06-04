@@ -67,6 +67,7 @@
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
+    "AWS SQS queue: " c/aws-sqs-queue "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
     "Sentry: " c/dsn "\n\n"

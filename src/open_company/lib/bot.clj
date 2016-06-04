@@ -1,9 +1,9 @@
 (ns open-company.lib.bot
   (:require [amazonica.aws.sqs :as sqs]
-            [environ.core :as e]
             [medley.core :as med]
             [clojure.string :as string]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [open-company.config :as c]))
 
 (def KnownScripts
   (s/enum :onboard :onboard-user :onboard-user-authenticated :stakeholder-update))
@@ -44,9 +44,9 @@
   (s/validate BotTrigger trigger)
   (prn trigger)
   (sqs/send-message
-   {:access-key (e/env :aws-access-key-id)
-    :secret-key (e/env :aws-secret-access-key)}
-   (e/env :aws-sqs-queue)
+   {:access-key c/aws-access-key-id
+    :secret-key c/aws-secret-access-key}
+   c/aws-sqs-queue
    trigger))
 
 (comment
