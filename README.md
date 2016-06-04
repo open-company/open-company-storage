@@ -160,6 +160,23 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
+### Required Secrets
+
+Make sure you update the section in `project.clj` that looks like this to contain your actual secrets:
+
+```clojure
+:dev [:qa {
+  :env ^:replace {
+    :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
+    :aws-access-key-id "CHANGE-ME"
+    :aws-secret-access-key "CHANGE-ME"
+    :aws-sqs-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+  }
+```
+
+You can also override these settings with environmental variables in the form of `OPEN_COMPANY_AUTH_PASSPHRASE` and
+`AWS_ACCESS_KEY_ID`, etc. Use environmental variables to provide production secrets when running in production.
+
 
 ## Introduction
 

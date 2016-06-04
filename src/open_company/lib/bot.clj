@@ -44,8 +44,8 @@
   (s/validate BotTrigger trigger)
   (prn trigger)
   (sqs/send-message
-   {:access-key (e/env :aws-access-key)
-    :secret-key (e/env :aws-secret-key)}
+   {:access-key (e/env :aws-access-key-id)
+    :secret-key (e/env :aws-secret-access-key)}
    (e/env :aws-sqs-queue)
    trigger))
 

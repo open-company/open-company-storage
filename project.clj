@@ -75,9 +75,9 @@
         :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-        :aws-access-key nil
-        :aws-secret-key nil
-        :aws-sqs-queue nil
+        :aws-access-key-id "CHANGE-ME"
+        :aws-secret-access-key "CHANGE-ME"
+        :aws-sqs-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
       }
       :dependencies [
         [philoskim/debux "0.2.1"] ; `dbg` macro around -> or lets https://github.com/philoskim/debux
