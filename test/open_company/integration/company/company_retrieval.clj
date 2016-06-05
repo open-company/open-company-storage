@@ -61,7 +61,8 @@
                                       (section/put-section conn r/slug :team r/text-section-2 r/coyote)
                                       (section/put-section conn r/slug :help r/text-section-1 r/coyote)
                                       (section/put-section conn r/slug :diversity r/text-section-2 r/coyote)
-                                      (section/put-section conn r/slug :values r/text-section-1 r/coyote)))
+                                      (section/put-section conn r/slug :values r/text-section-1 r/coyote)
+                                      (section/put-section conn r/slug :custom-a1b2 r/text-section-2 r/coyote)))
                      (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                      (company/delete-all-companies! conn)))]
 
@@ -118,7 +119,7 @@
         (:org-id body) => nil ; verify no org-id
         (:categories body) => (map name common/category-names)
         (:sections body) =>
-          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help"]}
+          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help" "custom-a1b2"]}
         ;; verify section contents
         (:update body) => (contains r/text-section-1)
         (:finances body) => (contains r/finances-section-1)
@@ -138,7 +139,7 @@
             body (mock/body-from-response response)]
         (:status response) => 200
         (:sections body) =>
-          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help"]}
+          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help" "custom-a1b2"]}
         ;; verify each section has only a self HATEOAS link
         (doseq [section-key (map keyword (flatten (vals (:sections body))))]
           (count (:links (body section-key))) => 1
@@ -154,7 +155,7 @@
             body (mock/body-from-response response)]
         (:status response) => 200
         (:sections body) =>
-          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help"]}
+          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help" "custom-a1b2"]}
         ;; verify each section has only a self HATEOAS link
         (doseq [section-key (map keyword (flatten (vals (:sections body))))]
           (count (:links (body section-key))) => 1

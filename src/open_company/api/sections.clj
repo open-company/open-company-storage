@@ -66,11 +66,6 @@
     :get true
     :put true
     :patch true})
-    ; (fn [ctx] (common/check-input
-    ;   (section-res/valid-section company-slug section-name
-    ;     (-> (:data ctx)
-    ;       (assoc :company-slug company-slug)
-    ;       (assoc :section-name section-name)))))
 
   ;; Handlers
   :handle-ok
@@ -91,10 +86,14 @@
 
 ;; ----- Routes -----
 
+(defn- section-route [sys company-slug section-slug uuid as-of]
+  (let [db-pool (-> sys :db-pool :pool)
+        section-name (if (= section-slug "custom-:uuid") (str "custom-" uuid) section-slug)] 
+    (pool/with-pool [conn db-pool] (section conn company-slug section-name as-of))))
+
 (defn section-routes [sys]
-  (let [db-pool (-> sys :db-pool :pool)]
     (apply routes
       (map #(ANY (str "/companies/:company-slug/" %)
-                  [company-slug as-of]
-                  (pool/with-pool [conn db-pool] (section conn company-slug % as-of)))
-          (map name common-res/section-names)))))
+                  [company-slug uuid as-of]
+                  (section-route sys company-slug % uuid as-of))
+          (conj (map name common-res/section-names) "custom-:uuid"))))

@@ -37,7 +37,14 @@
 (defn- section-set
   "Return the set of section names that are contained in the provided company."
   [company]
-  (set (clojure.set/intersection common/section-names (set (keys company)))))
+  (clojure.set/union
+    ;; all the company keys that are known section names
+    (->> (keys company)
+      (set)
+      (clojure.set/intersection common/section-names)
+      (set))
+    ;; all the company keys that are custom section names
+    (set (filter #(re-matches common/custom-section-name (name %)) (keys company)))))
 
 (defn- sections-for
   "Add a :sections key to given company containing category->ordered-sections mapping
@@ -187,8 +194,7 @@
                           (assoc :author (common/author-for-user user))
                           (assoc :company-slug (:slug company))
                           (assoc :section-name section-name)
-                          (assoc :description (:description (common/section-by-name section-name)))
-                          (assoc :icon (:icon (common/section-by-name section-name))))])]
+                          (assoc :description (:description (common/section-by-name section-name))))])]
     (merge company (into {} (map add-info rs)))))
 
 (schema/defn ->company :- common/Company
