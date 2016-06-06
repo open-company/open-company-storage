@@ -35,11 +35,7 @@
     [medley "0.8.1"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
     [aleph "0.4.2-alpha3"] ;; Asynchronous communication for clojure (http-client) https://github.com/ztellman/aleph
-    
-    ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
-    [amazonica "0.3.56"]; :exclusions [com.amazonaws/aws-java-sdk]]
-    ;; [com.amazonaws/aws-java-sdk-core "1.10.76" :exclusions [org.apache.httpcomponents/httpclient]]
-    ;; [com.amazonaws/aws-java-sdk-sqs "1.10.76"]
+    [amazonica "0.3.56"] ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
  ]
 
   ;; Production plugins
