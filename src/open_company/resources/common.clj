@@ -21,6 +21,7 @@
 ;; All the categories in default order
 (def categories (:categories (keywordize-keys config/sections)))
 (def category-names (vec (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
+(def default-category :progress) ; default for custom sections
 
 (def ordered-sections
   (into {} (for [{:keys [sections name]} categories]
@@ -65,6 +66,9 @@
 ;; A set of all section names that can contain notes
 (def notes-sections #{:growth :finances})
 
+;; Regex that matches properly named custom sections
+(def custom-section-name #"^custom-.{4}$")
+
 ;; ----- Template Data -----
 
 (def empty-stakeholder-update {
@@ -75,7 +79,8 @@
 
 (def CategoryName (schema/pred #((set category-names) (keyword %))))
 
-(def SectionName (schema/pred #(section-names (keyword %))))
+; Allow known section names and custom section names
+(def SectionName (schema/pred #(or (section-names (keyword %)) (re-matches custom-section-name (name %)))))
 
 (def Slug (schema/pred slug/valid-slug?))
 
@@ -92,7 +97,6 @@
    :title schema/Str
    :description schema/Str
    (schema/optional-key :company-slug) schema/Str
-   :icon schema/Str
    (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
    (schema/optional-key :updated-at) schema/Str
@@ -119,7 +123,8 @@
           (schema/optional-key :logo-width) schema/Int
           (schema/optional-key :logo-height) schema/Int
           (schema/optional-key :created-at) schema/Str
-          (schema/optional-key :updated-at) schema/Str}
+          (schema/optional-key :updated-at) schema/Str
+          schema/Keyword schema/Any}
         InlineSections))
 
 (def Stakeholder-update

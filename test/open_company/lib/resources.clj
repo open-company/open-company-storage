@@ -68,14 +68,17 @@
 
 (def text-section-1 {
   :title "Text Section 1"
+  :headline "Headline Section 1"
   :body "<p>This is a test.</p>"})
 
 (def text-section-2 {
   :title "Text Section 2"
+  :headline "Headline Section 2"
   :body "<p>This is also a test.</p>"})
 
 (def finances-section-1 {
   :title "Finances Section 1"
+  :headline "Headline Finances Section 1"
   :data [
     {
       :period "2015-06"
@@ -86,6 +89,7 @@
 
 (def finances-section-2 {
   :title "Finances Section 2"
+  :headline "Headline Finances Section 2"
   :data [
     {
       :period "2015-06"
@@ -102,6 +106,7 @@
 
 (def finances-notes-section-1 {
   :title "Finances with Notes Section 1"
+  :headline "Headline Finances with Notes Section 1"
   :data [
     {
       :period "2015-06"
@@ -114,6 +119,7 @@
 
 (def finances-notes-section-2 {
   :title "Finances with Notes Section 2"
+  :headline "Headline Finances with Notes Section 2"
   :data [
     {
       :period "2015-06"
