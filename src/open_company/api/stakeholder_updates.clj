@@ -3,6 +3,7 @@
             [compojure.core :refer (routes OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [open-company.db.pool :as pool]
+            [open-company.lib.bot :as bot]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.resources.stakeholder-update :as su-res]
@@ -91,7 +92,6 @@
                                      :post nil})
   :allowed-methods [:options :get :post]
   :exists? (fn [_] (list-stakeholder-updates conn company-slug))
-  :malformed? false
   :processable? true
   
   :allowed? (by-method {
@@ -101,7 +101,10 @@
 
   ;; Create a new stakeholder update
   :post-to-missing? false ; 404 if company doesn't exist
-  :post! (fn [ctx] {:stakeholder-update (create-stakeholder-update conn ctx)})
+  :post! (fn [ctx] (let [ctx' (assoc ctx :stakeholder-update (create-stakeholder-update conn ctx))]
+                     (when (-> ctx :data :slack)
+                       (bot/send-trigger! (bot/ctx->trigger :stakeholder-update ctx')))
+                     ctx'))
 
   ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
