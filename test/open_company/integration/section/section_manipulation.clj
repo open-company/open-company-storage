@@ -160,11 +160,13 @@
   (facts "about placeholder section removal"
     (let [slug     "hello-world"
           payload  {:name "Hello World" :description "x"}
-          response (mock/api-request :post "/companies" {:body payload})
+          post-response (mock/api-request :post "/companies" {:body payload})
+          placeholder-sections {:progress ["update" "growth" "challenges" "team" "product" "finances"]
+                                :company ["mission" "values"]}
+          patch-response (mock/api-request :patch (company-rep/url slug) {:body {:sections placeholder-sections}})
           company  (company/get-company conn slug)]
-      ;; ensure all placeholder sections are in company
-      (:sections company) => {:progress ["update" "growth" "challenges" "team" "product" "finances"]
-                              :company ["mission" "values"]}
+      ;; Ensure the placeholder sections are in company
+      (:sections company) => placeholder-sections
       (:growth company) => truthy
       (:challenges company) => truthy
       (:team company) => truthy
