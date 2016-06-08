@@ -11,7 +11,7 @@
           "description": "Why the company exists",
           "headline": "",
           "body": "Does everyone know what they’re fighting for? What is your mission?",
-          "core": true
+          "core": false
         },
 
         {
@@ -22,7 +22,7 @@
           "body": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
           they came from, why they're important, and provide examples of how people can use them to guide their
           decisions, behavior, and actions.",
-          "core": true
+          "core": false
         },
 
         {
@@ -59,7 +59,7 @@
           "description": "Company update",
           "headline": "",
           "body": "Provide an overview of important happenings in the company since the last update.",
-          "core": true
+          "core": false
         },
 
         {
@@ -145,7 +145,7 @@
             }
           ],
           "notes": "Provide context about recent growth with a note.",
-          "core": true
+          "core": false
         },
 
         {
@@ -155,7 +155,7 @@
           "headline": "",
           "body": "What are you most disappointed about? What’s your plan to fix it going forward?
           What is the company stuck on? What are the systemic or existential threats everyone needs to be focused on?",
-          "core": true
+          "core": false
         },
 
        {
@@ -176,7 +176,7 @@
           "body": "Announce and welcome new hires. Discuss what positions are currently open and what's being
           done to fill them. How many candidates are applying for the positions? Which employees are no longer
           with the company and why they left.",
-          "core": true
+          "core": false
         },
 
         {
@@ -187,7 +187,7 @@
           "body": "What tests have you run to validate your product? What did you learn? What's
           shipped recently and how has the roadmap changed? How is the product performing? What's not working? What's
           the evidence you are making something some people love?",
-          "core": true
+          "core": false
         },
 
         {
@@ -262,7 +262,7 @@
           "headline": "",
           "description": "Cash on hand, burn and runway",
           "notes": "Provide context about recent changes in company finances with a note.",
-          "core": true
+          "core": false
         },
 
         {
