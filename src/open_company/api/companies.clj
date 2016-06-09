@@ -156,10 +156,10 @@
            (let [company (->> (company/->company data user (find-slug conn data))
                               (company/add-core-placeholder-sections)
                               (company/create-company! conn))
-                 ctx (assoc ctx :company company)]
+                 ctx' (assoc ctx :company company)]
              (when (:bot user) ; Some JWTokens might not have a bot token
-               (bot/send-trigger! (bot/ctx->trigger :onboard ctx)))
-             ctx))
+               (bot/send-trigger! (bot/ctx->trigger :onboard ctx')))
+             ctx'))
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
   :handle-created (fn [ctx] (company-location-response conn (:company ctx)))
