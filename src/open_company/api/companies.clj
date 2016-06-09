@@ -2,6 +2,7 @@
   (:require [compojure.core :as compojure :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
+            [taoensso.timbre :as timbre]
             [open-company.config :as config]
             [open-company.db.pool :as pool]
             [open-company.lib.slugify :as slug]
@@ -156,10 +157,12 @@
            (let [company (->> (company/->company data user (find-slug conn data))
                               (company/add-core-placeholder-sections)
                               (company/create-company! conn))
-                 ctx' (assoc ctx :company company)]
+                 ctx' (assoc (common/clone ctx) :company company)]
+             (timbre/info "Class of ctx" (class ctx))
+             (timbre/info "Class of ctx after into" (class (into {} ctx)))
              (when (:bot user) ; Some JWTokens might not have a bot token
                (bot/send-trigger! (bot/ctx->trigger :onboard ctx')))
-             ctx'))
+             {:company company}))
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
   :handle-created (fn [ctx] (company-location-response conn (:company ctx)))

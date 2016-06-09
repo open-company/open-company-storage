@@ -12,6 +12,9 @@
 (def malformed true)
 (def good-json false)
 
+(defn clone [ctx]
+  (into {} ctx))
+
 ;; ----- Responses -----
 
 (defn options-response [methods]
