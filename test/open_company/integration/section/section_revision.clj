@@ -10,6 +10,7 @@
             [open-company.api.common :as common]
             [open-company.resources.company :as c]
             [open-company.resources.section :as s]
+            [open-company.representations.company :as company-rep]
             [open-company.representations.section :as section-rep]))
 
 ;; ----- Test Cases -----
@@ -299,14 +300,16 @@
   (facts "about updating a placeholder section"
 
     (facts "with PUT"
-      (with-state-changes [(before :facts (c/create-company! conn (c/add-core-placeholder-sections (c/->company r/buffer r/coyote))))
+      (with-state-changes [(before :facts (c/create-company! conn (c/->company r/buffer r/coyote)))
                            (after :facts (c/delete-company conn (:slug r/buffer)))]
         (fact "update existing revision title"
           (let [updated  (assoc r/text-section-1 :title "New Title")
-                response (mock/api-request :put (section-rep/url (:slug r/buffer) :update) {:body updated})
-                body     (mock/body-from-response response)
+                placeholder-sections {:progress ["update"] :company []}
+                patch-response (mock/api-request :patch (company-rep/url r/buffer) {:body {:sections placeholder-sections}})
+                put-response (mock/api-request :put (section-rep/url (:slug r/buffer) :update) {:body updated})
+                body     (mock/body-from-response put-response)
                 company  (c/get-company conn (:slug r/buffer))]
-            (:status response) => 200
+            (:status put-response) => 200
             (-> company :update :placeholder) => falsey
             body => (contains updated)
             (:placeholder body) => falsey))))
@@ -316,6 +319,8 @@
                            (after :facts (c/delete-company conn (:slug r/buffer)))]
         (fact "update existing revision title"
           (let [updated  {:title "New Title"}
+                placeholder-sections {:progress ["update"] :company []}
+                patch-response (mock/api-request :patch (company-rep/url r/buffer) {:body {:sections placeholder-sections}})
                 response (mock/api-request :patch (section-rep/url (:slug r/buffer) :update) {:body updated})
                 body     (mock/body-from-response response)
                 company  (c/get-company conn (:slug r/buffer))]
