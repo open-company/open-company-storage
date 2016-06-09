@@ -2,7 +2,6 @@
   (:require [compojure.core :as compojure :refer (defroutes ANY OPTIONS GET POST)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
-            [taoensso.timbre :as timbre]
             [open-company.config :as config]
             [open-company.db.pool :as pool]
             [open-company.lib.slugify :as slug]
