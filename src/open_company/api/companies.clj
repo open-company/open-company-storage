@@ -156,12 +156,11 @@
   :post! (fn [{:keys [user data] :as ctx}]
            (let [company (->> (company/->company data user (find-slug conn data))
                               (company/add-core-placeholder-sections)
-                              (company/create-company! conn))
-                 ctx' (assoc (common/clone ctx) :company company)]
+                              (company/create-company! conn))]
              (timbre/info "Class of ctx" (class ctx))
-             (timbre/info "Class of ctx after into" (class (into {} ctx)))
+             (timbre/info "Class of ctx after into" (class (common/clone ctx)))
              (when (:bot user) ; Some JWTokens might not have a bot token
-               (bot/send-trigger! (bot/ctx->trigger :onboard ctx')))
+               (bot/send-trigger! (bot/ctx->trigger :onboard (assoc (common/clone ctx) :company company))))
              {:company company}))
 
   :handle-ok (fn [ctx] (company-rep/render-company-list (:companies ctx)))
