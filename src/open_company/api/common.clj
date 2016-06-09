@@ -12,7 +12,10 @@
 (def malformed true)
 (def good-json false)
 
-(defn clone [ctx]
+(defn clone
+  "Clone a liberator request context so we can do all map operations on it.
+   Fixes issues with Nginx-Clojure's request map interface that doesn't allow assoc"
+  [ctx]
   (into {} ctx))
 
 ;; ----- Responses -----
