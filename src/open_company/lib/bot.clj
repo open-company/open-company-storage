@@ -42,13 +42,18 @@
     (assoc-in ctx [:stakeholder-update :note] note)
     ctx))
 
+(defn add-origin [params ctx]
+  (if-let [origin (get-in ctx [:request :headers "origin"])]
+    (assoc params :env/origin origin)
+    params))
+
 (defn ctx->trigger [script-id ctx]
   {:pre [(map? (:company ctx)) (map? (:user ctx))]}
   (let [rid (strip-prefix (-> ctx :user :user-id))
         bot (-> ctx :user :bot)]
     {:api-token   (:jwtoken ctx)
      :bot         bot
-     :script      {:id script-id, :params (-> ctx add-su-note script-params)}
+     :script      {:id script-id, :params (-> ctx add-su-note script-params (add-origin ctx))}
      :receiver    (case script-id
                     :onboard {:type :user, :id rid}
                     :stakeholder-update {:type :all-members})}))
