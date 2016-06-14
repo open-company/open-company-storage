@@ -38,7 +38,9 @@
        (apply merge)))
 
 (defn add-su-note [ctx]
-  (assoc-in ctx [:stakeholder-update :note] (-> ctx :data :note)))
+  (if-let [note (-> ctx :data :note)]
+    (assoc-in ctx [:stakeholder-update :note] note)
+    ctx))
 
 (defn ctx->trigger [script-id ctx]
   {:pre [(map? (:company ctx)) (map? (:user ctx))]}
