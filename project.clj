@@ -1,6 +1,6 @@
 (defproject open-company-api "0.0.2-SNAPSHOT"
   :description "OpenCompany Platform API"
-  :url "https://opencompany.io/"
+  :url "https://opencompany.com/"
   :license {
     :name "Mozilla Public License v2.0"
     :url "http://www.mozilla.org/MPL/2.0/"
