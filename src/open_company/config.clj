@@ -41,6 +41,12 @@
 
 (defonce dsn (or (env :open-company-sentry-api) false))
 
+;; ----- AWS SQS -----
+
+(defonce aws-access-key-id (env :aws-access-key-id))
+(defonce aws-secret-access-key (env :aws-secret-access-key))
+(defonce aws-sqs-queue (env :aws-sqs-queue))
+
 ;; ----- JWT -----
 
 (defonce passphrase (env :open-company-auth-passphrase))

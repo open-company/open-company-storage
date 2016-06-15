@@ -34,6 +34,7 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.2"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
+    [amazonica "0.3.56"] ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
   ]
 
   ;; Production plugins
@@ -71,6 +72,9 @@
         :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
+        :aws-access-key-id "CHANGE-ME"
+        :aws-secret-access-key "CHANGE-ME"
+        :aws-sqs-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
       }
       :plugins [
         [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
