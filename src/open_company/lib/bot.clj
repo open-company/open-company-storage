@@ -38,9 +38,10 @@
        (apply merge)))
 
 (defn add-su-note [ctx]
-  (if-let [note (-> ctx :data :note)]
-    (assoc-in ctx [:stakeholder-update :note] note)
-    ctx))
+  (let [note (-> ctx :data :note)]
+    (if-not (string/blank? note)
+      (assoc-in ctx [:stakeholder-update :note] note)
+      ctx)))
 
 (defn add-origin [params ctx]
   (if-let [origin (get-in ctx [:request :headers "origin"])]
