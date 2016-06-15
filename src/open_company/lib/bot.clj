@@ -1,5 +1,6 @@
 (ns open-company.lib.bot
   (:require [amazonica.aws.sqs :as sqs]
+            [taoensso.timbre :as timbre]
             [medley.core :as med]
             [clojure.string :as string]
             [schema.core :as s]
@@ -60,7 +61,9 @@
                     :stakeholder-update {:type :all-members})}))
 
 (defn send-trigger! [trigger]
+  (timbre/info "[bot] request to send " trigger " to " c/aws-sqs-queue)
   (s/validate BotTrigger trigger)
+  (timbre/info "[bot] sending")
   (sqs/send-message
    {:access-key c/aws-access-key-id
     :secret-key c/aws-secret-access-key}
