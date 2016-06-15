@@ -101,10 +101,11 @@
 
   ;; Create a new stakeholder update
   :post-to-missing? false ; 404 if company doesn't exist
-  :post! (fn [ctx] (let [ctx' (assoc ctx :stakeholder-update (create-stakeholder-update conn ctx))]
+  :post! (fn [ctx] (let [su   (create-stakeholder-update conn ctx)
+                         ctx' (assoc (common/clone ctx) :stakeholder-update su)]
                      (when (-> ctx :data :slack)
                        (bot/send-trigger! (bot/ctx->trigger :stakeholder-update ctx')))
-                     ctx'))
+                     {:stakeholder-update su}))
 
   ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
