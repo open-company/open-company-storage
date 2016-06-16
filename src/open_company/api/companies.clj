@@ -145,7 +145,7 @@
 
   ;; Get a list of companies
   :exists? (fn [{:keys [user]}] {:companies (filter #(public-or-authorized? user %)
-                                                    (company/list-companies conn [:org-id :public]))})
+                                                    (company/list-companies conn [:org-id :public :logo]))})
 
   :processable? (by-method {
     :get true
