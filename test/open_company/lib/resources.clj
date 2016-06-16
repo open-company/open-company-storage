@@ -52,17 +52,20 @@
 (def open {:slug slug
            :name "OpenCompany"
            :description "Build trust with stakeholders"
-           :currency "USD"})
+           :currency "USD"
+           :logo ""})
 
 (def buffer {:slug "buffer"
              :public true
              :name "Buffer"
              :description "Social Media LaLaLa"
-             :currency "USD"})
+             :currency "USD"
+             :logo ""})
 
 (def uni {:name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
           :description "Unicode FTW"
-          :currency "FKP"})
+          :currency "FKP"
+          :logo ""})
 
 ;; ----- Sections -----
 
