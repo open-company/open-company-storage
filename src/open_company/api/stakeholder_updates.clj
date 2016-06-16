@@ -91,7 +91,7 @@
   :available-media-types (by-method {:get [su-rep/collection-media-type]
                                      :post nil})
   :allowed-methods [:options :get :post]
-  :malformed? false ; TODO why not working on server? (fn [ctx] (common/malformed-json? ctx true)) ; true to allow JSON or nothing
+  :malformed? (fn [ctx] (common/malformed-json? ctx true)) ; true to allow JSON or nothing
   :exists? (fn [_] (list-stakeholder-updates conn company-slug))
   :processable? true
   

@@ -79,13 +79,14 @@
   ([ctx allow-nil?]
   (try
     (if-let [data (-> (get-in ctx [:request :body]) slurp (json/parse-string true))]
-      ; handle case of a string which is valid JSON, but still malformed for us
+      ; handle case of a string which is valid JSON, but still malformed for us (since it's not a map)
       (do (when-not (map? data) (throw (Exception.)))
-        [good-json {:data data}])
-      (if allow-nil? [good-json {:data {}}] [malformed]))
+        [good-json {:data data}]))
     (catch Exception e
-      (warn "Request body not processable as JSON: " e)
-      [malformed]))))
+      (if allow-nil?
+        [good-json {:data {}}]
+        (do (warn "Request body not processable as JSON: " e)
+          [malformed]))))))
 
 (defn known-content-type?
   [ctx content-type]
