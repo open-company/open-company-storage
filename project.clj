@@ -13,9 +13,9 @@
 
   ;; Production dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha5"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha7"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
-    [org.clojure/core.async "0.2.374"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
+    [org.clojure/core.async "0.2.382"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
     [ring/ring-devel "1.5.0"] ; Web application library https://github.com/ring-clojure/ring
@@ -24,7 +24,7 @@
     [http-kit "2.2.0-alpha2"] ; Web server http://http-kit.org/
     [compojure "1.5.0"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
-    [com.apa512/rethinkdb "0.15.23"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    [com.apa512/rethinkdb "0.15.24"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.2"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
     [com.taoensso/timbre "4.4.0"] ; Logging https://github.com/ptaoussanis/timbre
@@ -34,7 +34,7 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.2"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
-    [amazonica "0.3.56"] ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [amazonica "0.3.59"] ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
   ]
 
   ;; Production plugins
@@ -54,7 +54,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.8.3"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.9.0-alpha2"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
         [philoskim/debux "0.2.1"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
