@@ -105,7 +105,7 @@
                 (:bot @sqs-msg) =>    {:id "abc" :token "xyz"}
                 (:script @sqs-msg) => {:id :onboard :params {:user/name "Albert" :company/name "Hello World"
                                                              :company/description "x" :company/slug "hello-world" :company/currency "USD"}}
-                (:receiver @sqs-msg) => {:type :channel :id "1960-01-04"}
+                (:receiver @sqs-msg) => {:type :user :id "1960-01-04"}
                 (str "Bearer " (:api-token @sqs-msg)) => mock/jwtoken-camus)))
         (fact "trigger is sent if user is owner of Slack Team"
           (let [sqs-msg (atom nil)]

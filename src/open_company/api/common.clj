@@ -75,16 +75,18 @@
   "Read in the body param from the request as a string, parse it into JSON, make sure all the
   keys are keywords, and then return it, mapped to :data as the 2nd value in a vector,
   with the first value indicating it's not malformed. Otherwise just indicate it's malformed."
-  [ctx]
+  ([ctx] (malformed-json? ctx false))
+  ([ctx allow-nil?]
   (try
     (if-let [data (-> (get-in ctx [:request :body]) slurp (json/parse-string true))]
-      ; handle case of a string which is valid JSON, but still malformed for us
+      ; handle case of a string which is valid JSON, but still malformed for us (since it's not a map)
       (do (when-not (map? data) (throw (Exception.)))
-        [good-json {:data data}])
-      [malformed])
+        [good-json {:data data}]))
     (catch Exception e
-      (debug "Request body not processable as JSON: " e)
-      [malformed])))
+      (if allow-nil?
+        [good-json {:data {}}]
+        (do (warn "Request body not processable as JSON: " e)
+          [malformed]))))))
 
 (defn known-content-type?
   [ctx content-type]

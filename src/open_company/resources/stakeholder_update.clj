@@ -51,7 +51,7 @@
   (-> su-props
     (assoc :slug (slug-for title))
     (assoc :company-slug (:slug company))
-    (merge (select-keys company [:name :description :logo :logo-width :logo-height])) ; freeze some props of company
+    (merge (select-keys company [:name :logo :logo-width :logo-height])) ; freeze some props of company
     (update :title #(or % ""))
     (assoc :author (common/author-for-user user))
     (assoc :created-at timestamp)

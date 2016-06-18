@@ -3,6 +3,7 @@
             [compojure.core :refer (routes OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [open-company.db.pool :as pool]
+            [open-company.lib.bot :as bot]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.resources.stakeholder-update :as su-res]
@@ -90,8 +91,8 @@
   :available-media-types (by-method {:get [su-rep/collection-media-type]
                                      :post nil})
   :allowed-methods [:options :get :post]
+  :malformed? (fn [ctx] (common/malformed-json? ctx true)) ; true to allow JSON or nothing
   :exists? (fn [_] (list-stakeholder-updates conn company-slug))
-  :malformed? false
   :processable? true
   
   :allowed? (by-method {
@@ -101,7 +102,11 @@
 
   ;; Create a new stakeholder update
   :post-to-missing? false ; 404 if company doesn't exist
-  :post! (fn [ctx] {:stakeholder-update (create-stakeholder-update conn ctx)})
+  :post! (fn [ctx] (let [su   (create-stakeholder-update conn ctx)
+                         ctx' (assoc (common/clone ctx) :stakeholder-update su)]
+                     (when (-> ctx :data :slack)
+                       (bot/send-trigger! (bot/ctx->trigger :stakeholder-update ctx')))
+                     {:stakeholder-update su}))
 
   ;; Handlers
   :handle-not-acceptable (common/only-accept 406 su-rep/collection-media-type)
