@@ -23,7 +23,7 @@
 (defmulti adapt (fn [type _] type))
 
 (defmethod adapt :company [_ m]
-  (select-keys m [:name :slug :description :currency]))
+  (select-keys m [:name :logo :slug :description :currency]))
 
 (defmethod adapt :user [_ m]
   {:name (first (string/split (:real-name m) #"\ "))})
