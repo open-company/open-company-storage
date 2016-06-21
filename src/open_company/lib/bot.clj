@@ -23,7 +23,7 @@
 (defmulti adapt (fn [type _] type))
 
 (defmethod adapt :company [_ m]
-  (select-keys m [:name :slug :description :currency]))
+  (select-keys m [:name :logo :slug :description :currency]))
 
 (defmethod adapt :user [_ m]
   {:name (first (string/split (:real-name m) #"\ "))})
@@ -61,9 +61,9 @@
                     :stakeholder-update {:type :all-members})}))
 
 (defn send-trigger! [trigger]
-  (timbre/info "[bot] request to send " trigger " to " c/aws-sqs-queue)
+  (timbre/info "Request to send msg to " c/aws-sqs-queue "\n" trigger)
   (s/validate BotTrigger trigger)
-  (timbre/info "[bot] sending")
+  (timbre/info "Sending")
   (sqs/send-message
    {:access-key c/aws-access-key-id
     :secret-key c/aws-secret-access-key}
