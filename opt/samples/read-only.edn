@@ -1122,7 +1122,7 @@
         :headline "We're building a more inclusive ReadOnly!"
         :body "
         <p>Here's a transparent look at the overall demographic diversity of our team.</p>
-        <img src=\"http://take.ms/cTKFm\">
+        <img src=\"http://take.ms/cTKFm\" data-height=\"448\" data-width=\"555\">
         <img src=\"http://take.ms/3mBTC\">
         <img src=\"http://take.ms/3zi2y\">"
       }
