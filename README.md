@@ -29,6 +29,8 @@ To get started, head to: [OpenCompany](https://opencompany.com/)
 
 ## Overview
 
+The OpenCompany Platform API handles data access and data management of open company content and data. It supports other OpenCompany services, such as the Web client and OpenCompany Bot, as well as open API access.
+
 
 ## Local Setup
 
