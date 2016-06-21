@@ -6,7 +6,7 @@
 [![Roadmap on Trello](http://img.shields.io/badge/roadmap-trello-blue.svg?style=flat)](https://trello.com/b/3naVWHgZ/open-company-development)
 
 
-## Overview
+## Background
 
 > A lack of transparency results in distrust and a deep sense of insecurity.
 
@@ -22,9 +22,12 @@ To maintain transparency, OpenCompany information is always accessible and easy 
 
 Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OpenCompany platform turns transparency into a competitive advantage.
 
-Like the open companies we promote and support, the [OpenCompany](https://opencompany.com/) platform is completely transparent. The company supporting this effort, OpenCompany, Inc., is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
+Like the open companies we promote and support, the [OpenCompany](https://opencompany.com/) platform is completely transparent. The company supporting this effort, OpenCompany, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
 
 To get started, head to: [OpenCompany](https://opencompany.com/)
+
+
+## Overview
 
 
 ## Local Setup
@@ -160,9 +163,13 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
-### Required Secrets
+#### Required Secrets
 
-Make sure you update the section in `project.clj` that looks like this to contain your actual secrets:
+A secret is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the API for creating and validating [JSON Web Tokens](https://jwt.io/).
+
+An [AWS SQS queue](https://aws.amazon.com/sqs/) is used to pass messages from the API to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API.
+
+Make sure you update the section in `project.clj` that looks like this to contain your actual JWT and AWS SQS secrets:
 
 ```clojure
 :dev [:qa {
@@ -178,13 +185,15 @@ You can also override these settings with environmental variables in the form of
 `AWS_ACCESS_KEY_ID`, etc. Use environmental variables to provide production secrets when running in production.
 
 
-## Introduction
+## Usage
 
 You can verify all is well with your RethinkDB instance and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
 
 ```console
 open http://localhost:8080/
 ```
+
+#### REPL
 
 Next, you can try some things with Clojure by running the REPL from within this project:
 
@@ -308,7 +317,7 @@ Then enter these commands one-by-one, noting the output:
 ```
 
 
-## Usage
+#### Server
 
 Start a production API server:
 
@@ -321,6 +330,8 @@ Or start a development API server:
 ```console
 lein start
 ```
+
+#### API Requests
 
 You'll need a JWToken to use the REST API via cURL as an authenticated user. The token is passed in the `Authorization`
 header with each request. You can either extract your own token from the cookie in your web browser, to make requests
@@ -443,7 +454,7 @@ curl -i -X GET \
 http://localhost:3000/companies/hotel-procrastination
 ```
 
-## Import sample data
+#### Import sample data
 
 To import company sample data from an edn file run:
 ```console
@@ -490,6 +501,7 @@ To run the tests locally:
 lein test!
 ```
 
+
 ## Participation
 
 Please note that this project is released with a [Contributor Code of Conduct](https://github.com/open-company/open-company-api/blob/mainline/CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
@@ -499,4 +511,4 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).
 
-Copyright © 2015-2016 OpenCompany, Inc.
+Copyright © 2015-2016 OpenCompany, LLC.
