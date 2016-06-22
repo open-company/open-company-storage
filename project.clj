@@ -11,7 +11,7 @@
   ;; JVM memory
   :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
 
-  ;; Production dependencies
+  ;; All profile dependencies
   :dependencies [
     [org.clojure/clojure "1.9.0-alpha7"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
@@ -27,7 +27,8 @@
     [com.apa512/rethinkdb "0.15.24"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.2"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [com.taoensso/timbre "4.5.0-RC2"] ; Logging https://github.com/ptaoussanis/timbre
+    [cheshire "5.6.2"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
+    [com.taoensso/timbre "4.5.0-RC4"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.4.2"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.1.0"] ; HTTP client https://github.com/dakrone/clj-http
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
@@ -37,7 +38,7 @@
     [amazonica "0.3.61"] ;; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
   ]
 
-  ;; Production plugins
+  ;; All profile plugins
   :plugins [
     [lein-ring "0.9.7"] ; Common ring tasks https://github.com/weavejester/lein-ring
     [lein-environ "1.0.3"] ; Get environment settings from different sources https://github.com/weavejester/environ

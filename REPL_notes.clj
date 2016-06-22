@@ -90,6 +90,12 @@
   (r/update {:image "https://open-company.s3.amazonaws.com/diversity.svg"})
   (r/run c)))
 
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "companies")
+      (r/get "open")
+      (r/update {:update {:body "<p>It's time to learn. That's it, really. Put it in the hands of people we admire and trust, and <b>LEARN FAST</b>.</p><p><img src=\"https://cdn.filestackcontent.com/ge9NSlJTP2AXfwl0nGvk\" data-height=\"370\" data-width=\"555\"><br></p><p><br></p>"}})
+      (r/run c)))
+
 ;; for more RethinkDB help, see:
 ;; https://github.com/apa512/clj-rethinkdb
 ;; http://apa512.github.io/clj-rethinkdb/
