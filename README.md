@@ -179,7 +179,8 @@ Make sure you update the section in `project.clj` that looks like this to contai
     :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
     :aws-access-key-id "CHANGE-ME"
     :aws-secret-access-key "CHANGE-ME"
-    :aws-sqs-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+    :aws-sqs-bot-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+    :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
   }
 ```
 

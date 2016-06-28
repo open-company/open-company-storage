@@ -27,7 +27,7 @@
     [com.apa512/rethinkdb "0.15.24"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.2"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [cheshire "5.6.2"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
+    [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.5.0"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.4.2"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.1.0"] ; HTTP client https://github.com/dakrone/clj-http
@@ -76,7 +76,8 @@
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
-        :aws-sqs-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+        :aws-sqs-bot-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+        :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
       }
       :plugins [
         [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
