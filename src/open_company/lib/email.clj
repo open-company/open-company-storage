@@ -25,7 +25,7 @@
 
 (defn send-trigger! [trigger]
   (timbre/info "Request to send msg to " c/aws-sqs-email-queue "\n" (dissoc trigger :snapshot))
-  (s/validate EmailTrigger trigger)
+  (schema/validate EmailTrigger trigger)
   (timbre/info "Sending")
   (sqs/send-message
    {:access-key c/aws-access-key-id
