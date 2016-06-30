@@ -13,22 +13,22 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha7"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha8"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.385"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
-    [ring/ring-devel "1.5.0"] ; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-core "1.5.0"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-devel "1.6.0-beta1"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-core "1.6.0-beta1"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
-    [http-kit "2.2.0-alpha2"] ; Web server http://http-kit.org/
+    [http-kit "2.2.0-beta1"] ; Web server http://http-kit.org/
     [compojure "1.5.1"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.15.24"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.2"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [cheshire "5.6.2"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
-    [com.taoensso/timbre "4.5.0-RC4"] ; Logging https://github.com/ptaoussanis/timbre
+    [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
+    [com.taoensso/timbre "4.5.1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.4.2"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.1.0"] ; HTTP client https://github.com/dakrone/clj-http
     [clj-time "0.12.0"] ; Date and time lib https://github.com/clj-time/clj-time
@@ -36,7 +36,7 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.2"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
-    [amazonica "0.3.61"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [amazonica "0.3.64"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
   ]
 
   ;; All profile plugins

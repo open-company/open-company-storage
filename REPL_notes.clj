@@ -69,6 +69,13 @@
         (r/without company [:mission])))
       (r/run c)))
 
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "companies")
+      (r/get "startup-city")
+      (r/replace (r/fn [company]
+        (r/without company [{:competition {:icon true}}])))
+      (r/run c)))
+
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
   (r/get-all ["buffer"] {:index "company-slug"})
