@@ -1188,11 +1188,15 @@
     {
       :section {
         :title "Happiness"
-        :body "<h3>Team growth and new focus areas</h3>
-        <p>Three new Happiness Heroes began Buffer Bootcamp in August, which has allowed us to fully
+        :headline "Team growth and new focus areas"
+        :snippet "<p>Three new Happiness Heroes began Buffer Bootcamp in August, which has allowed us to fully
         commit to having several smaller teams working in separate areas. (These areas correspond
         to different Buffer plans and platforms, like paying customers, customers using Buffer's
-        free plan, or those reaching out from the mobile app.)</p>
+        free plan, or those reaching out from the mobile app.)</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
         <p>We're working on improving our numbers by bringing down the average response times in
         September. We have also started exploring a customer success focus for our Enterprise customers.</p>
         <ul>
@@ -1215,9 +1219,13 @@
     {
       :section {
         :title "Team"
-        :body "<h3>14 open roles</h3>
-          <p>We are still growing the team fast and have 14 open roles we are hiring for, including a
-          new role: We have started looking for an in-house finance person.</p>
+        :headline "14 open roles"
+        :snippet "<p>We are still growing the team fast and have 14 open roles we are hiring for, including a
+          new role: We have started looking for an in-house finance person.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
           <p>We received around 1,500 applications in August. (July and August tend to be slower in
           terms of applications, we are excited for September.)</p>
           <p>We will pass 50 people by the next update!</p>
@@ -1239,10 +1247,14 @@
     {
       :section {
         :title "Product"
-        :body "<h3>Buffer for Video and structure changes</h3>
-        <p>In the last couple of months, we've really shaped our product and engineering organization
+        :headline "Buffer for Video and structure changes"
+        :snippet "<p>In the last couple of months, we've really shaped our product and engineering organization
         to set us up to move much faster. We've successfully split this large team into smaller,
-        4-6 person teams that are able to work autonomously and move fast.</p>
+        4-6 person teams that are able to work autonomously and move fast.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
         <p>We still have some roles where a single person needs to be working across several teams, and
         a key hiring goal is for us to reach a point where everyone working on products at Buffer is
         focused on a single area. This will help us to move much faster in the future. All of these
@@ -1273,8 +1285,11 @@
       :section {
         :title "Update"
         :headline "We reached the 50 team members mark in September! :boom:"
+        :snippet "<p>This feels like a big milestone and a special moment to reflect on.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
         :body "
-        <p>This feels like a big milestone and a special moment to reflect on.</p>
         <p>For me, the most exciting part of this is that 50 people are able to join our journey of working as a fully distributed
         team, where you choose to live and work from the place which makes you happiest and most productive.</p>
         <p>We've had several examples of teammates moving or traveling to find their happy place, or being able to move easily to help
@@ -1292,6 +1307,8 @@
     {
       :section {
         :title "Finances"
+        :headline ""
+        :snippet ""
         :data[
           {
             :period "2015-01"
@@ -1361,6 +1378,10 @@
     {
       :section {
         :title "Key metrics"
+        :headline ""
+        :snippet "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
+          is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
+          <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
         :metrics [
           {
             :slug "total-registered-users"
@@ -1575,9 +1596,7 @@
           }
         ]
         :notes {
-          :body "<p>We usually find that September is one of the months of lowest growth. We are seeing this here with 3.2%, which
-          is lower than our recent months, however it's a number we're happy about for generally our lowest growth month of the year.</p>
-          <p>Our current YoY MRR growth stands at around 80%, a number we'd like to grow.</p>"
+          :body ""
         }
       }
       :section-name "growth"
@@ -1592,10 +1611,14 @@
     {
       :section {
         :title "Team and hiring"
-        :body "<h3>17 open roles</h3>
-          <p>We are still growing the team fast and have <a href=\"https://buffer.com/journey\">17 open roles we are hiring for</a>,
+        :headline "17 open roles"
+        :snippet "<p>We are still growing the team fast and have <a href=\"https://buffer.com/journey\">17 open roles we are hiring for</a>,
           including new roles like <a href=\"https://buffer.com/journey/social-media-manager\">Social Media Manager</a> and
-          <a href=\"https://buffer.com/journey/customer-hero\">Customer Hero</a>.</p>
+          <a href=\"https://buffer.com/journey/customer-hero\">Customer Hero</a>.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
           <img src=\"https://open.buffer.com/wp-content/uploads/2015/10/hiring-open-roles.png\">
           <p>We received over <a href=\"https://open.buffer.com/september-2015-hiring/\">1,500 applications</a> in September, on-par
           with the volume of application we have seen thus far.</p>
@@ -1617,9 +1640,14 @@
     {
       :section {
         :title "Product"
-        :body "<h3>New features and experiments</h3>
-        <p>Our <a href=\"https://open.buffer.com/product-team-evolution/\">product teams</a> are working together more
-        closely than ever before, and as a result we've been moving quickly with new features and experiments! In September
+        :headline "New features and experiments"
+        :snippet "<p>Our <a href=\"https://open.buffer.com/product-team-evolution/\">product teams</a> are working together more
+        closely than ever before, and as a result we've been moving quickly with new features and experiments!</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
+        <p>In September
         we adjusted Buffer for Business trials from 7 days to 30 days to allow us longer to help those in trial find value
         from Buffer. We're also working on a new landing page to clarify the positioning of Buffer clearly as a
         software-as-a-service product for small businesses.</p>
@@ -1653,9 +1681,14 @@
     {
       :section {
         :title "Happiness"
-        :body "<h3>Focusing on email response times</h3>
-        <p>In September, the Happiness Team re-focused on email response times as our main objective. We saw
-        big improvement on our speed while customer happiness levels stayed the same. Next month we're looking
+        :headline "Focusing on email response times"
+        :snippet "<p>In September, the Happiness Team re-focused on email response times as our main objective. We saw
+        big improvement on our speed while customer happiness levels stayed the same.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
+        <p>Next month we're looking
         forward to more specialization on the teams within Customer Happiness. We are also celebrating one more
         full-time team member, <a href=\"https://twitter.com/Parmly\">Ross Parmly</a>. Welcome, Ross! :)</p>
         <ul>
@@ -1677,11 +1710,15 @@
     {
       :section {
         :title "Marketing"
-        :body "<h3>New metrics focus</h3>
-        <p>Thanks to great help from the data team, we built a series of
+        :headline "New metrics focus"
+        :snippet "<p>Thanks to great help from the data team, we built a series of
         <a href=\"https://open.buffer.com/remote-work-tools/\">Looker dashboards</a> to fully track the metrics
         and conversions from our marketing efforts. Feels like we're in a great place to move ahead with some new
-        experiments in October and see if we can move the needle.</p>
+        experiments in October and see if we can move the needle.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
         <p>We are also celebrating one new full-time team member,
         <a href=\"https://twitter.com/sosandrine\">Sandrine Sahakians</a>, as our new multimedia producer.
         Welcome, Sandrine! :)</p>
@@ -1705,11 +1742,13 @@
       :section {
         :title "Diversity"
         :headline "We're building a more inclusive Buffer!"
-        :body "
-        <p>Here's a transparent look at the overall demographic diversity of our team.</p>
-        <img src=\"http://take.ms/cTKFm\" data-height=\"448\" data-width=\"555\">
-        <img src=\"http://take.ms/3mBTC\">
-        <img src=\"http://take.ms/3zi2y\">"
+        :snippet "<p>Here's a transparent look at the overall demographic diversity of our team.</p>"
+        :image-url "https://d1ro8r1rbfn3jf.cloudfront.net/ms_85656/GPTw7Cw6fjMeF9Wbum0wFamtUvSjMH/Buffer%2BDiversity%2BDashboard%2B2015-10-27%2B11-22-41.png?Expires=1467395064&Signature=NxWcd~K2hF~RdBSI~-EcLlvlGdqS8zPK6vOprzsfab7rJGysaJozYQazS56JbPdeWgEvbN1XVX7vHG~bLY3Rn-tbxPDBmjV2MyE~ezyozDjWHt9yyuJ3QghgfXhspQeYlKb0YxC7A8xkn-5jOfK9HJv~bIkh2AhIUExoWmJPdiGENXEbUJFVT8Ud06-wbkJpZuoLZIS5-4RpNFYr7eM-N-xSXkGMdFro2cz8ThV2604FYqjiIi8uqgvSns~BR~I2b58nudjyU2n3QmZJn4CRC79vdNTmGK7Qm2rMe8SA6VdCrhg480pfUCcg0~fyp~xlSc7kBCGkcZ9U-BgOJfv-yg__&Key-Pair-Id=APKAJHEJJBIZWFB73RSA"
+        :image-height 448
+        :image-width 555
+        :body "        
+        <img src=\"https://d1ro8r1rbfn3jf.cloudfront.net/ms_85656/H0GalD1uWYMLIvbH3AcZljzKhvXR0l/Buffer%2BDiversity%2BDashboard%2B2015-10-27%2B11-28-18.png?Expires=1467395113&Signature=KZP0JQEeaC2841atpsy7VHsZ4qhG~fvsZCWJuLH9TaQFLxCnHNplz7SpXpHMf-rFLBfaiiks~5okiSxcCwLIwXh6nywjxMai5GrHrzngNoeh8MwK5MriMC0Lg~ZxBUu~vjDVxc6LhFpEvXANsFyxhm~zz4Cj0ND1C5XzqxxkICQDS1JiiSzO-RRUjx72LOCRcx-DxBfhtbnsEO38ci3EJ-CUuQoF2luYzwmSkOssc43g7wPzyB3XHniNcyYuYz0idmrXQq4oUWldEHu8TpzlNrxJf~KmrDC16jH4ZGIac2Hjq3zv7R0PDqsRwHpQTR~-MIzp-gRI2zFgpB4Z8yuEWA__&Key-Pair-Id=APKAJHEJJBIZWFB73RSA\">
+        <img src=\"https://d1ro8r1rbfn3jf.cloudfront.net/ms_85656/y4ukwHu1BqEzmQJHKt6v9VPXPrECty/Buffer%2BDiversity%2BDashboard%2B2015-10-27%2B11-29-14.png?Expires=1467395131&Signature=ggaBkpNk-t6ZkdrQelyYB-zlLFUmrM4PefBrN1SUUjCLNP7YFria4tIQWzJ~gq5vV~qpwN7fb6jFsoe~8vfK2jvTAaQdRZGDVO6Iwybuq37z2AvXIv2giLguyjbM7jHdEhHo1BkVqjjG1OmSdhxrR0AB1Li08ZGE-G~wKDGqCcNGcgwyJjdAC6AXraVfINVbp6VFEftB0q~T5JiZNbbcRIrT1eeg79U9db1Ei~XppAQ3Zdp15GlFWzFXrGGIzhAWLCIxCSbnfE3iB3n7HEoisfIu7RgK~-oPPE1MkUY~c-GvTcFEzYKVFcZ0SypzJMOgF-lMYvi6VM-tWcoHnpIXYg__&Key-Pair-Id=APKAJHEJJBIZWFB73RSA\">"
       }
       :section-name "diversity"
       :author {
@@ -1724,6 +1763,8 @@
     {
       :section {
         :title "Finances"
+        :headline ""
+        :snippet ""
         :data[
           {
             :period "2015-01"
@@ -1800,6 +1841,8 @@
       :section {
         :title "Key metrics"
         :headline "Seeing an impact from our move from 7 to 30-day trials for Buffer for Business"
+        :snippet "<p>It can clearly be seen :see_no_evil: in the numbers here that our move from 7-day to 30-day trials for Buffer
+          for Business has significantly impacted metrics (most noticeably MRR).</p>"
         :metrics [
           {
             :slug "total-registered-users"
@@ -2033,8 +2076,7 @@
           }
         ]
         :notes {
-          :body "<p>It can clearly be seen :see_no_evil: in the numbers here that our move from 7-day to 30-day trials for Buffer
-          for Business has significantly impacted metrics (most noticeably MRR).</p>
+          :body "
           <p>The reason this has stalled our revenue growth is that it created a 30-day gap with no expiring trials
           and therefore no new converting Buffer for Business customers.</p>
           <p>This is an expected outcome that we decided was the right move for us to grow Buffer for Business.</p>
@@ -2057,9 +2099,12 @@
       :section {
         :title "Team and hiring"
         :headline "We went totally remote and distributed."
+        :snippet "<p>In October, we <a href=\"https://open.buffer.com/no-office/\">closed Buffer's physical office</a>
+          to go entirely remote and distributed.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
         :body "
-          <p>In October, we <a href=\"https://open.buffer.com/no-office/\">closed Buffer's physical office</a>
-          to go entirely remote and distributed.</p>
           <p>As we grow, we started experimenting with
           <a href=\"https://open.buffer.com/why-we-ask-our-team-to-grade-us-every-month-buffers-october-hiring-report/\">NPS</a>
           to get the :heartbeat: of Buffer regularly.</p>
@@ -2097,11 +2142,13 @@
       :section {
         :title "Product"
         :headline "We launched :rocket: Pablo 2.0! :tada:"
-        :body "
-        <p>We launched <a href=\"https://blog.bufferapp.com/pablo-images-for-instagram-pinterest-twitter-facebook\">Pablo 2.0!</a>
+        :snippet "<p>We launched <a href=\"https://blog.bufferapp.com/pablo-images-for-instagram-pinterest-twitter-facebook\">Pablo 2.0!</a>
         More than 500,000 Pablo images have been created so far, and we're excited to keep going with our quick
-        images tool.</p>
-        <img src=\"https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png\" data-height=\"446\" data-width=\"555\">
+        images tool.</p>"
+        :image-url "https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png"
+        :image-height 446
+        :image-width 555
+        :body "
         <p>We also made several improvements to Buffer for Business, including the move from 7 day to 30 day trials,
         a new groups UI, the ability to search profiles and improved reliability/speed of analytics.</p>
         <ul>
@@ -2125,9 +2172,13 @@
       :section {
         :title "Happiness"
         :headline "Continued to focus on speed for customers."
+        :snippet "<p>In October, the Happiness teams continued to focus on speed for customers who reach out. With response time
+        as our primary success metric, we're prioritizing hiring in November.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
         :body "
-        <p>In October, the Happiness teams continued to focus on speed for customers who reach out. With response time
-        as our primary success metric, we're prioritizing hiring in November. We also added more specialized roles in
+        <p>We also added more specialized roles in
         the team, for example, having one liaison between each of the Product and Happiness teams in order to
         streamline some meetings (and cancel others!), as well as one team member focusing on self-help resources.
         We're now hiring to form a Twitter-specific team, too.</p>
@@ -2156,10 +2207,13 @@
       :section {
         :title "Marketing"
         :headline "We bared our souls and it paid off."
-        :body "
-        <p>We had a really exciting month in terms of traffic and sign-ups. After we bared our souls and shared how
+        :snippet "<p>We had a really exciting month in terms of traffic and sign-ups. After we bared our souls and shared how
         <a href=\"https://blog.bufferapp.com/lost-traffic\">we had been losing social media traffic for quite some time</a>,
-        we got a lot of great feedback, insights and encouragement.</p>
+        we got a lot of great feedback, insights and encouragement.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "
         <p>In October we focused a lot on improving the calls to action on the blog, which had a lot of success.
         We also dove in more on the paid ads side and hired someone full-time to help us with that-stay tuned for
         updates!</p>
@@ -2187,10 +2241,14 @@
       :section {
         :title "Asks"
         :headline "One quick ask."
-        :body "<p>Recently we launched a brand new feature:
+        :snippet "<p>Recently we launched a brand new feature:
         <a href=\"https://blog.bufferapp.com/social-media-calendar\">Social Media Calendar</a>.
         We'd love your help to spread the word. <a href=\"https://twitter.com/intent/tweet?text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:%20https://blog.bufferapp.com/social-media-calendar%20pic.twitter.com/Y8XdRyU9ie\">Tweet</a>
         or <a href=\"https://buffer.com/add?url=https%3A%2F%2Fblog.bufferapp.com%2Fsocial-media-calendar&text=Thrilled%20to%20see%20@buffer%27s%20Social%20Media%20Calendar!%20Great%20to%20manage%20social%20media%20at-a-glance:&picture=https%3A%2F%2Fbufferblog-wpengine.netdna-ssl.com%2Fwp-content%2Fuploads%2F2015%2F11%2Fcalendar-launch-600x410%402x.png&version=2.13.12&placement=hover_button_image\">Buffer</a>!</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body ""
       }
       :section-name "help"
       :author {
