@@ -737,9 +737,6 @@
             :value 6860000
           }
         ]
-        :notes {
-          :body ""
-        }
       }
       :section-name "growth"
       :author {
@@ -938,9 +935,6 @@
             :costs 490313
           }
         ]
-        :notes {
-          :body ""
-        }
       }
       :section-name "finances"
       :author {
@@ -1149,9 +1143,6 @@
             :value 7490000
           }
         ]
-        :notes {
-          :body ""
-        }
       }
       :section-name "growth"
       :author {
@@ -1595,9 +1586,6 @@
             :value 7730000
           }
         ]
-        :notes {
-          :body ""
-        }
       }
       :section-name "growth"
       :author {
