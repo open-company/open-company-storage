@@ -13,7 +13,7 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha7"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha8"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.385"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -28,7 +28,7 @@
     [prismatic/schema "1.1.2"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
-    [com.taoensso/timbre "4.5.0"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.5.1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.4.2"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.1.0"] ; HTTP client https://github.com/dakrone/clj-http
     [clj-time "0.12.0"] ; Date and time lib https://github.com/clj-time/clj-time
