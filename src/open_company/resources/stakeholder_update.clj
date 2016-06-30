@@ -19,7 +19,7 @@
   "Create a slug for the stakeholder update from the slugified title and a short UUID."
   [title]
   (let [non-blank-title (if (s/blank? title) "update" title)]
-    (str (slug/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 4))))
+    (str (slug/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 5))))
 
 (defun- sections-for
   "Recursive function to get each specified section and add it to the stakeholder update."
@@ -51,7 +51,7 @@
   (-> su-props
     (assoc :slug (slug-for title))
     (assoc :company-slug (:slug company))
-    (merge (select-keys company [:name :logo :logo-width :logo-height])) ; freeze some props of company
+    (merge (select-keys company [:name :logo :logo-width :logo-height :currency])) ; freeze some props of company
     (update :title #(or % ""))
     (assoc :author (common/author-for-user user))
     (assoc :created-at timestamp)

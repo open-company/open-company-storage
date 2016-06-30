@@ -137,7 +137,8 @@
           :title schema/Str
           :sections [SectionName]
           :created-at schema/Str
-          :author Author} ; user that created the update
+          :author Author ; user that created the update
+          schema/Keyword schema/Any}
         InlineSections))
 
 (def User
