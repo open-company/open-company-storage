@@ -34,6 +34,10 @@
       :section {
         :title "Values"
         :headline "The 10 Buffer values and how we act on them every day."
+        :snippet ""
+        :image-url nil
+        :image-height 0
+        :image-width 0
         :body
           "<h3>1. Choose positivity</h3>
           <ul>
@@ -124,9 +128,14 @@
     {
       :section {
         :title "Mission"
-        :body "Our vision at Buffer is to build the simplest and most powerful social media tool, and to set the bar
+        :headline ""
+        :snippet "Our vision at Buffer is to build the simplest and most powerful social media tool, and to set the bar
         for great customer support. In addition to these product and service goals, we have a focus on building one
         of the most unique and fulfilling workplaces that exist, by rethinking a lot of traditional practices."
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body ""
       }
       :section-name "mission"
       :author {
@@ -141,6 +150,8 @@
     {
       :section {
         :title "Finances"
+        :headline ""
+        :snippet ""
         :data [
           {
             :period "2015-01"
@@ -192,6 +203,8 @@
     {
       :section {
         :title "Key metrics"
+        :headline ""
+        :snippet ""
         :metrics [
           {
             :slug "total-registered-users"
@@ -366,9 +379,12 @@
       :section {
         :title "Update"
         :headline "Key changes to self-management at Buffer"
+        :snippet "<p>Building on our self-management learnings, we have started to make some key changes to how we view
+        self-management and work together.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
         :body "
-        <p>Building on our self-management learnings, we have started to make some key changes to how we view
-        self-management and work together.</p>
         <p>We're moving away from self-management being synonymous with 'no structure'. We've realized that hierarchy
         and structure are very different things, and structure is key to working efficiently. Some of the changes
         that have resulted include:</p>
@@ -398,10 +414,14 @@
     {
       :section {
         :title "Asks"
-        :body "<p>I'm trying to learn how companies structure product, design and front-end development (CSS).
+        :headline ""
+        :snippet "<p>I'm trying to learn how companies structure product, design and front-end development (CSS).
         These seem like overlapping areas, and could easily be 3 people, or could be one person who has ability
-        in all areas. With 1 person rather than 3, it feels possible to move much faster.</p>
-        <p>I'm keen to learn how other companies balance expertise and specialization vs speed. If you have any
+        in all areas. With 1 person rather than 3, it feels possible to move much faster.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "<p>I'm keen to learn how other companies balance expertise and specialization vs speed. If you have any
         thoughts here or know someone who might have thoughts (maybe a founder, CPO or product people), I'd love
         to hear from you! Thanks.</p>"
       }
@@ -417,16 +437,21 @@
     {
       :section {
         :title "Team"
-        :body "<h3>Fastest-ever growth and hiring push</h3>
+        :headline "Fastest-ever growth and hiring push"
+        :snippet "
         <ul>
           <li>34 fully on board team members.</li>
           <li>2 new people finished bootcamp and fully joined the team:
           <a href=\"https://open.bufferapp.com/kat-zien-has-joined-buffer-as-a-back-end-developer/\">Kat</a>
-          (Engineer) and Danny (Happiness Hero).
+          (Engineer) and Danny (Happiness Hero).</li>
           <li>6 people have accepted offers to join the team in the coming weeks/months (3 Product Creators,
-            2 Engineers, 1 Community Champion). This will make us 40 people.
-          <li>We're hiring for <a href=\"https://buffer.com/journey\">14 (!) different positions</a>
+            2 Engineers, 1 Community Champion). This will make us 40 people.</li>
+          <li>We're hiring for <a href=\"https://buffer.com/journey\">14 (!) different positions</a></li>
         </ul>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body ""
       }
       :section-name "team"
       :author {
@@ -440,7 +465,8 @@
     {
       :section {
         :title "Product"
-        :body "<h3>Pinterest, Pablo improvements</h3>
+        :headline "Pinterest, Pablo improvements"
+        :snippet "
         <ul>
           <li>We soft-launched improvements to our Pinterest scheduling capabilities, including letting you
           pick an image from the page.</li>
@@ -448,9 +474,12 @@
           tool. A key one is that you can select text from a page and right click > Create Image with Pablo in
           order to create an image with the selected quote over the top like so:
           <img src=\"https://open.bufferapp.com/wp-content/uploads/2015/07/right-click-with-Pablo1.png\"></li>
-          <li>We're very close to rolling out the ability to schedule new 'Retweet with Comment' Tweets using
-          Buffer.</li>
         </ul>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body "<p>We're very close to rolling out the ability to schedule new 'Retweet with Comment' Tweets using
+          Buffer.</p>"
       }
       :section-name "product"
       :author {
@@ -466,6 +495,10 @@
     {
       :section {
         :title "Finances"
+        :headline ""
+        :snippet "<p>At the start of July, we had our 6th team retreat! Despite the substantial cost of
+          this and growing the team faster than ever, we are still profitable and the bank balance has
+          gone up since last month.</p>"
         :data[
           {
             :period "2015-01"
@@ -511,9 +544,7 @@
           }
         ]
         :notes {
-          :body "<p>At the start of July, we had our 6th team retreat! Despite the substantial cost of
-          this and growing the team faster than ever, we are still profitable and the bank balance has
-          gone up since last month.</p>
+          :body "
           <p>We are very happy with this slack we have and the health of the business, and at the same
           time we would like to grow the team faster and continue filling validated roles.</p>"
         }
@@ -530,6 +561,9 @@
     {
       :section {
         :title "Key metrics"
+        :headline ""
+        :snippet "We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
+          which may help us grow a little faster."
         :metrics [
           {
             :slug "total-registered-users"
@@ -704,8 +738,7 @@
           }
         ]
         :notes {
-          :body "<p>We're happy to keep our growth rate fairly steady around 3-4%, and we also have some plans
-          which may help us grow a little faster.</p>"
+          :body ""
         }
       }
       :section-name "growth"
@@ -720,7 +753,8 @@
     {
       :section {
         :title "Asks"
-        :body "<ul>
+        :headline ""
+        :snippet "<ul>
           <li>We're continuing our fast pace of <a href=\"https://buffer.com/journey\">growing the team</a>, and
           we'd love your help to spread the word about all our current open positions.
           <a href=\"https://twitter.com/intent/tweet/?text=.@buffer%20is%20growing%20faster%20than%20ever,%20now%20is%20the%20perfect%20time%20to%20jump%20on%20the%20rocket%20ship.%20See%20their%20open%20roles%20here:&url=https%3A%2F%2Fbufferapp.com%2Fjourney\">Tweet</a>
@@ -731,6 +765,10 @@
           <a href=\"https://twitter.com/intent/tweet?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22\">Tweet</a>
           or <a href=\"https://buffer.com/add/?url=http%3A%2F%2Fwww.inc.com%2Fjeff-haden%2Fthe-7-million-startup-with-zero-managers.html&text=%22The%20%247%20Million%20Startup%20With%20Zero%20Managers%22&version=2.12.9&placement=toolbar\">Buffer</a>.</li>
         </ul>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body ""
       }
       :section-name "help"
       :author {
@@ -744,6 +782,19 @@
     {
       :section {
         :title "Update"
+        :headline ""
+        :snippet "
+          <h3>Retreat</h3>
+          <ul>
+            <li>Our biggest retreat yet, with 31 team members present</li>
+          </ul>
+          <h3>Company Structure</h3>
+          <ul>
+            <li>Last month we mentioned a shift towards adding more structure and making roles and commitments explicit</li>
+          </ul>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
         :body "
           <h3>Retreat</h3>
           <ul>
@@ -781,13 +832,17 @@
     {
       :section {
         :title "Team"
-        :body "<ul>
-          <li>37 total team members</li>
+        :headline "37 total team members"
+        :snippet "<ul>
           <li>11 people accepted our offers to join the team in the coming weeks and months</li>
           <li>We received around <a href=\"https://open.bufferapp.com/hiring-july-2015/\">1,500 applications in July</a></li>
           <li>We are still growing the team fast, and have <a href=\"https://buffer.com/journey\">13 open roles we are hiring for</a></li>
           <li>We also intend to put together listings and start inviting applications for an Android Developer and an Executive Assistant during August, bringing our open roles to 15</li>
         </ul>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body ""
       }
       :section-name "team"
       :author {
@@ -801,10 +856,15 @@
     {
       :section {
         :title "Product"
+        :headline ""
+        :snippet ""
+        :image-url nil
+        :image-height 0
+        :image-width 0        
         :body "<ul>
           <li>We've started an experiment testing allowing people to pay for the <a href=\"https://buffer.com/awesome\">Awesome Plan</a> in Euros</li>
           <li>We have continued our plan to <a href=\"https://open.bufferapp.com/retiring-suggestions/\">sunset the Suggestions feature</a></li>
-            <li>We've made some key speed and reliability improvements to <a href=\"https://buffer.com/business\">Buffer for Business</a></li>
+          <li>We've made some key speed and reliability improvements to <a href=\"https://buffer.com/business\">Buffer for Business</a></li>
           <li>We have started to engage in sales conversations and set up customer success for larger business & enterprise</li>
           <li>We're in the early stages of experimenting with a progress indicator in the onboarding flow</li>
           <li>We're exploring ways to allow sharing multiple photos to Twitter and Facebook</li>
@@ -823,6 +883,11 @@
     {
       :section {
         :title "Finances"
+        :headline ""
+        :snippet "<p>We're delighted to hit almost $7.5M :dollar: in ARR and be fast moving
+          towards the big $10M ARR milestone.</p>
+          <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
+          in the last few months are starting to take effect.</p>"
         :data[
           {
             :period "2015-01"
@@ -874,10 +939,7 @@
           }
         ]
         :notes {
-          :body "<p>We're delighted to hit almost $7.5M :dollar: in ARR and be fast moving
-          towards the big $10M ARR milestone.</p>
-          <p>As a company, we're starting to feel that some of our recent team growth and structure adjustments
-          in the last few months are starting to take effect.</p>"
+          :body ""
         }
       }
       :section-name "finances"
@@ -892,6 +954,9 @@
     {
       :section {
         :title "Key metrics"
+        :headline ""
+        :snippet "<p>As a company, we're starting to feel that some of our recent team growth
+          and structure adjustments in the last few months are starting to take effect.</p>"
         :metrics [
           {
             :slug "total-registered-users"
@@ -1085,8 +1150,7 @@
           }
         ]
         :notes {
-          :body "<p>As a company, we're starting to feel that some of our recent team growth
-          and structure adjustments in the last few months are starting to take effect.</p>"
+          :body ""
         }
       }
       :section-name "growth"
@@ -1101,12 +1165,16 @@
     {
       :section {
         :title "Asks"
-        :body "<h3>Share our finance position</h3>
-        <p>We're looking for an in-house finance person, to help us to be more disciplined about
+        :headline "Share our finance position"
+        :snippet "<p>We're looking for an in-house finance person, to help us to be more disciplined about
         our finances and be better data-informed across all areas of the company. We'd love your help to
         spread the word on the job listing!
         <a href=\"https://twitter.com/intent/tweet?original_referer=https%3A%2F%2Fabout.twitter.com%2Fresources%2Fbuttons&ref_src=twsrc%5Etfw&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&tw_p=tweetbutton&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner\">Tweet</a>
         or <a href=\"https://buffer.com/add/?id=4ea2549febf4321f&url=https%3A%2F%2Fbuffer.com%2Fjourney%2Ffinance-planner&text=As%20%40buffer%20approaches%2050%20people%2C%20they%27re%20looking%20for%20an%20in-house%20Finance%20Planner.%20Full%20details%20here%3A&count=vertical&placement=button\">Buffer</a>.</p>"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :body ""
       }
       :section-name "help"
       :author {
