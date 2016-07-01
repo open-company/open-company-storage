@@ -105,7 +105,7 @@
         (print ".")
         (println "\nRunning migrations.")
         (create-table conn db-name "migrations" "name")
-        (migrations/migrate conn db-name)
+        (migrations/migrate conn)
         (println "Migrations complete.")
         (println "Database initialization complete.\n")))))
 
