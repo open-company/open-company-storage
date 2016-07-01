@@ -141,6 +141,8 @@
   :aliases {
     "build" ["do" "clean," "deps," "compile"] ; clean and build code
     "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
+    "create-migration" ["run" "-m" "open-company.db.migrations" "create"] ; create a data migration
+    "migrate-db" ["run" "-m" "open-company.db.migrations" "migrate"] ; run pending data migrations
     "midje!" ["with-profile" "qa" "midje"] ; run all tests
     "autotest" ["with-profile" "qa" "midje" ":autotest"] ; watch for code changes and run affected tests
     "test!" ["with-profile" "qa" "do" "build," "init-db," "midje"] ; build, init the DB and run all tests

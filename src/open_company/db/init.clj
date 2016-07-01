@@ -1,7 +1,8 @@
 (ns open-company.db.init
-  "Initialize RethinkDB with tables and indexs."
+  "Initialize RethinkDB with tables and indexes."
   (:require [rethinkdb.query :as r]
             [open-company.config :as c]
+            [open-company.db.migrations :as migrations]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.resources.stakeholder-update :as su]))
@@ -83,7 +84,7 @@
   "Create any missing tables and indexes in RethinkDB."
   []
   (let [db-name c/db-name]
-    (println (str "\nOpen Company: Initializing database - " db-name))
+    (println (str "\nInitializing database: " db-name))
     (with-open [conn (apply r/connect c/db-options)]
       (when (create-database conn db-name)
         (create-table conn db-name company/table-name company/primary-key)
@@ -102,7 +103,11 @@
         (print ".")
         (create-stakeholder-updates-compound-index conn)
         (print ".")
-        (println "\nOpen Company: Database initialization complete - " db-name "\n")))))
+        (println "\nRunning migrations.")
+        (create-table conn db-name "migrations" "name")
+        (migrations/migrate conn db-name)
+        (println "Migrations complete.")
+        (println "Database initialization complete.\n")))))
 
 (defn -main
   "Initialize the RethinkDB instance."
