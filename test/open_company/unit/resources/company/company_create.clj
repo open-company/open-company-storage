@@ -55,7 +55,10 @@
     (fact "it returns the pre-defined categories"
       (:categories (c/create-company! conn (c/->company r/open r/coyote))) => common/category-names)
 
-    (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name) :description "x"})))]
+    (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name)
+                                                                         :description ""
+                                                                         :headline ""
+                                                                         :snippet ""})))]
       (facts "it returns the sections in the company in the pre-defined order"
         (:sections (c/create-company! conn (c/->company r/open r/coyote))) => {:progress [] :company []}
         (c/delete-company conn r/slug)

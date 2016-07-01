@@ -72,16 +72,25 @@
 (def text-section-1 {
   :title "Text Section 1"
   :headline "Headline Section 1"
-  :body "<p>This is a test.</p>"})
+  :snippet "<p>This is a snippet.</p>"
+  :image-url nil
+  :image-height 0
+  :image-width 0
+  :body "<p>This is a body.</p>"})
 
 (def text-section-2 {
   :title "Text Section 2"
   :headline "Headline Section 2"
-  :body "<p>This is also a test.</p>"})
+  :snippet "<p>This is also a snippet.</p>"
+  :image-url nil
+  :image-height 0
+  :image-width 0
+  :body "<p>This is also a body.</p>"})
 
 (def finances-section-1 {
   :title "Finances Section 1"
   :headline "Headline Finances Section 1"
+  :snippet "<p>Best of times.</p>"
   :data [
     {
       :period "2015-06"
@@ -93,6 +102,7 @@
 (def finances-section-2 {
   :title "Finances Section 2"
   :headline "Headline Finances Section 2"
+  :snippet "<p>Worst of times.</p>"
   :data [
     {
       :period "2015-06"
@@ -110,6 +120,7 @@
 (def finances-notes-section-1 {
   :title "Finances with Notes Section 1"
   :headline "Headline Finances with Notes Section 1"
+  :snippet "<p>Longest of times.</p>"
   :data [
     {
       :period "2015-06"
@@ -118,11 +129,12 @@
       :costs 1
     }]
     :notes {
-      :body "1 dollar."}})
+      :body "<p>1 dollar.</p>"}})
 
 (def finances-notes-section-2 {
   :title "Finances with Notes Section 2"
   :headline "Headline Finances with Notes Section 2"
+  :snippet ""
   :data [
     {
       :period "2015-06"
