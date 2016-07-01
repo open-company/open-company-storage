@@ -81,7 +81,7 @@
       (wait-for-index conn su/table-name "company-slug-slug"))))
 
 (defn init
-  "Create any missing tables and indexes in RethinkDB."
+  "Create any missing tables and indexes in RethinkDB, and running any new migrations."
   []
   (let [db-name c/db-name]
     (println (str "\nInitializing database: " db-name))
@@ -107,7 +107,7 @@
         (create-table conn db-name "migrations" "name")
         (migrations/migrate conn)
         (println "Migrations complete.")
-        (println "Database initialization complete.\n")))))
+        (println "\nDatabase initialization complete.\n")))))
 
 (defn -main
   "Initialize the RethinkDB instance."
