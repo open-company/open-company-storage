@@ -10,7 +10,6 @@
    :note schema/Str
    :reply-to (schema/maybe schema/Str)
    :company-slug schema/Str
-   :currency schema/Str
    :snapshot {schema/Keyword schema/Any}})
 
 (defn ctx->trigger [post-data {company :company user :user su :stakeholder-update}]
@@ -25,7 +24,6 @@
    :subject (:subject post-data)
    :note (:note post-data)
    :reply-to (:email user)
-   :currency (:currency company)
    :company-slug (:slug company)
    :snapshot su})
 
