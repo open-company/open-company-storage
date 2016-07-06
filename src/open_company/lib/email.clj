@@ -8,20 +8,24 @@
   {:to schema/Str
    :subject schema/Str
    :note schema/Str
+   :reply-to (schema/maybe schema/Str)
+   :company-slug schema/Str
    :snapshot {schema/Keyword schema/Any}})
 
-(defn ctx->trigger [post-data ctx]
+(defn ctx->trigger [post-data {company :company user :user su :stakeholder-update}]
   {:pre [
     (string? (:to post-data))
     (string? (:subject post-data))
     (string? (:note post-data))
-    (map? (:company ctx))
-    (map? (:user ctx))
-    (map? (:stakeholder-update ctx))]}
+    (map? company)
+    (map? user)
+    (map? su)]}
   {:to (:to post-data)
    :subject (:subject post-data)
    :note (:note post-data)
-   :snapshot (:stakeholder-update ctx)})
+   :reply-to (:email user)
+   :company-slug (:slug company)
+   :snapshot su})
 
 (defn send-trigger! [trigger]
   (timbre/info "Request to send msg to " c/aws-sqs-email-queue "\n" (dissoc trigger :snapshot))
