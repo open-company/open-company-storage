@@ -1,4 +1,5 @@
-(ns open-company.db.migrations.MIGRATION-NAME)
+(ns open-company.db.migrations.MIGRATION-NAME
+  (:require [rethinkdb.query :as r]))
 
 (defn up [conn db-name]
   ;; Do great things

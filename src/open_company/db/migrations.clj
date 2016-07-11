@@ -1,11 +1,20 @@
 ;; Very loosely patterned after https://github.com/yogthos/migratus
 (ns open-company.db.migrations
-  "Migrate RethinkDB data."
+  "
+  Migrate RethinkDB data.
+
+  Usage:
+
+  lein create-migration <name>
+
+  lein migrate-db
+  "
   (:require [clojure.string :as s]
             [clj-time.core :as t]
             [clj-time.coerce :as coerce]
             [rethinkdb.query :as r]
-            [open-company.config :as c])
+            [open-company.config :as c]
+            [open-company.lib.slugify :as slug])
   (:gen-class))
 
 (defonce migrations-dir "./src/open_company/db/migrations")
@@ -68,10 +77,11 @@
 
 (defn create
   "Create a new migration with the current date and the name."
-  [migration-name]
+  [provided-name]
   (let [timestamp (str (coerce/to-long (t/now)))
+        migration-name (slug/slugify provided-name 256)
         full-name (str timestamp "-" migration-name)
-        file-name (migration-file-name full-name)
+        file-name (migration-file-name (s/replace full-name #"-" "_"))
         template (slurp migration-template)
         contents (s/replace template #"MIGRATION-NAME" migration-name)]
     (spit file-name contents)))
