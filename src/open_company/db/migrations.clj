@@ -9,7 +9,7 @@
   (:gen-class))
 
 (defonce migrations-dir "./src/open_company/db/migrations")
-(defonce migration-template "./src/open_company/assets/migration.template.clj")
+(defonce migration-template "./src/open_company/assets/migration.clj.template")
 
 (defn- migration-file-name [migration-name]
   (str (s/join java.io.File/separator [migrations-dir migration-name]) ".clj"))
