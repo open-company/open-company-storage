@@ -1,6 +1,6 @@
 (ns open-company.db.migrations.MIGRATION-NAME
   (:require [rethinkdb.query :as r]))
 
-(defn up [conn db-name]
+(defn up [conn]
   ;; Do great things
   true) ; return true on success

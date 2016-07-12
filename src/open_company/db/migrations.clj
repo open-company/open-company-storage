@@ -33,7 +33,7 @@
   "Run the migration specified by the migration name."
   (println "\nRunning migration: " migration-name)
   (let [file-name (migration-file-name migration-name)
-        bare-name (s/join "-" (rest (s/split migration-name #"-"))) ; strip timestamp
+        bare-name (s/join "-" (rest (s/split migration-name #"_"))) ; strip the timestamp
         function-name (str "open-company.db.migrations." bare-name "/up")] ; function name
     (println "Loading name: " file-name)
     (load-file file-name)
