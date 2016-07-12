@@ -18,19 +18,21 @@
   (:gen-class))
 
 (defonce migrations-dir "./src/open_company/db/migrations")
-(defonce migration-template "./src/open_company/assets/migration.clj.template")
+(defonce migration-template "./src/open_company/assets/migration.template.edn")
 
 (defn- migration-file-name [migration-name]
-  (str (s/join java.io.File/separator [migrations-dir migration-name]) ".clj"))
+  (str (s/join java.io.File/separator [migrations-dir migration-name]) ".edn"))
 
-(defn- store-migration [conn migration-name]
+(defn- store-migration
   "Keep the migration name in the migration table so we don't run it again."
+  [conn migration-name]
   (assert (= 1 (:inserted (-> (r/table "migrations")
                               (r/insert {:name migration-name})
                               (r/run conn))))))
 
-(defn- run-migration [conn migration-name]
+(defn- run-migration
   "Run the migration specified by the migration name."
+  [conn migration-name]
   (println "\nRunning migration: " migration-name)
   (let [file-name (migration-file-name migration-name)
         bare-name (s/join "-" (rest (s/split migration-name #"_"))) ; strip the timestamp
@@ -61,7 +63,7 @@
 (defn- new-migrations
   "Given a list of migrations that exist, return just the ones that haven't been run on this DB."
   [conn migrations]
-  (let [migration-slugs (set (map #(second (re-matches #".*\/(.*).clj$" %)) (map str migrations))) ; from the filesystem
+  (let [migration-slugs (set (map #(second (re-matches #".*\/(.*).edn$" %)) (map str migrations))) ; from the filesystem
         existing-slugs (set (map :name (r/run (r/table "migrations") conn)))] ; from the DB
     (sort (clojure.set/difference migration-slugs existing-slugs))))
 
