@@ -53,7 +53,7 @@
   [migrations]
   (let [m-count (count migrations)]
     (cond 
-      (= 0 m-count) (println "No new migrations to run.")
+      (zero? m-count) (println "No new migrations to run.")
       (= 1 m-count) (println "1 new migration to run.")
       :else (println (str m-count " new migrations to run."))))
   migrations)
@@ -62,7 +62,7 @@
   "Given a list of migrations that exist, return just the ones that haven't been run on this DB."
   [conn migrations]
   (let [migration-slugs (set (map #(second (re-matches #".*\/(.*).clj$" %)) (map str migrations))) ; from the filesystem
-        existing-slugs (set (map :name (-> (r/table "migrations") (r/run conn))))] ; from the DB
+        existing-slugs (set (map :name (r/run (r/table "migrations") conn)))] ; from the DB
     (sort (clojure.set/difference migration-slugs existing-slugs))))
 
 (defn migrate 
