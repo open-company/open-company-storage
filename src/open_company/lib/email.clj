@@ -5,7 +5,7 @@
             [open-company.config :as c]))
 
 (def EmailTrigger
-  {:to schema/Str
+  {:to [schema/Str]
    :subject schema/Str
    :note schema/Str
    :reply-to (schema/maybe schema/Str)
@@ -14,7 +14,7 @@
 
 (defn ctx->trigger [post-data {company :company user :user su :stakeholder-update}]
   {:pre [
-    (string? (:to post-data))
+    (sequential? (:to post-data))
     (string? (:subject post-data))
     (string? (:note post-data))
     (map? company)
