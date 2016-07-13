@@ -23,9 +23,7 @@
           "title": "Values",
           "description": "Core values the company lives by",
           "headline": "",
-          "snippet": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
-          they came from, why they're important, and provide examples of how people can use them to guide their
-          decisions, behavior, and actions.",
+          "snippet": "Core values are the fundamental beliefs of the company. What are they, and why are they important?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -38,9 +36,7 @@
           "title": "Diversity",
           "description": "Diversity goals and makeup",
           "headline": "",
-          "snippet": "Discuss company policy and goals around gender, race and ethnicity, age, and sexuality.
-          What is the current state of diversity at the company? What are the goals? What changes in hiring,
-          culture and retention are you working on to achieve those goals?",
+          "snippet": "What is the current state of diversity at your company? What are your goals, and what needs to happen to achieve them?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -53,8 +49,7 @@
           "title": "Competition",
           "description": "Key competitors and competitive threats",
           "headline": "",
-          "snippet": "Who are the competitors you’re paying attention to? How do they compare? Besides your competitors,
-          what are the other major external threats to your business?",
+          "snippet": "Who are the competitors you’re paying attention to? Why? What other big external threats do you see?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -71,7 +66,7 @@
 
         {
           "section-name": "update",
-          "title": "Founder's Update",
+          "title": "CEO Update",
           "description": "Company update",
           "headline": "",
           "snippet": "Provide an overview of important happenings in the company since the last update.",
@@ -87,7 +82,7 @@
           "title": "Highlights",
           "description": "Company milestones and accomplishments",
           "headline": "",
-          "snippet": "What new company milestones or accomplishments are you most proud of? List up to three.",
+          "snippet": "What new company milestones or accomplishments are you most proud of?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -178,8 +173,7 @@
           "title": "Key Challenges",
           "description": "Challenges facing the company",
           "headline": "",
-          "snippet": "What are you most disappointed about? What’s your plan to fix it going forward?
-          What is the company stuck on? What are the systemic or existential threats everyone needs to be focused on?",
+          "snippet": "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -206,9 +200,7 @@
           "title": "Team and Hiring",
           "description": "Team and hiring update",
           "headline": "",
-          "snippet": "Announce and welcome new hires. Discuss what positions are currently open and what's being
-          done to fill them. How many candidates are applying for the positions? Which employees are no longer
-          with the company and why did they leave?",
+          "snippet": "Announce and welcome new hires, discuss open positions and progress being made to fill them, and let everyone know about employees that have left.",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -221,9 +213,7 @@
           "title": "Product",
           "description": "Product release and roadmap update",
           "headline": "",
-          "snippet": "What tests have you run to validate your product? What did you learn? What's
-          shipped recently and how has the roadmap changed? How is the product performing? What's not working? What's
-          the evidence you are making something some people love?",
+          "snippet": "What's shipped recently and how has the roadmap changed? How is the market responding? What’s working? What’s not?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -236,9 +226,7 @@
           "title": "Customer Service",
           "description": "Customer service update",
           "headline": "",
-          "snippet": "What issues are customers having with your product? How are your service metrics and
-          SLA's performing? How are customer service costs and support metrics trending? What new content
-          and policies have been created to improve customer success?",
+          "snippet": "Is customer satisfaction trending up or down? How are you tracking it? What key issues do your customers have?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -251,8 +239,7 @@
           "title": "Marketing and Customer Acquisition",
           "description": "Notable marketing activities and results",
           "headline": "",
-          "snippet": "List any notable marketing activities since the last update. How are the current marketing
-          efforts performing? What changes and new activities are planned?",
+          "snippet": "List any notable marketing activities since the last update. How are your current marketing efforts performing? Anything new planned?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -304,7 +291,7 @@
           "title": "How You Can Help",
           "description": "Ask your company stakeholders for help and ideas",
           "headline": "",
-          "snippet": "Where do you need the most help from your team and investors? Be specific.",
+          "snippet": "Where do you need the most help from your team and investors?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -340,12 +327,7 @@
           "title": "Compensation",
           "description": "Founder, executive and employee compensation practices",
           "headline": "",
-          "snippet": "You can discuss the
-          thought process used to determine salaries/equity/commissions/bonuses/profit share. You may
-          want to share the founder/CEO/executive to average employee compensation ratio. You might
-          discuss compensation by various roles (engineering, marketing, sales...). If it's part of
-          your company culture, you could link to a spreadsheet of all employee salaries. Provide
-          information only in accordance with your company culture.",
+          "snippet": "What thought process or formula do you use to determine pay and equity? Would you like to share high-level summaries or detailed information?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -358,11 +340,7 @@
           "title": "Ownership",
           "description": "Distribution of company equity",
           "headline": "",
-          "snippet": "How many shares are outstanding? What's the size of the employee option pool? Is there
-          a formula to allocate employee options? What's the value placed on the companyduring the last raise?
-          Has a 409A valuation been done, what was the value? Provide an easy to understand
-          summary of the cap table. What % of the company is owned by founders/employees/investors? What terms
-          and preferences do investors have and what do they mean?",
+          "snippet": "What would you like to share about company ownership, such as the # of shares outstanding and size of the employee option pool? Is there a formula used to allocate options?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
@@ -375,9 +353,7 @@
           "title": "Fundraising",
           "description": "Updates on the fundraising process",
           "headline": "",
-          "snippet": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
-          pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
-          meetings go? After the raise, discuss who the investors are and the terms of the deal.",
+          "snippet": "When are you raising, and how much would you like to raise? How will you use the funds? Link to the pitch deck, and let everyone know how it’s going. If you’ve already raised, who are the new investors and what are the terms?",
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
