@@ -31,7 +31,7 @@
       (doseq [section-name (map keyword (flatten (vals (:sections company))))]
         (when-let [section (company section-name)]
           (println "  Updating section" (name section-name))
-          (update-section conn slug section-name (merge-with new-field-map section))))))
+          (update-section conn slug section-name (merge new-field-map section))))))
 
   ;; add new fields with defaults to existing sections
   (println "\nUpdating sections...")
