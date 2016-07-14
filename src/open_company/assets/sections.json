@@ -91,84 +91,6 @@
         },
 
         {
-          "section-name": "growth",
-          "title": "Growth",
-          "description": "Growth metrics and key performance indicators",
-          "headline": "",
-          "snippet": "Provide context about recent growth. Why are these metrics important? How are they performing against targets? What is impacting them?",
-          "prompt": "Enter the most important growth metric for the stakeholders of your company. You'll be able
-          to add more later.",
-          "metrics": [],
-          "standard-metrics": [
-            {
-              "slug": "dau",
-              "name": "DAU",
-              "description": "Average Daily Active Users"
-            },
-            {
-              "slug": "mau",
-              "name": "MAU",
-              "description": "Monthly Active Users"
-            },
-            {
-              "slug": "wau",
-              "name": "WAU",
-              "description": "Weekly Active Users"
-            },
-            {
-              "slug": "mrr",
-              "name": "MRR",
-              "description": "Monthly Recurring Revenue"
-            },
-            {
-              "slug": "arr",
-              "name": "ARR",
-              "description": "Annual Recurring Revenue"
-            },
-            {
-              "slug": "subscribers",
-              "name": "Subscribers",
-              "description": "Total active subscribers"
-            },
-            {
-              "slug": "registrations",
-              "name": "Registrations",
-              "description": "Total registered users"
-            },
-            {
-              "slug": "followers",
-              "name": "Followers",
-              "description": "Total active followers"
-            },
-            {
-              "slug": "views",
-              "name": "Views",
-              "description": "Total page views"
-            }
-          ],
-          "intervals": [
-            "weekly",
-            "monthly",
-            "quarterly"
-          ],
-          "units": [
-            {
-              "unit": "currency"
-            },
-            {
-              "unit": "number",
-              "name": "A number"
-            },
-            {
-              "unit": "%",
-              "name": "%"
-            }
-          ],
-          "notes": "",
-          "core": false
-        },
-
-        {
           "section-name": "challenges",
           "title": "Key Challenges",
           "description": "Challenges facing the company",
@@ -309,16 +231,6 @@
           "image-height": 0,
           "image-width": 0,
           "body": "",
-          "core": false
-        },
-
-        {
-          "section-name": "finances",
-          "title": "Finances",
-          "description": "Cash on hand, burn and runway",
-          "headline": "",
-          "snippet": "Provide context about recent changes in company finances",
-          "notes": "",
           "core": false
         },
 
