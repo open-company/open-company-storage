@@ -18,8 +18,8 @@
     [org.clojure/core.async "0.2.385"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
-    [ring/ring-devel "1.6.0-beta3"] ; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-core "1.6.0-beta3"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-devel "1.6.0-beta4"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-core "1.6.0-beta4"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [http-kit "2.2.0"] ; Web server http://http-kit.org/
     [compojure "1.5.1"] ; Web routing https://github.com/weavejester/compojure
