@@ -67,6 +67,18 @@
     ;; update the company
     {:updated-company (company/put-company conn slug with-placeholders user)}))
 
+(defn- public-or-authorized? [user company]
+  (or (:public company) (common/authorized-to-company? {:company company :user user})))
+
+(defn- accessible-company-list
+  "Return a list of all companies this user has access to."
+  [conn user]
+  (let [logo-companies (company/list-companies conn [:org-id :public :logo]) ; every company w/ a logo
+        all-companies (company/list-companies conn [:org-id :public]) ; every company w/ or w/o a logo
+        logo-index (zipmap (map :slug logo-companies) (map :logo logo-companies))
+        companies (map #(assoc % :logo (logo-index (:slug %))) all-companies)] ; every company w/ a logo if they have it
+  (filter #(public-or-authorized? user %) companies))) ; every company that is public or authorized to this user
+
 ;; ----- Validations -----
 
 (defn processable-patch-req? [conn slug ctx]
@@ -125,9 +137,6 @@
   ;; Update a company
   :patch! (fn [ctx] (patch-company conn slug (add-slug slug (:data ctx)) (:user ctx))))
 
-(defn- public-or-authorized? [user company]
-  (or (:public company) (common/authorized-to-company? {:company company :user user})))
-
 ;; A resource for a list of all the companies the user has access to.
 (defresource company-list [conn]
   common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
@@ -144,8 +153,7 @@
   :handle-not-acceptable (common/only-accept 406 company-rep/collection-media-type)
 
   ;; Get a list of companies
-  :exists? (fn [{:keys [user]}] {:companies (filter #(public-or-authorized? user %)
-                                                    (company/list-companies conn [:org-id :public :logo]))})
+  :exists? (fn [{:keys [user]}] {:companies (accessible-company-list conn user)})
 
   :processable? (by-method {
     :get true
