@@ -94,8 +94,13 @@
 
 (def Section
   {(schema/optional-key :section-name) SectionName
-   :title schema/Str
    :description schema/Str
+   :title schema/Str
+   :headline schema/Str
+   :snippet schema/Str
+   (schema/optional-key :image-url) (schema/maybe schema/Str)
+   (schema/optional-key :image-height) schema/Num
+   (schema/optional-key :image-width) schema/Num
    (schema/optional-key :company-slug) schema/Str
    (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
@@ -117,8 +122,6 @@
           :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
           :stakeholder-update {:title schema/Str
                                :sections [SectionName]}
-          (schema/optional-key :description) schema/Str
-          (schema/optional-key :home-page) schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :logo-width) schema/Int
           (schema/optional-key :logo-height) schema/Int
@@ -131,6 +134,7 @@
   (merge {:company-slug Slug
           :slug schema/Str ; slug of the update, made from the slugified title and a short UUID
           :name schema/Str
+          :currency schema/Str
           (schema/optional-key :logo) schema/Str
           (schema/optional-key :logo-width) schema/Int
           (schema/optional-key :logo-height) schema/Int          

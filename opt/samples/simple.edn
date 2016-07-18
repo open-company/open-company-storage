@@ -31,6 +31,8 @@
     {
       :section {
         :title "Finances"
+        :headline ""
+        :snippet "<p>We're simple! Simple is good...</p>"
         :data [
           {
             :period "2015-02"
@@ -75,9 +77,6 @@
             :costs 100000
           }
         ]
-        :notes {
-          :body "<p>We're simple! Simple is good...</p>"
-        }
       }
       :section-name "finances"
       :author {
@@ -91,6 +90,8 @@
     {
       :section {
         :title "Growth"
+        :headline ""
+        :snippet "<p>This is excitingly simple growth!</p>"
         :metrics [
           {
             :slug "mau"
@@ -197,9 +198,6 @@
             :value 0
           }
         ]
-        :notes {
-          :body "<p>This is excitingly simple growth!</p>"
-        }
       }
       :section-name "growth"
       :author {

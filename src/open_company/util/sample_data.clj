@@ -1,5 +1,9 @@
 (ns open-company.util.sample-data
-  "Commandline client to import sample data into OpenCompany."
+  "
+  Commandline client to import sample data into OpenCompany.
+
+  Usage: lein run -m open-company.util.sample-data -- -d ./opt/samples/
+  "
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
             [open-company.db.pool :as db]

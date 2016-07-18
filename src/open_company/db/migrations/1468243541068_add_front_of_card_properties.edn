@@ -1,0 +1,48 @@
+(ns open-company.db.migrations.add-front-of-card-properties
+  (:require [rethinkdb.query :as r]
+            [if-let.core :refer (if-let*)]
+            [open-company.resources.company :as company]))
+
+(def new-fields [{:name :snippet :value ""}
+                 {:name :image-url :value nil}
+                 {:name :image-height :value 0}
+                 {:name :image-width :value 0}])
+
+(def new-field-map (zipmap (map :name new-fields) (map :value new-fields)))
+
+(defn- update-section
+  [conn slug section-name updated-section]
+  (println 
+    (-> (r/table "companies")
+      (r/get slug)
+      (r/update {section-name (r/literal updated-section)})
+      (r/run conn))))
+
+(defn up [conn]
+
+  ;; add new fields with defaults to existing companies
+  (println "\nUpdating companies...")
+
+  ;; iterate through every company
+  (doseq [slug (map :slug (company/list-companies conn))]
+    (println "Updating" slug)
+    (when-let [company (company/get-company conn slug)]
+      ;; iterate through every section (topic)
+      (doseq [section-name (map keyword (flatten (vals (:sections company))))]
+        (when-let [section (company section-name)]
+          (println "  Updating section" (name section-name))
+          (update-section conn slug section-name (merge new-field-map section))))))
+
+  ;; add new fields with defaults to existing sections
+  (println "\nUpdating sections...")
+  (doseq [field new-fields]
+ 
+    (println (str "\nAdding field: " (:name field) " with value: " (:value field)))
+    (println
+      (-> (r/table "sections")
+        (r/filter (r/fn [row]
+                  (r/not (r/has-fields row (:name field)))))
+        (r/update {(:name field) (:value field)})
+        (r/run conn))))
+
+  true) ; return true on success
