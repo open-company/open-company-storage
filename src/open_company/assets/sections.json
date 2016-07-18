@@ -10,7 +10,11 @@
           "title": "Mission",
           "description": "Why the company exists",
           "headline": "",
-          "body": "Does everyone know what they’re fighting for? What is your mission?",
+          "snippet": "Does everyone know what they’re fighting for? What is your mission?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -19,9 +23,11 @@
           "title": "Values",
           "description": "Core values the company lives by",
           "headline": "",
-          "body": "Core values are the fundamental beliefs of the company. List the company's values. Explain where
-          they came from, why they're important, and provide examples of how people can use them to guide their
-          decisions, behavior, and actions.",
+          "snippet": "Core values are the fundamental beliefs of the company. What are they, and why are they important?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -30,19 +36,24 @@
           "title": "Diversity",
           "description": "Diversity goals and makeup",
           "headline": "",
-          "body": "Discuss company policy and goals around gender, race and ethnicity, age, and sexuality.
-          What is the current state of diversity at the company? What are the goals? What changes in hiring,
-          culture and retention are you working on to achieve those goals?",
+          "snippet": "What is the current state of diversity at your company? What are your goals, and what needs to happen to achieve them?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
         {
           "section-name": "competition",
           "title": "Competition",
-          "headline": "",
           "description": "Key competitors and competitive threats",
-          "body": "Who are the competitors you’re paying attention to? How do they compare? Besides your competitors,
-          what are the other major external threats to your business?",
+          "headline": "",
+          "snippet": "Who are the competitors you’re paying attention to? Why? What other big external threats do you see?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         }
 
@@ -55,10 +66,14 @@
 
         {
           "section-name": "update",
-          "title": "Founder's Update",
+          "title": "CEO Update",
           "description": "Company update",
           "headline": "",
-          "body": "Provide an overview of important happenings in the company since the last update.",
+          "snippet": "Provide an overview of important happenings in the company since the last update.",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -67,7 +82,11 @@
           "title": "Highlights",
           "description": "Company milestones and accomplishments",
           "headline": "",
-          "body": "What new company milestones or accomplishments are you most proud of? List up to three.",
+          "snippet": "What new company milestones or accomplishments are you most proud of?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -76,6 +95,7 @@
           "title": "Growth",
           "description": "Growth metrics and key performance indicators",
           "headline": "",
+          "snippet": "Provide context about recent growth. Why are these metrics important? How are they performing against targets? What is impacting them?",
           "prompt": "Enter the most important growth metric for the stakeholders of your company. You'll be able
           to add more later.",
           "metrics": [],
@@ -144,7 +164,7 @@
               "name": "%"
             }
           ],
-          "notes": "Provide context about recent growth with a note.",
+          "notes": "",
           "core": false
         },
 
@@ -153,8 +173,11 @@
           "title": "Key Challenges",
           "description": "Challenges facing the company",
           "headline": "",
-          "body": "What are you most disappointed about? What’s your plan to fix it going forward?
-          What is the company stuck on? What are the systemic or existential threats everyone needs to be focused on?",
+          "snippet": "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -163,8 +186,12 @@
           "title": "Key Takeaways",
           "description": "What we've learned",
           "headline": "",
-          "body": "What’s something you recently learned about your business, market, customers, or product?
+          "snippet": "What’s something you recently learned about your business, market, customers, or product?
           What changes are you making as a result?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -173,9 +200,11 @@
           "title": "Team and Hiring",
           "description": "Team and hiring update",
           "headline": "",
-          "body": "Announce and welcome new hires. Discuss what positions are currently open and what's being
-          done to fill them. How many candidates are applying for the positions? Which employees are no longer
-          with the company and why they left.",
+          "snippet": "Announce and welcome new hires, discuss open positions and progress being made to fill them, and let everyone know about employees that have left.",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -184,9 +213,11 @@
           "title": "Product",
           "description": "Product release and roadmap update",
           "headline": "",
-          "body": "What tests have you run to validate your product? What did you learn? What's
-          shipped recently and how has the roadmap changed? How is the product performing? What's not working? What's
-          the evidence you are making something some people love?",
+          "snippet": "What's shipped recently and how has the roadmap changed? How is the market responding? What’s working? What’s not?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -195,9 +226,11 @@
           "title": "Customer Service",
           "description": "Customer service update",
           "headline": "",
-          "body": "What issues are customers having with your product? How are your service metrics and
-          SLA's performing? How are customer service costs and support metrics trending? What new content
-          and policies have been created to improve customer success?",
+          "snippet": "Is customer satisfaction trending up or down? How are you tracking it? What key issues do your customers have?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -206,8 +239,11 @@
           "title": "Marketing and Customer Acquisition",
           "description": "Notable marketing activities and results",
           "headline": "",
-          "body": "List any notable marketing activities since the last update. How are the current marketing
-          efforts performing? What changes and new activities are planned?",
+          "snippet": "List any notable marketing activities since the last update. How are your current marketing efforts performing? Anything new planned?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -216,7 +252,11 @@
           "title": "Press",
           "description": "Press mentions and PR activities",
           "headline": "",
-          "body": "List any notable press mentions since the last update. Provide an update on PR activities.",
+          "snippet": "List any notable press mentions since the last update. Provide an update on PR activities.",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -225,7 +265,11 @@
           "title": "Sales",
           "description": "Notable sales activity and wins and losses",
           "headline": "",
-          "body": "Did you close any notable sales? What opportunities are in the pipeline?",
+          "snippet": "Did you close any notable sales? What opportunities are in the pipeline?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -234,48 +278,60 @@
           "title": "Business Development",
           "description": "Notable partnership activity and new deals",
           "headline": "",
-          "body": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
+          "snippet": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
         {
           "section-name": "help",
           "title": "How You Can Help",
-          "headline": "",
           "description": "Ask your company stakeholders for help and ideas",
-          "body": "Where do you need the most help from your team and investors? Be specific.",
+          "headline": "",
+          "snippet": "Where do you need the most help from your team and investors?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
         {
           "section-name": "kudos",
           "title": "Kudos",
-          "headline": "",
           "description": "Celebrate great actions that helped the company",
-          "body": "Who went above and beyond to help the company? What did they do?",
+          "headline": "",
+          "snippet": "Who went above and beyond to help the company? What did they do?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
         {
           "section-name": "finances",
           "title": "Finances",
-          "headline": "",
           "description": "Cash on hand, burn and runway",
-          "notes": "Provide context about recent changes in company finances with a note.",
+          "headline": "",
+          "snippet": "Provide context about recent changes in company finances",
+          "notes": "",
           "core": false
         },
 
         {
           "section-name": "compensation",
           "title": "Compensation",
-          "headline": "",
           "description": "Founder, executive and employee compensation practices",
-          "body": "Depending on your culture of openness with compensation, you could discuss the
-          thought process or formula used to determine salaries / commissions / bonuses / profit share. You may
-          want to share the founder/CEO to executive to average employee compensation ratio. You might
-          discuss compensation spend by various departments (engineering, marketing, sales...). If it's part of
-          your company culture, you could link to a spreadsheet of all employee salaries. Provide as much
-          information as you can in accordance with your company culture.",
+          "headline": "",
+          "snippet": "What thought process or formula do you use to determine pay and equity? Would you like to share high-level summaries or detailed information?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
@@ -284,23 +340,24 @@
           "title": "Ownership",
           "description": "Distribution of company equity",
           "headline": "",
-          "body": "How many shares are outstanding? What is the size of the employee option pool? Is there
-          a formula used to allocate employee options? What was the value placed on the company, pre/post money,
-          during the last raise? Has a 409A valuation been done, what was the value? Provide an easy to understand
-          summary of the current cap table. What percentage of the company is owned by founders, employees, and
-          investors? What terms and preferences do current investors have and what do those terms mean in the
-          case of a liquidity event?",
+          "snippet": "What would you like to share about company ownership, such as the # of shares outstanding and size of the employee option pool? Is there a formula used to allocate options?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         },
 
         {
           "section-name": "fundraising",
           "title": "Fundraising",
-          "headline": "",
           "description": "Updates on the fundraising process",
-          "body": "When are you raising? How much are you raising? What is the purpose of the funds? Link to the
-          pitch deck. What’s plan B if you can’t raise as you expect to? Who did you meet with and how did the
-          meetings go? After the raise, discuss who the investors are and the terms of the deal.",
+          "headline": "",
+          "snippet": "When are you raising, and how much would you like to raise? How will you use the funds? Link to the pitch deck, and let everyone know how it’s going. If you’ve already raised, who are the new investors and what are the terms?",
+          "image-url": null,
+          "image-height": 0,
+          "image-width": 0,
+          "body": "",
           "core": false
         }
 
