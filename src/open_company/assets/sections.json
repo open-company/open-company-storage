@@ -1,4 +1,5 @@
 {
+  "sections": ["update", "mission", "values", "highlights", "growth", "challenges", "takeaways", "team", "diversity", "product", "customer-service", "sales", "marketing", "business-development", "competition", "press", "help", "kudos", "finances", "fundraising", "ownership", "compensation"],
   "categories": [
     {
       "name": "company",
