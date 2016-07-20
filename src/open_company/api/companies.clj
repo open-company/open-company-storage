@@ -77,7 +77,7 @@
         all-companies (company/list-companies conn [:org-id :public]) ; every company w/ or w/o a logo
         logo-index (zipmap (map :slug logo-companies) (map :logo logo-companies))
         companies (map #(assoc % :logo (logo-index (:slug %))) all-companies)] ; every company w/ a logo if they have it
-  (filter #(public-or-authorized? user %) companies))) ; every company that is public or authorized to this user
+    (sort-by :name (filter #(public-or-authorized? user %) companies)))) ; public or authorized to this user
 
 ;; ----- Validations -----
 
