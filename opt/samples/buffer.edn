@@ -1732,8 +1732,8 @@
         :headline "We're building a more inclusive Buffer!"
         :snippet "<p>Here's a transparent look at the overall demographic diversity of our team.</p>"
         :image-url "http://take.ms/cTKFm"
-        :image-height 448
-        :image-width 555
+        :image-height 564
+        :image-width 699
         :body "        
         <img src=\"http://take.ms/3mBTC\">
         <img src=\"http://take.ms/3zi2y\">"
@@ -2134,8 +2134,8 @@
         More than 500,000 Pablo images have been created so far, and we're excited to keep going with our quick
         images tool.</p>"
         :image-url "https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png"
-        :image-height 446
-        :image-width 555
+        :image-height 643
+        :image-width 800
         :body "
         <p>We also made several improvements to Buffer for Business, including the move from 7 day to 30 day trials,
         a new groups UI, the ability to search profiles and improved reliability/speed of analytics.</p>
