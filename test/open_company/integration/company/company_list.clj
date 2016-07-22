@@ -89,6 +89,7 @@
         (:status response) => 200
         (map :name companies) => (just (set (map :name [r/buffer]))) ; verify names
         (map :slug companies) => (just (set [(:slug r/buffer)])) ; verify slugs
+        (map :logo companies) => (just (set [(:logo r/buffer)])) ; verify logos
         (doseq [company companies] ; verify HATEOAS links
           (count (:links company)) => 1
           (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company)))))
@@ -100,6 +101,7 @@
         (:status response) => 200
         (map :name companies) => (just (set (map :name [r/open r/uni r/buffer]))) ; verify names
         (map :slug companies) => (just (set [(:slug r/open) (slugify (:name r/uni)) (:slug r/buffer)])) ; verify slugs
+        (map :logo companies) => (just (set [(:logo r/open) (:logo r/uni) (:logo r/buffer)])) ; verify logos
         (doseq [company companies] ; verify HATEOAS links
           (count (:links company)) => 1
           (hateoas/verify-link "self" "GET" (company-rep/url company) company-rep/media-type (:links company)))))

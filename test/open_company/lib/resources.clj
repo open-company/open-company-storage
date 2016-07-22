@@ -64,12 +64,11 @@
              :name "Buffer"
              :description "Social Media LaLaLa"
              :currency "USD"
-             :logo ""})
+             :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"})
 
 (def uni {:name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
           :description "Unicode FTW"
-          :currency "FKP"
-          :logo ""})
+          :currency "FKP"}) ; Note: no logo on purpose
 
 ;; ----- Sections -----
 
