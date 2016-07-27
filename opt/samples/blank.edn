@@ -3,8 +3,8 @@
   :company {
     :slug "blank-inc"
     :public false
+    :promoted false
     :name "Blank Inc."
-    :description "We're busy ideating."
     :logo ""
     :org-id "slack:T06SBMH60"
     :currency "USD"

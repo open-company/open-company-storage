@@ -2,9 +2,9 @@
 {
   :company {
     :slug "buffer"
-    :public true
+    :public false
+    :promoted false
     :name "Buffer"
-    :description "A better way to share on social media."
     :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
     :logo-width 313
     :logo-height 319

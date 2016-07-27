@@ -3,8 +3,8 @@
   :company {
     :slug "read-only"
     :public true
+    :promoted false
     :name "ReadOnly"
-    :description "All our data belong to us."
     :logo "https://open-company-assets.s3.amazonaws.com/read-only.png"
     :logo-width 95
     :logo-height 129
