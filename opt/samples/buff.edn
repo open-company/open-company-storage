@@ -1,7 +1,7 @@
 ;; Sample data, Buffer's updates from https://open.bufferapp.com/
 {
   :company {
-    :slug "buffer"
+    :slug "buff"
     :public false
     :promoted false
     :name "Buffer"
