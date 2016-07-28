@@ -45,7 +45,9 @@
 
 (defonce aws-access-key-id (env :aws-access-key-id))
 (defonce aws-secret-access-key (env :aws-secret-access-key))
-(defonce aws-sqs-queue (env :aws-sqs-queue))
+
+(defonce aws-sqs-bot-queue (env :aws-sqs-bot-queue))
+(defonce aws-sqs-email-queue (env :aws-sqs-email-queue))
 
 ;; ----- JWT -----
 

@@ -61,13 +61,13 @@
                     :stakeholder-update {:type :all-members})}))
 
 (defn send-trigger! [trigger]
-  (timbre/info "Request to send msg to " c/aws-sqs-queue "\n" trigger)
+  (timbre/info "Request to send msg to " c/aws-sqs-bot-queue "\n" trigger)
   (s/validate BotTrigger trigger)
   (timbre/info "Sending")
   (sqs/send-message
    {:access-key c/aws-access-key-id
     :secret-key c/aws-secret-access-key}
-   c/aws-sqs-queue
+   c/aws-sqs-bot-queue
    trigger))
 
 (comment
