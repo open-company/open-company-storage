@@ -4,6 +4,7 @@
             [liberator.core :refer (defresource by-method)]
             [open-company.db.pool :as pool]
             [open-company.lib.bot :as bot]
+            [open-company.lib.email :as email]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.resources.stakeholder-update :as su-res]
@@ -104,8 +105,11 @@
   :post-to-missing? false ; 404 if company doesn't exist
   :post! (fn [ctx] (let [su   (create-stakeholder-update conn ctx)
                          ctx' (assoc (common/clone ctx) :stakeholder-update su)]
-                     (when (-> ctx :data :slack)
-                       (bot/send-trigger! (bot/ctx->trigger :stakeholder-update ctx')))
+                     (cond 
+                        (-> ctx :data :slack) ; Send to bot
+                          (bot/send-trigger! (bot/ctx->trigger :stakeholder-update ctx'))
+                        (-> ctx :data :email) ; Send to email service
+                          (email/send-trigger! (email/ctx->trigger (:data ctx) ctx')))
                      {:stakeholder-update su}))
 
   ;; Handlers

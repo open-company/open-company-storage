@@ -63,11 +63,12 @@
       component/start)
 
   (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
-    "OpenCompany API Server\n"
+    "OpenCompany API Server\n\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
-    "AWS SQS queue: " c/aws-sqs-queue "\n"
+    "AWS SQS bot queue: " c/aws-sqs-bot-queue "\n"
+    "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
     "Sentry: " c/dsn "\n\n"
