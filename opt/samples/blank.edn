@@ -1,10 +1,10 @@
 ;; Sample data, a see of nothingness
 {
   :company {
-    :slug "blank-inc"
+    :slug "blank"
     :public false
     :promoted false
-    :name "Blank Inc."
+    :name "Blank"
     :logo ""
     :org-id "slack:T06SBMH60"
     :currency "USD"
