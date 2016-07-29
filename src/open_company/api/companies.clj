@@ -16,12 +16,14 @@
 ;; Round-trip it through Cheshire to ensure the embedded HTML gets encoded or the client has issues parsing it
 (defonce sections (json/generate-string config/sections {:pretty true}))
 
-(defn add-slug
+;; ----- Utility functions -----
+
+(defn- add-slug
   "Add the slug to the company properties if it's missing."
   [slug company]
   (update company :slug (fnil identity slug)))
 
-(defn find-slug [conn company-props]
+(defn- find-slug [conn company-props]
   (or (:slug company-props) (slug/find-available-slug (:name company-props) (company/taken-slugs conn))))
 
 ;; ----- Responses -----
@@ -58,12 +60,21 @@
         updated-sections (->> section-names
           (map #(section/put-section conn slug % (company-updates %) user)) ; put each section that's included in the patch
           (map #(dissoc % :id :section-name))) ; not needed for sections in company
-        ; merge the original company with the updated sections & anything other properties they provided 
-        with-section-updates (merge original-company (merge company-updates (zipmap section-names updated-sections)))
+        ; merge the original company with the updated sections & any other properties they provided 
+        with-section-updates (->> (zipmap section-names updated-sections)
+                          (merge company-updates)
+                          (merge original-company))
         ; get any sections that we used to have, that have been added back in (sections back from the dead)
         with-prior-sections (company/add-prior-sections conn with-section-updates)
+        ; add in initial content for new custom sections
+        prior-custom-sections (company/custom-sections original-company)
+        now-custom-sections (company/custom-sections with-prior-sections)
+        new-custom-names (vec (clojure.set/difference now-custom-sections prior-custom-sections))
+        new-custom-sections (map #(merge section/initial-custom-properties (company-updates %)) new-custom-names)
+        complete-new-custom-sections (zipmap new-custom-names new-custom-sections)
+        with-compelete-new-custom-sections (merge with-prior-sections complete-new-custom-sections)
         ; add in the placeholder sections for any brand new added sections
-        with-placeholders (company/add-placeholder-sections with-prior-sections)]
+        with-placeholders (company/add-placeholder-sections with-compelete-new-custom-sections)]
     ;; update the company
     {:updated-company (company/put-company conn slug with-placeholders user)}))
 
