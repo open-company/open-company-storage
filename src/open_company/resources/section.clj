@@ -22,7 +22,7 @@
 (def initial-custom-properties 
   "Custom sections don't get initialized from a template, so need blank initial data."
   {
-    :description ""
+    :description "Custom topic"
     :headline ""
     :snippet custom-topic-placeholder-snippet
     :body ""
