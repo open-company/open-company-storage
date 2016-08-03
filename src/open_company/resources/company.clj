@@ -209,8 +209,10 @@
 
   ([company-props user slug]
   (-> company-props
+      (assoc :uuid (str (java.util.UUID/randomUUID)))
       (assoc :slug slug)
       (update :public #(or % false))
+      (update :promoted #(or % false))
       (update :currency #(or % "USD"))
       (update :stakeholder-update #(or % common/empty-stakeholder-update))
       (assoc :org-id (:org-id user))

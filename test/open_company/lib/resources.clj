@@ -61,6 +61,7 @@
 
 (def buffer {:slug "buffer"
              :public true
+             :promoted true
              :name "Buffer"
              :description "Social Media LaLaLa"
              :currency "USD"
@@ -68,6 +69,7 @@
 
 (def uni {:name "$€¥£ &‼⁇ ∆∰≈ ☃♔☂Ǽ ḈĐĦ, LLC"
           :description "Unicode FTW"
+          :public true
           :currency "FKP"}) ; Note: no logo on purpose
 
 ;; ----- Sections -----

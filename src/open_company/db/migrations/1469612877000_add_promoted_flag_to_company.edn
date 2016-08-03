@@ -1,0 +1,11 @@
+(ns open-company.db.migrations.add-promoted-flag-to-company
+  (:require [rethinkdb.query :as r]))
+
+(defn up
+  "Add `promoted` property to company, defaulting to false."
+  [conn]
+  (println 
+    (-> (r/table "companies")
+      (r/update {:promoted false})
+      (r/run conn)))
+  true) ; return true on success

@@ -3,8 +3,8 @@
   :company {
     :slug "new"
     :public false
+    :promoted false
     :name "New.ly"
-    :description "Fresh as the new driven snow."
     :logo "https://open-company-assets.s3.amazonaws.com/new.png"
     :logo-width 264
     :logo-height 254

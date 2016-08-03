@@ -78,17 +78,19 @@
     ;; update the company
     {:updated-company (company/put-company conn slug with-placeholders user)}))
 
-(defn- public-or-authorized? [user company]
-  (or (:public company) (common/authorized-to-company? {:company company :user user})))
+(defn- promoted-or-authorized? [user company]
+  (or 
+    (and (:public company) (:promoted company)) ; public and promoted
+    (common/authorized-to-company? {:company company :user user}))) ; specifically auth'd for this user
 
 (defn- accessible-company-list
   "Return a list of all companies this user has access to."
   [conn user]
-  (let [logo-companies (company/list-companies conn [:org-id :public :logo]) ; every company w/ a logo
-        all-companies (company/list-companies conn [:org-id :public]) ; every company w/ or w/o a logo
+  (let [logo-companies (company/list-companies conn [:org-id :public :promoted :logo]) ; every company w/ a logo
+        all-companies (company/list-companies conn [:org-id :public :promoted]) ; every company w/ or w/o a logo
         logo-index (zipmap (map :slug logo-companies) (map :logo logo-companies))
         companies (map #(assoc % :logo (logo-index (:slug %))) all-companies)] ; every company w/ a logo if they have it
-    (sort-by :name (filter #(public-or-authorized? user %) companies)))) ; public or authorized to this user
+    (sort-by :name (filter #(promoted-or-authorized? user %) companies)))) ; public or authorized to this user
 
 ;; ----- Validations -----
 

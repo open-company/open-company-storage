@@ -1,0 +1,179 @@
+{
+  :company {
+    :slug "green-labs"
+    :public true
+    :promoted true
+    :name "GreenLabs"
+    :logo "https://open-company-assets.s3.amazonaws.com/green-labs.png"
+    :org-id "slack:T06SBMH60"
+    :currency "USD"
+    :timestamp "2016-06-01T12:23:09.809Z"
+    :author {
+      :name "Stuart Levinson"
+      :user-id "78901"
+      :image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg"      
+    }
+    :sections {
+      :progress ["update" "challenges" "team" "custom-89de" "help" "highlights"]
+      :company []
+    }
+    :stakeholder-update {
+      :title ""
+      :sections ["update" "highlights" "challenges" "team" "custom-89de" "help"]
+    }
+  }
+
+  :sections [
+
+    {
+      :section {
+        :description "Company update"
+        :title "CEO Update"
+        :image-url nil
+        :image-width 0
+        :image-height 0
+        :headline "Transparency FTW! :mag:"
+        :snippet "
+          <p>Super excited to be trying out OpenCompany for our team and investor updates.</p>
+          <p>Ping me on Slack and let me know what kind of things we should be providing more information about.</p>"
+        :body ""
+      }
+      :section-name "update"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-06-17T18:25:03.085Z"
+    }
+
+    {
+      :section {
+        :description "Company update"
+        :title "CEO Update"
+        :image-url nil
+        :image-width 0
+        :image-height 0
+        :headline "Big Hiring Push"
+        :snippet "
+          <p>We're looking for 5 new hires in engineering, a senior dev-ops engineer and 4 junior developers for dev and QA roles.</p>
+          <p>To help fill these roles, we've annouced a $5k referral bonus, payable 90 days after the new hires start date. If you
+          know people we should be recruiting, let Jennifer know immediately!</p>"
+        :body ""
+      }
+      :section-name "update"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-06-28T18:25:03.085Z"
+    }
+
+    {
+      :section {
+        :description "Company update"
+        :title "CEO Update"
+        :image-url nil
+        :image-width 0
+        :image-height 0
+        :headline "Passing $1M in ARR :arrow_upper_right: :money_with_wings:"
+        :snippet "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>"
+        :body ""
+      }
+      :section-name "update"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-07-28T18:25:03.085Z"
+    }
+
+    {
+      :section {
+        :description "Challenges facing the company"
+        :title "Key Challenges"
+        :image-url "https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN"
+        :image-height 348
+        :image-width 462
+        :headline "Recruiting; maintaining growth are focus areas"
+        :snippet "<p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>"
+        :body ""
+      }
+      :section-name "challenges"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-07-28T17:55:36.642Z"
+    }
+
+    {
+      :section {
+        :description "Team and hiring update"
+        :title "Team and Hiring"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :headline "Welcome!"
+        :snippet "<p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>"
+        :body "<p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>"
+      }
+      :section-name "team"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-07-28T18:02:07.397Z"
+    }
+
+    {
+      :section {
+        :description "Custom topic"
+        :title "KPI's"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :headline "June is Done"
+        :snippet "<ul><li>Total Revenue $75K<br></li><li>MRR: $74K</li><li>MRR Bookings $10.5K (goal $12K)</li><li>Revenue Churn: 4.1% (goal 3%)</li></ul>"
+        :body ""
+      }
+      :section-name "custom-89de"
+      :author {:name "Sean Johnson" :user-id "123456" :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"}
+      :timestamp "2016-06-29T18:05:09.308Z"
+    }
+
+    {
+      :section {
+        :description "Custom topic"
+        :title "KPI's"
+        :image-url nil
+        :image-height 0
+        :image-width 0
+        :headline "July 2016"
+        :snippet "<ul><li>Total Revenue $83K<br></li><li>MRR: $79K</li><li>MRR Bookings $12.5K (goal $12K)</li><li>Revenue Churn: 4.2% (goal 3%)</li></ul>"
+        :body ""
+      }
+      :section-name "custom-89de"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-07-28T18:05:09.308Z"
+    }
+
+    {
+      :section {
+        :description "Ask your company stakeholders for help and ideas"
+        :image-url nil
+        :headline "New Office Space, Key Hires"
+        :image-width 0
+        :snippet "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p><p><br></p>"
+        :image-height 0
+        :title "How You Can Help"
+        :body ""
+      }
+      :section-name "help"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-07-28T18:07:42.845Z"
+    }
+
+    {
+      :section {
+        :description "Company milestones and accomplishments"
+        :headline "GreenLabs featured in Slate!"
+        :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r"
+        :image-width 1180
+        :image-height 842
+        :snippet "<p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>"
+        :title "Highlights"
+        :body ""
+      }
+      :section-name "highlights"
+      :author {:image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg", :name "Stuart Levinson", :user-id "78901"}
+      :timestamp "2016-07-28T18:14:24.985Z"
+    }
+
+  ]
+  :stakeholder-updates []
+}
