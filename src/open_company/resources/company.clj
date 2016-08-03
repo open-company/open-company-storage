@@ -204,6 +204,7 @@
 
   ([company-props user slug]
   (-> company-props
+      (assoc :uuid (str (java.util.UUID/randomUUID)))
       (assoc :slug slug)
       (update :public #(or % false))
       (update :promoted #(or % false))

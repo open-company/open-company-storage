@@ -27,6 +27,10 @@
       (c/create-company! conn (c/->company r/open r/coyote)) => (contains r/open)
       (c/get-company conn r/slug) => (contains r/open))
 
+    (fact "it adds a UUID to the company during successful creation"
+      (string? (:uuid (c/create-company! conn (c/->company r/open r/coyote)))) => true
+      (string? (:uuid (c/get-company conn r/slug))) => true)
+
     (facts "it accepts unicode company names"
       (doseq [good-name r/names]
         (let [new-oc (assoc r/open :name good-name)]

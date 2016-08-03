@@ -113,7 +113,8 @@
 
 ;; TODO check for non-blank?
 (def Company
-  (merge {:name schema/Str
+  (merge {:uuid schema/Str
+          :name schema/Str
           :slug Slug
           :public schema/Bool
           :promoted schema/Bool
