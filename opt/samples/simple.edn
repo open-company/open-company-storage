@@ -3,8 +3,8 @@
   :company {
     :slug "simple"
     :public false
-    :name "Simple, LLC"
-    :description "Keeping it Simple Since 2015"
+    :promoted false
+    :name "Simple"
     :logo "https://open-company-assets.s3.amazonaws.com/simple.png"
     :logo-width 146
     :logo-height 174

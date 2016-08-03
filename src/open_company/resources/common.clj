@@ -116,6 +116,7 @@
   (merge {:name schema/Str
           :slug Slug
           :public schema/Bool
+          :promoted schema/Bool
           :currency schema/Str
           :org-id schema/Str
           :sections SectionsOrder

@@ -206,6 +206,7 @@
   (-> company-props
       (assoc :slug slug)
       (update :public #(or % false))
+      (update :promoted #(or % false))
       (update :currency #(or % "USD"))
       (update :stakeholder-update #(or % common/empty-stakeholder-update))
       (assoc :org-id (:org-id user))
