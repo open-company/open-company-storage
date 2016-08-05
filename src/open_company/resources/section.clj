@@ -74,8 +74,8 @@
   "Compare the section's original and updated authors' `:user-id`7s, returning `true` if they
   both match and false if they don't."
   [[original-section updated-section]]
-  (not (= (get-in original-section [:author :user-id])
-          (get-in updated-section [:author :user-id]))))
+  (not= (get-in original-section [:author :user-id])
+        (get-in updated-section [:author :user-id])))
 
 ;; ----- Section revisions -----
 
