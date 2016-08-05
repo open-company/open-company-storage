@@ -62,6 +62,11 @@
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
     (apply dissoc company (clojure.set/difference (section-set company) sections))))
 
+(defn custom-sections
+  "Return a set of section names of the company that are custom section"
+  [company]
+  (set (map keyword (filter #(re-matches common/custom-section-name %) (map name (keys company))))))
+
 ;; ----- Company Slug -----
 
 (declare list-companies)
