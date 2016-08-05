@@ -77,7 +77,6 @@
 (def text-section-1 {
   :title "Text Section 1"
   :headline "Headline Section 1"
-  :snippet "<p>This is a snippet.</p>"
   :image-url nil
   :image-height 0
   :image-width 0
@@ -86,7 +85,6 @@
 (def text-section-2 {
   :title "Text Section 2"
   :headline "Headline Section 2"
-  :snippet "<p>This is also a snippet.</p>"
   :image-url nil
   :image-height 0
   :image-width 0
@@ -95,7 +93,7 @@
 (def finances-section-1 {
   :title "Finances Section 1"
   :headline "Headline Finances Section 1"
-  :snippet "<p>Best of times.</p>"
+  :body "<p>Best of times.</p>"
   :data [
     {
       :period "2015-06"
@@ -107,7 +105,7 @@
 (def finances-section-2 {
   :title "Finances Section 2"
   :headline "Headline Finances Section 2"
-  :snippet "<p>Worst of times.</p>"
+  :body "<p>Worst of times.</p>"
   :data [
     {
       :period "2015-06"
@@ -121,37 +119,3 @@
       :revenue 7
       :costs 7
     }]})
-
-(def finances-notes-section-1 {
-  :title "Finances with Notes Section 1"
-  :headline "Headline Finances with Notes Section 1"
-  :snippet "<p>Longest of times.</p>"
-  :data [
-    {
-      :period "2015-06"
-      :cash 42
-      :revenue 1
-      :costs 1
-    }]
-    :notes {
-      :body "<p>1 dollar.</p>"}})
-
-(def finances-notes-section-2 {
-  :title "Finances with Notes Section 2"
-  :headline "Headline Finances with Notes Section 2"
-  :snippet ""
-  :data [
-    {
-      :period "2015-06"
-      :cash 42
-      :revenue 1
-      :costs 1
-    }
-    {
-      :period "2015-07"
-      :cash 42
-      :revenue 7
-      :costs 7
-    }]
-    :notes {
-      :body "7 dollars."}})

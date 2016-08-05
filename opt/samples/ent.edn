@@ -31,7 +31,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -54,7 +54,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -83,7 +83,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -118,7 +118,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -159,7 +159,7 @@
       :section {
         :title "Finances"
         :headline "Revenue is up and to the right."
-        :snippet "<p>Stay thirsty my friends.</p>"
+        :body "<p>Stay thirsty my friends.</p>"
         :data [
           {
             :period "2015-05"
@@ -192,9 +192,6 @@
             :costs 1378848
           }
         ]
-        :notes {
-          :body "<p>I'll be notating the notes here.</p>"
-        }
       }
       :section-name "finances"
       :author {

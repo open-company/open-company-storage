@@ -31,7 +31,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -54,7 +54,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -83,7 +83,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"
@@ -157,7 +157,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-05"

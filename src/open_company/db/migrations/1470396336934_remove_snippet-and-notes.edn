@@ -1,0 +1,51 @@
+(ns open-company.db.migrations.remove-snippet-and-notes
+  (:require [rethinkdb.query :as r]
+            [open-company.resources.common :as common]
+            [open-company.resources.company :as company]))
+
+(defn- update-section-in-company [conn slug section-name updated-section]
+  (println 
+    (-> (r/table "companies")
+      (r/get slug)
+      (r/update {section-name (r/literal updated-section)})
+      (r/run conn))))
+
+(defn- update-section [conn id updated-section]
+  (println 
+    (-> (r/table "sections")
+      (r/get id)
+      (r/replace updated-section)
+      (r/run conn))))
+
+(defn- merge-and-clean-section [section]
+  (let [snippet (:snippet section)
+        body (:body section)
+        notes (get-in section [:notes :body])
+        new-body (str snippet body notes)
+        clean-section (dissoc section :snippet :notes)]
+  (assoc clean-section :body new-body)))
+
+(defn up [conn]
+  
+  ;; merge snippet with body
+  (println "\nUpdating companies...")
+
+  ;; iterate through every company
+  (doseq [slug (map :slug (company/list-companies conn))]
+    (println "Updating" slug)
+    (when-let [company (company/get-company conn slug)]
+      ;; iterate through every section (topic)
+      (doseq [section-name (map keyword (flatten (vals (:sections company))))]
+        (when-let [section (company section-name)]
+          (println "  Updating section in company " (name section-name))
+          (update-section-in-company conn slug section-name (merge-and-clean-section section))))))
+
+  ;; iterate through every section
+  (println "\nUpdating sections...")
+  (doseq [id (map :id (common/read-resources conn "sections" [:id]))]
+    (let [old-section (common/read-resource conn "sections" id)
+          updated-section (merge-and-clean-section old-section)]
+      (println "Updating " (:company-slug old-section) " " (:section-name old-section))
+      (update-section conn id updated-section)))
+
+  true) ; return true on success

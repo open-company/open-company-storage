@@ -47,61 +47,22 @@
     (let [category-name (or (common/category-for section-name) common/default-category)] ; category for this section
       (update-in sections [category-name] conj section-name)))) ; add the section name to the category
 
-(defun update-notes-for
-
-  ;; no notes in this section
-  ([section :guard #(not (:notes %)) _original-section _author _timestamp]
-  section) ; as you were
-
-  ;; no notes should be in this section
-  ([section :guard #(not (common/notes-sections (:section-name %))) _original-section _author _timestamp]
-  section) ; as you were
-
-  ;; add author and timestamp to notes if notes' :body has been modified
-  ([section original-section author timestamp]
-  (if (= (get-in section [:notes :body]) (get-in original-section [:notes :body]))
-    ;; use the original author and timestamp
-    (-> section
-      (assoc-in [:notes :author] (get-in original-section [:notes :author]))
-      (assoc-in [:notes :updated-at] (get-in original-section [:notes :updated-at])))
-    ;; use the new author and timestamp
-    (-> section
-      (assoc-in [:notes :author] author)
-      (assoc-in [:notes :updated-at] timestamp)))))
-
 (defn- revision-time-gt?
-  "Compare the section's and notes original and updated `:updated-at`s, returning `true` if they
+  "Compare the section's original and updated `:updated-at`s, returning `true` if they
   are within bounds and false if they aren't."
   [[original-section updated-section]]
   (let [original-time (format/parse common/timestamp-format (:updated-at original-section))
         update-time (format/parse common/timestamp-format (:updated-at updated-section))
-        time-limit (t/plus original-time (t/minutes c/collapse-edit-time))
-        original-note-stamp (get-in original-section [:notes :updated-at])
-        original-note-time (if original-note-stamp (format/parse common/timestamp-format original-note-stamp))
-        update-note-stamp (get-in original-section [:notes :updated-at])
-        update-note-time (if update-note-stamp (format/parse common/timestamp-format update-note-stamp))
-        note-time-limit (if original-note-time (t/plus original-note-time (t/minutes c/collapse-edit-time)))]
-    (cond
-      ;; the section time difference is greater than the time limit gap allowed
-      (not (t/within? (t/interval original-time time-limit) update-time)) true
-      ;; both note times are nil
-      (and (nil? original-note-time) (nil? update-note-time)) false
-      ;; only one note time is nil
-      (or (nil? original-note-time) (nil? update-note-time)) true
-      ;; the note time difference is greater than the time limit gap allowed
-      (not (t/within? (t/interval original-note-time note-time-limit) update-note-time)) true
-      ;; both section and note times are within limits
-      :else false)))
+        time-limit (t/plus original-time (t/minutes c/collapse-edit-time))]
+    ;; the section time difference is greater than the time limit gap allowed
+    (not (t/within? (t/interval original-time time-limit) update-time))))
 
 (defn- different-author?
-  "Compare the section's and notes original and updated authors' `:user-id`7s, returning `true` if they
+  "Compare the section's original and updated authors' `:user-id`7s, returning `true` if they
   both match and false if they don't."
   [[original-section updated-section]]
-  (not (and
-    (= (get-in original-section [:author :user-id])
-       (get-in updated-section [:author :user-id]))
-    (= (get-in original-section [:notes :author :user-id])
-       (get-in updated-section [:notes :author :user-id])))))
+  (not (= (get-in original-section [:author :user-id])
+          (get-in updated-section [:author :user-id]))))
 
 ;; ----- Section revisions -----
 
@@ -169,8 +130,6 @@
   "
   Given the company slug, section name, and section property map, create a new section revision,
   updating the company with a new revision and returning the property map for the resource or `false`.
-
-  TODO: only :author and :updated-at for notes if it's what has changed
   "
   ([conn company-slug section-name section user]
   (put-section conn company-slug section-name section user (common/current-timestamp)))
@@ -196,8 +155,7 @@
           (assoc :author author)
           (assoc :updated-at timestamp)
           (assoc :description (:description template-section)); read-only property
-          (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section)))
-          (update-notes-for (original-company section-name) author timestamp))
+          (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section))))
         updated-sections (sections-with (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)
         updated-company (assoc sectioned-company section-name (-> updated-section

@@ -32,7 +32,7 @@
       :section {
         :title "Key metrics"
         :headline ""
-        :snippet "<p>Don't grow too much please...</p>"
+        :body "<p>Don't grow too much please...</p>"
         :metrics [
           {
             :slug "total-registered-users"
@@ -429,7 +429,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet "<p>We're rich! Maybe...</p>"
+        :body "<p>We're rich! Maybe...</p>"
         :data[
           {
             :period "2014-06"
@@ -542,11 +542,10 @@
       :section {
         :title "Bago Badassery"
         :headline "Bago Bago Bago"
-        :snippet "<p>Bago rocks it custom style!</p>"
+        :body "<p>Bago rocks it custom style!</p>"
         :image-url nil
         :image-height 0
         :image-width 0
-        :body ""
       }
       :section-name "custom-a1b2"
       :author {
