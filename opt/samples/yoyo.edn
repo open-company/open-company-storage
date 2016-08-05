@@ -31,7 +31,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-03"
@@ -54,7 +54,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-03"
@@ -83,7 +83,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-03"
@@ -118,7 +118,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-03"
@@ -159,7 +159,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-03"
@@ -206,7 +206,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet ""
+        :body ""
         :data [
           {
             :period "2015-03"

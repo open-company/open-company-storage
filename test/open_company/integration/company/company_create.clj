@@ -158,7 +158,7 @@
 
       (facts "known user supplied sections"
         (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-          (let [diversity {:title "Diversity" :headline "" :snippet "" :body ""}
+          (let [diversity {:title "Diversity" :headline "" :body ""}
                 payload  {:name "Diverse Co" :description "Diversity is important to us." :diversity diversity}
                 response (mock/api-request :post "/companies" {:body payload})
                 company  (company/get-company conn "diverse-co")

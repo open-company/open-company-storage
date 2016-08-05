@@ -102,7 +102,6 @@ Note-worthy: `PATCH`ing just `body` property to revise the section content.
 
 Note-worthy: `PATCH`ing just `title` property to revise the section's title.
 
-Note-worthy: `PATCH`ing just `notes` property to revise the section's notes.
 
 ### Removing a section:
 

@@ -49,20 +49,13 @@
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))
 
-    (facts "it adds timestamps to notes"
-      (let [co (c/->company (assoc r/open :finances r/finances-notes-section-1) r/coyote)
-            company (c/create-company! conn co)
-            from-db (c/get-company conn (:slug r/open))]
-        (get-in from-db [:updated-at]) => (:updated-at company)
-        (get-in from-db [:finances :notes :updated-at]) => (:updated-at company)))
-
     (fact "it returns the pre-defined categories"
       (:categories (c/create-company! conn (c/->company r/open r/coyote))) => common/category-names)
 
     (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name)
                                                                          :description ""
                                                                          :headline ""
-                                                                         :snippet ""})))]
+                                                                         :body ""})))]
       (facts "it returns the sections in the company in the pre-defined order"
         (:sections (c/create-company! conn (c/->company r/open r/coyote))) => {:progress [] :company []}
         (c/delete-company conn r/slug)

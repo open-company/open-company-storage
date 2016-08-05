@@ -32,7 +32,7 @@
       :section {
         :title "Finances"
         :headline ""
-        :snippet "<p>We're simple! Simple is good...</p>"
+        :body "<p>We're simple! Simple is good...</p>"
         :data [
           {
             :period "2015-02"
@@ -91,7 +91,7 @@
       :section {
         :title "Growth"
         :headline ""
-        :snippet "<p>This is excitingly simple growth!</p>"
+        :body "<p>This is excitingly simple growth!</p>"
         :metrics [
           {
             :slug "mau"

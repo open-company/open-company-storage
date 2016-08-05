@@ -252,9 +252,9 @@ Then enter these commands one-by-one, noting the output:
                                :headline "Buffer in October."
                                :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
                       :finances {:title "Finances"
+                                 :body "Good stuff! Revenue is up."
                                  :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
-                                        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]
-                                 :notes {:body "Good stuff! Revenue is up."}}}
+                                        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]}}
                     author))
 
 ;; list companies
@@ -267,18 +267,17 @@ Then enter these commands one-by-one, noting the output:
 
 ;; create/update a section
 (section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
-(section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-                                                 :notes {:body "we got our first customer! revenue ftw!"}} author)
+(section/put-section conn "blank-inc" :finances {:body "we got our first customer! revenue ftw!"
+                                                 :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
+                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]} author)
 (section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
                                                         {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]
-                                                 :notes {:body "we got our first customer! revenue ftw!"}} author)
-(section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]} author)
+(section/put-section conn "blank-inc" :finances {:body "we got our second customer! more revenue ftw!"
+                                                 :data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
                                                         {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
                                                         {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
-                                                        {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]
-                                                 :notes {:body "we got our second customer! more revenue ftw!"}} author)
+                                                        {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]} author)
 (aprint (company/get-company conn "blank-inc"))
 
 (section/put-section conn "buffer" :update {:headline "it's all meh."} author)

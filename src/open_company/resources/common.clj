@@ -63,9 +63,6 @@
   [section-name]
   (sections-by-name (keyword section-name)))
 
-;; A set of all section names that can contain notes
-(def notes-sections #{:growth :finances})
-
 ;; Regex that matches properly named custom sections
 (def custom-section-name #"^custom-.{4}$")
 
@@ -97,12 +94,11 @@
    :description schema/Str
    :title schema/Str
    :headline schema/Str
-   :snippet schema/Str
+   :body schema/Str
    (schema/optional-key :image-url) (schema/maybe schema/Str)
    (schema/optional-key :image-height) schema/Num
    (schema/optional-key :image-width) schema/Num
    (schema/optional-key :company-slug) schema/Str
-   (schema/optional-key :body) schema/Str
    (schema/optional-key :created-at) schema/Str
    (schema/optional-key :updated-at) schema/Str
    (schema/optional-key :author) Author

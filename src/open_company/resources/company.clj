@@ -62,6 +62,11 @@
   (let [sections (set (map keyword (flatten (vals (:sections company)))))]
     (apply dissoc company (clojure.set/difference (section-set company) sections))))
 
+(defn custom-sections
+  "Return a set of section names of the company that are custom section"
+  [company]
+  (set (map keyword (filter #(re-matches common/custom-section-name %) (map name (keys company))))))
+
 ;; ----- Company Slug -----
 
 (declare list-companies)
@@ -216,12 +221,9 @@
       (sections-for))))
 
 (schema/defn ^:private add-updated-at
-  "Add `:updated-at` key with `ts` as value to a given section.
-   If the section has a `:notes` key also add the timestamp there."
+  "Add `:updated-at` key with `ts` as value to a given section."
   [{:keys [section-name] :as section} :- common/Section ts]
-  (let [notes-section? (contains? common/notes-sections section-name)]
-    (cond-> (assoc section :updated-at ts)
-      (and notes-section? (:notes section)) (assoc-in [:notes :updated-at] ts))))
+  (assoc section :updated-at ts))
 
 (schema/defn ^:always-validate create-company!
   "Create a company document in RethinkDB. Add `updated-at` keys where necessary."
