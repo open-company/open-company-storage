@@ -17,15 +17,14 @@
   "Properties of a resource that can't be specified during a create and are ignored during an update."
   #{:id :company-slug :section-name})
 
-(def custom-topic-placeholder-snippet "What would you like to say about this?")
+(def custom-topic-body-placeholder "What would you like to say about this?")
 
 (def initial-custom-properties 
   "Custom sections don't get initialized from a template, so need blank initial data."
   {
     :description "Custom topic"
     :headline ""
-    :snippet custom-topic-placeholder-snippet
-    :body ""
+    :body custom-topic-body-placeholder
     :image-url nil
     :image-width 0
     :image-height 0

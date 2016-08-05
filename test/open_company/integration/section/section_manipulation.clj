@@ -351,7 +351,6 @@
             (doseq [section [resp-custom-section db-custom-section]]
               (:placeholder section) => true
               section => (contains section/initial-custom-properties)
-              (:snippet section) => section/custom-topic-placeholder-snippet
               section => (contains custom-body)))))
 
       (fact "that used to exist"
