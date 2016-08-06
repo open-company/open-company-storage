@@ -26,7 +26,7 @@
     [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.15.26"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
-    [environ "1.0.3"] ; Environment settings from different sources https://github.com/weavejester/environ
+    [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.7.3"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.4.2"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
@@ -42,7 +42,7 @@
   ;; All profile plugins
   :plugins [
     [lein-ring "0.9.7"] ; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-environ "1.0.3"] ; Get environment settings from different sources https://github.com/weavejester/environ
+    [lein-environ "1.1.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
   ]
 
   :profiles {
