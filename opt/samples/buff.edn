@@ -1252,7 +1252,7 @@
     {
       :section {
         :title "Update"
-        :headline "We reached the 50 team members mark in September! :boom:"
+        :headline "We reached the 50 team members mark in September! 💥"
         :image-url nil
         :image-height 0
         :image-width 0
@@ -2065,7 +2065,7 @@
           to go entirely remote and distributed.</p>
           <p>As we grow, we started experimenting with
           <a href=\"https://open.buffer.com/why-we-ask-our-team-to-grade-us-every-month-buffers-october-hiring-report/\">NPS</a>
-          to get the :heartbeat: of Buffer regularly.</p>
+          to get the ♥ of Buffer regularly.</p>
           <p>We also evolved some of our team tools: we left HipChat & Sqwiggle for Slack & Zoom and joined Okta as a
           security solution. On the transparency front, Leo shared more details on
           <a href=\"https://open.buffer.com/explaining-equity/\">How We Explain Stock Options to Team Members</a>.</p>
@@ -2099,7 +2099,7 @@
     {
       :section {
         :title "Product"
-        :headline "We launched :rocket: Pablo 2.0! :tada:"
+        :headline "We launched 🚀 Pablo 2.0! 📣"
         :image-url "https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png"
         :image-height 643
         :image-width 800
