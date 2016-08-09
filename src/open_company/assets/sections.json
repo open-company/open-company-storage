@@ -219,6 +219,15 @@
         },
 
         {
+          "section-name": "finances",
+          "title": "Finances",
+          "description": "Cash on hand, burn and runway",
+          "headline": "",
+          "body": "Provide context about recent changes in company finances.",
+          "core": false
+        },
+
+        {
           "section-name": "compensation",
           "title": "Compensation",
           "description": "Founder, executive and employee compensation practices",
