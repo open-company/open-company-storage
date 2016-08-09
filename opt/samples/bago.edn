@@ -432,97 +432,97 @@
         :body "<p>We're rich! Maybe...</p>"
         :data[
           {
-            :period "2014-06"
+            :period "2016-04"
             :cash 2468881
             :revenue 450529
             :costs 128715
           }
           {
-            :period "2014-07"
+            :period "2015-05"
             :cash 2478881
             :revenue 460529
             :costs 138715
           }
           {
-            :period "2014-08"
+            :period "2015-06"
             :cash 2488881
             :revenue 460529
             :costs 138715
           }
           {
-            :period "2014-09"
+            :period "2015-07"
             :cash 2498881
             :revenue 470529
             :costs 148715
           }
           {
-            :period "2014-10"
+            :period "2015-08"
             :cash 2508881
             :revenue 480529
             :costs 158715
           }
           {
-            :period "2014-11"
+            :period "2015-09"
             :cash 2508881
             :revenue 480529
             :costs 168715
           }
           {
-            :period "2014-12"
+            :period "2015-10"
             :cash 2518881
             :revenue 490529
             :costs 178715
           }
           {
-            :period "2015-01"
+            :period "2015-11"
             :cash 2528881
             :revenue 500529
             :costs 188715
           }
           {
-            :period "2015-02"
+            :period "2015-12"
             :cash 2538881
             :revenue 510529
             :costs 198715
           }
           {
-            :period "2015-03"
+            :period "2016-01"
             :cash 2548881
             :revenue 520529
             :costs 208715
           }
           {
-            :period "2015-04"
+            :period "2016-02"
             :cash 2558881
             :revenue 530529
             :costs 218715
           }
           {
-            :period "2015-05"
+            :period "2016-03"
             :cash 2568881
             :revenue 540529
             :costs 228715
           }
           {
-            :period "2015-06"
+            :period "2016-04"
             :cash 2578881
             :revenue 550529
             :costs 238715
           }
           {
-            :period "2015-07"
+            :period "2016-05"
             :cash 2655505
             :revenue 571532
             :costs 494907
           }
           {
-            :period "2015-08"
+            :period "2016-06"
             :cash 2789388
             :revenue 624196
             :costs 490313
           }
           {
-            :period "2015-11"
+            :period "2016-07"
             :cash 3019388
             :revenue 894196
             :costs 501231
@@ -535,7 +535,7 @@
         :user-id "123456"
         :image "https://secure.gravatar.com/avatar/98b5456ea1c562024f41501ffd7bc3c6.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0022-192.png"
       }
-      :timestamp "2015-11-23T11:12:02.000Z"
+      :timestamp "2016-08-08T11:12:02.000Z"
     }
 
     {
