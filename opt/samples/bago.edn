@@ -67,349 +67,349 @@
 
           ;; total-registered-users
           {
-            :period "2014-06"
+            :period "2015-03"
             :slug "total-registered-users"
             :value 1211292
           }
           {
-            :period "2014-07"
+            :period "2015-04"
             :slug "total-registered-users"
             :value 1311292
           }
           {
-            :period "2014-08"
+            :period "2015-05"
             :slug "total-registered-users"
             :value 1411292
           }
           {
-            :period "2014-09"
+            :period "2015-06"
             :slug "total-registered-users"
             :value 1511292
           }
           {
-            :period "2014-10"
+            :period "2015-07"
             :slug "total-registered-users"
             :value 1611292
           }
           {
-            :period "2014-11"
+            :period "2015-08"
             :slug "total-registered-users"
             :value 1711292
           }
           {
-            :period "2014-12"
+            :period "2015-09"
             :slug "total-registered-users"
             :value 1811292
           }
           {
-            :period "2015-01"
+            :period "2015-10"
             :slug "total-registered-users"
             :value 1911292
           }
           {
-            :period "2015-02"
+            :period "2015-11"
             :slug "total-registered-users"
             :value 2011292
           }
           {
-            :period "2015-03"
+            :period "2015-12"
             :slug "total-registered-users"
             :value 2111292
           }
           {
-            :period "2015-04"
+            :period "2016-01"
             :slug "total-registered-users"
             :value 2211292
           }
           {
-            :period "2015-05"
+            :period "2016-02"
             :slug "total-registered-users"
             :value 2311292
           }
           {
-            :period "2015-06"
+            :period "2016-03"
             :slug "total-registered-users"
             :value 2411292
           }
           {
-            :period "2015-07"
+            :period "2016-04"
             :slug "total-registered-users"
             :value 2592194
           }
           {
-            :period "2015-08"
+            :period "2016-05"
             :slug "total-registered-users"
             :value 2673418
           }
 
           {
-            :period "2015-09"
+            :period "2016-06"
             :slug "total-registered-users"
             :value 2757998
           }
           {
-            :period "2015-11"
+            :period "2016-07"
             :slug "total-registered-users"
             :value 3017998
           }
 
           ;; mau
           {
-            :period "2014-06"
+            :period "2015-02"
             :slug "mau"
             :value 76464
           }
           {
-            :period "2014-07"
+            :period "2015-03"
             :slug "mau"
             :value 86464
           }
           {
-            :period "2014-08"
+            :period "2015-04"
             :slug "mau"
             :value 96464
           }
           {
-            :period "2014-09"
+            :period "2015-05"
             :slug "mau"
             :value 106464
           }
           {
-            :period "2014-10"
+            :period "2015-06"
             :slug "mau"
             :value 116464
           }
           {
-            :period "2014-11"
+            :period "2015-07"
             :slug "mau"
             :value 126464
           }
           {
-            :period "2014-12"
+            :period "2015-08"
             :slug "mau"
             :value 136464
           }
           {
-            :period "2015-01"
+            :period "2015-09"
             :slug "mau"
             :value 146464
           }
           {
-            :period "2015-02"
+            :period "2015-10"
             :slug "mau"
             :value 156464
           }
           {
-            :period "2015-03"
+            :period "2015-11"
             :slug "mau"
             :value 166464
           }
           {
-            :period "2015-04"
+            :period "2015-12"
             :slug "mau"
             :value 176464
           }
           {
-            :period "2015-05"
+            :period "2016-01"
             :slug "mau"
             :value 186464
           }
           {
-            :period "2015-06"
+            :period "2016-02"
             :slug "mau"
             :value 196464
           }
           {
-            :period "2015-07"
+            :period "2016-03"
             :slug "mau"
             :value 208667
           }
           {
-            :period "2015-08"
+            :period "2016-04"
             :slug "mau"
             :value 211520
           }
           {
-            :period "2015-09"
+            :period "2016-06"
             :slug "mau"
             :value 219744
           }
           {
-            :period "2015-11"
+            :period "2016-07"
             :slug "mau"
             :value 233144
           }
 
           ;; dau
           {
-            :period "2014-06"
+            :period "2015-02"
             :slug "dau"
             :value 37229
           }
           {
-            :period "2014-07"
-            :slug "dau"
-            :value 39229
-          }
-          {
-            :period "2014-08"
-            :slug "dau"
-            :value 40229
-          }
-          {
-            :period "2014-09"
-            :slug "dau"
-            :value 39229
-          }
-          {
-            :period "2014-10"
-            :slug "dau"
-            :value 43229
-          }
-          {
-            :period "2014-11"
-            :slug "dau"
-            :value 41229
-          }
-          {
-            :period "2014-12"
-            :slug "dau"
-            :value 42229
-          }
-          {
-            :period "2015-01"
-            :slug "dau"
-            :value 43229
-          }
-          {
-            :period "2015-02"
-            :slug "dau"
-            :value 43229
-          }
-          {
             :period "2015-03"
             :slug "dau"
-            :value 48229
+            :value 39229
           }
           {
             :period "2015-04"
             :slug "dau"
-            :value 45229
+            :value 40229
           }
           {
             :period "2015-05"
             :slug "dau"
-            :value 49229
+            :value 39229
           }
           {
             :period "2015-06"
             :slug "dau"
-            :value 52229
+            :value 43229
           }
           {
             :period "2015-07"
             :slug "dau"
-            :value 51491
+            :value 41229
           }
           {
             :period "2015-08"
             :slug "dau"
-            :value 50489
+            :value 42229
           }
           {
             :period "2015-09"
             :slug "dau"
-            :value 54357
+            :value 43229
+          }
+          {
+            :period "2015-10"
+            :slug "dau"
+            :value 43229
           }
           {
             :period "2015-11"
+            :slug "dau"
+            :value 48229
+          }
+          {
+            :period "2015-12"
+            :slug "dau"
+            :value 45229
+          }
+          {
+            :period "2016-01"
+            :slug "dau"
+            :value 49229
+          }
+          {
+            :period "2016-02"
+            :slug "dau"
+            :value 52229
+          }
+          {
+            :period "2016-03"
+            :slug "dau"
+            :value 51491
+          }
+          {
+            :period "2016-04"
+            :slug "dau"
+            :value 50489
+          }
+          {
+            :period "2016-05"
+            :slug "dau"
+            :value 54357
+          }
+          {
+            :period "2016-07"
             :slug "dau"
             :value 58345
           }
 
           ;; arr
           {
-            :period "2014-06"
+            :period "2015-03"
             :slug "arr"
             :value 5410000
           }
           {
-            :period "2014-07"
+            :period "2015-04"
             :slug "arr"
             :value 5510000
           }
           {
-            :period "2014-08"
+            :period "2015-05"
             :slug "arr"
             :value 5610000
           }
           {
-            :period "2014-09"
+            :period "2015-06"
             :slug "arr"
             :value 5710000
           }
           {
-            :period "2014-10"
+            :period "2015-07"
             :slug "arr"
             :value 5810000
           }
           {
-            :period "2014-11"
+            :period "2015-08"
             :slug "arr"
             :value 5910000
           }
           {
-            :period "2014-12"
+            :period "2015-09"
             :slug "arr"
             :value 6010000
           }
           {
-            :period "2015-01"
+            :period "2015-10"
             :slug "arr"
             :value 6110000
           }
           {
-            :period "2015-02"
+            :period "2015-11"
             :slug "arr"
             :value 6210000
           }
           {
-            :period "2015-03"
+            :period "2015-12"
             :slug "arr"
             :value 6310000
           }
           {
-            :period "2015-04"
+            :period "2016-01"
             :slug "arr"
             :value 6410000
           }
           {
-            :period "2015-05"
+            :period "2016-02"
             :slug "arr"
             :value 6510000
           }
           {
-            :period "2015-06"
+            :period "2016-03"
             :slug "arr"
             :value 6610000
           }
           {
-            :period "2015-07"
+            :period "2016-04"
             :slug "arr"
             :value 6860000
           }
           {
-            :period "2015-08"
+            :period "2016-05"
             :slug "arr"
             :value 7490000
           }
           {
-            :period "2015-09"
+            :period "2016-06"
             :slug "arr"
             :value 7730000
           }
           {
-           :period "2015-11"
+           :period "2016-07"
            :slug "arr"
            :value 7924000
           }

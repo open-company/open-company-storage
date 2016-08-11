@@ -118,82 +118,82 @@
 
         :data [
           {
-            :period "2015-08"
+            :period "2016-04"
             :slug "mau"
             :value 0
           }
           {
-            :period "2015-09"
+            :period "2016-05"
             :slug "mau"
             :value 1000
           }
           {
-            :period "2015-10"
+            :period "2016-06"
             :slug "mau"
             :value 2000
           }
           {
-            :period "2015-11"
+            :period "2016-07"
             :slug "mau"
             :value 3000
           }
           {
-            :period "2015-12-07"
+            :period "2016-08-08"
             :slug "dau"
             :value 700
           }
           {
-            :period "2015-11-30"
+            :period "2016-08-01"
             :slug "dau"
             :value 600
           }
           {
-            :period "2015-11-23"
+            :period "2016-07-25"
             :slug "dau"
             :value 500
           }
           {
-            :period "2015-11-16"
+            :period "2016-07-18"
             :slug "dau"
             :value 400
           }
           {
-            :period "2015-11-09"
+            :period "2016-07-11"
             :slug "dau"
             :value 300
           }
           {
-            :period "2015-11-02"
+            :period "2016-07-04"
             :slug "dau"
             :value 200
           }
           {
-            :period "2015-10-26"
+            :period "2016-06-27"
             :slug "dau"
             :value 100
           }
           {
-            :period "2015-10-19"
+            :period "2016-06-20"
             :slug "dau"
             :value 0
           }
           {
-            :period "2015-07"
+            :period "2016-07"
             :slug "profit"
             :value 10000
           }
           {
-            :period "2015-04"
+            :period "2016-06"
             :slug "profit"
             :value 1000
           }
           {
-            :period "2015-01"
+            :period "2016-05"
             :slug "profit"
             :value 100
           }
           {
-            :period "2014-10"
+            :period "2016-04"
             :slug "profit"
             :value 0
           }
