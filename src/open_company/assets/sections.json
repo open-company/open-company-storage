@@ -300,7 +300,7 @@
           "title": "Finances",
           "description": "Cash on hand, burn and runway",
           "headline": "",
-          "body": "Provide context about recent changes in company finances.",
+          "body": "What would you like to say about company finances?",
           "core": false
         },
 
