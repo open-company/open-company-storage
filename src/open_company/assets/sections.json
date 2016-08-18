@@ -301,6 +301,7 @@
           "description": "Cash on hand, burn and runway",
           "headline": "",
           "body": "What would you like to say about company finances?",
+          "data": [],
           "core": false
         },
 
