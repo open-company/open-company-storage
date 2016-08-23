@@ -95,6 +95,7 @@
    :title schema/Str
    :headline schema/Str
    :body schema/Str
+   (schema/optional-key :body-placeholder) schema/Str
    (schema/optional-key :image-url) (schema/maybe schema/Str)
    (schema/optional-key :image-height) schema/Num
    (schema/optional-key :image-width) schema/Num
