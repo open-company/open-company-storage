@@ -16,7 +16,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -29,7 +30,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -42,7 +44,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -55,7 +58,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         }
 
       ]
@@ -75,7 +79,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -88,7 +93,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -119,7 +125,8 @@
               "name": "%"
             }
           ],
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -132,7 +139,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
        {
@@ -146,7 +154,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -159,7 +168,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -172,7 +182,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -185,7 +196,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -198,7 +210,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -211,7 +224,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -224,7 +238,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -237,7 +252,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -250,7 +266,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -263,7 +280,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -274,7 +292,8 @@
           "body-placeholder": "What would you like to say about company finances?",
           "body": "",
           "data": [],
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -287,7 +306,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -300,7 +320,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         },
 
         {
@@ -313,7 +334,8 @@
           "image-url": null,
           "image-height": 0,
           "image-width": 0,
-          "core": false
+          "core": false,
+          "pin": false
         }
 
       ]

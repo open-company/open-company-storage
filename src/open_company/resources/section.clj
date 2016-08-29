@@ -14,8 +14,8 @@
 ;; ----- Metadata -----
 
 (def reserved-properties
-  "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:id :company-slug :section-name})
+  "Properties of a section that can't be specified during a create and are ignored during an update."
+  #{:id :company-slug :section-name :body-placeholder :core})
 
 (def custom-topic-body-placeholder "What would you like to say about this?")
 
@@ -28,6 +28,7 @@
     :image-url nil
     :image-width 0
     :image-height 0
+    :pin false
   })
 
 ;; ----- Utility functions -----
@@ -167,7 +168,10 @@
           (assoc :section-name section-name)
           (assoc :author author)
           (assoc :updated-at timestamp)
-          (assoc :description (:description template-section)); read-only property
+          (assoc :pin (or (:pin section) (:pin original-section) (:pin template-section)))
+          (assoc :description (:description template-section)) ; read-only property
+          (assoc :body (or (:body section) (:body original-section) (:body template-section)))
+          (assoc :body-placeholder (:body-placeholder template-section)) ; read-only property
           (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section))))
         updated-sections (sections-with (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)

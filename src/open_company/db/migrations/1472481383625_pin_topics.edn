@@ -1,0 +1,34 @@
+(ns open-company.db.migrations.pin-topics
+  (:require [rethinkdb.query :as r]
+            [open-company.resources.common :as common]
+            [open-company.resources.company :as company]))
+
+(defn- update-section-in-company [conn slug section-name]
+  (println 
+    (-> (r/table "companies")
+      (r/get slug)
+      (r/update {section-name {:pin false}})
+      (r/run conn))))
+
+(defn up [conn]
+  
+  (println "\nUpdating companies...")
+
+  ;; iterate through every company
+  (doseq [slug (map :slug (company/list-companies conn))]
+    (println "Updating" slug)
+    (when-let [company (company/get-company conn slug)]
+      ;; iterate through every section (topic)
+      (doseq [section-name (map keyword (flatten (vals (:sections company))))]
+        (when-let [section (company section-name)]
+          (println "  Updating section in company " (name section-name))
+          (update-section-in-company conn slug section-name)))))
+
+  ;; iterate through every section
+  (println "\nUpdating sections...")
+  (println 
+    (-> (r/table "sections")
+      (r/update {:pin false})
+      (r/run conn)))
+
+  true)

@@ -190,8 +190,8 @@
 
 (defn- complete-real-sections
   "For each non-placeholder section in the company add an author,
-   the company's slug, and the section's name, description and image.
-   Section image and description are from the canonical section definitions."
+   the company's slug, and the section's name, description, body placeholder and pin.
+   Section body placeholder and description are from the canonical section definitions."
   [company user]
   (let [rs (real-sections company)
         add-info (fn [[section-name section-data]]
@@ -199,7 +199,10 @@
                           (assoc :author (common/author-for-user user))
                           (assoc :company-slug (:slug company))
                           (assoc :section-name section-name)
-                          (assoc :description (:description (common/section-by-name section-name))))])]
+                          (assoc :description (:description (common/section-by-name section-name)))
+                          (update :pin (fn [pin] (if (nil? pin) (:pin (common/section-by-name section-name)) pin)))
+                          (update :body (fn [body] (if (nil? body) (:body (common/section-by-name section-name)) body)))
+                          (assoc :body-placeholder (:body-placeholder (common/section-by-name section-name))))])]
     (merge company (into {} (map add-info rs)))))
 
 (schema/defn ->company :- common/Company
