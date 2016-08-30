@@ -15,7 +15,7 @@
 
 (def reserved-properties
   "Properties of a section that can't be specified during a create and are ignored during an update."
-  #{:id :company-slug :section-name :body-placeholder :core})
+  #{:id :company-slug :section-name :body-placeholder})
 
 (def custom-topic-body-placeholder "What would you like to say about this?")
 
@@ -52,14 +52,6 @@
   ([time1 time2]
   (when (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
     (:id time1))))
-
-(defn- sections-with
-  "Add the provided section name to the end of the correct category, unless it's already in the category."
-  [sections section-name]
-  (if ((set (map keyword (flatten (vals sections)))) (keyword section-name))
-    sections ; already contains the section-name
-    (let [category-name (or (common/category-for section-name) common/default-category)] ; category for this section
-      (update-in sections [category-name] conj section-name)))) ; add the section name to the category
 
 (defn- revision-time-gt?
   "Compare the section's original and updated `:updated-at`s, returning `true` if they
@@ -173,7 +165,7 @@
           (assoc :body (or (:body section) (:body original-section) (:body template-section)))
           (assoc :body-placeholder (:body-placeholder template-section)) ; read-only property
           (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section))))
-        updated-sections (sections-with (:sections original-company) section-name)
+        updated-sections (conj (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)
         updated-company (assoc sectioned-company section-name (-> updated-section
           (dissoc :placeholder)

@@ -26,14 +26,11 @@
             missing-sections {:sections {:progress ["highlights" "help"] :company ["ownership"]}}
             fixed-company (c/add-placeholder-sections (merge company missing-sections))] ; this is what's tested
         (:highlights fixed-company) => (-> (common/section-by-name "highlights")
-                                           (assoc :placeholder true)
-                                           (dissoc :core))
+                                           (assoc :placeholder true))
         (:help fixed-company) => (-> (common/section-by-name "help")
-                                     (assoc :placeholder true)
-                                     (dissoc :core))
+                                     (assoc :placeholder true))
         (:ownership fixed-company) => (-> (common/section-by-name "ownership")
-                                          (assoc :placeholder true)
-                                          (dissoc :core))))
+                                          (assoc :placeholder true))))
 
     (future-fact "with partially specified placeholder sections"
       (let [company (c/get-company conn r/slug)
@@ -45,19 +42,16 @@
             fixed-company (c/merge-company company updated-content)] ; this is what's tested
         (:highlights fixed-company) => (-> (common/section-by-name "highlights")
                                            (assoc :placeholder false)
-                                           (assoc :body "body a")
-                                           (dissoc :core))
+                                           (assoc :body "body a"))
         (:help fixed-company) => (-> (common/section-by-name "help")
                                      (assoc :placeholder false)
                                      (assoc :title "title b")
-                                     (assoc :body "body b")
-                                     (dissoc :core))
+                                     (assoc :body "body b"))
         (:ownership fixed-company) => (-> (common/section-by-name "ownership")
                                           (assoc :placeholder false)
                                           (assoc :title "title c")
                                           (assoc :headline "headline c")
-                                          (assoc :body "body c")
-                                          (dissoc :core))))
+                                          (assoc :body "body c"))))
 
     (fact "with missing prior sections"
       ;; add the sections to be priors

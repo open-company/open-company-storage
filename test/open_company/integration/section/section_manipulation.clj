@@ -58,104 +58,61 @@
                                      (company/delete-all-companies! conn)))]
 
   (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-  (facts "about failing to reorder sections"
 
-    (fact "with an invalid JWToken"
-      (let [new-order {:progress ["team" "update" "finances" "help" "custom-a1b2"]
-                       :company ["diversity" "values"]}
-            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
-                                                                        :auth mock/jwtoken-bad})]
-        (:status response) => 401
-        (:body response) => common/unauthorized)
-      ;; verify the initial order is unchanged
-      (let [db-company (company/get-company conn r/slug)]
-        (:categories db-company) => categories
-        (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["update" "finances" "team" "help" "custom-a1b2"]}))
+  (let [original-order ["update" "finances" "team" "help" "diversity" "values" "custom-a1b2"]
+        new-order ["team" "update" "finances" "help" "custom-a1b2" "diversity" "values"]]
 
-    (fact "with no JWToken"
-      (let [new-order {:progress ["team" "update" "finances" "help" "custom-a1b2"]
-                       :company ["diversity" "values"]}
-            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
-                                                                        :skip-auth true})]
-        (:status response) => 401
-        (:body response) => common/unauthorized)
-      ;; verify the initial order is unchanged
-      (let [db-company (company/get-company conn r/slug)]
-        (:categories db-company) => categories
-        (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["update" "finances" "team" "help" "custom-a1b2"]}))
+    (facts "about failing to reorder sections"
 
-    (fact "with an organization that doesn't match the company"
-      (let [new-order {:progress ["team" "update" "finances" "help" "custom-a1b2"]
-                       :company ["diversity" "values"]}
-            response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
-                                                                        :auth mock/jwtoken-sartre})]
-        (:status response) => 403
-        (:body response) => common/forbidden)
-      ;; verify the initial order is unchanged
-      (let [db-company (company/get-company conn r/slug)]
-        (:categories db-company) => categories
-        (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["update" "finances" "team" "help" "custom-a1b2"]}))
+      (fact "with an invalid JWToken"
+        (let [response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
+                                                                          :auth mock/jwtoken-bad})]
+          (:status response) => 401
+          (:body response) => common/unauthorized)
+        ;; verify the initial order is unchanged
+        (let [db-company (company/get-company conn r/slug)]
+          (:sections db-company) => original-order))
 
-    (fact "with no company matching the company slug"
-      (let [new-order {:company ["diversity" "values"]
-                       :progress ["team" "update" "finances" "help" "custom-a1b2"]}
-            response (mock/api-request :patch (company-rep/url "foo") {:body {:sections new-order}})]
-        (:status response) => 404
-        (:body response) => "")
-      ;; verify the initial order is unchanged
-      (let [db-company (company/get-company conn r/slug)]
-        (:categories db-company) => categories
-        (:sections db-company) => {:company ["diversity" "values"]
-                                   :progress ["update" "finances" "team" "help" "custom-a1b2"]})))
+      (fact "with no JWToken"
+        (let [response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
+                                                                          :skip-auth true})]
+          (:status response) => 401
+          (:body response) => common/unauthorized)
+        ;; verify the initial order is unchanged
+        (let [db-company (company/get-company conn r/slug)]
+          (:sections db-company) => original-order))
+
+      (fact "with an organization that doesn't match the company"
+        (let [response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}
+                                                                          :auth mock/jwtoken-sartre})]
+          (:status response) => 403
+          (:body response) => common/forbidden)
+        ;; verify the initial order is unchanged
+        (let [db-company (company/get-company conn r/slug)]
+          (:sections db-company) => original-order))
+
+      (fact "with no company matching the company slug"
+        (let [response (mock/api-request :patch (company-rep/url "foo") {:body {:sections new-order}})]
+          (:status response) => 404
+          (:body response) => "")
+        ;; verify the initial order is unchanged
+        (let [db-company (company/get-company conn r/slug)]
+          (:sections db-company) => original-order)))
 
   (facts "about section reordering"
 
     ;; verify the initial order
     (let [db-company (company/get-company conn r/slug)]
-      (:categories db-company) => categories
-      (:sections db-company) => {:company ["diversity" "values"]
-                                 :progress ["update" "finances" "team" "help" "custom-a1b2"]})
+      (:sections db-company) => original-order)
 
     (facts "when the new order is valid"
 
-      (fact "the section order in the progress category can be gently adjusted"
-        (let [new-order {:progress ["team" "update" "help" "finances" "custom-a1b2"]
-                         :company ["diversity" "values"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
+      (fact "the section order can be adjusted"
+        (let [response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
           (:status response) => 200
           (:sections (mock/body-from-response response)) => new-order
           ;; verify the new order
-          (:sections (company/get-company conn r/slug)) => new-order))
-
-      (fact "the sections order in the progress category can be greatly adjusted"
-        (let [new-order {:progress ["custom-a1b2" "help" "team" "update" "finances"]
-                         :company ["diversity" "values"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
-          (:status response) => 200
-          (:sections (mock/body-from-response response)) => new-order
-          ;; verify the new order
-          (:sections (company/get-company conn r/slug)) => new-order))
-
-      (fact "the section order in the company category can be adjusted"
-        (let [new-order {:progress ["update" "finances" "team" "help" "custom-a1b2"]
-                         :company ["values" "diversity"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
-          (:status response) => 200
-          (:sections (mock/body-from-response response)) => new-order
-          ;; verify the new order
-          (:sections (company/get-company conn r/slug)) => new-order))
-
-      (fact "the section order in the progress and company category can both be adjusted at once"
-        (let [new-order {:progress ["custom-a1b2" "help" "team" "update" "finances"]
-                         :company ["values" "diversity"]}
-              response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-order}})]
-          (:status response) => 200
-          (:sections (mock/body-from-response response)) => new-order
-          ;; verify the new order
-          (:sections (company/get-company conn r/slug)) => new-order))))
+          (:sections (company/get-company conn r/slug)) => new-order)))))
 
   (facts "about placeholder section removal"
     (let [slug     "hello-world"
@@ -321,7 +278,7 @@
                 resp-highlights (:highlights resp-body)
                 db-company (company/get-company conn r/slug)
                 db-highlights (:highlights db-company)
-                placeholder (dissoc (common-res/section-by-name :highlights) :section-name :core)]
+                placeholder (dissoc (common-res/section-by-name :highlights) :section-name)]
             (:status response) => 200
             ; verify section list in response and DB
             (doseq [body [resp-body db-company]]

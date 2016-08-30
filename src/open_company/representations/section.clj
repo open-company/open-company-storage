@@ -6,7 +6,7 @@
 
 (def media-type "application/vnd.open-company.section.v1+json")
 
-(def ^:private clean-properties [:core :id :company-slug :section-name])
+(def ^:private clean-properties [:id :company-slug :section-name])
 
 (defn url
   ([company-slug section-name]

@@ -175,7 +175,6 @@
 
   :post! (fn [{:keys [user data] :as ctx}]
            (let [company (->> (company/->company data user (find-slug conn data))
-                              (company/add-core-placeholder-sections)
                               (company/create-company! conn))]
              (when (:bot user) ; Some JWTokens might not have a bot token
                (->> (assoc (common/clone ctx) :company company)

@@ -74,15 +74,13 @@
 
 ;; ----- Schemas -----
 
-(def CategoryName (schema/pred #((set category-names) (keyword %))))
-
 ; Allow known section names and custom section names
 (def SectionName (schema/pred #(or (section-names (keyword %)) (re-matches custom-section-name (name %)))))
 
 (def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  {CategoryName [SectionName]})
+  [SectionName])
 
 (def Author {
   :name schema/Str
@@ -119,7 +117,6 @@
           :currency schema/Str
           :org-id schema/Str
           :sections SectionsOrder
-          :categories (schema/pred #(clojure.set/subset? (set (map keyword %)) (set category-names)))
           :stakeholder-update {:title schema/Str
                                :sections [SectionName]}
           (schema/optional-key :logo) schema/Str

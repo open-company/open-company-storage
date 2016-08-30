@@ -13,14 +13,14 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:slug :org-id :categories})
+  #{:slug :org-id})
 
 (def metadata-properties
   "
   Properties of the `sections.json` section placeholder data that are NOT valid properties of a section, but are
   simply meta-data for the UI.
   "
-  #{:core :prompt :standard-metrics :units :intervals})
+  #{:prompt :body-placeholder :standard-metrics :units :intervals})
 
 ;; ----- Utility functions -----
 
@@ -28,11 +28,6 @@
   "Remove any reserved properties from the company."
   [company]
   (apply dissoc (common/clean company) reserved-properties))
-
-(defn- categories-for
-  "Add the :categories vector in the company with the definitive initial list of categories."
-  [company]
-  (assoc company :categories common/category-names))
 
 (defn- section-set
   "Return the set of section names that are contained in the provided company."
@@ -46,20 +41,10 @@
     ;; all the company keys that are custom section names
     (set (filter #(re-matches common/custom-section-name (name %)) (keys company)))))
 
-(defn- sections-for
-  "Add a :sections key to given company containing category->ordered-sections mapping
-  Only add sections to the ordered-sections list that are used in the company map"
-  [company]
-  (let [seclist (section-set company)]
-    (->> (for [[cat sects] common/category-section-tree]
-          [cat (vec (filter (set seclist) sects))])
-      (into {})
-      (assoc company :sections))))
-
 (defn- remove-sections
   "Remove any sections from the company that are not in the :sections property"
   [company]
-  (let [sections (set (map keyword (flatten (vals (:sections company)))))]
+  (let [sections (set (map keyword (:sections company)))]
     (apply dissoc company (clojure.set/difference (section-set company) sections))))
 
 (defn custom-sections
@@ -103,29 +88,6 @@
   {:pre [(string? slug)]}
   (common/read-resource conn table-name slug))
 
-(defn- core-placeholder-sections
-  "Return a map of section-name -> section containing just the core
-   placeholder sections in sections.json"
-  [slug]
-  (reduce (fn [s sec]
-            (assoc s
-              (:section-name sec)
-              (apply dissoc 
-                (-> sec
-                  (assoc :company-slug slug)
-                  (assoc :placeholder true)
-                  (dissoc :name))
-                metadata-properties)))
-          {}
-          (filter :core common/sections)))
-
-(defn add-core-placeholder-sections
-  "Add the placeholder for any core sections that are missing from the provided company."
-  [company]
-  (-> (core-placeholder-sections (:slug company))
-      (merge company)
-      (sections-for)))
-
 (defn add-placeholder-sections
   "Add the canonical placeholder section for any section names listed in the :sections property of the company,
   but that aren't present in the company."
@@ -133,7 +95,7 @@
   (let [sections              (-> company :sections vals flatten vec)
         missing-section-names (->> sections (map keyword) (remove #(get company %)))
         missing-sections      (map common/section-by-name missing-section-names)
-        ;; add :placeholder flag and remove :core flag
+        ;; add :placeholder flag and remove metada
         placeholder-sections (->> missing-sections
                                 (map #(apply dissoc % metadata-properties))
                                 (map #(assoc % :placeholder true)))]
@@ -220,8 +182,7 @@
       (update :stakeholder-update #(or % common/empty-stakeholder-update))
       (assoc :org-id (:org-id user))
       (complete-real-sections user)
-      (categories-for)
-      (sections-for))))
+      (update :sections #(vec (section-set %))))))
 
 (schema/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section."
@@ -251,7 +212,6 @@
     (let [org-id (:org-id company)
           updated-company (-> company
                             (clean)
-                            (categories-for)
                             (remove-sections)
                             (assoc :org-id org-id)
                             (assoc :slug slug))]
