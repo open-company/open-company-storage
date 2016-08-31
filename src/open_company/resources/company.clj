@@ -1,5 +1,6 @@
 (ns open-company.resources.company
-  (:require [if-let.core :refer (if-let*)]
+  (:require [clojure.walk :refer (keywordize-keys)]
+            [if-let.core :refer (if-let*)]
             [medley.core :as med]
             [schema.core :as schema]
             [open-company.resources.common :as common]))
@@ -20,7 +21,7 @@
   Properties of the `sections.json` section placeholder data that are NOT valid properties of a section, but are
   simply meta-data for the UI.
   "
-  #{:prompt :body-placeholder :standard-metrics :units :intervals})
+  #{:prompt :standard-metrics :units :intervals})
 
 ;; ----- Utility functions -----
 
@@ -35,6 +36,7 @@
   (clojure.set/union
     ;; all the company keys that are known section names
     (->> (keys company)
+      (map keyword)
       (set)
       (clojure.set/intersection common/section-names)
       (set))
@@ -54,17 +56,17 @@
 
 ;; ----- Company Slug -----
 
-(declare list-companies)
-
 (def reserved-slugs #{"about" "android" "api" "app" "careers" "companies"
-                      "company" "contact" "crowd" "developer"
-                      "developers" "download" "faq" "founder" "founders"
+                      "company" "contact" "create-company" "crowd" "developer"
+                      "developers" "download" "faq" "forum" "forums" 
+                      "founder" "founders" "help"
                       "home" "investor" "investors" "ios" "jobs" "login"
                       "logout" "news" "newsletter" "press" "privacy" "register"
                       "section" "sections" "signup" "stakeholder"
                       "stakeholder-update" "terms" "topic" "topics"
-                      "update" "updates" "profile" "create-company"})
+                      "update" "updates" "profile"})
 
+(declare list-companies)
 (defn taken-slugs
   "Return all slugs which are in use as a set."
   [conn]
@@ -92,10 +94,10 @@
   "Add the canonical placeholder section for any section names listed in the :sections property of the company,
   but that aren't present in the company."
   [company]
-  (let [sections              (-> company :sections vals flatten vec)
+  (let [sections              (:sections company)
         missing-section-names (->> sections (map keyword) (remove #(get company %)))
-        missing-sections      (map common/section-by-name missing-section-names)
-        ;; add :placeholder flag and remove metada
+        missing-sections      (map common/sections-by-name missing-section-names)
+        ;; add :placeholder flag and remove metadata
         placeholder-sections (->> missing-sections
                                 (map #(apply dissoc % metadata-properties))
                                 (map #(assoc % :placeholder true)))]
@@ -106,7 +108,7 @@
   of the company, but that aren't present in the company."
   [conn company]
   (let [slug (:slug company)
-        sections (-> company :sections vals flatten vec)
+        sections (:sections company)
         ; names of sections in the sections property, but not present in company
         missing-section-names (map keyword (filter #(nil? (company (keyword %))) sections))
         ; function to get the ID of the most recent prior section of those missing sections (where found)
@@ -145,27 +147,20 @@
         (map #(clojure.set/rename-keys % {:section-name :section}))  
         (vec))))
         
-(defn- real-sections
+(defn real-sections
   "Select all non-placeholder sections from a company map"
   [company]
   (med/remove-vals :placeholder (select-keys company common/section-names)))
 
-(defn- complete-real-sections
-  "For each non-placeholder section in the company add an author,
-   the company's slug, and the section's name, description, body placeholder and pin.
-   Section body placeholder and description are from the canonical section definitions."
-  [company user]
-  (let [rs (real-sections company)
-        add-info (fn [[section-name section-data]]
-                   [section-name (-> section-data
-                          (assoc :author (common/author-for-user user))
-                          (assoc :company-slug (:slug company))
-                          (assoc :section-name section-name)
-                          (assoc :description (:description (common/section-by-name section-name)))
-                          (update :pin (fn [pin] (if (nil? pin) (:pin (common/section-by-name section-name)) pin)))
-                          (update :body (fn [body] (if (nil? body) (:body (common/section-by-name section-name)) body)))
-                          (assoc :body-placeholder (:body-placeholder (common/section-by-name section-name))))])]
-    (merge company (into {} (map add-info rs)))))
+(defn complete-sections
+  "
+  For each section add an author, the company's slug, and the section's properties, either
+  from the section, or from the common sections.
+  "
+  [company user sections]
+  (let [add-info (fn [[section-name section-data]] 
+                    [section-name (common/complete-section section-data (:slug company) section-name user)])]
+    (merge company (into {} (map add-info sections)))))
 
 (schema/defn ->company :- common/Company
   "Take a minimal map describing a company and a user and 'fill the blanks'"
@@ -173,16 +168,19 @@
   (->company company-props user (:slug company-props)))
 
   ([company-props user slug]
-  (-> company-props
-      (assoc :uuid (str (java.util.UUID/randomUUID)))
-      (assoc :slug slug)
-      (update :public #(or % false))
-      (update :promoted #(or % false))
-      (update :currency #(or % "USD"))
-      (update :stakeholder-update #(or % common/empty-stakeholder-update))
-      (assoc :org-id (:org-id user))
-      (complete-real-sections user)
-      (update :sections #(vec (section-set %))))))
+  (let [props (-> company-props
+                keywordize-keys
+                (assoc :slug slug)
+                (assoc :uuid (str (java.util.UUID/randomUUID)))
+                (assoc :org-id (:org-id user)))]
+    (-> props
+        (update :public #(or % false))
+        (update :promoted #(or % false))
+        (update :currency #(or % "USD"))
+        (update :stakeholder-update #(or % common/empty-stakeholder-update))
+        (complete-sections user (real-sections props))
+        (add-placeholder-sections)
+        (update :sections #(or % (vec (section-set props))))))))
 
 (schema/defn ^:private add-updated-at
   "Add `:updated-at` key with `ts` as value to a given section."

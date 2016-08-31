@@ -158,16 +158,17 @@
 
       (facts "known user supplied sections"
         (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+          
           (let [diversity {:title "Diversity" :headline "All the peoples." :body "Belong to us." :pin true}
                 payload  {:name "Diverse Co" :description "Diversity is important to us." :diversity diversity}
                 response (mock/api-request :post "/companies" {:body payload})
                 company  (company/get-company conn "diverse-co")
                 sect     (section/get-section conn "diverse-co" :diversity)]
+            
             (fact "are added with author, updated-at, image and description"
               (:status response) => 201
               sect => (contains diversity)
               (:placeholder sect) => falsey
               (:author sect) => truthy
               (:updated-at sect) => truthy
-              (:image sect) => (:image (common/section-by-name :diversity))
-              (:description sect) => (:description (common/section-by-name :diversity)))))))))
+              (:description sect) => (:description (common/sections-by-name :diversity)))))))))

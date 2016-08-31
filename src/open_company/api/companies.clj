@@ -70,7 +70,7 @@
         prior-custom-sections (company/custom-sections original-company)
         now-custom-sections (company/custom-sections with-prior-sections)
         new-custom-names (vec (clojure.set/difference now-custom-sections prior-custom-sections))
-        new-custom-sections (map #(merge section/initial-custom-properties (company-updates %)) new-custom-names)
+        new-custom-sections (map #(merge common-res/initial-custom-properties (company-updates %)) new-custom-names)
         complete-new-custom-sections (zipmap new-custom-names new-custom-sections)
         with-compelete-new-custom-sections (merge with-prior-sections complete-new-custom-sections)
         ; add in the placeholder sections for any brand new added sections
@@ -94,9 +94,11 @@
 
 ;; ----- Validations -----
 
-(defn processable-patch-req? [conn slug ctx]
+(defn processable-patch-req? [conn slug {:keys [user data]}]
   (if-let [existing-company (company/get-company conn slug)] ; can only PATCH a company that already exists
-    (let [updated-company (merge existing-company (:data ctx)) ; apply the PATCH to the existing company
+    (let [patch (assoc data :slug slug) ; they probably didn't bother to include the slug in the PATCH since it's in the URL
+          with-complete-sections (company/complete-sections patch user (company/real-sections patch)) ; PATCH data w/ completed sections
+          updated-company (merge existing-company with-complete-sections) ; apply the PATCH to the existing company
           invalid? (schema/check common-res/Company updated-company)] ; check that it's still valid
       (cond
         invalid? [false {:reason invalid?}] ; invalid

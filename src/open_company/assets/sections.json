@@ -176,7 +176,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -190,7 +189,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -204,7 +202,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -218,7 +215,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -232,7 +228,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -246,7 +241,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -260,7 +254,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -272,7 +265,6 @@
       "body-placeholder": "What would you like to say about company finances?",
       "body": "",
       "data": [],
-      "core": false,
       "pin": false
     },
 
@@ -286,7 +278,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -300,7 +291,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     },
 
@@ -314,7 +304,6 @@
       "image-url": null,
       "image-height": 0,
       "image-width": 0,
-      "core": false,
       "pin": false
     }
 

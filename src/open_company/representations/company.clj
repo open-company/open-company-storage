@@ -72,7 +72,7 @@
                                                  :section-name section})
                                        authorized))))
           company
-          (map keyword (flatten (vals (:sections company))))))
+          (map keyword (:sections company))))
 
 (defn- stakeholder-updates-link
   "Add HATEOAS links to existing stakeholder updates"

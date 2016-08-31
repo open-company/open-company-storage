@@ -40,7 +40,7 @@
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")
       (r/get "open")
-      (r/update {:categories ["progress" "company"]})
+      (r/update {:sections ["progress" "company"]})
       (r/run c)))
 
 (with-open [c (apply r/connect conn2)]
@@ -96,12 +96,6 @@
   (-> (r/table "sections")
   (r/get-all ["21c9ddd4-6d1c-47a5-b6c1-1308fed08523"] {:index "id"})
   (r/run c))))
-
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "sections")
-  (r/get-all ["70733852-21f7-4aba-bff6-de93ce699be2"] {:index "id"})
-  (r/update {:image "https://open-company.s3.amazonaws.com/diversity.svg"})
-  (r/run c)))
 
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")

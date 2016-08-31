@@ -49,26 +49,19 @@
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))
 
-    (fact "it returns the pre-defined categories"
-      (:categories (c/create-company! conn (c/->company r/open r/coyote))) => common/category-names)
-
     (let [add-section (fn [c section-name] (assoc c section-name (merge {:title (name section-name)
-                                                                         :description ""
                                                                          :headline ""
                                                                          :body ""})))]
       (facts "it returns the sections in the company in the pre-defined order"
-        (:sections (c/create-company! conn (c/->company r/open r/coyote))) => {:progress [] :company []}
+        (:sections (c/create-company! conn (c/->company r/open r/coyote))) => []
         (c/delete-company conn r/slug)
-        (:sections (c/create-company! conn (c/->company (add-section r/open :update) r/coyote))) =>
-        {:progress [:update] :company []}
+        (:sections (c/create-company! conn (c/->company (add-section r/open :update) r/coyote))) => [:update]
         (c/delete-company conn r/slug)
-        (:sections (c/create-company! conn (c/->company (add-section r/open :values) r/coyote))) =>
-        {:progress [] :company [:values]}
+        (:sections (c/create-company! conn (c/->company (add-section r/open :values) r/coyote))) => [:values]
         (c/delete-company conn r/slug)
         (:sections (c/create-company!
                     conn
                     (c/->company (-> r/open
                                      (add-section :mission) (add-section :press) (add-section :help)
                                      (add-section :challenges) (add-section :diversity) (add-section :update))
-                                 r/coyote)))
-        => {:progress [:update :challenges :press :help] :company [:mission :diversity]})))))
+                                 r/coyote))) => (just #{:update :challenges :press :help :mission :diversity}))))))

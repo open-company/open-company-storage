@@ -1,5 +1,6 @@
 (ns open-company.integration.section.section-new
-  (:require [midje.sweet :refer :all]
+  (:require [clojure.walk :refer (keywordize-keys)]
+            [midje.sweet :refer :all]
             [cheshire.core :as json]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
@@ -108,4 +109,4 @@
     (fact "with a user's org in a JWToken that matches the company's org"
       (let [response (mock/api-request :get url)]
         (:status response) => 200
-        (json/decode (:body response)) => config/sections))))
+        (keywordize-keys (json/decode (:body response))) => config/sections))))

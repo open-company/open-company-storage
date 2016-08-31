@@ -1,6 +1,7 @@
 (ns open-company.config
   "Namespace for the configuration parameters."
-  (:require [environ.core :refer (env)]
+  (:require [clojure.walk :refer (keywordize-keys)]
+            [environ.core :refer (env)]
             [cheshire.core :as json]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.core :as appenders]))
@@ -58,7 +59,11 @@
 ;; how long to wait before a sequential edit by the same author is considered a new version
 (defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; 24 hours in minutes
 
-(defonce sections (json/decode (slurp (clojure.java.io/resource "open_company/assets/sections.json"))))
+(defonce sections (-> "open_company/assets/sections.json"
+                    clojure.java.io/resource
+                    slurp
+                    json/decode
+                    keywordize-keys))
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 

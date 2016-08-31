@@ -52,8 +52,9 @@
 (def full-options "OPTIONS, GET, PATCH, DELETE")
 
 (with-state-changes [(before :contents (ts/setup-system!))
-                     (after :contents (ts/teardown-system!))
-                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                     (after :contents (ts/teardown-system!))]
+  
+  (with-state-changes [(before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                       (company/delete-all-companies! conn)
                                       (company/create-company! conn (company/->company (assoc r/open :public true) r/coyote))
                                       (section/put-section conn r/slug :update r/text-section-1 r/coyote)
@@ -63,178 +64,173 @@
                                       (section/put-section conn r/slug :diversity r/text-section-2 r/coyote)
                                       (section/put-section conn r/slug :values r/text-section-1 r/coyote)
                                       (section/put-section conn r/slug :custom-a1b2 r/text-section-2 r/coyote)))
-                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                       (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                      (company/delete-all-companies! conn)))]
 
-  (facts "about available options for retrieving a public company"
+    (facts "about available options for retrieving a public company"
 
-    (fact "with a bad JWToken"
-      (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-bad})]
-        (:status response) => 401
-        (:body response) => common-api/unauthorized))
+      (fact "with a bad JWToken"
+        (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-bad})]
+          (:status response) => 401
+          (:body response) => common-api/unauthorized))
 
-    (fact "with no company matching the company slug"
-      (let [response (mock/api-request :options (company-rep/url "foo"))]
-        (:status response) => 404
-        (:body response) => ""))
+      (fact "with no company matching the company slug"
+        (let [response (mock/api-request :options (company-rep/url "foo"))]
+          (:status response) => 404
+          (:body response) => ""))
 
-    (fact "with no JWToken"
-      (let [response (mock/api-request :options (company-rep/url r/open) {:skip-auth true})]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => limited-options))
+      (fact "with no JWToken"
+        (let [response (mock/api-request :options (company-rep/url r/open) {:skip-auth true})]
+          (:status response) => 204
+          (:body response) => ""
+          ((:headers response) "Allow") => limited-options))
 
-    (fact "with an organization that doesn't match the company"
-      (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-sartre})]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => limited-options))
+      (fact "with an organization that doesn't match the company"
+        (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-sartre})]
+          (:status response) => 204
+          (:body response) => ""
+          ((:headers response) "Allow") => limited-options))
 
-    (fact "with a user's org in a JWToken that matches the company's org"
-      (let [response (mock/api-request :options (company-rep/url r/open))]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => full-options)))
+      (fact "with a user's org in a JWToken that matches the company's org"
+        (let [response (mock/api-request :options (company-rep/url r/open))]
+          (:status response) => 204
+          (:body response) => ""
+          ((:headers response) "Allow") => full-options)))
 
-  (facts "about failing to retrieve a public company"
+    (facts "about failing to retrieve a public company"
 
-    (fact "with an invalid JWToken"
-      (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})]
-        (:status response) => 401
-        (:body response) => common-api/unauthorized))
+      (fact "with an invalid JWToken"
+        (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})]
+          (:status response) => 401
+          (:body response) => common-api/unauthorized))
 
-    (fact "that doesn't exist"
-      (let [response (mock/api-request :get (company-rep/url "foo"))]
-        (:status response) => 404
-        (:body response) => "")))
+      (fact "that doesn't exist"
+        (let [response (mock/api-request :get (company-rep/url "foo"))]
+          (:status response) => 404
+          (:body response) => "")))
 
-  (facts "about retrieving a public company"
+    (facts "about retrieving a public company"
 
-    (fact "that does match the retrieving user's organization"
-      (let [response (mock/api-request :get (company-rep/url r/open))
-            body (mock/body-from-response response)]
-        (:status response) => 200
-        (:name body) => (:name r/open)
-        (:slug body) => (:slug r/open)
-        (:org-id body) => nil ; verify no org-id
-        (:categories body) => (map name common/category-names)
-        (:sections body) =>
-          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help" "custom-a1b2"]}
-        ;; verify section contents
-        (:update body) => (contains r/text-section-1)
-        (:finances body) => (contains r/finances-section-1)
-        (:team body) => (contains r/text-section-2)
-        (:help body) => (contains r/text-section-1)
-        (:diversity body) => (contains r/text-section-2)
-        (:values body) => (contains r/text-section-1)
-         ;; verify each section has all the HATEOAS links
-        (doseq [section-key (map keyword (flatten (vals (:sections body))))]
-          (hateoas/verify-section-links (:slug r/open) section-key (:links (body section-key))))
-        ;; verify the company has all the HATEOAS links
-        (hateoas/verify-company-links (:slug r/open) (:links body))))
+      (let [section-order ["update" "finances" "team" "help" "diversity" "values" "custom-a1b2"]]
 
-    (fact "anonymously with no JWToken"
-      ;; retrieve with no JWToken
-      (let [response (mock/api-request :get (company-rep/url r/open) {:skip-auth true})
-            body (mock/body-from-response response)]
-        (:status response) => 200
-        (:sections body) =>
-          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help" "custom-a1b2"]}
-        ;; verify each section has only a self HATEOAS link
-        (doseq [section-key (map keyword (flatten (vals (:sections body))))]
-          (count (:links (body section-key))) => 1
-          (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
-            section-rep/media-type (:links (body section-key))))
-        ;; verify the company has only a self HATEOAS link
-        (count (:links body)) => 2
-        (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))
+        (fact "that does match the retrieving user's organization"
+          (let [response (mock/api-request :get (company-rep/url r/open))
+                body (mock/body-from-response response)]
+            (:status response) => 200
+            (:name body) => (:name r/open)
+            (:slug body) => (:slug r/open)
+            (:org-id body) => nil ; verify no org-id
+            (:sections body) => section-order
+            ;; verify section contents
+            (:update body) => (contains r/text-section-1)
+            (:finances body) => (contains r/finances-section-1)
+            (:team body) => (contains r/text-section-2)
+            (:help body) => (contains r/text-section-1)
+            (:diversity body) => (contains r/text-section-2)
+            (:values body) => (contains r/text-section-1)
+             ;; verify each section has all the HATEOAS links
+            (doseq [section-key (map keyword (:sections body))]
+              (hateoas/verify-section-links (:slug r/open) section-key (:links (body section-key))))
+            ;; verify the company has all the HATEOAS links
+            (hateoas/verify-company-links (:slug r/open) (:links body))))
 
-    (fact "that doesn't match the retrieving user's organization"
-      ;; retrieve with Sartre (different org)
-      (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-sartre})
-            body (mock/body-from-response response)]
-        (:status response) => 200
-        (:sections body) =>
-          {:company ["diversity" "values"], :progress ["update" "finances" "team" "help" "custom-a1b2"]}
-        ;; verify each section has only a self HATEOAS link
-        (doseq [section-key (map keyword (flatten (vals (:sections body))))]
-          (count (:links (body section-key))) => 1
-          (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
-            section-rep/media-type (:links (body section-key))))
-        ;; verify the company has only a self HATEOAS link
-        (count (:links body)) => 2
-        (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))))
+        (fact "anonymously with no JWToken"
+          ;; retrieve with no JWToken
+          (let [response (mock/api-request :get (company-rep/url r/open) {:skip-auth true})
+                body (mock/body-from-response response)]
+            (:status response) => 200
+            (:sections body) => section-order
+            ;; verify each section has only a self HATEOAS link
+            (doseq [section-key (map keyword (:sections body))]
+              (count (:links (body section-key))) => 1
+              (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
+                section-rep/media-type (:links (body section-key))))
+            ;; verify the company has only a self HATEOAS link
+            (count (:links body)) => 2
+            (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body))))
 
-(with-state-changes [(before :contents (ts/setup-system!))
-                     (after :contents (ts/teardown-system!))
-                     (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-                                      (company/delete-all-companies! conn)
-                                      (company/create-company! conn (company/->company r/open r/coyote))))
-                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-                                     (company/delete-all-companies! conn)))]
+        (fact "that doesn't match the retrieving user's organization"
+          ;; retrieve with Sartre (different org)
+          (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-sartre})
+                body (mock/body-from-response response)]
+            (:status response) => 200
+            (:sections body) => section-order
+            ;; verify each section has only a self HATEOAS link
+            (doseq [section-key (map keyword (:sections body))]
+              (count (:links (body section-key))) => 1
+              (hateoas/verify-link "self" GET (section-rep/url (:slug r/open) section-key)
+                section-rep/media-type (:links (body section-key))))
+            ;; verify the company has only a self HATEOAS link
+            (count (:links body)) => 2
+            (hateoas/verify-link "self" GET (company-rep/url (:slug r/open)) company-rep/media-type (:links body)))))))
 
-  (facts "about available options for retrieving a private company"
+  (with-state-changes [(before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                        (company/delete-all-companies! conn)
+                                        (company/create-company! conn (company/->company r/open r/coyote))))
+                       (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
+                                       (company/delete-all-companies! conn)))]
 
-    (fact "with a bad JWToken"
-      (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-bad})]
-        (:status response) => 401
-        (:body response) => common-api/unauthorized))
+    (facts "about available options for retrieving a private company"
 
-    (fact "with no company matching the company slug"
-      (let [response (mock/api-request :options (company-rep/url "foo"))]
-        (:status response) => 404
-        (:body response) => ""))
+      (fact "with a bad JWToken"
+        (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-bad})]
+          (:status response) => 401
+          (:body response) => common-api/unauthorized))
 
-    (fact "with no JWToken"
-      (let [response (mock/api-request :options (company-rep/url r/open) {:skip-auth true})]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => limited-options))
+      (fact "with no company matching the company slug"
+        (let [response (mock/api-request :options (company-rep/url "foo"))]
+          (:status response) => 404
+          (:body response) => ""))
 
-    (fact "with an organization that doesn't match the company"
-      (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-sartre})]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => limited-options))
+      (fact "with no JWToken"
+        (let [response (mock/api-request :options (company-rep/url r/open) {:skip-auth true})]
+          (:status response) => 204
+          (:body response) => ""
+          ((:headers response) "Allow") => limited-options))
 
-    (fact "with a user's org in a JWToken that matches the company's org"
-      (let [response (mock/api-request :options (company-rep/url r/open))]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => full-options)))
+      (fact "with an organization that doesn't match the company"
+        (let [response (mock/api-request :options (company-rep/url r/open) {:auth mock/jwtoken-sartre})]
+          (:status response) => 204
+          (:body response) => ""
+          ((:headers response) "Allow") => limited-options))
 
-  (facts "about failing to retrieve a private company"
+      (fact "with a user's org in a JWToken that matches the company's org"
+        (let [response (mock/api-request :options (company-rep/url r/open))]
+          (:status response) => 204
+          (:body response) => ""
+          ((:headers response) "Allow") => full-options)))
 
-    (fact "with an invalid JWToken"
-      (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})]
-        (:status response) => 401
-        (:body response) => common-api/unauthorized))
+    (facts "about failing to retrieve a private company"
 
-    (fact "that doesn't exist"
-      (let [response (mock/api-request :get (company-rep/url "foo"))]
-        (:status response) => 404
-        (:body response) => "")))
+      (fact "with an invalid JWToken"
+        (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-bad})]
+          (:status response) => 401
+          (:body response) => common-api/unauthorized))
 
-  (facts "about retrieving a private company"
+      (fact "that doesn't exist"
+        (let [response (mock/api-request :get (company-rep/url "foo"))]
+          (:status response) => 404
+          (:body response) => "")))
 
-    (fact "that does match the retrieving user's organization"
-      (let [response (mock/api-request :get (company-rep/url r/open))
-            body (mock/body-from-response response)]
-        (:status response) => 200
-        (:name body) => (:name r/open)
-        (:slug body) => (:slug r/open)
-        (:org-id body) => nil ; verify no org-id
-        (:categories body) => (map name common/category-names)
-        (hateoas/verify-company-links (:slug r/open) (:links body))))
+    (facts "about retrieving a private company"
 
-    (fact "anonymously with no JWToken"
-      ;; retrieve with no JWToken
-      (let [response (mock/api-request :get (company-rep/url r/open) {:skip-auth true})
-            body (mock/body-from-response response)]
-        (:status response) => 403))
+      (fact "that does match the retrieving user's organization"
+        (let [response (mock/api-request :get (company-rep/url r/open))
+              body (mock/body-from-response response)]
+          (:status response) => 200
+          (:name body) => (:name r/open)
+          (:slug body) => (:slug r/open)
+          (:org-id body) => nil ; verify no org-id
+          (hateoas/verify-company-links (:slug r/open) (:links body))))
 
-    (fact "that doesn't match the retrieving user's organization"
-      ;; retrieve with Sartre (different org)
-      (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-sartre})
-            body (mock/body-from-response response)]
-        (:status response) => 403))))
+      (fact "anonymously with no JWToken"
+        ;; retrieve with no JWToken
+        (let [response (mock/api-request :get (company-rep/url r/open) {:skip-auth true})
+              body (mock/body-from-response response)]
+          (:status response) => 403))
+
+      (fact "that doesn't match the retrieving user's organization"
+        ;; retrieve with Sartre (different org)
+        (let [response (mock/api-request :get (company-rep/url r/open) {:auth mock/jwtoken-sartre})
+              body (mock/body-from-response response)]
+          (:status response) => 403)))))

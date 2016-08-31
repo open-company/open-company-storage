@@ -23,31 +23,31 @@
 
     (fact "with missing placeholder sections"
       (let [company (c/get-company conn r/slug)
-            missing-sections {:sections {:progress ["highlights" "help"] :company ["ownership"]}}
+            missing-sections {:sections ["highlights" "help" "ownership"]}
             fixed-company (c/add-placeholder-sections (merge company missing-sections))] ; this is what's tested
-        (:highlights fixed-company) => (-> (common/section-by-name "highlights")
+        (:highlights fixed-company) => (-> (common/sections-by-name :highlights)
                                            (assoc :placeholder true))
-        (:help fixed-company) => (-> (common/section-by-name "help")
+        (:help fixed-company) => (-> (common/sections-by-name :help)
                                      (assoc :placeholder true))
-        (:ownership fixed-company) => (-> (common/section-by-name "ownership")
+        (:ownership fixed-company) => (-> (common/sections-by-name :ownership)
                                           (assoc :placeholder true))))
 
     (future-fact "with partially specified placeholder sections"
       (let [company (c/get-company conn r/slug)
-            updated-sections {:sections {:progress ["highlights" "help"] :company ["ownership"]}}
+            updated-sections {:sections ["highlights" "help" "ownership"]}
             updated-content (-> updated-sections
                                 (assoc :highlights {:body "body a"})
                                 (assoc :help {:title "title b" :body "body b"})
                                 (assoc :ownership {:title "title c" :headline "headline c" :body "body c"}))
             fixed-company (c/merge-company company updated-content)] ; this is what's tested
-        (:highlights fixed-company) => (-> (common/section-by-name "highlights")
+        (:highlights fixed-company) => (-> (common/sections-by-name :highlights)
                                            (assoc :placeholder false)
                                            (assoc :body "body a"))
-        (:help fixed-company) => (-> (common/section-by-name "help")
+        (:help fixed-company) => (-> (common/sections-by-name :help)
                                      (assoc :placeholder false)
                                      (assoc :title "title b")
                                      (assoc :body "body b"))
-        (:ownership fixed-company) => (-> (common/section-by-name "ownership")
+        (:ownership fixed-company) => (-> (common/sections-by-name :ownership)
                                           (assoc :placeholder false)
                                           (assoc :title "title c")
                                           (assoc :headline "headline c")
@@ -70,7 +70,7 @@
       (:finances (c/get-company conn r/slug)) => nil
       ;; velify missing prior sections comes back
       (let [company (c/get-company conn r/slug)
-            missing-sections {:sections {:progress ["update"] :company ["values"]}}
+            missing-sections {:sections ["update" "values"]}
             fixed-company (c/add-prior-sections conn (merge company missing-sections))] ; this is what's tested
         (:update fixed-company) => (contains r/text-section-1)
         (:values fixed-company) => (contains r/text-section-2)

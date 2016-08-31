@@ -239,7 +239,7 @@ Then enter these commands one-by-one, noting the output:
                       :slug "open"
                       :logo "https://open-company-assets.s3.amazonaws.com/open-company.png"
                       :currency "USD"
-                      :finances {:title "Finances" :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
+                      :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
                     author))
 
 (company/create-company!
@@ -251,8 +251,7 @@ Then enter these commands one-by-one, noting the output:
                       :update {:title "Founder's Update"
                                :headline "Buffer in October."
                                :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
-                      :finances {:title "Finances"
-                                 :body "Good stuff! Revenue is up."
+                      :finances {:body "Good stuff! Revenue is up."
                                  :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
                                         {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]}}
                     author))
@@ -344,8 +343,14 @@ from the OpenCompany Authentication service if you are only making requests agai
 Create a company with cURL:
 
 ```console
+echo "{\"currency\": \"EUR\", \"name\": \"Hotel Procrastination\", \
+      \"diversity\": {\"headline\": \"We are all guilty.\", \"pin\": true}, \
+      \"update\": {\"headline\": \"Our Food is Bad\", \"body\": \"Hotel guests rate it 1 of 10.\", \"pin\": true}, \
+      \"mission\": {\"headline\": \"Better Food\", \"body\": \"That's the goal.\"}, \
+      \"team\": {\"headline\": \"New Head Chef\", \"body\": \"Welcome Bobby Flay to the team.\"}}" \
+      > ./hotel.json
 curl -i -X POST \
--d '{"currency": "EUR", "name": "Hotel Procrastination"}' \
+-d @./hotel.json \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -400,7 +405,7 @@ Reorder a company's sections with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["growth", "team", "product", "challenges", "update", "finances"], "company": ["values", "mission"]}}' \
+-d '{"sections": ["update", "diversity", "mission", "team"]}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -408,11 +413,11 @@ curl -i -X PATCH \
 http://localhost:3000/companies/hotel-procrastination
 ```
 
-Remove sections from a company with cURL:
+Archive a section from a company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["growth", "team", "update"], "company": ["values"]}}' \
+-d '{"sections": ["update", diversity", "team"]}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -420,11 +425,23 @@ curl -i -X PATCH \
 http://localhost:3000/companies/hotel-procrastination
 ```
 
-Add a section to the company with cURL:
+Add an archived section back to the company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": {"progress": ["growth", "customer-service", "team", "update"], "company": ["values"]}}' \
+-d '{"sections": ["update", "diversity", "team", "mission"]}' \
+--header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
+--header "Accept: application/vnd.open-company.company.v1+json" \
+--header "Accept-Charset: utf-8" \
+--header "Content-Type: application/vnd.open-company.company.v1+json" \
+http://localhost:3000/companies/hotel-procrastination
+```
+
+Add new section to the company with cURL:
+
+```console
+curl -i -X PATCH \
+-d '{"sections": ["update", "diversity", "team", "mission", "kudos"], "kudos": {"headline": "Fred is killing it"}}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \

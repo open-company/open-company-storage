@@ -15,21 +15,7 @@
 
 (def reserved-properties
   "Properties of a section that can't be specified during a create and are ignored during an update."
-  #{:id :company-slug :section-name :body-placeholder})
-
-(def custom-topic-body-placeholder "What would you like to say about this?")
-
-(def initial-custom-properties 
-  "Custom sections don't get initialized from a template, so need blank initial data."
-  {
-    :description "Custom topic"
-    :headline ""
-    :body custom-topic-body-placeholder
-    :image-url nil
-    :image-width 0
-    :image-height 0
-    :pin false
-  })
+  #{:id :company-slug :section-name})
 
 ;; ----- Utility functions -----
 
@@ -150,24 +136,17 @@
 
   ([conn company-slug section-name section user timestamp]
   (let [original-company (company/get-company conn company-slug) ; company before the update
-        original-section (get-section conn company-slug section-name) ; section before the update
-        template-section (common/section-by-name section-name) ; canonical version of this section (unless custom)
         author (common/author-for-user user)
-        updated-section (-> section
-          (clean)
+        original-section (get-section conn company-slug section-name) ; section before the update (if any)
+        merged-section (merge original-section section) ; old section updated with the new
+        completed-section (-> merged-section
+          clean
+          (common/complete-section company-slug section-name user)
           (dissoc :placeholder)
-          (assoc :company-slug company-slug)
-          (assoc :section-name section-name)
-          (assoc :author author)
-          (assoc :updated-at timestamp)
-          (assoc :pin (or (:pin section) (:pin original-section) (:pin template-section)))
-          (assoc :description (:description template-section)) ; read-only property
-          (assoc :body (or (:body section) (:body original-section) (:body template-section)))
-          (assoc :body-placeholder (:body-placeholder template-section)) ; read-only property
-          (assoc :headline (or (:headline section) (:headline original-section) (:headline template-section))))
+          (assoc :updated-at timestamp)) ; make sure the section has all the right properties
         updated-sections (conj (:sections original-company) section-name)
         sectioned-company (assoc original-company :sections updated-sections)
-        updated-company (assoc sectioned-company section-name (-> updated-section
+        updated-company (assoc sectioned-company section-name (-> completed-section
           (dissoc :placeholder)
           (dissoc :company-slug)
           (dissoc :section-name)))]
@@ -176,7 +155,7 @@
         ;; update the company
         (company/update-company conn company-slug updated-company)
         ;; create a new section revision or update the latest section
-        (revise-or-update conn [original-section updated-section] timestamp))
+        (revise-or-update conn [original-section completed-section] timestamp))
       false))))
 
 ;; ----- Armageddon -----

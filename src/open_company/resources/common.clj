@@ -16,57 +16,32 @@
 (def section-table-name "sections")
 (def stakeholder-update-table-name "stakeholder_updates")
 
-;; ----- Category/Section definitions -----
+;; ----- Section definitions -----
 
-;; All the categories in default order
-(def categories (:categories (keywordize-keys config/sections)))
-(def category-names (vec (map (comp keyword :name) (:categories (keywordize-keys config/sections)))))
-(def default-category :progress) ; default for custom sections
+(def sections "All possible sections templates as a set" (set (:templates config/sections)))
 
-(def ordered-sections
-  (into {} (for [{:keys [sections name]} categories]
-             [(keyword name) sections])))
+(def section-names "All section names as a set of keywords" (set (map keyword (:sections config/sections))))
 
-(def category-section-tree
-  ^ {:doc "Category->Section lookup structure"}
-  (into {} (for [[cat sects] ordered-sections]
-             [cat (mapv (comp keyword :section-name) sects)])))
+(def sections-by-name "All section templates as a map from their name"
+  (zipmap (map #(keyword (:section-name %)) (:templates config/sections)) (:templates config/sections)))
 
-(def section-category-tree
-  ^ {:doc "Section->Category lookup structure"}
-  (reduce (fn [acc [cat sects]]
-            (merge acc (zipmap sects (repeat cat))))
-          {}
-          category-section-tree))
-
-(defn sections-for
-  "Return all the sections for the provided category name in order."
-  [cat]
-  (get category-section-tree (keyword cat)))
-
-(defn category-for
-  "Return the category for the provided section name in order."
-  [section]
-  (get section-category-tree (keyword section)))
-
-;; All possible sections as a set
-(def sections (set (map #(update % :section-name keyword) (flatten (vals ordered-sections)))))
-
-;; All possible section names as a set
-(def section-names (set (flatten (vals category-section-tree))))
-
-;; All possible sections as a map from their name
-(def sections-by-name (zipmap (map :section-name sections) sections))
-
-(defn section-by-name
-  "Return the canonical placeholder section definition for a named section."
-  [section-name]
-  (sections-by-name (keyword section-name)))
-
-;; Regex that matches properly named custom sections
-(def custom-section-name #"^custom-.{4}$")
+(def custom-section-name "Regex that matches properly named custom sections" #"^custom-.{4}$")
 
 ;; ----- Template Data -----
+
+(def custom-topic-body-placeholder "What would you like to say about this?")
+
+(def initial-custom-properties
+  "Custom sections don't get initialized from a template, so need blank initial data."
+  {
+    :description "Custom topic"
+    :headline ""
+    :body custom-topic-body-placeholder
+    :image-url nil
+    :image-width 0
+    :image-height 0
+    :pin false
+  })
 
 (def empty-stakeholder-update {
   :title ""
@@ -193,6 +168,17 @@
     (name-for)
     (select-keys [:avatar :image :user-id :name])
     (clojure.set/rename-keys {:avatar :image})))
+
+(defn complete-section
+  "Given a potentially incomplete section, complete it from the section template."
+  [section-data company-slug section-name user]
+  (let [template (if (re-matches custom-section-name (name section-name))
+                    initial-custom-properties ; custom sections don't have a template
+                    (sections-by-name (keyword section-name)))]
+    (merge template (-> section-data
+                      (assoc :author (author-for-user user))
+                      (assoc :company-slug company-slug)
+                      (assoc :section-name (name section-name))))))
 
 ;; ----- DB Access Timeouts ----
 
