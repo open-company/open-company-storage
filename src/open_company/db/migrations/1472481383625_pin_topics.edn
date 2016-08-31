@@ -23,7 +23,7 @@
           (println "  Updating section in company " (name section-name))
           (update-section-in-company conn slug section-name)))))
 
-  ;; iterate through every section
+  ;; Update every section
   (println "\nUpdating sections...")
   (println 
     (-> (r/table "sections")
