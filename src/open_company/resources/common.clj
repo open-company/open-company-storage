@@ -3,7 +3,6 @@
   (:require [clojure.string :as s]
             [clojure.core.async :as async]
             [schema.core :as schema]
-            [clojure.walk :refer (keywordize-keys)]
             [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
