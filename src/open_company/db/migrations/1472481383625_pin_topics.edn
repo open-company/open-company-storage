@@ -1,6 +1,5 @@
 (ns open-company.db.migrations.pin-topics
   (:require [rethinkdb.query :as r]
-            [open-company.resources.common :as common]
             [open-company.resources.company :as company]))
 
 (defn- update-section-in-company [conn slug section-name]

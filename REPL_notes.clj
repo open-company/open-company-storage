@@ -78,24 +78,30 @@
 
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
-  (r/get-all ["buffer"] {:index "company-slug"})
-  (r/run c))))
+    (r/get-all ["buffer"] {:index "company-slug"})
+    (r/run c))))
 
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
-  (r/get-all [["green-labs" "update"]] {:index "company-slug-section-name"})
-  (r/run c))))
+    (r/get-all [["green-labs" "update"]] {:index "company-slug-section-name"})
+    (r/run c))))
 
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
-  (r/get-all [["open" "finances"]] {:index "company-slug-section-name"})
-  (r/delete)
-  (r/run c)))
+    (r/get-all [["open" "finances"]] {:index "company-slug-section-name"})
+    (r/delete)
+    (r/run c)))
+
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "sections")
+    (r/replace (r/fn [section]
+      (r/without section [:core])))
+    (r/run c)))
 
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "sections")
-  (r/get-all ["21c9ddd4-6d1c-47a5-b6c1-1308fed08523"] {:index "id"})
-  (r/run c))))
+    (r/get-all ["21c9ddd4-6d1c-47a5-b6c1-1308fed08523"] {:index "id"})
+    (r/run c))))
 
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")

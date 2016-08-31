@@ -176,8 +176,7 @@
     :post (fn [ctx] (processable-post-req? conn ctx))})
 
   :post! (fn [{:keys [user data] :as ctx}]
-           (let [company (->> (company/->company data user (find-slug conn data))
-                              (company/create-company! conn))]
+           (let [company (company/create-company! conn (company/->company data user (find-slug conn data)))]
              (when (:bot user) ; Some JWTokens might not have a bot token
                (->> (assoc (common/clone ctx) :company company)
                     (bot/ctx->trigger :onboard)
