@@ -17,10 +17,7 @@
       :user-id "78901"
       :image "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg"      
     }
-    :sections {
-      :progress ["update" "challenges" "team" "custom-89de" "help" "highlights"]
-      :company []
-    }
+    :sections ["update" "challenges" "team" "custom-89de" "help" "highlights"]
     :stakeholder-update {
       :title ""
       :sections ["update" "highlights" "challenges" "team" "custom-89de" "help"]

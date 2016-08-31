@@ -16,10 +16,7 @@
       :user-id "234567"
       :image "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
     }
-    :sections {
-      :progress ["finances"]
-      :company []
-    }
+    :sections ["finances"]
     :stakeholder-update {
       :title ""
       :sections ["finances"]

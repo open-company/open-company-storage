@@ -17,10 +17,7 @@
       :user-id "123456"
       :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     }
-    :sections {
-      :progress ["update" "growth" "team" "product" "marketing" "customer-service" "finances" "help"]
-      :company ["diversity" "values" "mission"]
-    }
+    :sections ["update" "growth" "team" "product" "marketing" "customer-service" "finances" "help" "diversity" "values" "mission"]
     :stakeholder-update {
       :title ""
       :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]

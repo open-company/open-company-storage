@@ -16,10 +16,7 @@
       :user-id "miner-49er"
       :image "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png"
     }
-    :sections {
-      :progress ["update"]
-      :company []
-    }
+    :sections ["update"]
     :stakeholder-update {
       :title ""
       :sections ["update"]

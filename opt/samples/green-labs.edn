@@ -13,10 +13,7 @@
       :user-id "78901"
       :image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg"      
     }
-    :sections {
-      :progress ["update" "challenges" "team" "custom-89de" "help" "highlights" "finances" "growth"]
-      :company []
-    }
+    :sections ["update" "challenges" "team" "custom-89de" "help" "highlights" "finances" "growth"]
     :stakeholder-update {
       :title ""
       :sections ["update" "highlights" "custom-89de" "growth" "finances" "challenges" "team" "help"]
