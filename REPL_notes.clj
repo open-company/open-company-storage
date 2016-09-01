@@ -58,13 +58,6 @@
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "companies")
       (r/get "open")
-      (r/update {:sections (r/literal 
-        {:company ["competition" "mission" "values"], :progress ["update" "challenges" "growth" "fundraising" "finances"]})})
-      (r/run c)))
-
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "companies")
-      (r/get "open")
       (r/replace (r/fn [company]
         (r/without company [:mission])))
       (r/run c)))

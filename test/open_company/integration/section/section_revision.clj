@@ -319,13 +319,12 @@
         (facts "with PATCH"
           (fact "update title"
             (let [updated  {:title "New Title"}
-                  placeholder-sections {:progress ["update"] :company []}
-                  patch-response (mock/api-request :patch (company-rep/url r/buffer) {:body {:sections placeholder-sections}})
                   response (mock/api-request :patch (section-rep/url (:slug r/buffer) :update) {:body updated})
                   body     (mock/body-from-response response)
                   company  (c/get-company conn (:slug r/buffer))]
               (:status response) => 200
               (-> company :update :placeholder) => falsey
+              (:sections company) => ["update"] ; still just 1 update section, prior defect
               (:title body) => (:title updated)
               (:placeholder body) => falsey)))
 

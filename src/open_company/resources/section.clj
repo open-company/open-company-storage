@@ -144,7 +144,10 @@
           (common/complete-section company-slug section-name user)
           (dissoc :placeholder)
           (assoc :updated-at timestamp)) ; make sure the section has all the right properties
-        updated-sections (conj (:sections original-company) section-name)
+        original-sections (:sections original-company)
+        updated-sections (if (some #{(name section-name)} (map name original-sections)) ; if section is in sections
+                            original-sections ; already there
+                            (conj original-sections section-name)) ; not there, add it
         sectioned-company (assoc original-company :sections updated-sections)
         updated-company (assoc sectioned-company section-name (-> completed-section
           (dissoc :placeholder)
