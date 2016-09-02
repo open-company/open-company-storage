@@ -1,5 +1,6 @@
 (ns open-company.integration.section.section-manipulation
-  (:require [midje.sweet :refer :all]
+  (:require [clojure.string :as s]
+            [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
@@ -244,7 +245,22 @@
                 (doseq [section [resp-custom-section db-custom-section]]
                   (:placeholder section) => true
                   section => (contains common-res/initial-custom-properties)
-                  section => (contains custom-body)))))
+                  section => (contains custom-body))))
+
+            (facts "and are duplicated"
+              (let [new-sections (conj original-order "update") ; update twice
+                    response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})
+                    resp-body (mock/body-from-response response)]
+                (:status response) => 422
+                (s/includes? (:body response) "sections") => true)
+              (let [new-sections (conj original-order "highlights" "highlights")
+                    response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})]
+                (:status response) => 422
+                (s/includes? (:body response) "sections") => true)
+              (let [new-sections (conj original-order "custom-1234" "custom-1234")
+                    response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections}})]
+                (:status response) => 422
+                (s/includes? (:body response) "sections") => true)))
 
           (fact "that used to exist"
             (let [_delay (Thread/sleep 1000) ; wait long enough for timestamps of the new revision to differ definitively

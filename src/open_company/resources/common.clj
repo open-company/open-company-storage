@@ -26,6 +26,9 @@
 
 (def custom-section-name "Regex that matches properly named custom sections" #"^custom-.{4}$")
 
+(defn section-name? [section-name]
+  (or (section-names (keyword section-name)) (re-matches custom-section-name (name section-name))))
+
 ;; ----- Template Data -----
 
 (def custom-topic-body-placeholder "What would you like to say about this?")
@@ -49,12 +52,15 @@
 ;; ----- Schemas -----
 
 ; Allow known section names and custom section names
-(def SectionName (schema/pred #(or (section-names (keyword %)) (re-matches custom-section-name (name %)))))
+(def SectionName (schema/pred section-name?))
 
 (def Slug (schema/pred slug/valid-slug?))
 
 (def SectionsOrder
-  [SectionName])
+  (schema/pred #(and
+    (sequential? %) ; it is sequential
+    (every? section-name? %) ; everything in it is a section name
+    (= (count (set %)) (count %))))) ; no duplicates
 
 (def Author {
   :name schema/Str
