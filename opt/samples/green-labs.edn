@@ -13,7 +13,7 @@
       :user-id "78901"
       :image "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg"      
     }
-    :sections ["update" "challenges" "team" "custom-89de" "help" "highlights" "finances" "growth"]
+    :sections ["update" "highlights" "team" "challenges" "custom-89de" "help" "finances" "growth"]
     :stakeholder-update {
       :title ""
       :sections ["update" "highlights" "custom-89de" "growth" "finances" "challenges" "team" "help"]
@@ -111,6 +111,7 @@
         :image-width 0
         :image-height 0
         :headline "Passing $1M in ARR ↗ 💸"
+        :pin true
         :body "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>"
       }
       :section-name "update"
@@ -141,6 +142,7 @@
         :image-height 0
         :image-width 0
         :headline "Welcome!"
+        :pin true
         :body "
           <p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>
           <p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>"
@@ -199,6 +201,7 @@
       :section {
         :description "Company milestones and accomplishments"
         :headline "GreenLabs featured in Slate!"
+        :pin true
         :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r"
         :image-width 1180
         :image-height 842

@@ -13,13 +13,13 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha11"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha12"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.385"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
-    [ring/ring-devel "1.6.0-beta5"] ; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-core "1.6.0-beta5"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-devel "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-core "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [http-kit "2.2.0"] ; Web server http://http-kit.org/
     [compojure "1.6.0-beta1"] ; Web routing https://github.com/weavejester/compojure
@@ -29,14 +29,14 @@
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.7.4"] ; Logging https://github.com/ptaoussanis/timbre
-    [raven-clj "1.4.2"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+    [raven-clj "1.4.3"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.2.0"] ; HTTP client https://github.com/dakrone/clj-http
     [clj-time "0.12.0"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.3"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
-    [amazonica "0.3.75"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [amazonica "0.3.76"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
   ]
 
   ;; All profile plugins
@@ -61,7 +61,7 @@
         [philoskim/debux "0.2.1"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
       :plugins [
-        [lein-midje "3.2"] ; Example-based testing https://github.com/marick/lein-midje
+        [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.3"] ; Linter https://github.com/jonase/eastwood
         [lein-kibit "0.1.2"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]

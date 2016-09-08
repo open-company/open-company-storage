@@ -17,10 +17,10 @@
       :user-id "123456"
       :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     }
-    :sections ["update" "growth" "team" "product" "marketing" "customer-service" "finances" "help" "diversity" "values" "mission"]
+    :sections ["update" "product" "growth" "team" "marketing" "customer-service" "finances" "help" "diversity" "values" "mission"]
     :stakeholder-update {
       :title ""
-      :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]
+      :sections ["update" "help" "product" "growth" "marketing" "finances" "team" "customer-service"]
     }
   }
 
@@ -1250,6 +1250,7 @@
       :section {
         :title "Update"
         :headline "We reached the 50 team members mark in September! 💥"
+        :pin true
         :image-url nil
         :image-height 0
         :image-width 0
@@ -2097,6 +2098,7 @@
       :section {
         :title "Product"
         :headline "We launched 🚀 Pablo 2.0! 📣"
+        :pin true
         :image-url "https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png"
         :image-height 643
         :image-width 800
