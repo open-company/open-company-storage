@@ -195,25 +195,10 @@
                 (check/before? (:created-at updated-section) updated-at) => true)
               (count (s/get-revisions conn r/slug :update)) => 1))) ; but there is still just 1 revision
 
-        (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-1 r/coyote))]
+        (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-2 r/coyote))]
 
-          (fact "update existing revision note"
-            (let [updated (assoc r/text-section-1 :note "New Note")
-                  response (mock/api-request :put (section-rep/url r/slug :finances) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)]
-              (:status response) => 200
-              body => (contains updated)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :finances)]
-                updated-section => (contains updated)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :finances)) => 1)) ; but there is still just 1 revision
-
-          (fact "update existing revision title, body and note"
-            (let [updated {:body "New Body" :title "New Title" :note "New Note"}
+          (fact "update existing revision title, headline, body and data"
+            (let [updated {:body "New Body" :title "New Title" :headline "New Headline" :data (rest (:data r/finances-section-2))}
                   response (mock/api-request :put (section-rep/url r/slug :finances) {:body updated})
                   body (mock/body-from-response response)
                   updated-at (:updated-at body)]
@@ -229,9 +214,7 @@
 
       (facts "with PATCH"
 
-        (with-state-changes [(before :facts (do
-                                (s/put-section conn r/slug :update r/text-section-1 r/coyote)
-                                (s/put-section conn r/slug :custom-a1b1 r/text-section-1 r/coyote)))]
+        (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
 
           (fact "update existing revision title"
             (let [updated {:title "New Title"}
@@ -265,26 +248,26 @@
                 (check/before? (:created-at updated-section) updated-at) => true)
               (count (s/get-revisions conn r/slug :update)) => 1))) ; but there is still just 1 revision
 
-        (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-1 r/coyote))]
+        (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-2 r/coyote))]
 
           (fact "update existing revision data"
-            (let [updated {:data []}
+            (let [updated {:data (rest (:data r/finances-section-2))}
                   response (mock/api-request :patch (section-rep/url r/slug :finances) {:body updated})
                   body (mock/body-from-response response)
                   updated-at (:updated-at body)
-                  updated-section (merge r/finances-section-1 updated)]
+                  updated-section (merge r/finances-section-2 updated)]
               (:status response) => 200
               body => (contains updated-section)
               ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :finances)]
-                updated-section => (contains updated-section)
+              (let [db-updated-section (s/get-section conn r/slug :finances)]
+                db-updated-section => (contains updated-section)
                 (check/timestamp? updated-at) => true
                 (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
+                (check/before? (:created-at db-updated-section) updated-at) => true)
               (count (s/get-revisions conn r/slug :finances)) => 1)) ; but there is still just 1 revision
 
-          (fact "update existing revision title, body and data"
-            (let [updated {:body "New Body" :title "New Title" :data []}
+          (fact "update existing revision title, headline, body and data"
+            (let [updated {:body "New Body" :title "New Title" :headline "New Headline" :data []}
                   response (mock/api-request :patch (section-rep/url r/slug :finances) {:body updated})
                   body (mock/body-from-response response)
                   updated-at (:updated-at body)]
