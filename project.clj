@@ -28,9 +28,9 @@
     [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
-    [com.taoensso/timbre "4.7.4"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.8.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.4.3"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
-    [clj-http "3.2.0"] ; HTTP client https://github.com/dakrone/clj-http
+    [clj-http "3.3.0"] ; HTTP client https://github.com/dakrone/clj-http
     [clj-time "0.12.0"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt

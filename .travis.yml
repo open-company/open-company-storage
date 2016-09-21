@@ -2,24 +2,16 @@ language: clojure
 jdk:
 - oraclejdk8
 lein: lein2
-# Ideally, this would be: https://github.com/travis-ci/travis-ci/issues/4411 
-# so we could be on new container instance http://docs.travis-ci.com/user/migrating-from-legacy
-# and could take advantage of dependency caching
-sudo: required
+sudo: false
+cache:
+  directories:
+  - "$HOME/.m2"
 before_script:
 - "export JAVA_OPTS=-Xmx512m"
 - "echo $JAVA_OPTS"
 - ./opt/install-rethinkdb.sh
-# sudo: false
-# cache:
-#   directories:
-#   - "$HOME/.m2"
-# addons:
-#   apt:
-#     sources:
-#     - ppa:rethinkdb/ppa
-#     packages:
-#     - rethinkdb
+addons:
+  rethinkdb: '2.3.5'
 script:
 - lein2 test!
 - lein2 eastwood
