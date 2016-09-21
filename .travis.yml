@@ -9,7 +9,6 @@ cache:
 before_script:
 - "export JAVA_OPTS=-Xmx512m"
 - "echo $JAVA_OPTS"
-- ./opt/install-rethinkdb.sh
 addons:
   rethinkdb: '2.3.5'
 script:
