@@ -4,7 +4,7 @@
             [schema.core :as schema]
             [open-company.config :as config]
             [open-company.db.pool :as pool]
-            [open-company.lib.slugify :as slug]
+            [oc.lib.slugify :as slug]
             [open-company.lib.bot :as bot]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]

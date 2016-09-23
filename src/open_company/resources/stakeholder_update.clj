@@ -3,7 +3,7 @@
             [schema.core :as schema]
             [if-let.core :refer (if-let*)]
             [defun :refer (defun-)]
-            [open-company.lib.slugify :as slug]
+            [oc.lib.slugify :as slug]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]))

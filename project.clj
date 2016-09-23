@@ -37,6 +37,7 @@
     [medley "0.8.3"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
     [amazonica "0.3.76"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [open-company/lib "0.0.1-ace2a90"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -109,7 +110,7 @@
                  '[open-company.app :refer (app)]
                  '[open-company.config :as c]
                  '[open-company.db.init :as db]
-                 '[open-company.lib.slugify :as slug]
+                 '[oc.lib.slugify :as slug]
                  '[open-company.resources.common :as common]
                  '[open-company.resources.company :as company]
                  '[open-company.resources.section :as section]

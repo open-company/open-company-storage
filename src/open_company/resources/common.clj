@@ -6,7 +6,7 @@
             [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
-            [open-company.lib.slugify :as slug]
+            [oc.lib.slugify :as slug]
             [open-company.config :as config]))
 
 ;; ----- RethinkDB metadata -----

@@ -4,7 +4,7 @@
             [open-company.lib.db :as db]
             [open-company.lib.test-setup :as ts]
             [open-company.db.pool :as pool]
-            [open-company.lib.slugify :refer (slugify)]
+            [oc.lib.slugify :refer (slugify)]
             [open-company.resources.company :as c]))
 
 ;; ----- Tests -----

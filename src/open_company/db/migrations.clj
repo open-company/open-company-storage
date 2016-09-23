@@ -14,7 +14,7 @@
             [clj-time.coerce :as coerce]
             [rethinkdb.query :as r]
             [open-company.config :as c]
-            [open-company.lib.slugify :as slug])
+            [oc.lib.slugify :as slug])
   (:gen-class))
 
 (defonce migrations-dir "./src/open_company/db/migrations")

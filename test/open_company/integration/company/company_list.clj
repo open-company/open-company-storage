@@ -6,7 +6,7 @@
             [open-company.lib.db :as db]
             [open-company.db.pool :as pool]
             [open-company.lib.test-setup :as ts]
-            [open-company.lib.slugify :refer (slugify)]
+            [oc.lib.slugify :refer (slugify)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))

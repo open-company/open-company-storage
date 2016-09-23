@@ -6,7 +6,7 @@
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
-            [open-company.lib.slugify :refer (slugify)]
+            [oc.lib.slugify :refer (slugify)]
             [open-company.api.common :as common]
             [open-company.resources.company :as company]
             [open-company.representations.company :as company-rep]))
