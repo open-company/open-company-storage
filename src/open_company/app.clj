@@ -62,7 +62,7 @@
       components/oc-system
       component/start)
 
-  (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
+  (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
     "OpenCompany API Server\n\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
