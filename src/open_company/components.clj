@@ -1,8 +1,9 @@
 (ns open-company.components
   (:require [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre]
-            [open-company.db.pool :as pool]
-            [org.httpkit.server :as httpkit]))
+            [org.httpkit.server :as httpkit]
+            [oc.lib.rethinkdb.pool :as pool]
+            [open-company.config :as c]))
 
 (defrecord HttpKit [options handler server]
   component/Lifecycle
@@ -21,7 +22,7 @@
   component/Lifecycle
   (start [component]
     (timbre/info "[rehinkdb-pool] starting")
-    (let [pool (pool/fixed-pool pool/init-conn pool/close-conn
+    (let [pool (pool/fixed-pool (partial pool/init-conn c/db-options) pool/close-conn
                                 {:size size :regenerate-interval 15})]
       (timbre/info "[rehinkdb-pool] started")
       (assoc component :pool pool)))

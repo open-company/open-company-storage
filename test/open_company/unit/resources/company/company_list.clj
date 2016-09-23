@@ -3,7 +3,7 @@
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [open-company.lib.test-setup :as ts]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [oc.lib.slugify :refer (slugify)]
             [open-company.resources.company :as c]))
 

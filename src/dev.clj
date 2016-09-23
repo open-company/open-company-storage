@@ -3,7 +3,7 @@
             [clojure.tools.namespace.repl :as ctnrepl]
             [open-company.config :as c]
             [open-company.app :as app]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [open-company.components :as components]))
 
 (def system nil)

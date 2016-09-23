@@ -6,7 +6,7 @@
   "
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
-            [open-company.db.pool :as db]
+            [oc.lib.rethinkdb.pool :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]

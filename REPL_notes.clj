@@ -3,7 +3,7 @@
 (require '[schema.core :as schema])
 (require '[open-company.config :as c])
 (require '[open-company.db.init :as db] :reload)
-(require '[open-company.db.pool :as pool] :reload)
+(require '[oc.lib.rethinkdb.pool :as pool] :reload)
 (require '[oc.lib.slugify :as slug] :reload)
 (require '[open-company.resources.common :as common] :reload)
 (require '[open-company.resources.company :as company] :reload)
