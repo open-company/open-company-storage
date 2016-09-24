@@ -134,7 +134,7 @@
 
   :repl-options {
     :welcome (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
-                      "OpenCompany REPL\n"
+                      "OpenCompany API REPL\n"
                       "Database: " open-company.config/db-name "\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
     :init-ns dev
