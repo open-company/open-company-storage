@@ -23,7 +23,7 @@
   (start [component]
     (timbre/info "[rehinkdb-pool] starting")
     (let [pool (pool/fixed-pool (partial pool/init-conn c/db-options) pool/close-conn
-                                {:size size :regenerate-interval 15})]
+                                {:size size :regenerate-interval regenerate-interval})]
       (timbre/info "[rehinkdb-pool] started")
       (assoc component :pool pool)))
   (stop [component]
@@ -41,12 +41,9 @@
   (stop [component]
     (dissoc component :handler)))
 
-;; (def pool
-;;   (map->RethinkPool {:size 5 :regenerate-interval 10}))
-
 (defn oc-system [{:keys [host port handler-fn] :as opts}]
   (component/system-map
-   :db-pool (map->RethinkPool {:size 5 :regenerate-interval 5})
+   :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
    :handler (component/using
              (map->Handler {:handler-fn handler-fn})
              [:db-pool])

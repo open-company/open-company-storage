@@ -19,6 +19,7 @@
     [open-company.api.sections :as sect-api]
     [open-company.api.stakeholder-updates :as su-api]))
 
+;; Send unhandled exceptions to Sentry
 ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 (Thread/setDefaultUncaughtExceptionHandler
  (reify Thread$UncaughtExceptionHandler
@@ -29,6 +30,8 @@
                                  (assoc-in [:extra :exception-data] (ex-data ex))
                                  (sentry-interfaces/stacktrace ex)))))))
 
+;; ----- Request Routing -----
+
 (defn routes [sys]
   (compojure/routes
    (entry-api/entry-routes sys)
@@ -36,6 +39,9 @@
    (sect-api/section-routes sys)
    (su-api/stakeholder-update-routes sys)))
 
+;; ----- System Startup -----
+
+;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
    true              wrap-params
@@ -44,6 +50,7 @@
    c/hot-reload      wrap-reload
    c/dsn             (sentry-mw/wrap-sentry c/dsn)))
 
+;; Start components in production (nginx-clojure)
 (declare handler)
 (when c/prod?
   (timbre/set-config! c/log-config)
@@ -56,6 +63,7 @@
   (timbre/info "Started"))
 
 (defn start [port]
+  "Start a development server"
   (timbre/set-config! c/log-config)
 
   (-> {:handler-fn app :port port}
