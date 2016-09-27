@@ -15,7 +15,7 @@
   :dependencies [
     [org.clojure/clojure "1.9.0-alpha12"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
-    [org.clojure/core.async "0.2.385"] ; Dependency of core.match and RethinkDB https://github.com/clojure/core.async
+    [org.clojure/core.async "0.2.385"] ; Async programming and communication https://github.com/clojure/core.async
     [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
     [ring/ring-devel "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
@@ -37,7 +37,7 @@
     [medley "0.8.3"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
     [amazonica "0.3.76"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
-    [open-company/lib "0.0.1-774fc2d"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.0.1-803c9fa"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -145,10 +145,10 @@
     "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
     "create-migration" ["run" "-m" "open-company.db.migrations" "create"] ; create a data migration
     "migrate-db" ["run" "-m" "open-company.db.migrations" "migrate"] ; run pending data migrations
-    "autotest" ["with-profile" "qa" "do" "init-db," "midje" ":autotest"] ; watch for code changes and run affected tests
-    "test!" ["with-profile" "qa" "do" "clean," "build," "init-db," "midje"] ; build, init the DB and run all tests
     "start" ["do" "init-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
+    "autotest" ["with-profile" "qa" "do" "init-db," "midje" ":autotest"] ; watch for code changes and run affected tests
+    "test!" ["with-profile" "qa" "do" "clean," "build," "init-db," "midje"] ; build, init the DB and run all tests
     "repl" ["with-profile" "+repl-config" "repl"]
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
