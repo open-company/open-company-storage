@@ -62,8 +62,9 @@
         (get-in [:handler :handler])))
   (timbre/info "Started"))
 
-(defn start [port]
+(defn start
   "Start a development server"
+  [port]
   (timbre/set-config! c/log-config)
 
   (-> {:handler-fn app :port port}
