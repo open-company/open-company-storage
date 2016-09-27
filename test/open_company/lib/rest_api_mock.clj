@@ -4,7 +4,6 @@
             [defun :refer (defun)]
             [ring.mock.request :refer (request body content-type header)]
             [cheshire.core :as json]
-            [open-company.app :refer (app)]
             [open-company.lib.test-setup :as ts]
             [open-company.representations.company :as company-rep]))
 
