@@ -44,7 +44,7 @@
             updated-at (:updated-at company)
             retrieved-company (c/get-company conn r/slug)]
         (check/timestamp? created-at) => true
-        (check/about-now? created-at) = true
+        (check/about-now? created-at) => true
         (= created-at updated-at) => true
         (= created-at (:created-at retrieved-company)) => true
         (= updated-at (:updated-at retrieved-company)) => true))
