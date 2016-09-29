@@ -311,7 +311,7 @@ Then enter these commands one-by-one, noting the output:
     author))
 
 ;; delete a company
-(company/delete-company conn "blank-inc")
+(company/delete-company! conn "blank-inc")
 
 ;; cleanup
 (company/delete-all-companies! conn)

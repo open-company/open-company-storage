@@ -36,7 +36,7 @@
         (let [new-oc (assoc r/open :name good-name)]
           (c/create-company! conn (c/->company new-oc r/coyote)) => (contains new-oc)
           (c/get-company conn r/slug) => (contains new-oc)
-          (c/delete-company conn r/slug))))
+          (c/delete-company! conn r/slug))))
 
     (facts "it creates timestamps"
       (let [company (c/create-company! conn (c/->company r/open r/coyote))
@@ -54,11 +54,11 @@
                                                                          :body ""})))]
       (facts "it returns the sections in the company in the pre-defined order"
         (:sections (c/create-company! conn (c/->company r/open r/coyote))) => []
-        (c/delete-company conn r/slug)
+        (c/delete-company! conn r/slug)
         (:sections (c/create-company! conn (c/->company (add-section r/open :update) r/coyote))) => [:update]
-        (c/delete-company conn r/slug)
+        (c/delete-company! conn r/slug)
         (:sections (c/create-company! conn (c/->company (add-section r/open :values) r/coyote))) => [:values]
-        (c/delete-company conn r/slug)
+        (c/delete-company! conn r/slug)
         (:sections (c/create-company!
                     conn
                     (c/->company (-> r/open

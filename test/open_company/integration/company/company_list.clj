@@ -108,7 +108,7 @@
 
     (fact "removed companies are not listed"
       (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-        (company/delete-company conn (:slug r/buffer)))
+        (company/delete-company! conn (:slug r/buffer)))
       (let [response (mock/api-request :get "/companies")
             body (mock/body-from-response response)
             companies (get-in body [:collection :companies])]

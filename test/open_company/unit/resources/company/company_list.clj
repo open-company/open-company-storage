@@ -25,7 +25,7 @@
       (map :name (c/list-companies conn)) => (just (set (map :name [r/open r/uni r/buffer]))))
 
     (fact "removed companies are not listed"
-      (c/delete-company conn (:slug r/buffer))
+      (c/delete-company! conn (:slug r/buffer))
       (map :name (c/list-companies conn)) => (just (set (map :name [r/open r/uni]))))
 
     (fact "companies can be queried via secondary indexes"
