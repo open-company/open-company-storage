@@ -6,11 +6,12 @@
   "
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
-            [open-company.db.pool :as db]
+            [oc.lib.rethinkdb.pool :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
-            [open-company.resources.stakeholder-update :as su])
+            [open-company.resources.stakeholder-update :as su]
+            [open-company.config :as c])
   (:gen-class))
 
 (defn exit [status msg]
@@ -126,7 +127,7 @@
     ;; Get the list of files to import
     (try
       (let [arg (first arguments)
-            conn (db/init-conn)
+            conn (db/init-conn c/db-options)
             edn-file #".*\.edn$"
             filenames (if (re-matches edn-file arg)
                         [arg] ; they specified just 1 file

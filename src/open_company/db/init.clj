@@ -1,8 +1,8 @@
 (ns open-company.db.init
   "Initialize RethinkDB with tables and indexes."
   (:require [rethinkdb.query :as r]
+            [oc.lib.rethinkdb.migrations :as migrations]
             [open-company.config :as c]
-            [open-company.db.migrations :as migrations]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.resources.stakeholder-update :as su]))
@@ -105,7 +105,7 @@
         (print ".")
         (println "\nRunning migrations.")
         (create-table conn db-name "migrations" "name")
-        (migrations/migrate conn)
+        (migrations/migrate conn c/db-name c/migrations-dir)
         (println "Migrations complete.")
         (println "\nDatabase initialization complete.\n")))))
 

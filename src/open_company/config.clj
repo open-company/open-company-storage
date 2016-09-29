@@ -20,6 +20,9 @@
 
 ;; ----- RethinkDB -----
 
+(defonce migrations-dir "./src/open_company/db/migrations")
+(defonce migration-template "./src/open_company/assets/migration.template.edn")
+
 (defonce db-host (or (env :db-host) "localhost"))
 (defonce db-port (or (env :db-port) 28015))
 (defonce db-name (or (env :db-name) "open_company"))

@@ -2,7 +2,7 @@
   (:require [if-let.core :refer (if-let* when-let*)]
             [compojure.core :refer (routes OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [open-company.lib.bot :as bot]
             [open-company.lib.email :as email]
             [open-company.api.common :as common]

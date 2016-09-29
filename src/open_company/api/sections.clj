@@ -2,7 +2,7 @@
   (:require [if-let.core :refer (if-let*)]
             [compojure.core :refer (routes ANY)]
             [liberator.core :refer (defresource by-method)]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
             [open-company.resources.company :as company-res]
