@@ -70,9 +70,9 @@
                      (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                       (company/delete-all-companies! conn)
                                       (company/create-company! conn (company/->company r/open r/coyote))))]
-  ;; -------------------
-  ;; JWToken things are covered in open-company.integration.company.company-list
-  ;; -------------------
+  
+  ;; TODO JWToken things
+
   (facts "about creating companies"
 
     ; TODO POST with empty map causes NPE
