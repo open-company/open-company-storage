@@ -286,7 +286,7 @@
       (with-state-changes [(before :facts (c/create-company! conn (c/->company (-> r/buffer 
                                                                                  (assoc :sections [:update]))
                                                                                  r/coyote)))
-                           (after :facts (c/delete-company conn (:slug r/buffer)))]
+                           (after :facts (c/delete-company! conn (:slug r/buffer)))]
 
         (facts "with PUT"
           (fact "update title"

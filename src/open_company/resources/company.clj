@@ -227,7 +227,7 @@
     (update-company conn slug company)
     (create-company! conn (->company company user))))
 
-(defn delete-company
+(defn delete-company!
   "Given the slug of the company, delete it and all its sections and return `true` on success."
   [conn slug]
   {:pre [(string? slug)]}

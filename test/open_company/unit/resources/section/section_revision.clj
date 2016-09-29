@@ -46,10 +46,10 @@
 (with-state-changes [(before :contents (ts/setup-system!))
                      (after :contents (ts/teardown-system!))
                      (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-                                      (c/delete-company conn r/slug)
+                                      (c/delete-company! conn r/slug)
                                       (c/create-company! conn (c/->company r/open r/coyote))))
                      (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
-                                     (c/delete-company conn r/slug)))]
+                                     (c/delete-company! conn r/slug)))]
 
   (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
 

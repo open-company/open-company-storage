@@ -112,7 +112,7 @@
       (r/get-all ["old-slug"] {:index "company-slug"})
       (r/update {:slug "new-slug"})
       (r/run c)))
-(company/delete-company conn "old-slug")
+(company/delete-company! conn "old-slug")
 
 ;; for more RethinkDB help, see:
 ;; https://github.com/apa512/clj-rethinkdb

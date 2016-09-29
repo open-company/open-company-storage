@@ -69,7 +69,7 @@
         org-id (:org-id company)]
     (when (and delete (company/get-company conn slug))
       (println (str "Deleting company '" slug "'."))
-      (company/delete-company conn slug))
+      (company/delete-company! conn slug))
     (when-not delete
       (when (company/get-company conn slug)
         (exit 1 (str "A company for '" slug "' already exists. Use the -d flag to delete the company on import."))))

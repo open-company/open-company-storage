@@ -147,7 +147,7 @@
   :handle-options (fn [ctx] (options-for-company conn slug ctx))
 
   ;; Delete a company
-  :delete! (fn [_] (company/delete-company conn slug))
+  :delete! (fn [_] (company/delete-company! conn slug))
 
   ;; Update a company
   :patch! (fn [ctx] (patch-company conn slug (add-slug slug (:data ctx)) (:user ctx))))
