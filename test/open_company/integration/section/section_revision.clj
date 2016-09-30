@@ -288,18 +288,23 @@
                                                                                  r/coyote)))
                            (after :facts (c/delete-company! conn (:slug r/buffer)))]
 
-        (facts "with PUT"
-          (fact "update title"
-            (let [updated  (assoc r/text-section-1 :title "New Title")
-                  put-response (mock/api-request :put (section-rep/url (:slug r/buffer) :update) {:body updated})
-                  body     (mock/body-from-response put-response)
-                  company  (c/get-company conn (:slug r/buffer))]
-              (:status put-response) => 200
-              (-> company :update :placeholder) => falsey
-              body => (contains updated)
-              (:placeholder body) => falsey)))
+        (facts "with a PUT of the section"
+          (doseq [topic [:update :custom-c3p0]]
+            (fact "update title"
+              (let [updated  (assoc r/text-section-1 :title "New Title")
+                    put-response (mock/api-request :put (section-rep/url (:slug r/buffer) topic) {:body updated})
+                    put-topic (mock/body-from-response put-response)
+                    company (c/get-company conn (:slug r/buffer))
+                    db-topic (company topic)
+                    db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
+                (:status put-response) => 200
+                (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+                (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
+                (doseq [test-topic [put-topic db-topic db-topic-2]]
+                  (:placeholder test-topic) => falsey
+                  test-topic => (contains updated))))))
 
-        (facts "with PATCH"
+        (facts "with a PATCH of the section"
           (doseq [topic [:update :custom-c3p0]]
             (fact "update title"
               (let [updated  {:title "New Title"}
@@ -310,6 +315,25 @@
                     db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
                 (:status response) => 200
                 (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+                (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
+                (doseq [test-topic [patch-topic db-topic db-topic-2]]
+                  (:placeholder test-topic) => falsey
+                  (:title test-topic) => (:title updated))))))
+
+        (facts "with a PATCH of the company"
+          (doseq [topic [:update :custom-c3p0]]
+            (fact "update title"
+              (let [updated  {:title "New Title"}
+                    response (mock/api-request :patch (company-rep/url (:slug r/buffer)) {:body {:sections [:update :custom-c3p0]
+                                                                                                 topic updated}})
+                    patch-body (mock/body-from-response response)
+                    patch-topic (patch-body topic)
+                    company (c/get-company conn (:slug r/buffer))
+                    db-topic (company topic)
+                    db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
+                (:status response) => 200
+                (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+                (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
                 (doseq [test-topic [patch-topic db-topic db-topic-2]]
                   (:placeholder test-topic) => falsey
                   (:title test-topic) => (:title updated))))))
