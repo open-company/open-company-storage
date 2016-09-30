@@ -169,10 +169,10 @@
 
   ([company-props user slug]
   (let [props (-> company-props
-                keywordize-keys
-                (assoc :slug slug)
-                (assoc :uuid (str (java.util.UUID/randomUUID)))
-                (assoc :org-id (:org-id user)))]
+                  keywordize-keys
+                  (assoc :slug slug)
+                  (assoc :uuid (str (java.util.UUID/randomUUID)))
+                  (assoc :org-id (:org-id user)))]
     (-> props
         (update :public #(or % false))
         (update :promoted #(or % false))
