@@ -297,14 +297,17 @@
           (let [new-sections (conj original-order "kudos")
                 kudos-placeholder (dissoc (common-res/sections-by-name :kudos) :placeholder :section-name)]
 
-            (fact "with minimal content"
+            (facts "with minimal content"
               (let [kudos-content {:headline "Fred is killing it!"}
                     response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
                                                                                        :kudos kudos-content}})
                     body (mock/body-from-response response)
-                    db-company (company/get-company conn r/slug)]
+                    db-company (company/get-company conn r/slug)
+                    db-kudos (:kudos db-company)
+                    db-kudos-2 (section/get-section conn r/slug :kudos)]
                 (:status response) => 200
-                (:kudos body) => (contains (merge kudos-placeholder kudos-content))))
+                (doseq [kudos [(:kudos body) db-kudos db-kudos-2]]
+                  kudos => (contains (merge kudos-placeholder kudos-content)))))
 
             (fact "with maximal content"
               (let [kudos-content {:title "Great Jobs!"
@@ -317,6 +320,23 @@
                     response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
                                                                                        :kudos kudos-content}})
                     body (mock/body-from-response response)
-                    db-company (company/get-company conn r/slug)]
+                    db-company (company/get-company conn r/slug)
+                    db-kudos (:kudos db-company)
+                    db-kudos-2 (section/get-section conn r/slug :kudos)]
                 (:status response) => 200
-                (:kudos body) => (contains (merge kudos-placeholder kudos-content))))))))))
+                (doseq [kudos [(:kudos body) db-kudos db-kudos-2]]
+                  kudos => (contains (merge kudos-placeholder kudos-content))))))
+
+          (let [new-sections (conj original-order "custom-c3p0")]
+
+            (facts "with custom topic content"
+              (let [custom-content {:headline "Fred is killing it!"}
+                    response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
+                                                                                       :custom-c3p0 custom-content}})
+                    body (mock/body-from-response response)
+                    db-company (company/get-company conn r/slug)
+                    db-custom (:custom-c3p0 db-company)
+                    db-custom-2 (section/get-section conn r/slug :custom-c3p0)]
+                (:status response) => 200
+                (doseq [custom [(:custom-c3p0 body) db-custom db-custom-2]]
+                  custom => (contains custom-content))))))))))
