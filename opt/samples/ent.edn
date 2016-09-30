@@ -8,7 +8,7 @@
     :logo "https://open-company-assets.s3.amazonaws.com/ent-inc.png"
     :logo-width 245
     :logo-height 67
-    :org-id "slack:T06SBMH60"
+    :org-id "slack-T06SBMH60"
     :currency "USD"
     :timestamp "2015-05-01T12:59:28.000Z"
     :author {

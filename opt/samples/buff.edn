@@ -9,7 +9,7 @@
     :logo-width 313
     :logo-height 319
     :home-page "https://buffer.com/"
-    :org-id "slack:T06SBMH60"
+    :org-id "slack-T06SBMH60"
     :currency "USD"
     :timestamp "2015-07-13T12:59:28.000Z"
     :author {
