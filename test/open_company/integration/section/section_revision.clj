@@ -284,7 +284,7 @@
     (facts "about updating a placeholder section"
 
       (with-state-changes [(before :facts (c/create-company! conn (c/->company (-> r/buffer 
-                                                                                 (assoc :sections [:update]))
+                                                                                 (assoc :sections [:update :custom-c3p0]))
                                                                                  r/coyote)))
                            (after :facts (c/delete-company! conn (:slug r/buffer)))]
 
@@ -300,16 +300,19 @@
               (:placeholder body) => falsey)))
 
         (facts "with PATCH"
-          (fact "update title"
-            (let [updated  {:title "New Title"}
-                  response (mock/api-request :patch (section-rep/url (:slug r/buffer) :update) {:body updated})
-                  body     (mock/body-from-response response)
-                  company  (c/get-company conn (:slug r/buffer))]
-              (:status response) => 200
-              (-> company :update :placeholder) => falsey
-              (:sections company) => ["update"] ; still just 1 update section, prior defect
-              (:title body) => (:title updated)
-              (:placeholder body) => falsey)))
+          (doseq [topic [:update :custom-c3p0]]
+            (fact "update title"
+              (let [updated  {:title "New Title"}
+                    response (mock/api-request :patch (section-rep/url (:slug r/buffer) topic) {:body updated})
+                    patch-topic (mock/body-from-response response)
+                    company (c/get-company conn (:slug r/buffer))
+                    db-topic (company topic)
+                    db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
+                (:status response) => 200
+                (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+                (doseq [test-topic [patch-topic db-topic db-topic-2]]
+                  (:placeholder test-topic) => falsey
+                  (:title test-topic) => (:title updated))))))
 
       (future-facts "with DELETE"
         (fact "remove existing revision title"
