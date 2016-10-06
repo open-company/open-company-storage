@@ -8,7 +8,7 @@
     :logo "https://open-company-assets.s3.amazonaws.com/bago.png"
     :logo-width 300
     :logo-height 96
-    :org-id "slack:T06SBMH60"
+    :org-id "slack-T06SBMH60"
     :currency "EUR"
     :timestamp "2015-07-13T12:59:28.000Z"
     :author {

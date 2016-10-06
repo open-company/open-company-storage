@@ -1,7 +1,7 @@
 (ns open-company.api.entry
   (:require [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
             [liberator.core :refer (defresource)]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [open-company.api.common :as common]
             [open-company.resources.company :as company-res]
             [open-company.representations.common :as common-rep]

@@ -1,7 +1,7 @@
 (ns open-company.integration.company.company-create
   (:require [cheshire.core :as json]
             [open-company.lib.test-setup :as ts]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [schema.test]
             [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]

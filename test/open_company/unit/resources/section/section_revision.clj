@@ -4,7 +4,7 @@
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [open-company.lib.test-setup :as ts]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [open-company.config :as config]
             [open-company.resources.common :as common]
             [open-company.resources.company :as c]
