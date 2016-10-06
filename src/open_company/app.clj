@@ -34,7 +34,7 @@
 
 (defn routes [sys]
   (compojure/routes
-    (GET "/---error-test---" (/ 1 0))
+    (GET "/---error-test---" req (/ 1 0))
     (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
     (entry-api/entry-routes sys)
     (comp-api/company-routes sys)
