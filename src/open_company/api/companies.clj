@@ -66,13 +66,6 @@
                           (merge original-company))
         ; get any sections that we used to have, that have been added back in (sections back from the dead)
         with-prior-sections (company/add-prior-sections conn with-section-updates)
-        ; add in initial content for new custom sections
-        ; prior-custom-sections (company/custom-sections original-company)
-        ; now-custom-sections (company/custom-sections with-prior-sections)
-        ; new-custom-names (vec (clojure.set/difference now-custom-sections prior-custom-sections))
-        ; new-custom-sections (map #(merge common-res/initial-custom-properties (company-updates %)) new-custom-names)
-        ; complete-new-custom-sections (zipmap new-custom-names new-custom-sections)
-        ; with-compelete-new-custom-sections (merge with-prior-sections complete-new-custom-sections)
         ; add in the placeholder sections for any brand new added sections
         with-placeholders (company/add-placeholder-sections with-prior-sections)]
     ;; update the company
