@@ -228,7 +228,7 @@
             (fact "and are custom"
               (let [custom-name (str "custom-" (subs (str (java.util.UUID/randomUUID)) 0 4))
                     custom-title (str "Custom " custom-name)
-                    custom-body {:title custom-title :placeholder true}
+                    custom-body {:title custom-title}
                     new-sections (conj original-order custom-name)
                     response (mock/api-request :patch (company-rep/url r/slug) {:body 
                       {:sections new-sections
@@ -243,7 +243,6 @@
                   (:sections body) => new-sections)
                 ; verify placeholder flag and content in response and DB
                 (doseq [section [resp-custom-section db-custom-section]]
-                  (:placeholder section) => true
                   section => (contains common-res/initial-custom-properties)
                   section => (contains custom-body))))
 
