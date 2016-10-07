@@ -4,7 +4,7 @@
             [cheshire.core :as json]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
-            [open-company.db.pool :as pool]
+            [oc.lib.rethinkdb.pool :as pool]
             [open-company.lib.test-setup :as ts]
             [open-company.config :as config]
             [open-company.api.common :as common]

@@ -5,7 +5,7 @@
     :promoted true
     :name "GreenLabs"
     :logo "https://open-company-assets.s3.amazonaws.com/green-labs.png"
-    :org-id "slack:T06SBMH60"
+    :org-id "slack-T06SBMH60"
     :currency "USD"
     :timestamp "2016-06-01T12:23:09.809Z"
     :author {

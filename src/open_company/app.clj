@@ -10,7 +10,7 @@
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
-    [compojure.core :as compojure]
+    [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
     [open-company.components :as components]
     [open-company.config :as c]
@@ -19,6 +19,7 @@
     [open-company.api.sections :as sect-api]
     [open-company.api.stakeholder-updates :as su-api]))
 
+;; Send unhandled exceptions to Sentry
 ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 (Thread/setDefaultUncaughtExceptionHandler
  (reify Thread$UncaughtExceptionHandler
@@ -29,13 +30,20 @@
                                  (assoc-in [:extra :exception-data] (ex-data ex))
                                  (sentry-interfaces/stacktrace ex)))))))
 
+;; ----- Request Routing -----
+
 (defn routes [sys]
   (compojure/routes
-   (entry-api/entry-routes sys)
-   (comp-api/company-routes sys)
-   (sect-api/section-routes sys)
-   (su-api/stakeholder-update-routes sys)))
+    (GET "/---error-test---" req (/ 1 0))
+    (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
+    (entry-api/entry-routes sys)
+    (comp-api/company-routes sys)
+    (sect-api/section-routes sys)
+    (su-api/stakeholder-update-routes sys)))
 
+;; ----- System Startup -----
+
+;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
    true              wrap-params
@@ -44,6 +52,7 @@
    c/hot-reload      wrap-reload
    c/dsn             (sentry-mw/wrap-sentry c/dsn)))
 
+;; Start components in production (nginx-clojure)
 (declare handler)
 (when c/prod?
   (timbre/set-config! c/log-config)
@@ -55,14 +64,16 @@
         (get-in [:handler :handler])))
   (timbre/info "Started"))
 
-(defn start [port]
+(defn start
+  "Start a development server"
+  [port]
   (timbre/set-config! c/log-config)
 
   (-> {:handler-fn app :port port}
       components/oc-system
       component/start)
 
-  (println (str "\n" (slurp (clojure.java.io/resource "open_company/assets/ascii_art.txt")) "\n"
+  (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
     "OpenCompany API Server\n\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"

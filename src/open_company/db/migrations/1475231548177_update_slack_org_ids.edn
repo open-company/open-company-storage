@@ -1,0 +1,29 @@
+(ns open-company.db.migrations.update-slack-org-ids
+  (:require [clojure.string :as s]
+            [rethinkdb.query :as r]
+            [open-company.resources.company :as company]))
+
+(defn up [conn]
+
+  ;; update the org ID of existing companies with old Slack prefix (slack:...) to the new one (slack-...)
+  (println "\nUpdating companies...")
+
+  ;; iterate through every company
+  (doseq [company (company/list-companies conn [:org-id])]
+    
+    (let [slug (:slug company)
+          org-id (:org-id company)]
+    
+      (println "Checking org-id of" slug)
+
+      (if (re-matches #"^slack\:.*" org-id)
+        (do
+          (println "Updating" slug)
+          (println 
+            (-> (r/table "companies")
+              (r/get slug)
+              (r/update {:org-id (str "slack-" (last (s/split org-id #"\:")))})
+              (r/run conn))))
+        (println "Skipping" slug))))
+
+  true) ; return true on success
