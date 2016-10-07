@@ -38,7 +38,8 @@
   {
     :description "Custom topic"
     :headline ""
-    :body custom-topic-body-placeholder
+    :body ""
+    :body-placeholder custom-topic-body-placeholder
     :image-url nil
     :image-width 0
     :image-height 0
