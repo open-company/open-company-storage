@@ -10,7 +10,7 @@
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
-    [compojure.core :as compojure]
+    [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
     [open-company.components :as components]
     [open-company.config :as c]
@@ -34,10 +34,12 @@
 
 (defn routes [sys]
   (compojure/routes
-   (entry-api/entry-routes sys)
-   (comp-api/company-routes sys)
-   (sect-api/section-routes sys)
-   (su-api/stakeholder-update-routes sys)))
+    (GET "/---error-test---" req (/ 1 0))
+    (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
+    (entry-api/entry-routes sys)
+    (comp-api/company-routes sys)
+    (sect-api/section-routes sys)
+    (su-api/stakeholder-update-routes sys)))
 
 ;; ----- System Startup -----
 
