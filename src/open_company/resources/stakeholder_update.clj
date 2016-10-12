@@ -73,7 +73,7 @@
 
 (defn get-stakeholder-update
   "
-  Given the company slug, and stakeholder update slug, retrieve the stakeholder update from
+  Given the company slug, and stakeholder update slug, retrieve the specified stakeholder update from
   the database. Return nil if the specified stakeholder doesn't exist.
   "
   ([conn company-slug slug]
@@ -82,7 +82,8 @@
   (first (common/read-resources conn table-name "company-slug-slug" [company-slug slug]))))
 
 (defn delete-stakeholder-update
-  "Given the slug of the company and the stakeholder update, delete the stakeholder update and return `true` on success."
+  "Given the slug of the company and the stakeholder update, delete the specified stakeholder update and return
+  `true` on success."
   [conn company-slug slug]
   {:pre [(string? company-slug) (string? slug)]
    :post [(or (true? %) (false? %))]}
