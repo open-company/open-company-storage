@@ -99,15 +99,16 @@
       ],
       "units": [
         {
-          "unit": "currency"
+          "unit": "currency",
+          "name": "Currency"
         },
         {
           "unit": "number",
-          "name": "A number"
+          "name": "Number"
         },
         {
           "unit": "%",
-          "name": "%"
+          "name": "Percent"
         }
       ],
       "pin": false
