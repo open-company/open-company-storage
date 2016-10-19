@@ -252,7 +252,7 @@
         :image-width 500
         :image-height 207
         :headline "Sue Topeka"
-        :body "<div>Sue joins 18F from Microsoft where she worked on the Office 365 team as a developer.</div><p><br></p><p>\"I'm for this new challenge. I've always wanted a chance to use my skills for good.\"</p><p><br></p><p>Sue's pronoun is she/her.</p>"
+        :body "<div>Sue joins 18F from Microsoft where she worked on the Office 365 team as a developer.</div><p><br></p><p>\"I'm up for this new challenge. I've always wanted a chance to use my skills for good.\"</p><p><br></p><p>Sue's pronoun is she/her.</p>"
         :pin true
       }
       :section-name "custom-db84"
