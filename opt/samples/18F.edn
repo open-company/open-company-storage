@@ -110,7 +110,7 @@
         :image-width 0
         :image-height 0
         :headline "2016 Due Dates are Approaching!"
-        :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by Nov. 19th. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"
+        :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by <b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"
         :pin true
       }
       :section-name "custom-1251"
