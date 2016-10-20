@@ -149,7 +149,7 @@
         :image-url nil
         :image-width 0
         :image-height 0
-        :headline "Delivery is the strategy"
+        :headline ""
         :body "<ul><li>Understand what people need<br></li><li>Address the whole experience, from start to finish</li><li>Make it simple and intuitive</li><li>Build using agile and iterative practices</li><li>Structure budgets and contracts for delivery</li><li>One leader with accountability</li><li>Experienced teams</li><li>Modern technology</li><li>Flexible hosting</li><li>Automated test and deployment</li><li>Reusable processes</li><li>Data-driven decisions</li><li><b>Default to open</b><br></li></ul>"
         :pin false
       }
