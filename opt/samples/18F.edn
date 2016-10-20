@@ -232,7 +232,7 @@
         :image-width 500
         :image-height 226
         :headline "Lee Rogers"
-        :body "<div>Lee joins 18F from Accenture where he ran a DevOps team.</div><p><br></p><p>\"DevOps is the fastest moving field in technology. The Federal Government needs lots of help to keep up.\"</p><p><br></p><p>Lee's pronoun is he/him.</p>"
+        :body "<p>Lee joins 18F from Accenture where he ran a DevOps team.</p><p>\"DevOps is the fastest moving field in technology. The Federal Government needs lots of help to keep up.\"</p><p>Lee's pronoun is he/him.</p>"
         :pin true
       }
       :section-name "custom-db84"
@@ -252,7 +252,7 @@
         :image-width 500
         :image-height 207
         :headline "Sue Topeka"
-        :body "<div>Sue joins 18F from Microsoft where she worked on the Office 365 team as a developer.</div><p><br></p><p>\"I'm up for this new challenge. I've always wanted a chance to use my skills for good.\"</p><p><br></p><p>Sue's pronoun is she/her.</p>"
+        :body "<p>Sue joins 18F from Microsoft where she worked on the Office 365 team as a developer.</p><p>\"I'm up for this new challenge. I've always wanted a chance to use my skills for good.\"</p><p>Sue's pronoun is she/her.</p>"
         :pin true
       }
       :section-name "custom-db84"
@@ -272,7 +272,7 @@
         :image-width 500
         :image-height 300
         :headline "Mandy Pistorius"
-        :body "<div>Mandy joins 18F from Google where she ran product management for the new Inbox product.</div><p><br></p><p>\"I'm excited to bring my years of product experience at Google to the Federal space.\"</p><p><br></p><p>Mandy's pronoun is she/her.</p>"
+        :body "<p>Mandy joins 18F from Google where she ran product management for the new Inbox product.</p><p>\"I'm excited to bring my years of product experience at Google to the Federal space.\"</p><p>Mandy's pronoun is she/her.</p>"
         :pin true
       }
       :section-name "custom-db84"
@@ -336,23 +336,23 @@
           {:description "Avg. Utilization % of Billable Employees" :interval "weekly" :name "Utilization" :slug "utilization-2e6c" :unit "%"}
         ]
         :data [
-          {:period "2016-09-05" :slug "billable-hours-837d" :value 4189}
-          {:period "2016-08-22" :slug "billable-hours-837d" :value 4155}
-          {:period "2016-09-26" :slug "billable-hours-837d" :value 4228}
-          {:period "2016-09-19" :slug "billable-hours-837d" :value 4477}
-          {:period "2016-10-03" :slug "billable-hours-837d" :value 4752}
-          {:period "2016-09-12" :slug "billable-hours-837d" :value 4256}
-          {:period "2016-10-10" :slug "billable-hours-837d" :value 4897}
-          {:period "2016-08-29" :slug "billable-hours-837d" :value 4219}
-          {:period "2016-09-26" :slug "utilization-2e6c" :value 59.7}
-          {:period "2016-10-03" :slug "utilization-2e6c" :value 58.4}
-          {:period "2016-08-15" :slug "utilization-2e6c" :value 47.6}
-          {:period "2016-10-10" :slug "utilization-2e6c" :value 62.1}
-          {:period "2016-09-12" :slug "utilization-2e6c" :value 54}
-          {:period "2016-08-22" :slug "utilization-2e6c" :value 48.7}
-          {:period "2016-09-05" :slug "utilization-2e6c" :value 53.9}
-          {:period "2016-09-19" :slug "utilization-2e6c" :value 54.2}
-          {:period "2016-08-29" :slug "utilization-2e6c" :value 55}
+          {:period "2016-09-05" :slug "billable-hours-837d" :value 7189}
+          {:period "2016-08-22" :slug "billable-hours-837d" :value 7155}
+          {:period "2016-09-26" :slug "billable-hours-837d" :value 7228}
+          {:period "2016-09-19" :slug "billable-hours-837d" :value 7477}
+          {:period "2016-10-03" :slug "billable-hours-837d" :value 7752}
+          {:period "2016-09-12" :slug "billable-hours-837d" :value 7256}
+          {:period "2016-10-10" :slug "billable-hours-837d" :value 7897}
+          {:period "2016-08-29" :slug "billable-hours-837d" :value 7219}
+          {:period "2016-09-26" :slug "utilization-2e6c" :value 69.7}
+          {:period "2016-10-03" :slug "utilization-2e6c" :value 68.4}
+          {:period "2016-08-15" :slug "utilization-2e6c" :value 57.6}
+          {:period "2016-10-10" :slug "utilization-2e6c" :value 72.1}
+          {:period "2016-09-12" :slug "utilization-2e6c" :value 64}
+          {:period "2016-08-22" :slug "utilization-2e6c" :value 58.7}
+          {:period "2016-09-05" :slug "utilization-2e6c" :value 63.9}
+          {:period "2016-09-19" :slug "utilization-2e6c" :value 64.2}
+          {:period "2016-08-29" :slug "utilization-2e6c" :value 65}
         ]
       }
       :section-name "growth"
