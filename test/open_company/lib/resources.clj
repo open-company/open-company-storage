@@ -1,6 +1,8 @@
 (ns open-company.lib.resources
   "Namespace of data fixtures for use in tests."
-  (:require [clj-time.core :as t]))
+  (:require [clj-time.core :as t]
+            [clj-time.format :as format]
+            [open-company.resources.common :as common]))
 
 ;; ----- Names / constants -----
 
@@ -26,7 +28,7 @@
   :email "wile.e.coyote@acme.com"
   :owner false
   :admin false
-  :expire (t/plus (t/now) (t/days 1))
+  :expire (format/unparse common/timestamp-format (t/plus (t/now) (t/days 1)))
   :org-id "slack:98765"})
 
 (def camus {
@@ -37,7 +39,7 @@
   :email "albert@combat.org"
   :owner true
   :admin true
-  :expire (t/plus (t/now) (t/days 1))
+  :expire (format/unparse common/timestamp-format (t/plus (t/now) (t/days 1)))
   :org-id "slack:98765"
   :bot {:id "abc" :token "xyz"}})
 
@@ -49,7 +51,7 @@
   :email "sartre@lyceela.org"
   :owner true
   :admin true
-  :expire (t/plus (t/now) (t/days 1))
+  :expire (format/unparse common/timestamp-format (t/plus (t/now) (t/days 1)))
   :org-id "slack:87654"})
 
 ;; ----- Companies ----

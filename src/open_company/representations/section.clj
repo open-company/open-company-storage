@@ -1,5 +1,5 @@
 (ns open-company.representations.section
-  (:require [defun :refer (defun-)]
+  (:require [defun.core :refer (defun-)]
             [cheshire.core :as json]
             [open-company.representations.common :as common]
             [open-company.resources.section :as section]))

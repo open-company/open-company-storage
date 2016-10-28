@@ -131,13 +131,13 @@
           (fact "with 1 section"
             (mock/api-request :patch company-url {:body {:stakeholder-update {:title "1 section" :sections [:update]}}})
             (let [response (mock/api-request :post su-url {:body body})
-                  put-response-body (mock/body-from-response response)
-                  su-slug (:slug put-response-body)
+                  patch-response-body (mock/body-from-response response)
+                  su-slug (:slug patch-response-body)
                   db-response-body (su/get-stakeholder-update conn r/slug su-slug)]
               (:status response) => 201
               (get-in response [:headers "Location"]) => (su-rep/stakeholder-update-url company-url su-slug)
               ;; Check the response and the database
-              (doseq [response-body [put-response-body db-response-body]]
+              (doseq [response-body [patch-response-body db-response-body]]
                 (:title response-body) => "1 section"
                 (:sections response-body) => ["update"]
                 (-> response-body :author :name) => (:real-name r/coyote)
@@ -161,13 +161,13 @@
           (fact "with many sections"
             (mock/api-request :patch company-url {:body {:stakeholder-update {:title "Many sections" :sections [:update :finances :diversity]}}})
             (let [response (mock/api-request :post su-url {:body body})
-                  put-response-body (mock/body-from-response response)
-                  su-slug (:slug put-response-body)
+                  patch-response-body (mock/body-from-response response)
+                  su-slug (:slug patch-response-body)
                   db-response-body (su/get-stakeholder-update conn r/slug su-slug)]
               (:status response) => 201
               (get-in response [:headers "Location"]) => (su-rep/stakeholder-update-url company-url su-slug)
               ;; Check the response and the database
-              (doseq [response-body [put-response-body db-response-body]]
+              (doseq [response-body [patch-response-body db-response-body]]
                 (:title response-body) => "Many sections"
                 (:sections response-body) => ["update" "finances" "diversity"]
                 (-> response-body :author :name) => (:real-name r/coyote)
@@ -191,13 +191,13 @@
           (fact "with 1 custom section"
             (mock/api-request :patch company-url {:body {:stakeholder-update {:title "1 custom section" :sections [:custom-a1b2]}}})
             (let [response (mock/api-request :post su-url {:body body})
-                  put-response-body (mock/body-from-response response)
-                  su-slug (:slug put-response-body)
+                  patch-response-body (mock/body-from-response response)
+                  su-slug (:slug patch-response-body)
                   db-response-body (su/get-stakeholder-update conn r/slug su-slug)]
               (:status response) => 201
               (get-in response [:headers "Location"]) => (su-rep/stakeholder-update-url company-url su-slug)
               ;; Check the response and the database
-              (doseq [response-body [put-response-body db-response-body]]
+              (doseq [response-body [patch-response-body db-response-body]]
                 (:title response-body) => "1 custom section"
                 (:sections response-body) => ["custom-a1b2"]
                 (-> response-body :author :name) => (:real-name r/coyote)
@@ -221,13 +221,13 @@
           (fact "with mixed sections"
             (mock/api-request :patch company-url {:body {:stakeholder-update {:title "Mixed sections" :sections [:update :finances :diversity :custom-a1b2 :custom-r2d2]}}})
             (let [response (mock/api-request :post su-url {:body body})
-                  put-response-body (mock/body-from-response response)
-                  su-slug (:slug put-response-body)
+                  patch-response-body (mock/body-from-response response)
+                  su-slug (:slug patch-response-body)
                   db-response-body (su/get-stakeholder-update conn r/slug su-slug)]
               (:status response) => 201
               (get-in response [:headers "Location"]) => (su-rep/stakeholder-update-url company-url su-slug)
               ;; Check the response and the database
-              (doseq [response-body [put-response-body db-response-body]]
+              (doseq [response-body [patch-response-body db-response-body]]
                 (:title response-body) => "Mixed sections"
                 (:sections response-body) => ["update" "finances" "diversity" "custom-a1b2" "custom-r2d2"]
                 (-> response-body :author :name) => (:real-name r/coyote)

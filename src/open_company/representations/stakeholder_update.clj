@@ -29,6 +29,8 @@
       :title (:title update)
       :slug slug
       :created-at (:created-at update)
+      :medium (:medium update)
+      :author (:author update)
       :links (if authorized [su-link (common/delete-link (stakeholder-update-url company-url slug))] [su-link])
     }))
 

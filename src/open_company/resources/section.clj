@@ -1,7 +1,7 @@
 (ns open-company.resources.section
   (:require [clj-time.core :as t]
             [clj-time.format :as format]
-            [defun :refer (defun defun-)]
+            [defun.core :refer (defun defun-)]
             [open-company.config :as c]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]))

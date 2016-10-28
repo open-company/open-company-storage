@@ -1,7 +1,7 @@
 (ns open-company.lib.rest-api-mock
   "Utility functions to help with REST API mock testing."
   (:require [clojure.string :as s]
-            [defun :refer (defun)]
+            [defun.core :refer (defun)]
             [ring.mock.request :refer (request body content-type header)]
             [cheshire.core :as json]
             [open-company.lib.test-setup :as ts]
