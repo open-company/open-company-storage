@@ -13,7 +13,7 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha13"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha14"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.395"] ; Async programming and communication https://github.com/clojure/core.async
     [defun "0.3.0-RC1"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -29,9 +29,9 @@
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.8.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
-    [raven-clj "1.4.3"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+    [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.3.0"] ; HTTP client https://github.com/dakrone/clj-http
-    [clj-time "0.12.0"] ; Date and time lib https://github.com/clj-time/clj-time
+    [clj-time "0.12.2"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.3"] ; Utility functions https://github.com/weavejester/medley
