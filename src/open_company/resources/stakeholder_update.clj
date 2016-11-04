@@ -152,8 +152,8 @@
          (every? :created-at updates)]}
   (let [all (reverse (sort-by :created-at updates)) ; all updates, most recent first
         by-author (vals (group-by #(-> % :author :user-id) all)) ; separate by distinct authorship
-        by-medium (apply concat (map #(vals (group-by :medium %)) by-author)) ; separate those by distinct medium
-        by-title (apply concat (map #(vals (group-by :title %)) by-medium)) ; separate those by distinct title
+        by-medium (mapcat #(vals (group-by :medium %)) by-author) ; separate those by distinct medium
+        by-title (mapcat #(vals (group-by :title %)) by-medium) ; separate those by distinct title
         time-filtered (map time-filter by-title)] ; filter those to the most recent per time period
     ; flatten the remaining sequences of distinct updates into a single sequence and order them by most recent
     (vec (reverse (sort-by :created-at (apply concat time-filtered))))))
