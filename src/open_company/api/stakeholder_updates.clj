@@ -44,7 +44,7 @@
   (if-let* [company (company-res/get-company conn company-slug)
             su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title :medium :author])
             su-filtered-list (su-res/distinct-updates su-list)]
-    {:company company :stakeholder-updates su-list}
+    {:company company :stakeholder-updates su-filtered-list}
     false))
 
 (defn- stakeholder-update-for
