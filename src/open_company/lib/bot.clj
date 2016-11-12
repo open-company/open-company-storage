@@ -15,11 +15,6 @@
    :receiver {:type (s/enum :all-members :user) (s/optional-key :id) s/Str}
    :bot      {:token s/Str :id s/Str}})
 
-(defn strip-prefix
-  "Remove potential prefixes from supplied `id`"
-  [id]
-  (string/replace id #"^slack:" ""))
-
 (defmulti adapt (fn [type _] type))
 
 (defmethod adapt :company [_ m]
@@ -29,7 +24,7 @@
   {:name (first (string/split (:real-name m) #"\ "))})
 
 (defmethod adapt :stakeholder-update [_ m]
-  (select-keys m [:slug :note]))
+  (select-keys m [:slug :note :created-at]))
 
 (defn script-params
   "Turn `ctx` into params map for bot scripts. May contain superflous fields."
@@ -51,7 +46,7 @@
 
 (defn ctx->trigger [script-id ctx]
   {:pre [(map? (:company ctx)) (map? (:user ctx))]}
-  (let [rid (strip-prefix (-> ctx :user :user-id))
+  (let [rid (-> ctx :user :user-id)
         bot (-> ctx :user :bot)]
     {:api-token   (:jwtoken ctx)
      :bot         bot

@@ -37,7 +37,7 @@
     [medley "0.8.3"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
     [amazonica "0.3.77"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
-    [open-company/lib "0.0.5-5899489"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.0.6-04c024d"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -81,7 +81,7 @@
         :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
       }
       :plugins [
-        [lein-bikeshed "0.3.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
+        [lein-bikeshed "0.4.0"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
         [lein-checkall "0.1.1"] ; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-pprint "1.1.2"] ; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
         [lein-ancient "0.6.10"] ; Check for outdated dependencies https://github.com/xsc/lein-ancient
