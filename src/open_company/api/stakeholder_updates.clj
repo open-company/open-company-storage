@@ -115,7 +115,8 @@
   
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (common/allow-authenticated ctx)) ; protect the ObscURLs
+    :get (fn [ctx] (or (common/allow-public conn company-slug ctx) ; allow for all for public companies
+                       (common/allow-org-members conn company-slug ctx))) ; protect the ObscURLs of private ones
     :post (fn [ctx] (common/allow-authenticated ctx))})
 
   ;; Create a new stakeholder update
