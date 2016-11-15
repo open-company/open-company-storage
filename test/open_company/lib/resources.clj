@@ -21,7 +21,7 @@
 ;; ----- Authors -----
 
 (def coyote {
-  :user-id "slack-123456"
+  :user-id "slack:123456"
   :name "coyote"
   :real-name "Wile E. Coyote"
   :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
@@ -29,10 +29,10 @@
   :owner false
   :admin false
   :expire (format/unparse common/timestamp-format (t/plus (t/now) (t/days 1)))
-  :org-id "98765"})
+  :org-id "slack:98765"})
 
 (def camus {
-  :user-id "slack-1960-01-04"
+  :user-id "slack:1960-01-04"
   :name "camus"
   :real-name "Albert Camus"
   :avatar "http://www.brentonholmes.com/wp-content/uploads/2010/05/albert-camus1.jpg"
@@ -40,11 +40,11 @@
   :owner true
   :admin true
   :expire (format/unparse common/timestamp-format (t/plus (t/now) (t/days 1)))
-  :org-id "98765"
+  :org-id "slack:98765"
   :bot {:id "abc" :token "xyz"}})
 
 (def sartre {
-  :user-id "slack-1980-06-21"
+  :user-id "slack:1980-06-21"
   :name "sartre"
   :real-name "Jean-Paul Sartre"
   :avatar "http://existentialismtoday.com/wp-content/uploads/2015/11/sartre_22.jpg"
@@ -52,7 +52,7 @@
   :owner true
   :admin true
   :expire (format/unparse common/timestamp-format (t/plus (t/now) (t/days 1)))
-  :org-id "87654"})
+  :org-id "slack:87654"})
 
 ;; ----- Companies ----
 (def open {:slug slug
