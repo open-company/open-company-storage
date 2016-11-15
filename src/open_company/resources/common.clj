@@ -108,6 +108,8 @@
           schema/Keyword schema/Any}
         InlineSections))
 
+(def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
+
 (def Stakeholder-update
   (merge {:company-slug Slug
           :slug schema/Str ; slug of the update, made from the slugified title and a short UUID
@@ -120,6 +122,9 @@
           :sections [SectionName]
           :created-at schema/Str
           :author Author ; user that created the update
+          :medium ShareMedium
+          (schema/optional-key :to) [schema/Str]
+          (schema/optional-key :note) schema/Str
           schema/Keyword schema/Any}
         InlineSections))
 

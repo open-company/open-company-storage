@@ -42,15 +42,32 @@
 
 (defn- list-stakeholder-updates [conn company-slug]
   (if-let* [company (company-res/get-company conn company-slug)
-            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title])]
-    {:company company :stakeholder-updates su-list}
+            su-list (su-res/list-stakeholder-updates conn company-slug [:slug :title :medium :author])
+            su-filtered-list (su-res/distinct-updates su-list)]
+    {:company company :stakeholder-updates (reverse su-filtered-list)}
     false))
+
+(defn- stakeholder-update-for
+  "Add the appropriate share details to the stakeholder-update for the share medium."
+  [company share]
+  (let [su (:stakeholder-update company)
+        note (or (:note share) "")
+        to (or (:to share) "")]
+    (cond
+      (:email share) (-> su
+                        (assoc :medium :email)
+                        (assoc :to to)
+                        (assoc :note note))
+      (:slack share) (-> su
+                        (assoc :medium :slack)
+                        (assoc :note note))
+      :else (assoc su :medium :link))))
 
 (defn- create-stakeholder-update [conn {:keys [company user] :as ctx}]
   (su-res/create-stakeholder-update! conn
     (su-res/->stakeholder-update conn
       company
-      (:stakeholder-update company)
+      (stakeholder-update-for company (:data ctx))
       user)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -68,7 +85,7 @@
 
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (common/allow-anonymous ctx)) ; these are ObscURLs, so if you know what you're getting it's OK
     :delete (fn [ctx] (common/allow-org-members conn company-slug ctx))})
 
   ;; Delete a stakeholder update
@@ -98,7 +115,8 @@
   
   :allowed? (by-method {
     :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (or (common/allow-public conn company-slug ctx) ; allow for all for public companies
+                       (common/allow-org-members conn company-slug ctx))) ; protect the ObscURLs of private ones
     :post (fn [ctx] (common/allow-authenticated ctx))})
 
   ;; Create a new stakeholder update

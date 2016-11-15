@@ -3,7 +3,7 @@
   (:require [clojure.test :refer (is)]
             [clj-time.core :as t]
             [clj-time.format :as f]
-            [defun :refer (defun)]))
+            [defun.core :refer (defun)]))
 
 (defmacro check [forms]
   `(assert (is ~forms)))

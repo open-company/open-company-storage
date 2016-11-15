@@ -2223,6 +2223,7 @@
       :title "Buffer in June 2015: Fastest-Ever Team Growth, $6.6M ARR"
       :sections ["growth" "finances" "help" "team" "product" "update"]
       :timestamp "2015-07-13T12:59:35.000Z"
+      :medium "link"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -2235,6 +2236,7 @@
       :title "Buffer Investors’ Report: $6.86M ARR, Sixth Retreat, New ‘Areas’ Structure"
       :sections ["growth" "finances" "help" "team" "update" "product"]
       :timestamp "2015-08-13T16:26:47.000Z"
+      :medium "link"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -2247,6 +2249,7 @@
       :title "Buffer in August: $7.49M ARR, Buffer for Video, Continued Growth"
       :sections ["growth" "finances" "team" "product" "customer-service" "help"]
       :timestamp "2015-09-18T18:33:45.000Z"
+      :medium "link"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -2259,6 +2262,8 @@
       :title "50 Teammates, 17 Open Roles, New Calendar View & More: Buffer’s September Update"
       :sections ["update" "growth" "finances" "team" "product" "customer-service" "marketing"]
       :timestamp "2015-10-23T11:21:42.000Z"
+      :medium "link"
+      :note ""
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -2271,6 +2276,7 @@
       :title "Buffer in October: $7.8M Annual Revenue, Pablo 2.0 Launch, Customer Happiness at 95%"
       :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]
       :timestamp "2015-11-20T08:00:47.000Z"
+      :medium "link"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"

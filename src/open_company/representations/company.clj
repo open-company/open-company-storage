@@ -1,6 +1,6 @@
 (ns open-company.representations.company
   (:require [clojure.set :as cset]
-            [defun :refer (defun defun-)]
+            [defun.core :refer (defun defun-)]
             [cheshire.core :as json]
             [open-company.representations.common :as common]
             [open-company.representations.section :as section-rep]

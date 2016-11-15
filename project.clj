@@ -13,10 +13,10 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha13"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha14"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
     [org.clojure/core.async "0.2.395"] ; Async programming and communication https://github.com/clojure/core.async
-    [defun "0.3.0-alapha"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
+    [defun "0.3.0-RC1"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
     [ring/ring-devel "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
@@ -29,15 +29,15 @@
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.8.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
-    [raven-clj "1.4.3"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+    [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.3.0"] ; HTTP client https://github.com/dakrone/clj-http
-    [clj-time "0.12.0"] ; Date and time lib https://github.com/clj-time/clj-time
+    [clj-time "0.12.2"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.3"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
-    [amazonica "0.3.76"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
-    [open-company/lib "0.0.4.2-6cdf3dd"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [amazonica "0.3.77"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [open-company/lib "0.0.5-5899489"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -57,7 +57,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.9.0-alpha5"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.9.0-alpha6"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
         [philoskim/debux "0.2.1"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]

@@ -86,7 +86,7 @@
 
     {
       :section {
-        :title "Growth"
+        :title "Key Metrics"
         :headline ""
         :body "<p>This is excitingly simple growth!</p>"
         :metrics [

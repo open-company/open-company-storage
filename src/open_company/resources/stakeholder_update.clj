@@ -1,12 +1,16 @@
 (ns open-company.resources.stakeholder-update
   (:require [clojure.string :as s]
+            [clj-time.core :as t]
+            [clj-time.format :as f]
             [schema.core :as schema]
             [if-let.core :refer (if-let*)]
-            [defun :refer (defun-)]
+            [defun.core :refer (defun-)]
             [oc.lib.slugify :as slug]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]))
+
+(def update-hueristic-interval (t/hours 24)) ; updates longer apart than this can be considered distinct
 
 ;; ----- RethinkDB metadata -----
 
@@ -34,7 +38,32 @@
           section (section/get-section conn company-slug section-name as-of)
           clean-section (dissoc section :section-name :id :company-slug)]
       (recur (assoc su-props section-name clean-section) conn (rest sections)))))
+
+(defun- time-filter
+  "Recursive pattern matching function to only return the most recent updates in a time window.
+
+  Update argument already sorted by most recent."
   
+  ; initial start case
+  ([updates]
+  (let [this-update (first updates)
+        this-time (f/parse common/timestamp-format (:created-at this-update))]
+    (time-filter (rest updates) this-time [this-update]))) ; the most recent update is by definition distinct 
+
+  ; finish case, we checked them all, we're done
+  ([_updates :guard empty? _most-recent distinct-updates] distinct-updates)
+
+  ; progress case, check the next update and determine if it's in the interval (not distinct)
+  ; or outside the interval (distinct)
+  ([updates most-recent distinct-updates]
+  (let [this-update (first updates)
+        this-time (f/parse common/timestamp-format (:created-at this-update))]
+    (if (t/before? this-time (t/minus most-recent update-hueristic-interval))
+      ; it's distinct due to the time interval
+      (time-filter (rest updates) this-time (conj distinct-updates this-update))
+      ; it's within the interval, so skip it
+      (time-filter (rest updates) most-recent distinct-updates)))))
+
 ;; ----- Stakeholder update CRD (Create, Read, Delete) -----
 
 (schema/defn ->stakeholder-update :- common/Stakeholder-update
@@ -109,6 +138,25 @@
     (common/read-resources conn table-name "company-slug" company-slug)
     (sort-by :created-at)
     vec)))
+
+(defn distinct-updates
+  "Given a list of stakeholder updates, return a subset of them that are 'distinct' by the following hueristic:
+
+  The most recent update for a time period per author, share medium and title.
+  "
+  [updates]
+  {:pre [(sequential? updates)
+         (every? :author updates)
+         (every? :medium updates)
+         (every? :title updates)
+         (every? :created-at updates)]}
+  (let [all (reverse (sort-by :created-at updates)) ; all updates, most recent first
+        by-author (vals (group-by #(-> % :author :user-id) all)) ; separate by distinct authorship
+        by-medium (mapcat #(vals (group-by :medium %)) by-author) ; separate those by distinct medium
+        by-title (mapcat #(vals (group-by :title %)) by-medium) ; separate those by distinct title
+        time-filtered (map time-filter by-title)] ; filter those to the most recent per time period
+    ; flatten the remaining sequences of distinct updates into a single sequence and order them by most recent
+    (vec (reverse (sort-by :created-at (apply concat time-filtered))))))
 
 ;; ----- Armageddon -----
 
