@@ -12,13 +12,8 @@
 (def BotTrigger
   {:api-token s/Str
    :script   {:id KnownScripts :params {s/Keyword s/Str}}
-   :receiver {:type (s/enum :all-members :user) (s/optional-key :id) s/Str}
+   :receiver {:type (s/enum :all-members :user :channel) (s/optional-key :id) s/Str}
    :bot      {:token s/Str :id s/Str}})
-
-(defn strip-prefix
-  "Remove potential prefixes from supplied `id`"
-  [id]
-  (string/replace id #"^slack:" ""))
 
 (defmulti adapt (fn [type _] type))
 
@@ -29,36 +24,39 @@
   {:name (first (string/split (:real-name m) #"\ "))})
 
 (defmethod adapt :stakeholder-update [_ m]
-  (select-keys m [:slug :note]))
+  (select-keys m [:slug :note :created-at :title]))
 
-(defn script-params
+(defn- script-params
   "Turn `ctx` into params map for bot scripts. May contain superflous fields."
   [ctx]
   (->> [:company :user :stakeholder-update]
        (map (fn [k] (med/map-keys #(keyword (name k) (name %)) (adapt k (get ctx k)))))
        (apply merge)))
 
-(defn add-su-note [ctx]
+(defn- add-su-note [ctx]
   (let [note (-> ctx :data :note)]
     (if-not (string/blank? note)
       (assoc-in ctx [:stakeholder-update :note] note)
       ctx)))
 
-(defn add-origin [params ctx]
+(defn- add-origin [params ctx]
   (if-let [origin (get-in ctx [:request :headers "origin"])]
     (assoc params :env/origin origin)
     params))
 
 (defn ctx->trigger [script-id ctx]
   {:pre [(map? (:company ctx)) (map? (:user ctx))]}
-  (let [rid (strip-prefix (-> ctx :user :user-id))
-        bot (-> ctx :user :bot)]
+  (let [rid (-> ctx :user :user-id)
+        bot (-> ctx :user :bot)
+        channel (-> ctx :data :channel)
+        everyone? (or (= channel "__everyone__") (nil? channel))]
     {:api-token   (:jwtoken ctx)
      :bot         bot
      :script      {:id script-id, :params (-> ctx add-su-note script-params (add-origin ctx))}
-     :receiver    (case script-id
-                    :onboard {:type :user, :id rid}
-                    :stakeholder-update {:type :all-members})}))
+     :receiver    (cond 
+                    (= script-id :onboard) {:type :user :id rid}
+                    (and (= script-id :stakeholder-update) (not everyone?)) {:type :channel :id channel}
+                    (= script-id :stakeholder-update) {:type :all-members})}))
 
 (defn send-trigger! [trigger]
   (timbre/info "Request to send msg to " c/aws-sqs-bot-queue "\n" trigger)
