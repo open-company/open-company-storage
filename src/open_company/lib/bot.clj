@@ -24,7 +24,7 @@
   {:name (first (string/split (:real-name m) #"\ "))})
 
 (defmethod adapt :stakeholder-update [_ m]
-  (select-keys m [:slug :note :created-at]))
+  (select-keys m [:slug :note :created-at :title]))
 
 (defn- script-params
   "Turn `ctx` into params map for bot scripts. May contain superflous fields."
