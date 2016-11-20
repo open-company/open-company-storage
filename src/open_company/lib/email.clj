@@ -10,9 +10,10 @@
    :note schema/Str
    :reply-to (schema/maybe schema/Str)
    :company-slug schema/Str
-   :snapshot {schema/Keyword schema/Any}})
+   :snapshot {schema/Keyword schema/Any}
+   :origin-url schema/Str})
 
-(defn ctx->trigger [post-data {company :company user :user su :stakeholder-update}]
+(defn ctx->trigger [post-data {company :company user :user su :stakeholder-update :as ctx}]
   {:pre [
     (sequential? (:to post-data))
     (string? (:subject post-data))
@@ -25,7 +26,8 @@
    :note (:note post-data)
    :reply-to (:email user)
    :company-slug (:slug company)
-   :snapshot su})
+   :snapshot su
+   :origin-url (get-in ctx [:request :headers "origin"])})
 
 (defn send-trigger! [trigger]
   (timbre/info "Request to send msg to " c/aws-sqs-email-queue "\n" (dissoc trigger :snapshot))
