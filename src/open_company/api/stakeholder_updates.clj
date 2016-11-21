@@ -31,7 +31,7 @@
   (let [company-slug (:company-slug update)
         company-url (company-rep/url company-slug)]
     (common/location-response ["companies" company-slug "updates" (:slug update)]
-      (su-rep/render-stakeholder-update company-url update true) su-rep/media-type)))
+      (su-rep/render-stakeholder-update company-url update true true) su-rep/media-type)))
 
 ;; ----- Actions -----
 
@@ -97,6 +97,8 @@
       :get (fn [ctx] (su-rep/render-stakeholder-update
                         (company-rep/url company-slug)
                         (:stakeholder-update ctx)
+                        (or (common/allow-public conn company-slug ctx) ; allow for all for public companies
+                            (common/allow-org-members conn company-slug ctx)) ; protect the ObscURLs of private ones
                         (common/allow-org-members conn company-slug ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 su-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 su-rep/media-type))
