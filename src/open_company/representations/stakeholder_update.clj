@@ -36,25 +36,27 @@
 
 (defn- stakeholder-update-links
   "Add the HATEAOS links to the stakeholder update"
-  [update company-url authorized]
-  (let [su-links [(self-link company-url (:slug update))
-                  (common/link-map "company" common/GET company-url common/company-media-type)]
-        links (if authorized
-                (conj su-links (common/delete-link (stakeholder-update-url company-url (:slug update))))
-                su-links)]
-    (assoc update :links links)))
+  [update company-url read-access write-access]
+  (let [su-links [(self-link company-url (:slug update))]
+        with-read (if read-access
+                   (conj su-links (common/link-map "company" common/GET company-url common/company-media-type))
+                   su-links)
+        with-write (if write-access
+                     (conj with-read (common/delete-link (stakeholder-update-url company-url (:slug update))))
+                     with-read)]
+    (assoc update :links with-write)))
 
 (defn- stakeholder-update-for-rendering
   "Get a representation of the stakeholder update for the REST API"
-  [company-url update authorized]
+  [company-url update read-access write-access]
   (-> update
-    (stakeholder-update-links company-url authorized)
+    (stakeholder-update-links company-url read-access write-access)
     (common/clean clean-properties)))
 
 (defn render-stakeholder-update
   "Create a JSON representation of a stakeholder updates for the REST API"
-  [company-url update authorized]
-  (json/generate-string (stakeholder-update-for-rendering company-url update authorized) {:pretty true}))
+  [company-url update read-access write-access]
+  (json/generate-string (stakeholder-update-for-rendering company-url update read-access write-access) {:pretty true}))
 
 (defn render-stakeholder-update-list
   "Create a JSON representation of a group of stakeholder updates for the REST API"
