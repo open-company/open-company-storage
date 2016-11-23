@@ -35,14 +35,6 @@
         ; 2 -> 2 distinct
         (su/distinct-updates two-updates) => (in-order two-updates)))
 
-    (facts "different medium"
-      (let [two-updates [(update-for {}) (update-for {:medium :email :created-at (ago (t/hours 1))})]]
-        ; 2 -> 2 distinct
-        (su/distinct-updates two-updates) => (in-order two-updates))
-      (let [two-updates [(update-for {:medium :slack}) (update-for {:medium :email :created-at (ago (t/hours 1))})]]
-        ; 2 -> 2 distinct
-        (su/distinct-updates two-updates) => (in-order two-updates)))
-
     (fact "different author"
       (let [two-updates [(update-for {}) (update-for {:author res/camus :created-at (ago (t/hours 1))})]]
         ; 2 -> 2 distinct
@@ -55,7 +47,7 @@
 
   (facts "and de-duplication"
 
-    (facts "because there is the same title, medium and author, and within a day"
+    (facts "because there is the same title, author, and within a day"
       (let [two-updates [(update-for {}) (update-for {:created-at (ago (t/hours 1))})]]
         ; 2 -> 1 distinct
         (su/distinct-updates two-updates) => [(first (in-order two-updates))])
@@ -63,7 +55,28 @@
         ; 2 -> 1 distinct
         (su/distinct-updates two-updates) => [(first (in-order two-updates))]))
 
-    (facts "about complex scenarios"
+    (facts "and medium collapse"
+
+      (fact "2 different mediums collapse to a set"
+        (let [two-updates [(update-for {}) (update-for {:medium :slack})]
+              ordered-updates (in-order two-updates)
+              first-update (first ordered-updates)
+              last-update (last ordered-updates)
+              distinct-update (assoc first-update :medium #{:link :slack})]
+          ; 2 -> 1 distinct
+          (su/distinct-updates two-updates) => [distinct-update]))
+
+      (fact "4 different mediums collapse to a set"
+        (let [two-updates [(update-for {}) (update-for {:medium :slack}) (update-for {}) (update-for {:medium :email})]
+              ordered-updates (in-order two-updates)
+              first-update (first ordered-updates)
+              second-update (second ordered-updates)
+              last-update (last ordered-updates)
+              distinct-update (assoc first-update :medium #{:link :slack :email})]
+          ; 4 -> 1 distinct
+          (su/distinct-updates two-updates) => [distinct-update])))
+    
+    (facts "in complex scenarios"
       (let [
             ; 3 non-distinct links
             link1 (update-for {})
@@ -120,7 +133,7 @@
             slack5 (update-for {:medium :slack :title "3" :created-at (ago (t/hours 14))})]
         (su/distinct-updates [link1 link2 link3 link4 link5
                               email1 email2 email3 email4 email5 email6
-                              slack1 slack2 slack3 slack4 slack5]) => (in-order [link1 link4
-                                                                                 email1 email5
-                                                                                 slack1 slack3 slack4 slack5
+                              slack1 slack2 slack3 slack4 slack5]) => (in-order [(assoc link1 :medium #{:link :slack :email})
+                                                                                 (assoc link4 :medium #{:link :email})
+                                                                                 slack3 slack4 slack5
                                                                                  email6])))))

@@ -40,9 +40,12 @@
       (recur (assoc su-props section-name clean-section) conn (rest sections)))))
 
 (defun- time-filter
-  "Recursive pattern matching function to only return the most recent updates in a time window.
+  "Recursive pattern matching function to only return the distinct updates, defined by those that
+  are far enough apart in time.
 
-  Update argument already sorted by most recent."
+  Returns the most recent update, accumulating any extra share mediums that were in skipped updates.
+
+  Updates argument is already sorted by most recent."
   
   ; initial start case
   ([updates]
@@ -51,7 +54,7 @@
     (time-filter (rest updates) this-time [this-update]))) ; the most recent update is by definition distinct 
 
   ; finish case, we checked them all, we're done
-  ([_updates :guard empty? _most-recent distinct-updates] distinct-updates)
+  ([_updates :guard empty? _most-recent distinct-updates] distinct-updates) 
 
   ; progress case, check the next update and determine if it's in the interval (not distinct)
   ; or outside the interval (distinct)
@@ -60,9 +63,20 @@
         this-time (f/parse common/timestamp-format (:created-at this-update))]
     (if (t/before? this-time (t/minus most-recent update-hueristic-interval))
       ; it's distinct due to the time interval
-      (time-filter (rest updates) this-time (conj distinct-updates this-update))
-      ; it's within the interval, so skip it
-      (time-filter (rest updates) most-recent distinct-updates)))))
+      (time-filter (rest updates) this-time (conj distinct-updates this-update)) ; recurse with the additional update
+      ; it's within the interval, so skip it, but accumulate its medium
+      (let [most-recent-update (last distinct-updates)
+            most-recent-medium (:medium most-recent-update)
+            new-medium (:medium this-update)
+            medium-match? (= most-recent-medium new-medium)
+            multiple-mediums? (set? most-recent-medium)
+            new-most-recent-update 
+              (cond
+                multiple-mediums? (assoc most-recent-update :medium (conj most-recent-medium new-medium))
+                medium-match? most-recent-update
+                :else (assoc most-recent-update :medium #{most-recent-medium new-medium}))
+            updated-distinct-updates (conj (butlast distinct-updates) new-most-recent-update)]
+      (time-filter (rest updates) most-recent updated-distinct-updates)))))) ; recurse with additional medium
 
 ;; ----- Stakeholder update CRD (Create, Read, Delete) -----
 
@@ -142,7 +156,7 @@
 (defn distinct-updates
   "Given a list of stakeholder updates, return a subset of them that are 'distinct' by the following hueristic:
 
-  The most recent update for a time period per author, share medium and title.
+  The most recent update for a time period, per author, and title.
   "
   [updates]
   {:pre [(sequential? updates)
@@ -152,8 +166,7 @@
          (every? :created-at updates)]}
   (let [all (reverse (sort-by :created-at updates)) ; all updates, most recent first
         by-author (vals (group-by #(-> % :author :user-id) all)) ; separate by distinct authorship
-        by-medium (mapcat #(vals (group-by :medium %)) by-author) ; separate those by distinct medium
-        by-title (mapcat #(vals (group-by :title %)) by-medium) ; separate those by distinct title
+        by-title (mapcat #(vals (group-by :title %)) by-author) ; separate those by distinct title
         time-filtered (map time-filter by-title)] ; filter those to the most recent per time period
     ; flatten the remaining sequences of distinct updates into a single sequence and order them by most recent
     (vec (reverse (sort-by :created-at (apply concat time-filtered))))))
