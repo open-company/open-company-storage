@@ -58,13 +58,13 @@
 
 (def reserved-slugs #{"about" "android" "api" "app" "careers" "companies"
                       "company" "contact" "create-company" "crowd" "developer"
-                      "developers" "download" "faq" "forum" "forums" 
-                      "founder" "founders" "help"
-                      "home" "investor" "investors" "ios" "jobs" "login"
-                      "logout" "news" "newsletter" "press" "privacy" "register"
-                      "section" "sections" "signup" "stakeholder"
-                      "stakeholder-update" "terms" "topic" "topics"
-                      "update" "updates" "profile"})
+                      "developers" "download" "email-confirmation" "faq" "forum" "forums" 
+                      "founder" "founders" "help" "home"
+                      "investor" "investors" "invite" "ios" "jobs" "login" "logout"
+                      "news" "newsletter" "press" "privacy" "profile" "register" "reset"
+                      "section" "sections" "signin" "signout" "signup" "stakeholder"
+                      "stakeholder-update" "subscription-completed" "terms" "topic" "topics"
+                      "update" "updates"})
 
 (declare list-companies)
 (defn taken-slugs
