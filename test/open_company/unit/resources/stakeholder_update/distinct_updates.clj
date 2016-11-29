@@ -47,7 +47,7 @@
 
   (facts "and de-duplication"
 
-    (facts "because there is the same title, author, and within a day"
+    (facts "because there is the same title and author within a day"
       (let [two-updates [(update-for {}) (update-for {:created-at (ago (t/hours 1))})]]
         ; 2 -> 1 distinct
         (su/distinct-updates two-updates) => [(first (in-order two-updates))])
