@@ -231,6 +231,16 @@
       (r/get primary-key-value)
       (r/run conn)))
 
+(defn count-resources
+  "Given a table name, and an index name and value, return a count of the number of matching
+  documents in the database."
+  [conn table-name index-name index-value]
+  (with-timeout default-timeout
+   (-> (r/table table-name)
+       (r/get-all [index-value] {:index index-name})
+       (r/count)
+       (r/run conn))))
+
 (defn read-resources
   "Given a table name, and an optional index name and value, and an optional set of fields, retrieve
   the resources from the database."

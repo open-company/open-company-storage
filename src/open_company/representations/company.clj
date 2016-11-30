@@ -76,8 +76,8 @@
 
 (defn- stakeholder-updates-link
   "Add HATEOAS links to existing stakeholder updates"
-  [company]
-  (update-in company [:links] conj (su-rep/stakeholder-updates-link (url company))))
+  [company conn]
+  (update-in company [:links] conj (su-rep/stakeholder-updates-link conn (:slug company) (url company))))
 
 (defn- stakeholder-update-create-link
   "Add the HATEOAS link to create a new stakeholder update if authorized"
@@ -88,10 +88,10 @@
 
 (defn- stakeholder-update-links
   "Add the stakeholder update HATEOAS links to the company"
-  [company authorized]
+  [company conn authorized]
   (-> company
     (stakeholder-update-create-link authorized)
-    (stakeholder-updates-link)))
+    (stakeholder-updates-link conn)))
 
 (defn- company-for-rendering
   "Get a representation of the company for the REST API"
@@ -102,7 +102,7 @@
     (assoc :revisions (company/list-revisions conn slug))
     (update :revisions #(map (fn [rev] (revision-link slug (:updated-at rev))) %))
     (company-links (if authorized :all-links [:self]))
-    (stakeholder-update-links authorized)
+    (stakeholder-update-links conn authorized)
     (sections* conn authorized)
     (assoc :archived (company/archived-sections conn slug)))))
 
