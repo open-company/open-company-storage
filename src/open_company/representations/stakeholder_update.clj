@@ -20,9 +20,10 @@
 (defn create-link [company-url]
   (common/link-map "share" common/POST (stakeholder-updates-url company-url) nil))
 
-(defn stakeholder-updates-link [conn company-slug company-url]
+(defn stakeholder-updates-link
   "Create a HATEOAS link to be used to retrieve stakeholder updates and annotate it
   with a count of how many updates exist."
+  [conn company-slug company-url]
   (assoc
     (common/link-map "stakeholder-updates" common/GET (stakeholder-updates-url company-url) collection-media-type)
     :count (su/count-stakeholder-updates conn company-slug)))
