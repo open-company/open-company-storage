@@ -137,6 +137,13 @@
 
 ;; ----- Collection of stakeholder updates -----
 
+(defn count-stakeholder-updates
+  ""
+  [conn company-slug]
+  {:pre [(map? conn) (string? company-slug)]
+   :post [(number? %)]}
+  (common/count-resources conn table-name "company-slug" company-slug))
+
 (defn list-stakeholder-updates
   "
   Return a sequence of maps for each stakeholder update for the specified company

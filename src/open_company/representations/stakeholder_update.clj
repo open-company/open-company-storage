@@ -1,5 +1,6 @@
 (ns open-company.representations.stakeholder-update
   (:require [cheshire.core :as json]
+            [open-company.resources.stakeholder-update :as su]
             [open-company.representations.common :as common]))
 
 (def ^:private clean-properties [:id :updated-at :company-slug])
@@ -19,8 +20,13 @@
 (defn create-link [company-url]
   (common/link-map "share" common/POST (stakeholder-updates-url company-url) nil))
 
-(defn stakeholder-updates-link [company-url]
-  (common/link-map "stakeholder-updates" common/GET (stakeholder-updates-url company-url) collection-media-type))
+(defn stakeholder-updates-link
+  "Create a HATEOAS link to be used to retrieve stakeholder updates and annotate it
+  with a count of how many updates exist."
+  [conn company-slug company-url]
+  (assoc
+    (common/link-map "stakeholder-updates" common/GET (stakeholder-updates-url company-url) collection-media-type)
+    :count (su/count-stakeholder-updates conn company-slug)))
 
 (defn- stakeholder-update-fragment [company-url update authorized]
   (let [slug (:slug update)
