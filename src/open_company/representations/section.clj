@@ -46,6 +46,7 @@
   ([company-slug section-name section true]
   (assoc section :links (flatten [
     (self-link company-slug section-name)
+    (revisions-link company-slug section-name)
     (update-link company-slug section-name)]))))
 
 (defn section-for-rendering
