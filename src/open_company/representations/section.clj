@@ -28,7 +28,7 @@
   (common/partial-update-link (url company-slug section-name) media-type))
 
 (defn- revisions-link [company-slug section-name]
-  (common/link-map "revisions" common/GET (revisions-url company-slug section-name) media-type))
+  (common/link-map "revisions" common/GET (revisions-url company-slug section-name) collection-media-type))
 
 (defn- revision-link [company-slug section-name updated-at]
   (common/revision-link (url company-slug section-name updated-at) updated-at media-type))
