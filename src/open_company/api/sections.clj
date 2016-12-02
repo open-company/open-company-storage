@@ -41,10 +41,14 @@
 (defn- put-section [conn company-slug section-name section author]
   {:updated-section (section-res/put-section conn company-slug section-name section author)})
 
+(defn- get-revision-list [conn company-slug section-name]
+  (if-let [section (section-res/get-section conn company-slug section-name)]
+    {:revisions (section-res/get-revisions conn company-slug section-name)}))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 (defresource section [conn company-slug section-name as-of]
-  common/open-company-anonymous-resource
+  common/open-company-anonymous-resource  ; verify validity of JWToken if it's provided, but it's not required
 
   :allowed-methods [:options :get :put :patch]
   :available-media-types [section-rep/media-type]
@@ -84,6 +88,28 @@
   :patch! (fn [ctx] (put-section conn company-slug section-name (merge (:section ctx) (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (section-location-response conn (:updated-section ctx))))
 
+;; A resource for a list of all the revisions of the section the user has access to.
+(defresource section-revision-list [conn company-slug section-name]
+  common/open-company-anonymous-resource ; verify validity of JWToken if it's provided, but it's not required
+
+  :available-charsets [common/UTF8]
+  :available-media-types [section-rep/collection-media-type]
+  :allowed-methods [:options :get]
+  :allowed? (by-method {
+    :options (fn [ctx] (common/allow-anonymous ctx))
+    :get (fn [ctx] (or (common/allow-public conn company-slug ctx)
+                       (common/allow-org-members conn company-slug ctx)))})
+
+  :handle-not-acceptable (common/only-accept 406 section-rep/collection-media-type)
+
+  ;; Get a list of section revisions
+  :exists? (fn [_] (get-revision-list conn company-slug section-name))
+
+  :processable? true
+
+  :handle-ok (fn [ctx] (section-rep/render-revision-list company-slug section-name (:revisions ctx)))
+  :handle-options (fn [ctx] (common/options-response [:options :get])))
+
 ;; ----- Routes -----
 
 (defn- section-route [sys company-slug section-slug uuid as-of]
@@ -91,9 +117,22 @@
         section-name (if (= section-slug "custom-:uuid") (str "custom-" uuid) section-slug)] 
     (pool/with-pool [conn db-pool] (section conn company-slug section-name as-of))))
 
+(defn- revisions-route [sys company-slug section-slug uuid]
+  (let [db-pool (-> sys :db-pool :pool)
+        section-name (if (= section-slug "custom-:uuid") (str "custom-" uuid) section-slug)] 
+    (pool/with-pool [conn db-pool] (section-revision-list conn company-slug section-name))))
+
 (defn section-routes [sys]
-    (apply routes
+    (apply routes (concat
+
+      ;; Section routes
       (map #(ANY (str "/companies/:company-slug/" %)
-                  [company-slug uuid as-of]
-                  (section-route sys company-slug % uuid as-of))
-          (conj (map name common-res/section-names) "custom-:uuid"))))
+                    [company-slug uuid as-of]
+                    (section-route sys company-slug % uuid as-of))
+        (conj (map name common-res/section-names) "custom-:uuid"))
+
+      ;; Section revision list routes
+      (map #(ANY (str "/companies/:company-slug/" % "/revisions")
+                  [company-slug uuid]
+                  (revisions-route sys company-slug % uuid))
+          (conj (map name common-res/section-names) "custom-:uuid")))))

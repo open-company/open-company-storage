@@ -114,7 +114,7 @@
   (json/generate-string (company-for-rendering conn company authorized) {:pretty true})))
 
 (defn render-company-list
-  "Create a JSON representation of a group of companies for the REST API"
+  "Create a JSON representation of a list of companies for the REST API"
   [companies]
   (json/generate-string
    {:collection {:version common/json-collection-version
