@@ -35,5 +35,4 @@
   (check (= (count links) 3))
   (let [url (section-rep/url company-slug section-name)]
     (verify-link "self" GET url section-rep/media-type links)
-    (verify-link "update" PUT url section-rep/media-type links)
-    (verify-link "partial-update" PATCH url section-rep/media-type links)))
+    (verify-link "update" PUT url section-rep/media-type links)))

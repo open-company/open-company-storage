@@ -155,6 +155,11 @@
 
 ;; ----- Utility functions -----
 
+(defn created-at-order
+  "Return items in a sequence sorted by their :created-at key. Newest first."
+  [coll]
+  (sort #(compare (:created-at %2) (:created-at %1)) coll))
+
 (defn updated-at-order
   "Return items in a sequence sorted by their :updated-at key. Newest first."
   [coll]

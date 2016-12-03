@@ -107,7 +107,11 @@
 
   :processable? true
 
-  :handle-ok (fn [ctx] (section-rep/render-revision-list company-slug section-name (:revisions ctx)))
+  :handle-ok (fn [ctx] (section-rep/render-revision-list
+                          company-slug
+                          section-name
+                          (:revisions ctx)
+                          (common/allow-org-members conn company-slug ctx)))
   :handle-options (fn [ctx] (common/options-response [:options :get])))
 
 ;; ----- Routes -----

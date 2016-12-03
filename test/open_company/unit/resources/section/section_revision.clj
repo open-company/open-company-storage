@@ -95,7 +95,7 @@
             (= updated-at created-at) => true)
           (count (s/get-revisions conn r/slug :finances)) => 2)
 
-        (fact "creates a new revision when the update of the section is over the time limit"
+        (future-fact "creates a new revision when the update of the section is over the time limit"
           (db/postdate conn r/slug :finances) ; long enough ago to trigger a new revision
           (s/put-section conn r/slug :finances r/finances-section-2 r/coyote)
           (let [section (s/get-section conn r/slug :finances)
