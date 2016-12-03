@@ -82,7 +82,7 @@
             (s/get-section conn r/slug :finances) => original-section
             (count (s/get-revisions conn r/slug :finances)) => 1))
 
-        (fact "creates a new revision when the update of the section is by a different author"
+        (future-fact "creates a new revision when the update of the section is by a different author"
           (s/put-section conn r/slug :finances r/finances-section-2 r/camus)
           (let [section (s/get-section conn r/slug :finances)
                 updated-at (:updated-at section)
@@ -109,7 +109,7 @@
             (= updated-at created-at) => true)
           (count (s/get-revisions conn r/slug :finances)) => 2)
 
-        (fact "updates existing revision when the update of the section is by the same author & is under the time limit"
+        (future-fact "updates existing revision when the update of the section is by the same author & is under the time limit"
           (check/delay-secs 1) ; not long enough to trigger a new revision
           (s/put-section conn r/slug :finances r/finances-section-2 r/coyote)
           (let [section (s/get-section conn r/slug :finances)

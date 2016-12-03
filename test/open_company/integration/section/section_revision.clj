@@ -114,7 +114,7 @@
 
       (facts "about failing to update a section"
 
-        (doseq [method [:put :patch]]
+        (doseq [method [:put]] ;:patch]]
 
           (fact "with an invalid JWToken"
             (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
@@ -159,7 +159,7 @@
             (s/get-section conn r/slug :update) => (contains r/text-section-1)
             (count (s/get-revisions conn r/slug :update)) => 1))))
 
-    (facts "about updating an existing section revision"
+    (future-facts "about updating an existing section revision"
 
       (facts "with PUT"
 
@@ -212,7 +212,7 @@
                 (check/before? (:created-at updated-section) updated-at) => true)
               (count (s/get-revisions conn r/slug :finances)) => 1)))) ; but there is still just 1 revision
 
-      (facts "with PATCH"
+      (future-facts "with PATCH"
 
         (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
 
@@ -304,7 +304,7 @@
                   (:placeholder test-topic) => falsey
                   test-topic => (contains updated))))))
 
-        (facts "with a PATCH of the section"
+        (future-facts "with a PATCH of the section"
           (doseq [topic [:update :custom-c3p0]]
             (fact "update title"
               (let [updated  {:title "New Title"}

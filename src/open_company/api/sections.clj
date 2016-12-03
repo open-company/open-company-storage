@@ -41,6 +41,9 @@
 (defn- put-section [conn company-slug section-name section author]
   {:updated-section (section-res/put-section conn company-slug section-name section author)})
 
+(defn- patch-revision [conn company-slug section-name as-of revision author]
+  {:updated-section (section-res/patch-revision conn company-slug section-name as-of revision author)})
+
 (defn- get-revision-list [conn company-slug section-name]
   (if-let [section (section-res/get-section conn company-slug section-name)]
     {:revisions (section-res/get-revisions conn company-slug section-name)}))
@@ -52,7 +55,12 @@
 
   :allowed-methods [:options :get :put :patch]
   :available-media-types [section-rep/media-type]
-  :exists? (fn [_] (get-section conn company-slug section-name as-of))
+  :exists? (by-method {
+    :get (fn [_] (get-section conn company-slug section-name as-of))
+    :put (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))
+    :patch (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))
+    :delete (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))})
+
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
   :allowed? (by-method {
@@ -85,7 +93,7 @@
   ;; Create or update a section
   :new? (by-method {:put (fn [ctx] (not (:section ctx)))})
   :put! (fn [ctx] (put-section conn company-slug section-name (:data ctx) (:user ctx)))
-  :patch! (fn [ctx] (put-section conn company-slug section-name (merge (:section ctx) (:data ctx)) (:user ctx)))
+  :patch! (fn [ctx] (patch-revision conn company-slug section-name as-of (merge (:section ctx) (:data ctx)) (:user ctx)))
   :handle-created (fn [ctx] (section-location-response conn (:updated-section ctx))))
 
 ;; A resource for a list of all the revisions of the section the user has access to.

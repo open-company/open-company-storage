@@ -158,8 +158,48 @@
         ;; update the company
         (company/update-company conn company-slug updated-company)
         ;; create a new section revision or update the latest section
-        (revise-or-update conn [original-section completed-section] timestamp))
+        (common/create-resource conn table-name completed-section timestamp))
       false))))
+
+(defn patch-revision [conn company-slug section-name timestamp revision user]
+  "
+  Given the company slug, section name, timestamp and section property map, update an exising section revision,
+  returning the property map for the resource or `false`.
+  "
+  (let [original-company (company/get-company conn company-slug) ; company before the update
+        author (common/author-for-user user)
+        original-revision (get-section conn company-slug section-name timestamp) ; revision before the update
+        merged-revision (merge original-revision revision) ; old revision updated with the new
+        completed-revision (-> merged-revision
+                               clean
+                               (common/complete-section company-slug section-name user)
+                               (dissoc :placeholder)
+                               (assoc :updated-at timestamp)) ; make sure the section has all the right properties
+        original-sections (:sections original-company)
+        updated-sections (if (some #{(name section-name)} (map name original-sections)) ; if section is in sections
+                            original-sections ; already there
+                            (conj original-sections section-name)) ; not there, add it
+        sectioned-company (assoc original-company :sections updated-sections)
+        current-revision ((keyword section-name) original-company) ; most recent revision of this section
+        updated-company (if (= (:created-at current-revision) timestamp) ; is the modified revision the current revision?
+                          ;; update the section in the company too, because the modified revision is the current one
+                          (assoc sectioned-company section-name 
+                              (-> completed-revision
+                                (dissoc :placeholder)
+                                (dissoc :company-slug)
+                                (dissoc :section-name)))
+                          ;; no need to update the section in company
+                          sectioned-company)]
+    (println current-revision)
+    (println (:created-at current-revision))
+    (println timestamp)
+    (if (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
+      (do
+        ;; update the company
+        (company/update-company conn company-slug updated-company)
+        ;; update the section revision or
+        (common/update-resource conn table-name primary-key original-revision completed-revision timestamp))
+      false)))
 
 ;; ----- Armageddon -----
 
