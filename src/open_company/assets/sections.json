@@ -5,7 +5,7 @@
   "categories": [
       {"name": "Popular Topics", "icon": null, "column": 1, "order": 1, "sections": ["update", "highlights", "challenges", "takeaways", "team", "product", "competition", "fundraising", "kudos", "help"]},
       {"name": "Who We Are", "icon": null, "column": 2, "order": 1, "sections": ["mission", "values", "ownership", "diversity"]},
-      {"name": "Charts", "icon": null, "column": 2, "order": 2, "sections": ["growth", "finances"]},
+      {"name": "Charts", "icon": "fa-line-chart", "column": 2, "order": 2, "sections": ["growth", "finances"]},
       {"name": "Groups", "icon": null, "column": 2, "order": 3, "sections": ["sales", "marketing", "customers"]}
     ],
 
@@ -243,7 +243,7 @@
       "title": "Finances",
       "description": "Cash on hand, burn and runway",
       "headline": "",
-      "body-placeholder": "Discuss recent performance. How are you doing against your targets?",
+      "body-placeholder": "Discuss the financial health of the business, and what's changed since the last update.",
       "body": "",
       "data": [],
       "pin": false
