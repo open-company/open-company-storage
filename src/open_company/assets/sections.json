@@ -1,6 +1,13 @@
 {
+  
   "sections": ["update", "mission", "values", "highlights", "growth", "challenges", "takeaways", "team", "diversity", "product", "customers", "sales", "marketing", "competition", "help", "kudos", "finances", "fundraising", "ownership"],
   
+  "categories": [
+      {"name": "Popular Topics", "icon": null, "column": 1, "order": 1, "sections": ["update", "highlights", "challenges", "takeaways", "team", "product", "competition", "fundraising", "kudos", "help"]},
+      {"name": "Who We Are", "icon": null, "column": 2, "order": 1, "sections": ["mission", "values", "ownership", "diversity"]},
+      {"name": "Charts", "icon": null, "column": 2, "order": 2, "sections": ["growth", "finances"]},
+      {"name": "Groups", "icon": null, "column": 2, "order": 3, "sections": ["sales", "marketing", "customers"]}
+    ],
 
   "templates": [
 
@@ -22,7 +29,7 @@
       "title": "Values",
       "description": "Core values the organization lives by",
       "headline": "",
-      "body-placeholder": "Core values are the fundamental beliefs of the organization. What are they, and why are they important?",
+      "body-placeholder": "Core values are the fundamental beliefs of the organization. What are they?",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -35,7 +42,7 @@
       "title": "Diversity",
       "description": "Diversity goals and makeup",
       "headline": "",
-      "body-placeholder": "What is the current state of diversity at your organization? What are your goals, and what needs to happen to achieve them?",
+      "body-placeholder": "What is the current state of diversity at your organization? What are your goals?",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -48,7 +55,7 @@
       "title": "Competition",
       "description": "Key competitors and competitive threats",
       "headline": "",
-      "body-placeholder": "Who are the competitors you’re paying attention to? Why? What other big external threats do you see?",
+      "body-placeholder": "What are your competitors up to? Are there any new external threats?",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -61,7 +68,7 @@
       "title": "CEO Update",
       "description": "organization update",
       "headline": "",
-      "body-placeholder": "Provide an overview of important happenings in the organization since the last update.",
+      "body-placeholder": "A quick take on what's happened since the last update.",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -132,8 +139,7 @@
       "title": "Lessons Learned",
       "description": "What we've learned",
       "headline": "",
-      "body-placeholder": "What’s something you recently learned about your business, market, customers, or product?
-      What changes are you making as a result?",
+      "body-placeholder": "What’s something you recently learned about your business, customers, or product?",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -146,7 +152,7 @@
       "title": "Team and Hiring",
       "description": "Team and hiring update",
       "headline": "",
-      "body-placeholder": "Announce and welcome new hires, discuss open positions and progress being made to fill them, and let everyone know about employees that have left.",
+      "body-placeholder": "Welcome new hires, discuss open positions, and let everyone know about other team changes.",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -248,7 +254,7 @@
       "title": "Ownership",
       "description": "Distribution of equity",
       "headline": "",
-      "body-placeholder": "What would you like to share about ownership, such as the # of shares outstanding and size of the employee option pool? Is there a formula used to allocate options?",
+      "body-placeholder": "What would you like to share about ownership, such as the # of shares outstanding and size of the employee option pool?",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -261,7 +267,7 @@
       "title": "Fundraising",
       "description": "Updates on the fundraising process",
       "headline": "",
-      "body-placeholder": "When are you raising, and how much would you like to raise? How will you use the funds? Link to the pitch deck, and let everyone know how it’s going. If you’ve already raised, who are the new investors and what are the terms?",
+      "body-placeholder": "How much would you like to raise? How will you use the funds? Link to the pitch deck, and let everyone know how it’s going. If you’ve already raised, who are the new investors and what are the terms?",
       "body": "",
       "image-url": null,
       "image-height": 0,
