@@ -17,10 +17,10 @@
       :user-id "123456"
       :image "https://secure.gravatar.com/avatar/46c1c756f36549c2dea0253e1e025053?s=96&d=mm&r=g"
     }
-    :sections ["update" "product" "growth" "team" "marketing" "customer-service" "finances" "help" "diversity" "values" "mission"]
+    :sections ["update" "product" "growth" "team" "marketing" "customers" "finances" "help" "diversity" "values" "mission"]
     :stakeholder-update {
       :title ""
-      :sections ["update" "help" "product" "growth" "marketing" "finances" "team" "customer-service"]
+      :sections ["update" "help" "product" "growth" "marketing" "finances" "team" "customers"]
     }
   }
 
@@ -1172,7 +1172,7 @@
           <li>55% of Tweets got a reply within 15 minutes</li>
         </ul>"
       }
-      :section-name "customer-service"
+      :section-name "customers"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -1659,7 +1659,7 @@
           <li>53% of Tweets got a reply within 15 minutes (-3%)</li>
         </ul>"
       }
-      :section-name "customer-service"
+      :section-name "customers"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -2151,7 +2151,7 @@
           <li>54% of Tweets got a reply within 15 minutes</li>
         </ul>"
       }
-      :section-name "customer-service"
+      :section-name "customers"
       :author {
         :name "Joel Gascoigne"
         :user-id "123456"
@@ -2247,7 +2247,7 @@
     ;; August Update https://open.bufferapp.com/investors-report-august-2015/
     {
       :title "Buffer in August: $7.49M ARR, Buffer for Video, Continued Growth"
-      :sections ["growth" "finances" "team" "product" "customer-service" "help"]
+      :sections ["growth" "finances" "team" "product" "customers" "help"]
       :timestamp "2015-09-18T18:33:45.000Z"
       :medium "link"
       :author {
@@ -2260,7 +2260,7 @@
     ;; September Update https://open.buffer.com/the-50-teammates-milestone-buffers-september-investors-report/
     {
       :title "50 Teammates, 17 Open Roles, New Calendar View & More: Buffer’s September Update"
-      :sections ["update" "growth" "finances" "team" "product" "customer-service" "marketing"]
+      :sections ["update" "growth" "finances" "team" "product" "customers" "marketing"]
       :timestamp "2015-10-23T11:21:42.000Z"
       :medium "link"
       :note ""
@@ -2274,7 +2274,7 @@
     ;; October Update https://open.buffer.com/buffer-october-2015/
     {
       :title "Buffer in October: $7.8M Annual Revenue, Pablo 2.0 Launch, Customer Happiness at 95%"
-      :sections ["growth" "finances" "team" "product" "customer-service" "marketing" "help"]
+      :sections ["growth" "finances" "team" "product" "customers" "marketing" "help"]
       :timestamp "2015-11-20T08:00:47.000Z"
       :medium "link"
       :author {

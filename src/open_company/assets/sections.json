@@ -1,5 +1,5 @@
 {
-  "sections": ["update", "mission", "values", "highlights", "growth", "challenges", "takeaways", "team", "diversity", "product", "customer-service", "sales", "marketing", "business-development", "competition", "press", "help", "kudos", "finances", "fundraising", "ownership", "compensation"],
+  "sections": ["update", "mission", "values", "highlights", "growth", "challenges", "takeaways", "team", "diversity", "product", "customers", "sales", "marketing", "competition", "help", "kudos", "finances", "fundraising", "ownership"],
   
 
   "templates": [
@@ -129,7 +129,7 @@
 
    {
       "section-name": "takeaways",
-      "title": "Key Takeaways",
+      "title": "Lessons Learned",
       "description": "What we've learned",
       "headline": "",
       "body-placeholder": "What’s something you recently learned about your business, market, customers, or product?
@@ -156,7 +156,7 @@
 
     {
       "section-name": "product",
-      "title": "Product",
+      "title": "Products",
       "description": "Product release and roadmap update",
       "headline": "",
       "body-placeholder": "What's shipped recently and how has the roadmap changed? How is the market responding? What’s working? What’s not?",
@@ -168,9 +168,9 @@
     },
 
     {
-      "section-name": "customer-service",
-      "title": "Customer Service",
-      "description": "Customer service update",
+      "section-name": "customers",
+      "title": "Customers",
+      "description": "Customer update",
       "headline": "",
       "body-placeholder": "Is customer satisfaction trending up or down? How are you tracking it? What key issues do your customers have?",
       "body": "",
@@ -194,37 +194,11 @@
     },
 
     {
-      "section-name": "press",
-      "title": "Press",
-      "description": "Press mentions and PR activities",
-      "headline": "",
-      "body-placeholder": "List any notable press mentions since the last update. Provide an update on PR activities.",
-      "body": "",
-      "image-url": null,
-      "image-height": 0,
-      "image-width": 0,
-      "pin": false
-    },
-
-    {
       "section-name": "sales",
       "title": "Sales",
       "description": "Notable sales activity and wins and losses",
       "headline": "",
       "body-placeholder": "Did you close any notable sales? What opportunities are in the pipeline?",
-      "body": "",
-      "image-url": null,
-      "image-height": 0,
-      "image-width": 0,
-      "pin": false
-    },
-
-    {
-      "section-name": "business-development",
-      "title": "Business Development",
-      "description": "Notable partnership activity and new deals",
-      "headline": "",
-      "body-placeholder": "Did you close any notable deals / partnerships? What opportunities are in the pipeline?",
       "body": "",
       "image-url": null,
       "image-height": 0,
@@ -263,22 +237,9 @@
       "title": "Finances",
       "description": "Cash on hand, burn and runway",
       "headline": "",
-      "body-placeholder": "What would you like to say about organization finances?",
+      "body-placeholder": "Provide context about recent financial performance. How are finances performing against targets? What is impacting them?",
       "body": "",
       "data": [],
-      "pin": false
-    },
-
-    {
-      "section-name": "compensation",
-      "title": "Compensation",
-      "description": "Founder, executive and employee compensation practices",
-      "headline": "",
-      "body-placeholder": "What thought process or formula do you use to determine pay and equity? Would you like to share high-level summaries or detailed information?",
-      "body": "",
-      "image-url": null,
-      "image-height": 0,
-      "image-width": 0,
       "pin": false
     },
 

@@ -62,6 +62,6 @@
         (:sections (c/create-company!
                     conn
                     (c/->company (-> r/open
-                                     (add-section :mission) (add-section :press) (add-section :help)
+                                     (add-section :mission) (add-section :help)
                                      (add-section :challenges) (add-section :diversity) (add-section :update))
-                                 r/coyote))) => (just #{:update :challenges :press :help :mission :diversity}))))))
+                                 r/coyote))) => (just #{:update :challenges :help :mission :diversity}))))))
