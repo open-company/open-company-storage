@@ -94,7 +94,7 @@
       "title": "Key Metrics",
       "description": "Key metrics and performance indicators",
       "headline": "",
-      "body-placeholder": "Provide context about recent metric performance. Why are these metrics important? How are they performing against targets? What is impacting them?",
+      "body-placeholder": "Discuss recent performance. How are you doing against your targets?",
       "body": "",
       "prompt": "Enter the most important metric for the stakeholders of your organization. You'll be able
       to add more later.",
@@ -243,7 +243,7 @@
       "title": "Finances",
       "description": "Cash on hand, burn and runway",
       "headline": "",
-      "body-placeholder": "Provide context about recent financial performance. How are finances performing against targets? What is impacting them?",
+      "body-placeholder": "Discuss recent performance. How are you doing against your targets?",
       "body": "",
       "data": [],
       "pin": false
