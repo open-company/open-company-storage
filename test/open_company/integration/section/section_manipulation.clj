@@ -191,10 +191,10 @@
               (:custom-a1b2 body) => nil)
             ;; verify removed section is archived
             (doseq [body [patch-body get-body]]
-              (:archived body) => [{:section "custom-a1b2" :title "Text Section 2"}
-                                   {:section "team" :title "Text Section 2"}
-                                   {:section "finances" :title "Finances Section 1"}
-                                   {:section "update" :title "Text Section 1"}]))))
+              (:archived body) => (contains [{:section "custom-a1b2" :title "Text Section 2"}
+                                             {:section "team" :title "Text Section 2"}
+                                             {:section "finances" :title "Finances Section 1"}
+                                             {:section "update" :title "Text Section 1"}] :in-any-order)))))
   
       (facts "about adding sections"
 

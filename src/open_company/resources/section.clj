@@ -138,11 +138,11 @@
   (let [original-company (company/get-company conn company-slug) ; company before the update
         author (common/author-for-user user)
         original-section (get-section conn company-slug section-name) ; section before the update (if any)
-        merged-section (merge original-section section) ; old section updated with the new
-        completed-section (-> merged-section
+        completed-section (-> section
           clean
           (common/complete-section company-slug section-name user)
           (dissoc :placeholder)
+          (assoc :created-at timestamp)
           (assoc :updated-at timestamp)) ; make sure the section has all the right properties
         original-sections (:sections original-company)
         updated-sections (if (some #{(name section-name)} (map name original-sections)) ; if section is in sections
