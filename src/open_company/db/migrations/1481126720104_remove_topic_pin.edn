@@ -2,12 +2,11 @@
   (:require [rethinkdb.query :as r]
             [open-company.resources.company :as company]))
 
-(defn- remove-property-in-section-in-company [conn slug section-name]
+(defn- update-section-in-company [conn slug section-name updated-section]
   (println 
     (-> (r/table "companies")
       (r/get slug)
-      (r/replace (r/fn [company]
-        (r/without company [section-name :pin])))
+      (r/update {section-name (r/literal updated-section)})
       (r/run conn))))
 
 (defn up [conn]
@@ -22,7 +21,7 @@
       (doseq [section-name (map keyword (:sections company))]
         (when-let [section (company section-name)]
           (println "  Updating section in company " (name section-name))
-          (remove-property-in-section-in-company conn slug section-name)))))
+          (update-section-in-company conn slug section-name (dissoc section :pin))))))
 
   ;; Update every section
   (println "\nUpdating sections...")

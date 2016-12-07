@@ -23,7 +23,7 @@
         notes (get-in section [:notes :body])
         new-body (str snippet body notes)
         clean-section (dissoc section :snippet :notes)]
-  (assoc clean-section :body new-body)))
+    (assoc clean-section :body new-body)))
 
 (defn up [conn]
   
