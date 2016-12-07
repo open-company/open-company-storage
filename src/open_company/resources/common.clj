@@ -271,10 +271,10 @@
 (defn read-resources-in-order
   "
   Given a table name, an index name and value, and a set of fields, retrieve
-  the resources from the database in updated-at property order.
+  the resources from the database in created-at property order.
   "
   [conn table-name index-name index-value fields]
-  (updated-at-order
+  (created-at-order
     (read-resources conn table-name index-name index-value fields)))
 
 (defn update-resource
