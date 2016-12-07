@@ -161,11 +161,12 @@
         (common/create-resource conn table-name completed-section timestamp))
       false))))
 
-(defn patch-revision [conn company-slug section-name timestamp revision user]
+(defn patch-revision
   "
   Given the company slug, section name, timestamp and section property map, update an exising section revision,
   returning the property map for the resource or `false`.
   "
+  [conn company-slug section-name timestamp revision user]
   (let [original-company (company/get-company conn company-slug) ; company before the update
         author (common/author-for-user user)
         original-revision (get-section conn company-slug section-name timestamp) ; revision before the update
