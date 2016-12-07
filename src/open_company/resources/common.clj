@@ -43,7 +43,6 @@
     :image-url nil
     :image-width 0
     :image-height 0
-    :pin false
   })
 
 (def empty-stakeholder-update {
@@ -74,7 +73,6 @@
    :title schema/Str
    :headline schema/Str
    :body schema/Str
-   :pin schema/Bool
    (schema/optional-key :body-placeholder) schema/Str
    (schema/optional-key :image-url) (schema/maybe schema/Str)
    (schema/optional-key :image-height) schema/Num

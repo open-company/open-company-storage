@@ -1,0 +1,35 @@
+(ns open-company.db.migrations.remove-topic-pin
+  (:require [rethinkdb.query :as r]
+            [open-company.resources.company :as company]))
+
+(defn- remove-property-in-section-in-company [conn slug section-name]
+  (println 
+    (-> (r/table "companies")
+      (r/get slug)
+      (r/replace (r/fn [company]
+        (r/without company [section-name :pin])))
+      (r/run conn))))
+
+(defn up [conn]
+  
+  (println "\nUpdating companies...")
+
+  ;; iterate through every company
+  (doseq [slug (map :slug (company/list-companies conn))]
+    (println "Updating" slug)
+    (when-let [company (company/get-company conn slug)]
+      ;; iterate through every section (topic)
+      (doseq [section-name (map keyword (:sections company))]
+        (when-let [section (company section-name)]
+          (println "  Updating section in company " (name section-name))
+          (remove-property-in-section-in-company conn slug section-name)))))
+
+  ;; Update every section
+  (println "\nUpdating sections...")
+  (println 
+    (-> (r/table "sections")
+      (r/replace (r/fn [section]
+        (r/without section [:pin])))
+      (r/run conn)))
+
+  true)

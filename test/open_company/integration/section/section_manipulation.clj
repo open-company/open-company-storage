@@ -314,8 +314,7 @@
                                    :body "Fred is killing it"
                                    :image-url "url"
                                    :image-height 42
-                                   :image-width 7
-                                   :pin true}
+                                   :image-width 7}
                     response (mock/api-request :patch (company-rep/url r/slug) {:body {:sections new-sections
                                                                                        :kudos kudos-content}})
                     body (mock/body-from-response response)

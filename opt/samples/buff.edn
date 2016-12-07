@@ -1250,7 +1250,6 @@
       :section {
         :title "Update"
         :headline "We reached the 50 team members mark in September! 💥"
-        :pin true
         :image-url nil
         :image-height 0
         :image-width 0
@@ -2098,7 +2097,6 @@
       :section {
         :title "Product"
         :headline "We launched 🚀 Pablo 2.0! 📣"
-        :pin true
         :image-url "https://open.buffer.com/wp-content/uploads/2015/11/Pablo-2-launch-social-media-images-800x643.png"
         :image-height 643
         :image-width 800

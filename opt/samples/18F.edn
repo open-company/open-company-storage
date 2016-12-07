@@ -31,7 +31,6 @@
         :image-height 0
         :headline "14 new projects, 5 more likely by end of year."
         :body "<p>We've added 14 client projects since the start of July and have 5 in the final phase and likely to close by the end of the year. 2 of those have start dates in 2016.</p><p>Sales project <a href=\"https://drive.google.com/previewtemplate?id=0AjB1eFqhMvf-dFFJSWI2WXlnXy1TZzcyTzlGTXZneEE&amp;mode=public&amp;ddrp=1#\">spreadsheet</a>.</p><p>Deal pipeline <a href=\"https://trello.com/b/lrAIa0JW/sales-crm-pipeline\">Trello board</a>.</p>"
-        :pin true
       }
       :section-name "sales"
       :author {
@@ -51,7 +50,6 @@
         :image-height 131
         :headline "Effective Utilization"
         :body "<p>We are under increasing scrutinization to maximize our resource utilization rates and bring 18F finances into the black.</p><p>GAO published a <a href=\"http://www.gao.gov/products/GAO-16-602\">report</a> on Sept. 14th recommending we tie performance outcomes to cost savings.</p><p>Our challenge is to end the last quarter of the year with full cost recovery and as an organization make a net-positive contribution to ASF&nbsp;2017.</p><p>It'll take the whole team's efforts to meet this challenge. <a href=\"http://www.govtech.com/civic/Is-18F-on-Solid-Financial-Footing.html\">Track our utilization</a>.</p><p>Join the <a href=\"http://www.govtech.com/civic/Is-18F-on-Solid-Financial-Footing.html\">weekly finance meetings</a>.</p>"
-        :pin true
       }
       :section-name "challenges"
       :author {
@@ -71,7 +69,6 @@
         :image-height 0
         :headline "Delivery is the strategy"
         :body "<p>Help federal agencies build, buy, and share efficient and easy-to-use digital services.</p><p>Transforming government from the inside out, creating cultural change by working with teams inside agencies who want to create great services for the public.</p>"
-        :pin false
       }
       :section-name "mission"
       :author {
@@ -91,7 +88,6 @@
         :image-height 564
         :headline "First 18F Diversity Report Finalized"
         :body "<p>The Diversity Working Group has just finalized the first 18F Diversity Report. Everyone is invited to <a href=\"https://diversity.unc.edu/files/2015/11/UNC-Diversity_Report_2014-15.pdf\">review the report</a> and come to the first open team Diversity goal setting meeting on Oct. 30th.</p>"
-        :pin true
       }
       :section-name "diversity"
       :author {
@@ -111,7 +107,6 @@
         :image-height 0
         :headline "2016 Due Dates are Approaching!"
         :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by <b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"
-        :pin true
       }
       :section-name "custom-1251"
       :author {
@@ -131,7 +126,6 @@
         :image-height 0
         :headline "12 Open Positions"
         :body "<p>We have 4 projects that have a critical shortage of<b> information security / cyber security</b> talent. Please send any recruiting leads, contacts or ideas for staffing these 6 positions to <a href=\"https://www.linkedin.com/in/lee-rogers-9a531062\">Lee Rogers</a>.</p><p><a href=\"https://pages.18f.gov/joining-18f/open-positions/\">Full list</a> of open roles.</p><p>Current <a href=\"https://pages.18f.gov/joining-18f/who-we-are-hiring/\">recruiting pipeline details</a>.</p>"
-        :pin true
       }
       :section-name "team"
       :author {
@@ -151,7 +145,6 @@
         :image-height 0
         :headline ""
         :body "<ul><li>Understand what people need<br></li><li>Address the whole experience, from start to finish</li><li>Make it simple and intuitive</li><li>Build using agile and iterative practices</li><li>Structure budgets and contracts for delivery</li><li>One leader with accountability</li><li>Experienced teams</li><li>Modern technology</li><li>Flexible hosting</li><li>Automated test and deployment</li><li>Reusable processes</li><li>Data-driven decisions</li><li><b>Default to open</b><br></li></ul>"
-        :pin false
       }
       :section-name "values"
       :author {
@@ -173,7 +166,6 @@
         :body "<p>Cloud.gov Dashboard (formerly the \"Deck\") is now released. The best part is invisible: we refactored the codebase so we can improve it much faster than we could with the old version.</p>
                <p>We’ll keep the <a href=\"https://console.cloud.gov/\">old Deck</a> around for about a week and then will redirect it to this new version. Let us know if this would cause problems for you.</p>
                <p><a href=\"https://cloud.gov/updates/2016-07-07-deck-update/\">Release Details</a></p>"
-        :pin false
       }
       :section-name "custom-115c"
       :author {
@@ -193,7 +185,6 @@
         :image-height 109
         :headline "FedRAMP Assessment is Complete"
         :body "<p>We have 4 projects that have a critical shortage of<b> information security / cyber security</b> talent. Please send any recruiting leads, contacts or ideas for staffing these 6 positions to <a href=\"https://www.linkedin.com/in/lee-rogers-9a531062\">Lee Rogers</a>.</p><p><a href=\"https://pages.18f.gov/joining-18f/open-positions/\">Full list</a> of open roles.</p><p>Current <a href=\"https://pages.18f.gov/joining-18f/who-we-are-hiring/\">recruiting pipeline details</a>.</p>"
-        :pin false
       }
       :section-name "custom-115c"
       :author {
@@ -213,7 +204,6 @@
         :image-height 88
         :headline "RFQ Closed!"
         :body "<p>Vendor RFQ closed on Oct. 11th with 7 fully qualified bids. The vendor assessment team has parceled out the bids for review and is in the process of scheduling the vendor calls.</p><p>The plan calls for a vendor decision by <b>Dec. 3rd</b>.&nbsp;</p>"
-        :pin false
       }
       :section-name "custom-6fc1"
       :author {
@@ -233,7 +223,6 @@
         :image-height 226
         :headline "Lee Rogers"
         :body "<p>Lee joins 18F from Accenture where he ran a DevOps team.</p><p>\"DevOps is the fastest moving field in technology. The Federal Government needs lots of help to keep up.\"</p><p>Lee's pronoun is he/him.</p>"
-        :pin true
       }
       :section-name "custom-db84"
       :author {
@@ -253,7 +242,6 @@
         :image-height 207
         :headline "Sue Topeka"
         :body "<p>Sue joins 18F from Microsoft where she worked on the Office 365 team as a developer.</p><p>\"I'm up for this new challenge. I've always wanted a chance to use my skills for good.\"</p><p>Sue's pronoun is she/her.</p>"
-        :pin true
       }
       :section-name "custom-db84"
       :author {
@@ -273,7 +261,6 @@
         :image-height 300
         :headline "Mandy Pistorius"
         :body "<p>Mandy joins 18F from Google where she ran product management for the new Inbox product.</p><p>\"I'm excited to bring my years of product experience at Google to the Federal space.\"</p><p>Mandy's pronoun is she/her.</p>"
-        :pin true
       }
       :section-name "custom-db84"
       :author {
@@ -293,7 +280,6 @@
         :image-height 450
         :headline "18F in the News"
         :body "<p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=17&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjl9KfV_ubPAhVJ1h4KHfwjBxAQqQIIUigAMBA&amp;url=https%3A%2F%2Fwww.buzzfeed.com%2Fhamzashaban%2Fthe-future-of-obamas-tech-initiatives-after-hes-gone&amp;usg=AFQjCNEozT5CLsidtp5wirbRcT8lkfzHXQ&amp;sig2=-3yIKS_FgXtGklJiDDsLlA\">The Future of Obama's Tech Initiatives After He's Gone</a> - BuzzFeed, Oct. 12</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=8&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjl9KfV_ubPAhVJ1h4KHfwjBxAQqQIINygAMAc&amp;url=https%3A%2F%2Fwww.meritalk.com%2Farticles%2F18f-executive-director-aaron-snow-steps-down%2F&amp;usg=AFQjCNGbmIp7RnFhJvYLzKVvgCl9xDsGzg&amp;sig2=AVZzj2hdpmFlutI--vaY5Q\">18F Executive Director Aaron Snow Steps Down</a> - MeriTalk, Oct. 10<br></p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=4&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjl9KfV_ubPAhVJ1h4KHfwjBxAQqQIIKSgAMAM&amp;url=http%3A%2F%2Ffederalnewsradio.com%2Fpeople%2F2016%2F10%2Fgsas-18f-executive-director-moving%2F&amp;usg=AFQjCNGQkfOKpdHU1CPec_59zk9nubU5oA&amp;sig2=I9mKt4eAE1q-A7QIryGqXw\">GSA's 18F executive director moving on</a>&nbsp;- FCW, Oct. 7</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=13&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjl9KfV_ubPAhVJ1h4KHfwjBxAQqQIIRygAMAw&amp;url=https%3A%2F%2Fwww.meritalk.com%2Fis-gsa-breaking-the-law%2F&amp;usg=AFQjCNFaPt2PWHurEvUCzIQ4lknuvRehHQ&amp;sig2=2aVL6Kwxw0mlE3dNVVyG1g\">Is GSA Breaking the Law?</a> - MeriTalk, Oct. 5</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=15&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjl9KfV_ubPAhVJ1h4KHfwjBxAQqQIITCgAMA4&amp;url=https%3A%2F%2Fwww.meritalk.com%2Ffedramp-not-fedrampd%2F&amp;usg=AFQjCNGAmWRCvoCuVrhmnGGdoX7OwSU7dw&amp;sig2=aF0lfg04bINs9Inku-KYiw\">FedRAMP Not FedRAMP'd?</a> - MeriTalk, Oct. 3</p>"
-        :pin true
       }
       :section-name "press"
       :author {
@@ -313,7 +299,6 @@
         :image-height 486
         :headline "18F in the News"
         :body "<p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=8&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjpld3e2ubPAhWBmR4KHRcaB5oQqQIIOygAMAc&amp;url=https%3A%2F%2Fgovinsider.asia%2Finnovation%2F18f-publishes-digital-procurement-playbook%2F&amp;usg=AFQjCNH_y1j1evoGJUvWl9wS2OLJ0zMEig&amp;sig2=f1qpBEk456q2V2HaZoUnUQ\">18F publishes digital procurement playbook</a> - GovInsider, Oct. 17</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=9&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjpld3e2ubPAhWBmR4KHRcaB5oQqQIIPigAMAg&amp;url=http%3A%2F%2Ffederalnewsradio.com%2Ffederal-headlines%2F2016%2F10%2Fcalling-all-cyber-professionals-18f-really-wants-you%2F&amp;usg=AFQjCNHNDU3XJGFSR4d0N0FjIJsVhZDXiQ&amp;sig2=TvgMD6OQZDU58iV70r6aew\">Calling all cyber professionals, 18F really wants you</a> - FederalNewsRadio, Oct. 17</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=1&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjpld3e2ubPAhWBmR4KHRcaB5oQqQIIHigAMAA&amp;url=http%3A%2F%2Ffedscoop.com%2Faaron-snow-sees-a-bright-future-for-18f-as-he-steps-down-as-director&amp;usg=AFQjCNHmEjiWmiQDBo8dlnu4nZbarY3asQ&amp;sig2=ztSKwzhfzcVRpZsewcDEog\">Aaron Snow sees bright future for evolving 18F</a> - FedScoop, Oct. 14</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=13&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjpld3e2ubPAhWBmR4KHRcaB5oQqQIITCgAMAw&amp;url=http%3A%2F%2Fwww.nextgov.com%2Fcybersecurity%2F2016%2F10%2Ftech-unit-stretches-federal-pay-system-recruit-cyber-talent%2F132332%2F&amp;usg=AFQjCNF-nuBLhfiaCnGd3rSDP1DNR1GveQ&amp;sig2=FRuR1M1RaO8GnVf_Ro-Ymg\">Tech Unit Stretches Federal Pay System to Recruit Cyber Talent</a> - Nextgov, Oct. 14</p><p><a href=\"https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=newssearch&amp;cd=11&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjpld3e2ubPAhWBmR4KHRcaB5oQqQIIRigAMAo&amp;url=https%3A%2F%2Ffcw.com%2Fblogs%2Fthe-spec%2F2016%2F10%2F18f-state-id.aspx&amp;usg=AFQjCNEZrTW8gDP7xd6cCzhlhKYuseQ9ew&amp;sig2=yVBPiADZeVPx3CD3rnfaKw\">18F seeks info on ID verification</a> - FCW, Oct. 13</p>"
-        :pin true
       }
       :section-name "press"
       :author {
@@ -330,7 +315,6 @@
         :title "Key Metrics"
         :headline "Starting to See Billable Hours Growth"
         :body "<p>After a steady decline in the middle of the year, it's important to see that these numbers improving before the challenging ❄&nbsp;winter holiday season approaches . This has been a great job on all fronts 💥. Let's keep it up.</p>"
-        :pin true
         :metrics [
           {:description "Total Billable Hours" :interval "weekly" :name "Billable Hours" :slug "billable-hours-837d" :unit "number"}
           {:description "Avg. Utilization % of Billable Employees" :interval "weekly" :name "Utilization" :slug "utilization-2e6c" :unit "%"}
