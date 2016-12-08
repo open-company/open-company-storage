@@ -1,6 +1,7 @@
 (ns open-company.resources.section
   (:require [clj-time.core :as t]
             [clj-time.format :as format]
+            [clojure.walk :refer (keywordize-keys)]
             [defun.core :refer (defun defun-)]
             [open-company.config :as c]
             [open-company.resources.common :as common]
@@ -170,7 +171,7 @@
   (let [original-company (company/get-company conn company-slug) ; company before the update
         author (common/author-for-user user)
         original-revision (get-section conn company-slug section-name timestamp) ; revision before the update
-        merged-revision (merge original-revision revision) ; old revision updated with the new
+        merged-revision (merge (keywordize-keys original-revision) (keywordize-keys revision)) ; old revision updated with the new
         completed-revision (-> merged-revision
                                clean
                                (common/complete-section company-slug section-name user)
@@ -179,25 +180,24 @@
         original-sections (:sections original-company)
         updated-sections (if (some #{(name section-name)} (map name original-sections)) ; if section is in sections
                             original-sections ; already there
-                            (conj original-sections section-name)) ; not there, add it
+                            (conj original-sections (name section-name))) ; not there, add it
         sectioned-company (assoc original-company :sections updated-sections)
         current-revision ((keyword section-name) original-company) ; most recent revision of this section
-        updated-company (if (= (:created-at current-revision) timestamp) ; is the modified revision the current revision?
+        update-company? (= (:created-at current-revision) timestamp) ; is the revision being modified the current revision?
+        updated-company (if update-company?
                           ;; update the section in the company too, because the modified revision is the current one
-                          (assoc sectioned-company section-name 
+                          (assoc sectioned-company (keyword section-name)
                               (-> completed-revision
                                 (dissoc :placeholder)
                                 (dissoc :company-slug)
                                 (dissoc :section-name)))
                           ;; no need to update the section in company
                           sectioned-company)]
-    (println current-revision)
-    (println (:created-at current-revision))
-    (println timestamp)
     (if (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
       (do
-        ;; update the company
-        (company/update-company conn company-slug updated-company)
+        (when update-company? 
+          ;; update the company
+          (company/update-company conn company-slug updated-company))
         ;; update the section revision or
         (common/update-resource conn table-name primary-key original-revision completed-revision timestamp))
       false)))

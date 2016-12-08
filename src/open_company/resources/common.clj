@@ -283,9 +283,9 @@
 
   ([conn table-name primary-key-name original-resource new-resource timestamp]
   (let [timed-resource (merge new-resource {
-          primary-key-name (original-resource primary-key-name)
-          :created-at (:created-at original-resource)
-          :updated-at timestamp})
+                                primary-key-name (original-resource primary-key-name)
+                                :created-at (:created-at original-resource)
+                                :updated-at timestamp})
         update (with-timeout default-timeout
                  (-> (r/table table-name)
                      (r/get (original-resource primary-key-name))
