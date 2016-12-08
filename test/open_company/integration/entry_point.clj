@@ -1,4 +1,5 @@
-(ns open-company.integration.entry
+(ns open-company.integration.entry-point
+  "Tests about the links provided by the HATEOAS entry point."
   (:require [midje.sweet :refer :all]
             [oc.lib.rethinkdb.pool :as pool]
             [open-company.lib.test-setup :as ts]
@@ -27,29 +28,6 @@
                                       (company/create-company! conn (company/->company r/buffer r/sartre))))
                      (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                      (company/delete-all-companies! conn)))]
-
-  (facts "about available options in entry point"
-    (fact "with a bad JWToken"
-      (let [response (mock/api-request :options "/" {:auth mock/jwtoken-bad})]
-        (:status response) => 401
-        (:body response) => common/unauthorized))
-
-    (fact "with no JWToken"
-      (let [response (mock/api-request :options "/" {:skip-auth true})]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => options))
-
-    (fact "with a valid JWToken"
-      (let [response (mock/api-request :options "/")]
-        (:status response) => 204
-        (:body response) => ""
-        ((:headers response) "Allow") => options)))
-
-  (fact "about failing GET with a bad JWToken"
-    (let [response (mock/api-request :get "/" {:auth mock/jwtoken-bad})]
-      (:status response) => 401
-      (:body response) => common/unauthorized))
 
   (facts "about links provided by entry point"
 
