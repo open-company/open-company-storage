@@ -80,7 +80,7 @@
    (schema/optional-key :company-slug) schema/Str
    (schema/optional-key :created-at) schema/Str
    (schema/optional-key :updated-at) schema/Str
-   (schema/optional-key :author) Author
+   (schema/optional-key :author) [Author]
    schema/Keyword schema/Any})
 
 (def InlineSections
@@ -183,6 +183,15 @@
     (select-keys [:avatar :image :user-id :name])
     (clojure.set/rename-keys {:avatar :image})))
 
+(defn- author-for-section [section user]
+  (let [timestamp (:updated-at section)
+        existing-authorship (:author section)
+        new-author (author-for-user user)
+        timed-author (assoc new-author :updated-at timestamp)]
+    (if (sequential? existing-authorship)
+      (conj existing-authorship timed-author) ; add an additional author
+      [timed-author]))) ; first author
+
 (defn complete-section
   "Given a potentially incomplete section, complete it from the section template."
   [section-data company-slug section-name user]
@@ -190,7 +199,7 @@
                     initial-custom-properties ; custom sections don't have a template
                     (sections-by-name (keyword section-name)))]
     (merge template (-> section-data
-                      (assoc :author (author-for-user user))
+                      (assoc :author (author-for-section section-data user))
                       (assoc :company-slug company-slug)
                       (assoc :section-name (name section-name))))))
 

@@ -56,35 +56,35 @@
   :allowed-methods [:options :get :put :patch]
   :available-media-types [section-rep/media-type]
   :exists? (by-method {
-    :get (fn [_] (get-section conn company-slug section-name as-of))
-    :put (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))
-    :patch (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))
-    :delete (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))})
+                       :get (fn [_] (get-section conn company-slug section-name as-of))
+                       :put (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))
+                       :patch (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))
+                       :delete (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))})
 
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
   :allowed? (by-method {
-    :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (or (common/allow-public conn company-slug ctx)
-                       (common/allow-org-members conn company-slug ctx)))
-    :put (fn [ctx] (common/allow-org-members conn company-slug ctx))
-    :patch (fn [ctx] (common/allow-org-members conn company-slug ctx))
-    :post false
-    :delete false})
+                        :options (fn [ctx] (common/allow-anonymous ctx))
+                        :get (fn [ctx] (or (common/allow-public conn company-slug ctx)
+                                           (common/allow-org-members conn company-slug ctx)))
+                        :put (fn [ctx] (common/allow-org-members conn company-slug ctx))
+                        :patch (fn [ctx] (common/allow-org-members conn company-slug ctx))
+                        :post false
+                        :delete false})
 
   ;; TODO: handle with prismatic schema check
   :processable? (by-method {
-    :options true
-    :get true
-    :put true
-    :patch true})
+                            :options true
+                            :get true
+                            :put true
+                            :patch true})
 
   ;; Handlers
   :handle-ok
     (by-method {
-      :get (fn [ctx] (section-rep/render-section conn (:section ctx) (common/allow-org-members conn company-slug ctx) (not (nil? as-of))))
-      :put (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
-      :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
+                :get (fn [ctx] (section-rep/render-section conn (:section ctx) (common/allow-org-members conn company-slug ctx) (not (nil? as-of))))
+                :put (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
+                :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 section-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
@@ -104,9 +104,9 @@
   :available-media-types [section-rep/collection-media-type]
   :allowed-methods [:options :get]
   :allowed? (by-method {
-    :options (fn [ctx] (common/allow-anonymous ctx))
-    :get (fn [ctx] (or (common/allow-public conn company-slug ctx)
-                       (common/allow-org-members conn company-slug ctx)))})
+                        :options (fn [ctx] (common/allow-anonymous ctx))
+                        :get (fn [ctx] (or (common/allow-public conn company-slug ctx)
+                                           (common/allow-org-members conn company-slug ctx)))})
 
   :handle-not-acceptable (common/only-accept 406 section-rep/collection-media-type)
 
@@ -138,13 +138,15 @@
     (apply routes (concat
 
       ;; Section routes
-      (map #(ANY (str "/companies/:company-slug/" %)
-                    [company-slug uuid as-of]
-                    (section-route sys company-slug % uuid as-of))
-        (conj (map name common-res/section-names) "custom-:uuid"))
+                   (map #(ANY (str "/companies/:company-slug/" %)
+                              [company-slug uuid as-of]
+                              (section-route sys company-slug % uuid as-of))
+                     (conj (map name common-res/section-names) "custom-:uuid"))
 
       ;; Section revision list routes
-      (map #(ANY (str "/companies/:company-slug/" % "/revisions")
-                  [company-slug uuid]
-                  (revisions-route sys company-slug % uuid))
-          (conj (map name common-res/section-names) "custom-:uuid")))))
+                   (map #(ANY (str "/companies/:company-slug/" % "/revisions")
+                              [company-slug uuid]
+                              (revisions-route sys company-slug % uuid))
+                       (conj (map name common-res/section-names) "custom-:uuid")))))
+
+

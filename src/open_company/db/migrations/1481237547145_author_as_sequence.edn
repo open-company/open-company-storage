@@ -1,0 +1,44 @@
+(ns open-company.db.migrations.author-as-sequence
+  (:require [rethinkdb.query :as r]
+            [open-company.resources.common :as common]
+            [open-company.resources.company :as company]))
+
+(defn- update-section-in-company [conn slug section-name updated-section]
+  (println 
+    (-> (r/table "companies")
+      (r/get slug)
+      (r/update {section-name (r/literal updated-section)})
+      (r/run conn))))
+
+(defn- updated-author [section]
+  [(assoc (:author section) :updated-at (:updated-at section))])
+
+(defn- update-section [conn id updated-section]
+  (println 
+    (-> (r/table "sections")
+      (r/get id)
+      (r/replace updated-section)
+      (r/run conn))))
+
+(defn up [conn]
+  
+  (println "\nExpanding author in companies...")
+  ;; Iterate over every company
+  (doseq [slug (map :slug (company/list-companies conn))]
+    (println "Updating" slug)
+    (when-let [company (company/get-company conn slug)]
+      ;; Iterate over every section (topic)
+      (doseq [section-name (map keyword (:sections company))]
+        (when-let [section (company section-name)]
+          (println "  Updating section in company " (name section-name))
+          (update-section-in-company conn slug section-name (assoc section :author (updated-author section)))))))
+
+  ;; Iterate over every section revision
+  (println "\nExpanding author in section revisions...")
+  (doseq [id (map :id (common/read-resources conn "sections" [:id]))]
+    (let [old-section (common/read-resource conn "sections" id)
+          updated-section (assoc old-section :author (updated-author old-section))]
+      (println "Updating " (:company-slug old-section) " " (:section-name old-section))
+      (update-section conn id updated-section)))
+
+  true)
