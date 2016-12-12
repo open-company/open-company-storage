@@ -1,0 +1,200 @@
+{
+  :company {
+    :slug "spark-labs"
+    :public false
+    :promoted false
+    :name "Spark Labs",
+    :logo "https://open-company-assets.s3.amazonaws.com/spark-labs.png"
+    :logo-height 316
+    :logo-width 316
+    :org-id "slack-T06SBMH60"
+    :currency "USD"
+    :timestamp "2016-12-02T16:23:11.560Z"
+    :author {
+      :name "Sam Lawson"
+      :user-id "7777"
+      :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+    }
+    :sections ["update" "growth" "team" "finances" "fundraising"
+               "product" "marketing" "press" "help"]
+    :stakeholder-update {:sections ["update" "fundraising"]
+                         :title ""}
+  }
+  
+  :sections [
+
+    {
+      :section {
+        :body "<ul><li>VentureBeat: <a href=\"http://venturebeat.com/2016/11/02/message-io-launches-enterprise-bot-converter-to-tear-down-walled-gardens/\">Spark Labs launches enterprise bot converter to tear down walled gardens</a><br></li><li>Network World: <a href=\"http://www.networkworld.com/article/3142680/application-development/freshly-funded-messageio-buddies-up-with-microsoft-on-chatbots.html\">Freshly-funded Spark Labs buddies up with Apple on apps</a><br></li><li>IT Business Edge: <a href=\"http://www.itbusinessedge.com/blogs/it-unmasked/message.io-partners-with-microsoft-on-bot-portability.html\">Spark Labs Partners with Apple on App Portability</a><br></li><li>Austin Business Journal: <a href=\"http://www.bizjournals.com/austin/news/2016/11/18/austin-startup-message-io-raises-millions-to.html\">Austin startup Spark Labs raises millions to spread 'chatbots'</a><br></li><li>AustinInno: <a href=\"http://austininno.streetwise.co/2016/11/18/message-io-raises-2-5m-and-partners-with-microsoft-teams/\">Message.io Raises $2.5M and Partners with Microsoft on Chatbots</a><br></li><li>FinSMEs: <a href=\"http://www.finsmes.com/2016/11/message-io-raises-2-5m-in-seed-funding.html\">Message.io Raises $2.5m in Seed Funding</a><br></li><li>The Register: <a href=\"http://www.theregister.co.uk/2016/11/03/message_io_interview/\">The Rosetta Stone of chatbot APIs: Upstart touts software bridge</a><br></li><li>Silicon Angle: <a href=\"http://siliconangle.com/blog/2016/11/02/message-io-wants-to-be-a-universal-translator-for-chatbots/\">Message.io wants to be a universal translator for chatbots</a><br></li><li>Financial News: <a href=\"http://www.financial-news.co.uk/38368/2016/11/messageio-to-translate-bots-to-microsoft-teams-platform/\">Message.io to translate bots to Microsoft Teams platform</a><br></li><li>Austin Statesman: <a href=\"http://www.512tech.com/technology/austin-bot-translator-company-message-draws-million-seed-funding-partners-microsoft-teams/y9aS3uktZDvc41Buh4F9yN/\">Austin bot-translator company Spark Labs draws $2.5 million seed funding, partners with Apple</a><br></li></ul>"
+        :headline "November coverage for Spark Labs"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Press"
+      }
+      :section-name "press"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }
+      :timestamp "2016-12-03T16:23:11.560Z"
+    }
+
+    { 
+      :section {
+        :body "<p>We have $2.175m in the bank today (including the $800k paid by strategic investor in October). Our expenditure in October and November was approximately $200k/month as we stepped up our work with Microsoft.</p><p>With the $1.64m investment, we will begin 2017 with $3.6m in the bank. We currently have 8 full-time employees in Austin, plus 3 full-time and 5 part-time contractors.</p>"
+        :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
+               {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}
+               {:cash 1800000, :costs 200000, :period "2016-10", :revenue ""}
+               {:cash "", :costs 85000, :period "2016-08", :revenue nil}
+               {:cash 2175000, :costs 200000, :period "2016-11", :revenue nil}
+               {:cash "", :costs 100000, :period "2016-09", :revenue nil}
+               {:cash "", :costs 75000, :period "2016-07", :revenue nil}]
+        :headline ""
+        :title "Finances"
+      }
+      :section-name "finances"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }      
+      :timestamp "2016-12-03T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>This week we signed a term sheet for a $1.64 million investment from three existing investors: Silvercrest, X Combinator and Altair Ventures. It’s a priced round, with a $20.8 million post-money valuation.</p><p>If you invested in the spring, your SAFE will convert at the $8 million cap, which represents an 83% discount ($0.854 per share, verses $1.564). I will follow-up individually with SAFE holders next week with more details.</p>"
+        :headline "This week we signed a term sheet for $1.64M"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Fundraising"
+      }
+      :section-name "fundraising"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg",
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
+      :timestamp "2016-12-03T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body ""
+        :data [{:period "2016-09", :slug "slack-apps-3c2b", :value 5}
+               {:period "2016-10", :slug "slack-apps-3c2b", :value 45}
+               {:period "2016-11", :slug "slack-apps-3c2b", :value 155}]
+        :headline "",
+        :intervals ["weekly" "monthly" "quarterly"],
+        :metrics [{:description "Converted to Teams "
+                   :interval "monthly"
+                   :name "Slack Apps"
+                   :slug "slack-apps-3c2b"
+                   :unit "number"}]
+        :title "Key Metrics"
+        :units [{:name "Currency", :unit "currency"}
+                {:name "Number", :unit "number"} {:name "Percent", :unit "%"}]
+      }
+      :section-name "growth"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }
+      :timestamp "2016-12-06T19:22:09.015Z"
+    }
+
+    {
+      :section {
+        :body "<p>We are hiring engineers, <b>looking for a high-level intro to Cisco</b>, and always appreciate introductions to companies with apps.</p>"
+        :headline ""
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "How You Can Help"
+      }
+      :section-name "help"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
+      :timestamp "2016-12-03T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>We launched in private beta in early November and announced the partnership in mid-November - see press links below.</p><p>You may also enjoy my guest post on TechCrunch today: <a href=\"https://techcrunch.com/2016/12/03/bots-that-work-everywhere/\">Apps That Work Everywhere</a>.</p>"
+        :headline ""
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Marketing"
+      }
+      :section-name "marketing"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }
+      :timestamp "2016-12-03T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>The next step towards our “build once, and translate everywhere” vision will be the launch of our Universal Language later this summer. I am currently laying the groundwork for an industry consortium - including the 30+ startups that offer translation tools, and the platforms themselves - to adopt us as the de facto standard for app translation.</p><p>Once an app is deployed on our platform, all messages to/from users are tranlated. As you know, we are exploring volume-based pricing and/or premium services such as identity, payments and analytics. Our priority in the near-term, however, is to win the land grab and establish a dominant market share of the market by the end of the year.</p>"
+        :headline "Build once, translate everywhere with the Universal Language"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Products"
+      }
+      :section-name "product"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
+      :timestamp "2016-07-02T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>Our new VP Developer Relations, Chris Thaminsky, previously built the developer community for Apple and Tivo.</p><p>We have recently appointed a director of marketing and a senior product manager. We will also be adding four new engineers to the team, taking our headcount to 11 employees plus 3 full-time contractors.</p><p>My technical co-founder, Jimmy, is moving his family to Tampa. John Louis, our Chief Product Officer and former head of engineering at Google, is a rockstar.</p>"
+        :headline ""
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Team and Hiring"
+      }
+      :section-name "team"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }
+      :timestamp "2016-10-15T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>Confidentially, we have signed a $1 million contract with one of the world’s largest software companies to port apps to their soon-to-be-announced platform using our translation tool.</p><p>They are paying us $800k upfront (unconditional), plus up to $200k to offer our service without charge for 12 months to first 200 developers who use us to deploy to their new platform.<b>Please keep this highly confidential. We are permitted to share this news with our investors/advisors, but otherwise we are under a very strict NDA.</b></p>"
+        :headline "$1M contract signed"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "CEO Update"
+      }
+      :section-name "update"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg",
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
+      :timestamp "2016-10-15T16:23:11.560Z"
+   }
+  ]
+}
