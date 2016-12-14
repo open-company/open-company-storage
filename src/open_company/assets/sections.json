@@ -1,12 +1,28 @@
 {
 
-  "sections": ["update", "mission", "values", "highlights", "growth", "challenges", "takeaways", "team", "diversity", "product", "press", "customers", "sales", "marketing", "competition", "help", "kudos", "finances", "fundraising", "ownership"],
+  "sections": ["update", "mission", "values", "highlights", "growth", "challenges", "takeaways", "team", "diversity", "product", "press", "customers", "sales", "marketing", "competition", "help", "kudos", "finances", "fundraising"],
   
   "categories": [
-      {"name": "Popular Topics", "icon": null, "column": 1, "order": 1, "sections": ["update", "highlights", "challenges", "takeaways", "team", "product", "competition", "press", "fundraising", "kudos", "help"]},
-      {"name": "Who We Are", "icon": null, "column": 2, "order": 1, "sections": ["mission", "values", "ownership", "diversity"]},
-      {"name": "Charts", "icon": "fa-line-chart", "column": 2, "order": 2, "sections": ["growth", "finances"]},
-      {"name": "Groups", "icon": null, "column": 2, "order": 3, "sections": ["sales", "marketing", "customers"]}
+      {"name": "Popular Topics",
+       "icon": null,
+       "column": 1,
+       "order": 1,
+       "sections": ["update", "highlights", "challenges", "takeaways", "team", "product", "competition"]},
+      {"name": "",
+       "icon": null,
+       "column": 2,
+       "order": 1,
+       "sections": ["press", "fundraising", "kudos", "help", "sales", "marketing", "customers"]},
+      {"name": "Who We Are",
+       "icon": null,
+       "column": 3,
+       "order": 1,
+       "sections": ["mission", "values", "diversity"]},
+      {"name": "Charts",
+       "icon": "fa-line-chart",
+       "column": 3,
+       "order": 2,
+       "sections": ["growth", "finances"]}
     ],
 
   "templates": [
@@ -242,18 +258,6 @@
       "body-placeholder": "Discuss the financial health of the business, and what's changed since the last update.",
       "body": "",
       "data": []
-    },
-
-    {
-      "section-name": "ownership",
-      "title": "Ownership",
-      "description": "Distribution of equity",
-      "headline": "",
-      "body-placeholder": "What would you like to share about ownership, such as the # of shares outstanding and size of the employee option pool?",
-      "body": "",
-      "image-url": null,
-      "image-height": 0,
-      "image-width": 0
     },
 
     {
