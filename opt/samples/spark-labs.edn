@@ -25,7 +25,13 @@
 
     {
       :section {
-        :body "<ul><li>VentureBeat: <a href=\"http://venturebeat.com/2016/11/02/message-io-launches-enterprise-bot-converter-to-tear-down-walled-gardens/\">Spark Labs launches enterprise bot converter to tear down walled gardens</a><br></li><li>Network World: <a href=\"http://www.networkworld.com/article/3142680/application-development/freshly-funded-messageio-buddies-up-with-microsoft-on-chatbots.html\">Freshly-funded Spark Labs buddies up with Apple on apps</a><br></li><li>IT Business Edge: <a href=\"http://www.itbusinessedge.com/blogs/it-unmasked/message.io-partners-with-microsoft-on-bot-portability.html\">Spark Labs Partners with Apple on App Portability</a><br></li><li>Austin Business Journal: <a href=\"http://www.bizjournals.com/austin/news/2016/11/18/austin-startup-message-io-raises-millions-to.html\">Austin startup Spark Labs raises millions to spread 'chatbots'</a><br></li><li>AustinInno: <a href=\"http://austininno.streetwise.co/2016/11/18/message-io-raises-2-5m-and-partners-with-microsoft-teams/\">Spark Labs Raises $2.5M and Partners with Apple on Apps</a><br></li><li>FinSMEs: <a href=\"http://www.finsmes.com/2016/11/message-io-raises-2-5m-in-seed-funding.html\">Spark Labs Raises $2.5m in Seed Funding</a><br></li><li>The Register: <a href=\"http://www.theregister.co.uk/2016/11/03/message_io_interview/\">The Rosetta Stone of Apps: Upstart touts software bridge</a><br></li><li>Silicon Angle: <a href=\"http://siliconangle.com/blog/2016/11/02/message-io-wants-to-be-a-universal-translator-for-chatbots/\">Spark Labs wants to be a universal translator for apps</a><br></li><li>Financial News: <a href=\"http://www.financial-news.co.uk/38368/2016/11/messageio-to-translate-bots-to-microsoft-teams-platform/\">Spark Labs to translate apps to platform</a><br></li><li>Austin Statesman: <a href=\"http://www.512tech.com/technology/austin-bot-translator-company-message-draws-million-seed-funding-partners-microsoft-teams/y9aS3uktZDvc41Buh4F9yN/\">Austin bot-translator company Spark Labs draws $2.5 million seed funding, partners with Apple</a><br></li></ul>"
+        :body "<ul>
+          <li>VentureBeat: <a href=\"http://venturebeat.com/2016/12/12/apples-tv-app-is-now-available-for-everyone/\">Spark Labs launches enterprise translator to tear down walled gardens</a><br></li>
+          <li>Network World: <a href=\"http://www.networkworld.com/article/3148854/mobile-wireless/smartwatches-arent-dead-theyre-just-taking-a-timeout.html\">Freshly-funded Spark Labs buddies up with Apple on apps</a><br></li>
+          <li>IT Business Edge: <a href=\"http://www.itbusinessedge.com/blogs/data-and-telecom/security-must-be-baked-into-iot-protocols.html\">Spark Labs Partners with Apple on App Portability</a><br></li>
+          <li>Austin Business Journal: <a href=\"http://www.bizjournals.com/austin/news/2016/12/12/amazon-just-unveiled-its-own-kind-of-grocery-store.html\">Austin startup Spark Labs raises millions to spread apps</a><br></li>
+          <li>The Register: <a href=\"http://www.theregister.co.uk/2016/12/13/trump_tweet_costs_lockheed_martin_2bn/\">The Rosetta Stone of Apps: Upstart touts software bridge</a><br></li>
+          <li>Silicon Angle: <a href=\"http://siliconangle.com/blog/2016/12/13/google-no-longer-developing-totally-driverless-car-welcome-waymo/\">Spark Labs wants to be a universal translator for apps</a><br></li></ul>"
         :headline "November coverage for Spark Labs"
         :image-height 0
         :image-url nil
@@ -89,9 +95,9 @@
                {:period "2016-11", :slug "slack-apps-3c2b", :value 155}]
         :headline "",
         :intervals ["weekly" "monthly" "quarterly"],
-        :metrics [{:description "Converted to Teams "
+        :metrics [{:description "Apps translated"
                    :interval "monthly"
-                   :name "Slack Apps"
+                   :name "Apps"
                    :slug "slack-apps-3c2b"
                    :unit "number"}]
         :title "Key Metrics"
@@ -127,7 +133,7 @@
 
     {
       :section {
-        :body "<p>We launched in private beta in early November and announced the partnership in mid-November - see press links below.</p><p>You may also enjoy my guest post on TechCrunch today: <a href=\"https://techcrunch.com/2016/12/03/bots-that-work-everywhere/\">Apps That Work Everywhere</a>.</p>"
+        :body "<p>We launched in private beta in early November and announced the partnership in mid-November - see press links below.</p><p>You may also enjoy my guest post on TechCrunch today: <a href=\"https://techcrunch.com/2016/11/30/google-launches-app-maker/\">Apps That Work Everywhere</a>.</p>"
         :headline ""
         :image-height 0
         :image-url nil
