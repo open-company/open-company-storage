@@ -61,7 +61,8 @@
           (s/put-section conn r/slug :update r/text-section-1 r/coyote)
           (let [section (s/get-section conn r/slug :update)
                 updated-at (:updated-at section)]
-            (:author section) => (contains (common/author-for-user r/coyote))
+            (first (:author section)) => (contains (common/author-for-user r/coyote))
+            (count (:author section)) => 1
             (:body section) => (:body r/text-section-1)
             (:title section) => (:title r/text-section-1)
             (check/timestamp? updated-at) => true

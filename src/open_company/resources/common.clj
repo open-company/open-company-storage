@@ -66,7 +66,7 @@
   :name schema/Str
   :user-id schema/Str
   :image (schema/maybe schema/Str)
-  (schema/optional-key :updated-at) schema/Str})
+  (schema/optional-key :updated-at) (schema/maybe schema/Str)})
 
 (def Section
   {(schema/optional-key :section-name) SectionName
@@ -185,7 +185,7 @@
     (clojure.set/rename-keys {:avatar :image})))
 
 (defn- author-for-section [section user]
-  (let [timestamp (:updated-at section)
+  (let [timestamp (or (:updated-at section) (:created-at section))
         existing-authorship (:author section)
         new-author (author-for-user user)
         timed-author (assoc new-author :updated-at timestamp)]
