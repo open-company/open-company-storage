@@ -75,276 +75,213 @@
 
   (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
 
+
     (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
 
-      (facts "about available options for new section revisions"
-
-        (fact "with a bad JWToken"
-          (let [response (mock/api-request :options (section-rep/url r/slug :update) {:auth mock/jwtoken-bad})]
-            (:status response) => 401
-            (:body response) => common/unauthorized))
+      (facts "about failing to update a section revision"
 
         (fact "with no company matching the company slug"
-          (let [response (mock/api-request :options (section-rep/url "foo" :update))]
+          (let [response (mock/api-request :patch (section-rep/url "foo" :update) {:body r/text-section-2})]
             (:status response) => 404
-            (:body response) => ""))
+            (:body response) => "")
+          ;; verify the initial section is unchanged
+          (s/get-section conn r/slug :update) => (contains r/text-section-1)
+          (count (s/get-revisions conn r/slug :update)) => 1)
 
         (fact "with no section matching the section name"
-          (let [response (mock/api-request :options (section-rep/url r/slug :diversity))]
+          (let [response (mock/api-request :patch (section-rep/url r/slug :finances) {:body r/text-section-2})]
             (:status response) => 404
-            (:body response) => ""))
+            (:body response) => "")
+          ;; verify the initial section is unchanged
+          (s/get-section conn r/slug :update) => (contains r/text-section-1)
+          (count (s/get-revisions conn r/slug :update)) => 1)))
 
-        (fact "with no JWToken"
-          (let [response (mock/api-request :options (section-rep/url r/slug :update) {:skip-auth true})]
-            (:status response) => 204
-            (:body response) => ""
-            ((:headers response) "Allow") => limited-options))
+;     (future-facts "about updating an existing section revision"
 
-        (fact "with an organization that doesn't match the company"
-          (let [response (mock/api-request :options (section-rep/url r/slug :update) {:auth mock/jwtoken-sartre})]
-            (:status response) => 204
-            (:body response) => ""
-            ((:headers response) "Allow") => limited-options))
+;       (facts "with PUT"
 
-        (fact "with an organization that matches the company"
-          (let [response (mock/api-request :options (section-rep/url r/slug :update))]
-            (:status response) => 204
-            (:body response) => ""
-            ((:headers response) "Allow") => full-options)))
+;         (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
 
-      (facts "about failing to update a section"
+;           (fact "update existing revision title"
+;             (let [updated (assoc r/text-section-1 :title "New Title")
+;                   response (mock/api-request :put (section-rep/url r/slug :update) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)]
+;               (:status response) => 200
+;               body => (contains updated)
+;               ;; verify the initial revision is changed
+;               (let [updated-section (s/get-section conn r/slug :update)]
+;                 updated-section => (contains updated)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :update)) => 1)) ; but there is still just 1 revision
 
-        (doseq [method [:put]] ;:patch]]
+;           (fact "update existing revision body"
+;             (let [updated (assoc r/text-section-1 :body "New Body")
+;                   response (mock/api-request :put (section-rep/url r/slug :update) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)]
+;               (:status response) => 200
+;               body => (contains updated)
+;               ;; verify the initial revision is changed
+;               (let [updated-section (s/get-section conn r/slug :update)]
+;                 updated-section => (contains updated)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :update)) => 1))) ; but there is still just 1 revision
 
-          (fact "with an invalid JWToken"
-            (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
-                                                                                      :auth mock/jwtoken-bad})]
-              (:status response) => 401
-              (:body response) => common/unauthorized)
-            ;; verify the initial section is unchanged
-            (s/get-section conn r/slug :update) => (contains r/text-section-1)
-            (count (s/get-revisions conn r/slug :update)) => 1)
+;         (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-2 r/coyote))]
 
-          (fact "with no JWToken"
-            (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
-                                                                                      :skip-auth true})]
-              (:status response) => 401
-              (:body response) => common/unauthorized)
-            ;; verify the initial section is unchanged
-            (s/get-section conn r/slug :update) => (contains r/text-section-1)
-            (count (s/get-revisions conn r/slug :update)) => 1)
+;           (fact "update existing revision title, headline, body and data"
+;             (let [updated {:body "New Body" :title "New Title" :headline "New Headline" :data (rest (:data r/finances-section-2))}
+;                   response (mock/api-request :put (section-rep/url r/slug :finances) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)]
+;               (:status response) => 200
+;               body => (contains updated)
+;               ;; verify the initial revision is changed
+;               (let [updated-section (s/get-section conn r/slug :finances)]
+;                 updated-section => (contains updated)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :finances)) => 1)))) ; but there is still just 1 revision
 
-          (fact "with an organization that doesn't match the company"
-            (let [response (mock/api-request method (section-rep/url r/slug :update) {:body r/text-section-2
-                                                                                      :auth mock/jwtoken-sartre})]
-              (:status response) => 403
-              (:body response) => common/forbidden)
-            ;; verify the initial section is unchanged
-            (s/get-section conn r/slug :update) => (contains r/text-section-1)
-            (count (s/get-revisions conn r/slug :update)) => 1)
+;       (future-facts "with PATCH"
 
-          (fact "with no company matching the company slug"
-            (let [response (mock/api-request method (section-rep/url "foo" :update) {:body r/text-section-2})]
-              (:status response) => 404
-              (:body response) => "")
-            ;; verify the initial section is unchanged
-            (s/get-section conn r/slug :update) => (contains r/text-section-1)
-            (count (s/get-revisions conn r/slug :update)) => 1)
+;         (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
 
-          (fact "with no section matching the section name"
-            (let [response (mock/api-request method (section-rep/url r/slug :finances) {:body r/text-section-2})]
-              (:status response) => 404
-              (:body response) => "")
-            ;; verify the initial section is unchanged
-            (s/get-section conn r/slug :update) => (contains r/text-section-1)
-            (count (s/get-revisions conn r/slug :update)) => 1))))
+;           (fact "update existing revision title"
+;             (let [updated {:title "New Title"}
+;                   response (mock/api-request :patch (section-rep/url r/slug :update) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)
+;                   updated-section (merge r/text-section-1 updated)]
+;               (:status response) => 200
+;               body => (contains updated-section)
+;               ;; verify the initial revision is changed
+;               (let [updated-section (s/get-section conn r/slug :update)]
+;                 updated-section => (contains updated-section)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :update)) => 1)) ; but there is still just 1 revision
 
-    (future-facts "about updating an existing section revision"
+;           (fact "update existing revision body"
+;             (let [updated {:body "New Body"}
+;                   response (mock/api-request :patch (section-rep/url r/slug :update) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)
+;                   updated-section (merge r/text-section-1 updated)]
+;               (:status response) => 200
+;               body => (contains updated-section)
+;               ;; verify the initial revision is changed
+;               (let [updated-section (s/get-section conn r/slug :update)]
+;                 updated-section => (contains updated-section)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :update)) => 1))) ; but there is still just 1 revision
 
-      (facts "with PUT"
+;         (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-2 r/coyote))]
 
-        (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
+;           (fact "update existing revision data"
+;             (let [updated {:data (rest (:data r/finances-section-2))}
+;                   response (mock/api-request :patch (section-rep/url r/slug :finances) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)
+;                   updated-section (merge r/finances-section-2 updated)]
+;               (:status response) => 200
+;               body => (contains updated-section)
+;               ;; verify the initial revision is changed
+;               (let [db-updated-section (s/get-section conn r/slug :finances)]
+;                 db-updated-section => (contains updated-section)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at db-updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :finances)) => 1)) ; but there is still just 1 revision
 
-          (fact "update existing revision title"
-            (let [updated (assoc r/text-section-1 :title "New Title")
-                  response (mock/api-request :put (section-rep/url r/slug :update) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)]
-              (:status response) => 200
-              body => (contains updated)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :update)]
-                updated-section => (contains updated)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :update)) => 1)) ; but there is still just 1 revision
+;           (fact "update existing revision title, headline, body and data"
+;             (let [updated {:body "New Body" :title "New Title" :headline "New Headline" :data []}
+;                   response (mock/api-request :patch (section-rep/url r/slug :finances) {:body updated})
+;                   body (mock/body-from-response response)
+;                   updated-at (:updated-at body)]
+;               (:status response) => 200
+;               body => (contains updated)
+;               ;; verify the initial revision is changed
+;               (let [updated-section (s/get-section conn r/slug :finances)]
+;                 updated-section => (contains updated)
+;                 (check/timestamp? updated-at) => true
+;                 (check/about-now? updated-at) => true
+;                 (check/before? (:created-at updated-section) updated-at) => true)
+;               (count (s/get-revisions conn r/slug :finances)) => 1))))) ; but there is still just 1 revision
 
-          (fact "update existing revision body"
-            (let [updated (assoc r/text-section-1 :body "New Body")
-                  response (mock/api-request :put (section-rep/url r/slug :update) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)]
-              (:status response) => 200
-              body => (contains updated)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :update)]
-                updated-section => (contains updated)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :update)) => 1))) ; but there is still just 1 revision
+;     (facts "about updating a placeholder section"
 
-        (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-2 r/coyote))]
+;       (with-state-changes [(before :facts (c/create-company! conn (c/->company (-> r/buffer 
+;                                                                                  (assoc :sections [:update :custom-c3p0]))
+;                                                                                  r/coyote)))
+;                            (after :facts (c/delete-company! conn (:slug r/buffer)))]
 
-          (fact "update existing revision title, headline, body and data"
-            (let [updated {:body "New Body" :title "New Title" :headline "New Headline" :data (rest (:data r/finances-section-2))}
-                  response (mock/api-request :put (section-rep/url r/slug :finances) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)]
-              (:status response) => 200
-              body => (contains updated)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :finances)]
-                updated-section => (contains updated)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :finances)) => 1)))) ; but there is still just 1 revision
+;         (facts "with a PUT of the section"
+;           (doseq [topic [:update :custom-c3p0]]
+;             (fact "update title"
+;               (let [updated  (assoc r/text-section-1 :title "New Title")
+;                     put-response (mock/api-request :put (section-rep/url (:slug r/buffer) topic) {:body updated})
+;                     put-topic (mock/body-from-response put-response)
+;                     company (c/get-company conn (:slug r/buffer))
+;                     db-topic (company topic)
+;                     db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
+;                 (:status put-response) => 200
+;                 (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+;                 (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
+;                 (doseq [test-topic [put-topic db-topic db-topic-2]]
+;                   (:placeholder test-topic) => falsey
+;                   test-topic => (contains updated))))))
 
-      (future-facts "with PATCH"
+;         (future-facts "with a PATCH of the section"
+;           (doseq [topic [:update :custom-c3p0]]
+;             (fact "update title"
+;               (let [updated  {:title "New Title"}
+;                     response (mock/api-request :patch (section-rep/url (:slug r/buffer) topic) {:body updated})
+;                     patch-topic (mock/body-from-response response)
+;                     company (c/get-company conn (:slug r/buffer))
+;                     db-topic (company topic)
+;                     db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
+;                 (:status response) => 200
+;                 (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+;                 (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
+;                 (doseq [test-topic [patch-topic db-topic db-topic-2]]
+;                   (:placeholder test-topic) => falsey
+;                   (:title test-topic) => (:title updated))))))
 
-        (with-state-changes [(before :facts (s/put-section conn r/slug :update r/text-section-1 r/coyote))]
+;         (facts "with a PATCH of the company"
+;           (doseq [topic [:update :custom-c3p0]]
+;             (fact "update title"
+;               (let [updated  {:title "New Title"}
+;                     response (mock/api-request :patch (company-rep/url (:slug r/buffer)) {:body {:sections [:update :custom-c3p0]
+;                                                                                                  topic updated}})
+;                     patch-body (mock/body-from-response response)
+;                     patch-topic (patch-body topic)
+;                     company (c/get-company conn (:slug r/buffer))
+;                     db-topic (company topic)
+;                     db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
+;                 (:status response) => 200
+;                 (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
+;                 (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
+;                 (doseq [test-topic [patch-topic db-topic db-topic-2]]
+;                   (:placeholder test-topic) => falsey
+;                   (:title test-topic) => (:title updated))))))
 
-          (fact "update existing revision title"
-            (let [updated {:title "New Title"}
-                  response (mock/api-request :patch (section-rep/url r/slug :update) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)
-                  updated-section (merge r/text-section-1 updated)]
-              (:status response) => 200
-              body => (contains updated-section)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :update)]
-                updated-section => (contains updated-section)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :update)) => 1)) ; but there is still just 1 revision
-
-          (fact "update existing revision body"
-            (let [updated {:body "New Body"}
-                  response (mock/api-request :patch (section-rep/url r/slug :update) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)
-                  updated-section (merge r/text-section-1 updated)]
-              (:status response) => 200
-              body => (contains updated-section)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :update)]
-                updated-section => (contains updated-section)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :update)) => 1))) ; but there is still just 1 revision
-
-        (with-state-changes [(before :facts (s/put-section conn r/slug :finances r/finances-section-2 r/coyote))]
-
-          (fact "update existing revision data"
-            (let [updated {:data (rest (:data r/finances-section-2))}
-                  response (mock/api-request :patch (section-rep/url r/slug :finances) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)
-                  updated-section (merge r/finances-section-2 updated)]
-              (:status response) => 200
-              body => (contains updated-section)
-              ;; verify the initial revision is changed
-              (let [db-updated-section (s/get-section conn r/slug :finances)]
-                db-updated-section => (contains updated-section)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at db-updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :finances)) => 1)) ; but there is still just 1 revision
-
-          (fact "update existing revision title, headline, body and data"
-            (let [updated {:body "New Body" :title "New Title" :headline "New Headline" :data []}
-                  response (mock/api-request :patch (section-rep/url r/slug :finances) {:body updated})
-                  body (mock/body-from-response response)
-                  updated-at (:updated-at body)]
-              (:status response) => 200
-              body => (contains updated)
-              ;; verify the initial revision is changed
-              (let [updated-section (s/get-section conn r/slug :finances)]
-                updated-section => (contains updated)
-                (check/timestamp? updated-at) => true
-                (check/about-now? updated-at) => true
-                (check/before? (:created-at updated-section) updated-at) => true)
-              (count (s/get-revisions conn r/slug :finances)) => 1))))) ; but there is still just 1 revision
-
-    (facts "about updating a placeholder section"
-
-      (with-state-changes [(before :facts (c/create-company! conn (c/->company (-> r/buffer 
-                                                                                 (assoc :sections [:update :custom-c3p0]))
-                                                                                 r/coyote)))
-                           (after :facts (c/delete-company! conn (:slug r/buffer)))]
-
-        (facts "with a PUT of the section"
-          (doseq [topic [:update :custom-c3p0]]
-            (fact "update title"
-              (let [updated  (assoc r/text-section-1 :title "New Title")
-                    put-response (mock/api-request :put (section-rep/url (:slug r/buffer) topic) {:body updated})
-                    put-topic (mock/body-from-response put-response)
-                    company (c/get-company conn (:slug r/buffer))
-                    db-topic (company topic)
-                    db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
-                (:status put-response) => 200
-                (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
-                (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
-                (doseq [test-topic [put-topic db-topic db-topic-2]]
-                  (:placeholder test-topic) => falsey
-                  test-topic => (contains updated))))))
-
-        (future-facts "with a PATCH of the section"
-          (doseq [topic [:update :custom-c3p0]]
-            (fact "update title"
-              (let [updated  {:title "New Title"}
-                    response (mock/api-request :patch (section-rep/url (:slug r/buffer) topic) {:body updated})
-                    patch-topic (mock/body-from-response response)
-                    company (c/get-company conn (:slug r/buffer))
-                    db-topic (company topic)
-                    db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
-                (:status response) => 200
-                (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
-                (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
-                (doseq [test-topic [patch-topic db-topic db-topic-2]]
-                  (:placeholder test-topic) => falsey
-                  (:title test-topic) => (:title updated))))))
-
-        (facts "with a PATCH of the company"
-          (doseq [topic [:update :custom-c3p0]]
-            (fact "update title"
-              (let [updated  {:title "New Title"}
-                    response (mock/api-request :patch (company-rep/url (:slug r/buffer)) {:body {:sections [:update :custom-c3p0]
-                                                                                                 topic updated}})
-                    patch-body (mock/body-from-response response)
-                    patch-topic (patch-body topic)
-                    company (c/get-company conn (:slug r/buffer))
-                    db-topic (company topic)
-                    db-topic-2 (s/get-section conn (:slug r/buffer) topic)]
-                (:status response) => 200
-                (:sections company) => ["update" "custom-c3p0"] ; still just 1 update section, prior defect
-                (count (s/list-revisions conn (:slug r/buffer) topic)) => 1
-                (doseq [test-topic [patch-topic db-topic db-topic-2]]
-                  (:placeholder test-topic) => falsey
-                  (:title test-topic) => (:title updated))))))
-
-      (future-facts "with DELETE"
-        (fact "remove existing revision title"
-          (let [response (mock/api-request :delete (section-rep/url (:slug r/buffer) :update))
-                body     (mock/body-from-response response)
-                company  (c/get-company conn (:slug r/buffer))]
-            (:status response) => 200
-            (-> company :update) => nil)))))
+      ; (future-facts "with DELETE"
+      ;   (fact "remove existing revision title"
+      ;     (let [response (mock/api-request :delete (section-rep/url (:slug r/buffer) :update))
+      ;           body     (mock/body-from-response response)
+      ;           company  (c/get-company conn (:slug r/buffer))]
+      ;       (:status response) => 200
+      ;       (-> company :update) => nil)))))
 
     (future-facts "about creating a new section revision"
       (future-facts "with PUT")

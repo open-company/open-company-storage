@@ -1,13 +1,12 @@
 (ns open-company.integration.section.section-create
   "Create a new section in a company."
-  (:require [clojure.string :as s]
-            [midje.sweet :refer :all]
+  (:require [midje.sweet :refer :all]
             [open-company.lib.rest-api-mock :as mock]
+            [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
             [oc.lib.rethinkdb.pool :as pool]
             [open-company.lib.test-setup :as ts]
-            [open-company.api.common :as common]
             [open-company.resources.common :as common-res]
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
@@ -19,12 +18,11 @@
 ;; There are 2 ways to create new sections. PATCH the section into the company, or PUT the section directly
 ;; at its own URL.
 
-;; Identified combinatorial variation:
+;; Identified combinatorial variation...
 ;; Method: Company PATCH, Section PUT
-;; Operation: add section, add multiple sections
-;; Section Type: known section, custom
+;; Operation: add, add many
+;; Which type: content, data, custom, unknown
 ;; Section contents: blank, valid section content, invalid section content, section content only
-
 
 ;; The system should support PATCHing the company, and handle the following scenarios:
 
@@ -50,9 +48,10 @@
 ;; The system should support PUTing the section, and handle the following scenarios:
 
 ;; For known and custom sections:
-;; success - add section - no section content
-;; success - add section - with valid content
+;; success - add section - no section content (content, data)
+;; success - add section - with valid content (content, data, custom)
 ;; failure - add section - with invalid content
+;; failure - add section - no section content (custom)
 
 ;; For unknown sections:
 ;; failure - add section
@@ -60,12 +59,23 @@
 
 ;; ----- Tests -----
 
-(with-state-changes [(around :facts (schema.core/with-fn-validation ?form))
-                     (before :contents (ts/setup-system!))
+(def minimal-valid-content {:headline "test headline"})
+(def valid-content (merge minimal-valid-content {:title "test title" :body "test body"}))
+(def maximal-valid-content (merge valid-content {:image-url "test url" :image-width 42 :image-height 7
+                                                 :metrics [{:slug "arr" :name "ARR":description "Annual Recurring Revenue"
+                                                            :interval "monthly" :unit "currency"}]
+                                                 :data [{:period "2016-09" :slug "arr" :value 1}
+                                                        {:period "2016-10" :slug "arr" :value 2}
+                                                        {:period "2016-11" :slug "arr" :value 3}]}))
+(def invalid-content (merge maximal-valid-content {:foo "bar"}))
+
+(with-state-changes [(before :contents (ts/setup-system!))
                      (after :contents (ts/teardown-system!))
                      (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                       (company/delete-all-companies! conn)
-                                      (company/create-company! conn (company/->company r/open r/coyote))))
+                                      (company/create-company! conn (company/->company r/open r/coyote))
+                                      (section/put-section conn r/slug "update" {:headline "this is my update"} r/coyote)
+                                      (section/put-section conn r/slug "team" {:headline "this is my team"} r/coyote)))
                      (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                      (company/delete-all-companies! conn)))]
 
@@ -87,17 +97,47 @@
 
           (future-fact "with valid section content")))
 
-      (future-facts "by PUTing the section")
+      (facts "by PUTing the section"
 
         (future-fact "without section content")
 
-        (future-fact "with valid section content"))
+        (doseq [content [minimal-valid-content valid-content maximal-valid-content]]
+          (fact "with valid section content"
+             (let [response (mock/api-request :put (section-rep/url r/slug "growth") {:body content})
+                   response-body (mock/body-from-response response)
+                   created-at (:created-at response-body)
+                   db-company (company/get-company conn r/slug)
+                   db-section (section/get-section conn r/slug "growth")]
+                ;; check the response
+                (:status response) => 201
+                ;; check the new section is in the list
+                (:sections db-company) = ["update" "team" "growth"]
+                ;; check the content is in the new section
+                response-body => (contains content)
+                (:growth db-company) => (contains content)
+                db-section => (contains content)
+                ;; check the timestamps for the new section
+                (check/timestamp? created-at)
+                (check/about-now? created-at)
+                (= created-at
+                   (:updated-at response-body)
+                   (:created-at db-section)
+                   (:updated-at db-section)
+                   (-> db-company :growth :created-at)
+                   (-> db-company :growth :updated-at)) => true 
+                ;; check the author for the new section
+                (doseq [author [(:author response-body) (-> db-company :growth :author) (:author db-section)]]
+                  (count author) => 1
+                  (first author) => (contains (-> r/coyote
+                                                (select-keys [:avatar :real-name :user-id])
+                                                (clojure.set/rename-keys {:avatar :image :real-name :name})))
+                  (-> author first :updated-at) => created-at)))))
 
     (facts "about failing to add sections"
 
       (future-facts "by PATCHing the company")
 
-      (future-facts "by PUTing the section"))))
+      (future-facts "by PUTing the section")))))
 
 
 ;         (fact "that don't really exist"

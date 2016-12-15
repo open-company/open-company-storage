@@ -72,6 +72,8 @@
                         :post false
                         :delete false})
 
+  :can-put-to-missing? true
+  
   ;; TODO: handle with prismatic schema check
   :processable? (by-method {
                             :options true
