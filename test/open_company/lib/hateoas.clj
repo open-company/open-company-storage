@@ -1,10 +1,17 @@
 (ns open-company.lib.hateoas
   "Utility functions for testing HATEOAS https://en.wikipedia.org/wiki/HATEOAS"
-  (:require [open-company.lib.check :refer (check)]
+  (:require [clojure.string :as s]
+            [open-company.lib.check :refer (check)]
             [open-company.representations.common :refer (GET POST PUT PATCH DELETE)]
             [open-company.representations.company :as company-rep]
             [open-company.representations.section :as section-rep]
             [open-company.representations.stakeholder-update :as su-rep]))
+
+(defn options-response [options]
+  {:pre [(sequential? options)
+         (every? keyword? options)]
+   :post [string?]}
+  (s/join ", " (map s/upper-case (map name options))))
 
 (defn- find-link [rel links]
   (some (fn [link] (if (= rel (:rel link)) link nil)) links))

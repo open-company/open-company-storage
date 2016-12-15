@@ -1,11 +1,25 @@
-(ns open-company.integration.authorization.entry-point
-  "authorization tests for the API HATEOAS entry point."
+(ns open-company.integration.authorization.entry-point-auth
+  "Authorization tests for the API HATEOAS entry point."
   (:require [midje.sweet :refer :all]
             [open-company.lib.test-setup :as ts]
             [open-company.lib.rest-api-mock :as mock]
             [open-company.api.common :as common]))
 
 (def options "OPTIONS, GET")
+
+;; ----- Test Cases -----
+
+;; OPTIONS
+;; fail - invalid JWToken - 401 Unauthorized
+;; success - no JWToken - 204 No Content
+;; success - with JWToken - 204 No Content
+
+;; GET
+;; fail - invalid JWToken - 401 Unauthorized
+;; success - no JWToken - 200 OK
+;; success - with JWToken - 200 OK
+
+;; ----- Tests -----
 
 (with-state-changes [(before :contents (ts/setup-system!))
                      (after :contents (ts/teardown-system!))]
