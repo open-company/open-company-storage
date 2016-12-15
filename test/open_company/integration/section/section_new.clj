@@ -1,4 +1,4 @@
-  (ns open-company.integration.authorization.section-new-auth
+  (ns open-company.integration.authorization.section-new
   (:require [clojure.walk :refer (keywordize-keys)]
             [midje.sweet :refer :all]
             [cheshire.core :as json]
