@@ -38,11 +38,11 @@
 (def url (str (company-rep/url r/slug) "/section/new"))
 
 (with-state-changes [(before :contents (ts/setup-system!))
-                     (after :contents (ts/teardown-system!))
                      (before :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)]
                                       (company/delete-all-companies! conn)
                                       (company/create-company! conn (company/->company r/open r/coyote))))
-                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)] (company/delete-all-companies! conn)))]
+                     (after :facts (pool/with-pool [conn (-> @ts/test-system :db-pool :pool)] (company/delete-all-companies! conn)))
+                     (after :contents (ts/teardown-system!))]
 
   (facts "about available options for new section templates"
 
