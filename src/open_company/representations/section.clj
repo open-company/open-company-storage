@@ -68,6 +68,11 @@
     (self-link company-slug section-name created-at)
     (partial-update-link company-slug section-name created-at)]))))
 
+(defn section-template-for-rendering
+  "Add a create link to the provided section template."
+  [template company-slug]
+  (assoc template :links [(common/link-map "create" common/PUT (url company-slug (:section-name template)) media-type)]))
+
 (defn section-for-rendering
   "Get a representation of the section for the REST API"
   [conn {:keys [company-slug section-name] :as section} authorized]

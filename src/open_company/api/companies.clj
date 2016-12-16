@@ -11,12 +11,16 @@
             [open-company.resources.company :as company]
             [open-company.resources.section :as section]
             [open-company.representations.company :as company-rep]
+            [open-company.representations.section :as section-rep]
             [cheshire.core :as json]))
 
-;; Round-trip it through Cheshire to ensure the embedded HTML gets encoded or the client has issues parsing it
-(defonce sections (json/generate-string config/sections {:pretty true}))
-
 ;; ----- Utility functions -----
+
+(defn sections-for [company-slug]
+  (let [sections config/sections
+        templates (:templates sections)
+        with-links (map #(section-rep/section-template-for-rendering % company-slug) templates)]
+    (json/generate-string (assoc sections :templates with-links) {:pretty true})))
 
 (defn- add-slug
   "Add the slug to the company properties if it's missing."
@@ -201,7 +205,7 @@
 
   ;; Get a list of sections
   :exists? (fn [ctx] (get-company conn slug ctx))
-  :handle-ok (fn [_] sections))
+  :handle-ok (fn [_] (sections-for slug)))
 
 ;; ----- Routes -----
 
