@@ -18,7 +18,7 @@
 
 (def metadata-properties
   "
-  Properties of the `sections.json` section placeholder data that are NOT valid properties of a section, but are
+  Properties of the `sections.edn` section placeholder data that are NOT valid properties of a section, but are
   simply meta-data for the UI.
   "
   #{:prompt :standard-metrics :units :intervals})

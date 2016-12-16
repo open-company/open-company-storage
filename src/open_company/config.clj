@@ -62,10 +62,10 @@
 ;; how long to wait before a sequential edit by the same author is considered a new version
 (defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; 24 hours in minutes
 
-(defonce sections (-> "open_company/assets/sections.json"
+(defonce sections (-> "open_company/assets/sections.edn"
                     clojure.java.io/resource
                     slurp
-                    json/decode
+                    read-string
                     keywordize-keys))
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----

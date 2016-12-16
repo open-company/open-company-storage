@@ -1,0 +1,296 @@
+{
+
+  :sections ["update" "mission" "values" "highlights" "growth" "challenges" "takeaways" "team" "diversity" "product" "press" "customers" "sales" "marketing" "competition" "help" "kudos" "finances" "fundraising"]
+  
+  :categories [
+    {
+      :name "Popular Topics"
+      :icon nil
+      :column 1
+      :order 1
+      :sections ["update" "highlights" "challenges" "takeaways" "team" "product" "competition"]
+    }
+    {
+      :name ""
+      :icon nil
+      :column 2
+      :order 1
+      :sections ["press" "fundraising" "kudos" "help" "sales" "marketing" "customers"]
+    }
+    {
+      :name "Who We Are"
+      :icon nil
+      :column 3
+      :order 1
+      :sections ["mission" "values" "diversity"]
+    }
+    {
+      :name "Charts"
+      :icon "fa-line-chart"
+      :column 3
+      :order 2,
+      :sections ["growth" "finances"]
+    }
+  ]
+
+  :templates [
+
+   {
+      :section-name "custom-{4-char-UUID}"
+      :title ""
+      :description "Custom topic"
+      :headline ""
+      :body-placeholder "What would you like to say..."
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "mission"
+      :title "Mission"
+      :description "Why the organization exists"
+      :headline ""
+      :body-placeholder "Does everyone know what they’re fighting for? What is your mission?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "values"
+      :title "Values"
+      :description "Core values the organization lives by"
+      :headline ""
+      :body-placeholder "Core values are the fundamental beliefs of the organization. What are they?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "diversity"
+      :title "Diversity"
+      :description "Diversity goals and makeup"
+      :headline ""
+      :body-placeholder "What is the current state of diversity at your organization? What are your goals?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "competition"
+      :title "Competition"
+      :description "Key competitors and competitive threats"
+      :headline ""
+      :body-placeholder "What are your competitors up to? Are there any new external threats?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "update"
+      :title "CEO Update"
+      :description "organization update"
+      :headline ""
+      :body-placeholder "A quick take on what's happened since the last update."
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "highlights"
+      :title "Highlights"
+      :description "Milestones and accomplishments"
+      :headline ""
+      :body-placeholder "What new milestones or accomplishments are you most proud of?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "growth"
+      :title "Key Metrics"
+      :description "Key metrics and performance indicators"
+      :headline ""
+      :body-placeholder "Discuss recent performance. How are you doing against your targets?"
+      :body ""
+      :prompt "Enter the most important metric for the stakeholders of your organization. You'll be able
+      to add more later."
+      :metrics []
+      :intervals [
+        "weekly"
+        "monthly"
+        "quarterly"
+      ]
+      :units [
+        {
+          :unit "currency"
+          :name "Currency"
+        }
+        {
+          :unit "number"
+          :name "Number"
+        }
+        {
+          :unit "%"
+          :name "Percent"
+        }
+      ]
+    }
+
+    {
+      :section-name "challenges"
+      :title "Key Challenges"
+      :description "Challenges facing the organization"
+      :headline ""
+      :body-placeholder "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+   {
+      :section-name "takeaways"
+      :title "Lessons Learned"
+      :description "What we've learned"
+      :headline ""
+      :body-placeholder "What’s something you recently learned about your business, customers, or product?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "team"
+      :title "Team and Hiring"
+      :description "Team and hiring update"
+      :headline ""
+      :body-placeholder "Welcome new hires, discuss open positions, and let everyone know about other team changes."
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "product"
+      :title "Products"
+      :description "Product release and roadmap update"
+      :headline ""
+      :body-placeholder "What's shipped recently and how has the roadmap changed? How is the market responding? What’s working? What’s not?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "customers"
+      :title "Customers"
+      :description "Customer update"
+      :headline ""
+      :body-placeholder "Is customer satisfaction trending up or down? How are you tracking it? What key issues do your customers have?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "marketing"
+      :title "Marketing"
+      :description "Notable marketing activities and results"
+      :headline ""
+      :body-placeholder "List any notable marketing activities since the last update. How are your current marketing efforts performing? Anything new planned?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "press"    
+      :title "Press"   
+      :description "Press mentions and PR activities"    
+      :headline ""   
+      :body-placeholder "List any notable press mentions since the last update. Provide an update on PR activities."   
+      :body ""   
+      :image-url  nil    
+      :image-height 0    
+      :image-width 0   
+    }
+
+    {
+      :section-name "sales"
+      :title "Sales"
+      :description "Notable sales activity and wins and losses"
+      :headline ""
+      :body-placeholder "Did you close any notable sales? What opportunities are in the pipeline?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "help"
+      :title "How You Can Help"
+      :description "Ask your stakeholders for help and ideas"
+      :headline ""
+      :body-placeholder "Where do you need the most help from your team and investors?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "kudos"
+      :title "Kudos"
+      :description "Celebrate great actions that helped the organization"
+      :headline ""
+      :body-placeholder "Who went above and beyond to help the organization? What did they do?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+    {
+      :section-name "finances"
+      :title "Finances"
+      :description "Cash on hand, burn and runway"
+      :headline ""
+      :body-placeholder "Discuss the financial health of the business, and what's changed since the last update."
+      :body ""
+      :data []
+    }
+
+    {
+      :section-name "fundraising"
+      :title "Fundraising"
+      :description "Updates on the fundraising process"
+      :headline ""
+      :body-placeholder "How much would you like to raise? How will you use the funds? Link to the pitch deck, and let everyone know how it’s going. If you’ve already raised, who are the new investors and what are the terms?"
+      :body ""
+      :image-url  nil
+      :image-height 0
+      :image-width 0
+    }
+
+  ]
+}
