@@ -55,6 +55,7 @@
   :org-id "slack:87654"})
 
 ;; ----- Companies ----
+
 (def open {:slug slug
            :name "OpenCompany"
            :description "Build trust with stakeholders"

@@ -166,13 +166,7 @@
   :initialize-context (fn [ctx] (read-token (get-in ctx [:request :headers])))
   :authorized? allow-anonymous
   :handle-unauthorized (fn [_] (unauthorized-response))
-  :handle-forbidden (by-method {
-    :options (forbidden-response)
-    :get (forbidden-response)
-    :post (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
-    :put (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
-    :patch (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))
-    :delete (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))})})
+  :handle-forbidden  (fn [ctx] (if (:jwtoken ctx) (forbidden-response) (unauthorized-response)))})
 
 ;; verify validity and presence of required JWToken
 (def authenticated-resource {
