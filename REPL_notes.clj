@@ -24,7 +24,7 @@
 ;; print last exception
 (print-stack-trace *e)
 
-;; Validate sections in sections.json against schema (should be all nils)
+;; Validate sections in sections.edn against schema (should be all nils)
 (def sections*
   (->> common/sections (map #(assoc % :company-slug "x"))))
 (map #(schema/check common/Section %) sections*)
@@ -79,6 +79,44 @@
   (-> (r/table "companies")
       (r/get "open")
       (r/update {:finances {:body "<p>It's time to learn. That's it, really. Put it in the hands of people we admire and trust, and <b>LEARN FAST</b>.</p><p><img src=\"https://cdn.filestackcontent.com/ge9NSlJTP2AXfwl0nGvk\" data-height=\"370\" data-width=\"555\"><br></p><p><br></p>"}})
+      (r/run c)))
+
+;; Get all the topic revisions of a specific topic
+(aprint (with-open [c (apply r/connect conn2)]
+  (-> (r/table "sections")
+    (r/filter (r/fn [section] {:section-name "business-development"}))
+    (r/run c))))
+
+(map :title (with-open [c (apply r/connect conn2)]
+  (-> (r/table "sections")
+    (r/filter (r/fn [section] {:section-name "custom-aaaa"}))
+    (r/run c))))
+
+;; Update the topic name of topic revisions of a specific topic
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "sections")
+    (r/filter (r/fn [section] {:section-name "customer-service"}))
+    (r/update {:section-name "customers"})
+    (r/run c)))
+
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "sections")
+    (r/filter (r/fn [section] {:section-name "business-development"}))
+    (r/update {:section-name "custom-aaaa"})
+    (r/run c)))
+
+;; Update the topic topic name of a topic in a company
+(def bus (:business-development (company/get-company conn "buff")))
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "companies")
+    (r/get "buff")
+    (r/update (r/fn [company] {:custom-aaaa bus}))
+    (r/run c)))
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "companies")
+      (r/get "buff")
+      (r/replace (r/fn [company]
+        (r/without company [:business-development])))
       (r/run c)))
 
 ;; Get all the topic revisions for a company
