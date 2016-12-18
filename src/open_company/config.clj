@@ -2,7 +2,6 @@
   "Namespace for the configuration parameters."
   (:require [clojure.walk :refer (keywordize-keys)]
             [environ.core :refer (env)]
-            [cheshire.core :as json]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.core :as appenders]))
 
