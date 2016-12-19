@@ -28,15 +28,15 @@
     [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
-    [com.taoensso/timbre "4.8.0-alpha1"] ; Logging https://github.com/ptaoussanis/timbre
+    [com.taoensso/timbre "4.8.0"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.4.1"] ; HTTP client https://github.com/dakrone/clj-http
     [clj-time "0.12.2"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
-    [com.stuartsierra/component "0.3.1"] ; Component Lifecycle
-    [amazonica "0.3.78"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
+    [amazonica "0.3.79"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
     [open-company/lib "0.0.6-04c024d"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
