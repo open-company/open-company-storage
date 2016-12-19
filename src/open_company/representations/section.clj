@@ -14,8 +14,8 @@
   ([company-slug section-name]
   (str "/companies/" (name company-slug) "/" (name section-name)))
   
-  ([company-slug section-name created-at]
-  (str (url company-slug section-name) "?as-of=" created-at)))
+  ([company-slug section-name updated-at]
+  (str (url company-slug section-name) "?as-of=" updated-at)))
 
 (defn- revisions-url [company-slug section-name]
   (str (url company-slug section-name) "/revisions"))
@@ -25,11 +25,11 @@
   ([company-slug section-name]
   (common/self-link (url company-slug section-name) media-type))
   
-  ([company-slug section-name created-at]
-  (common/self-link (url company-slug section-name created-at) media-type)))
+  ([company-slug section-name updated-at]
+  (common/self-link (url company-slug section-name updated-at) media-type)))
 
-(defn- revision-link [company-slug section-name created-at]
-  (common/revision-link (url company-slug section-name created-at) created-at media-type))
+(defn- revision-link [company-slug section-name updated-at]
+  (common/revision-link (url company-slug section-name updated-at) updated-at media-type))
 
 (defn- revisions-link [company-slug section-name]
   (common/link-map "revisions" common/GET (revisions-url company-slug section-name) collection-media-type))
@@ -37,8 +37,8 @@
 (defn- update-link [company-slug section-name]
   (common/update-link (url company-slug section-name) media-type))
 
-(defn- partial-update-link [company-slug section-name created-at]
-  (common/partial-update-link (url company-slug section-name created-at) media-type))
+(defn- partial-update-link [company-slug section-name updated-at]
+  (common/partial-update-link (url company-slug section-name updated-at) media-type))
 
 (defun- section-links
   "Add the HATEAOS links to the section"
@@ -58,15 +58,15 @@
 
 (defun- revision-links
   "Add the HATEAOS links to the revision"
-  ; read/only links
-  ([company-slug section-name created-at revision false]
-  (assoc revision :links [(self-link company-slug section-name created-at)]))
+  ;; read/only links
+  ([company-slug section-name updated-at revision false]
+  (assoc revision :links [(self-link company-slug section-name updated-at)]))
 
-  ; read/write links
-  ([company-slug section-name created-at revision true]
+  ;; read/write links
+  ([company-slug section-name updated-at revision true]
   (assoc revision :links (flatten [
-    (self-link company-slug section-name created-at)
-    (partial-update-link company-slug section-name created-at)]))))
+    (self-link company-slug section-name updated-at)
+    (partial-update-link company-slug section-name updated-at)]))))
 
 (defn section-template-for-rendering
   "Add a create link to the provided section template."
@@ -78,7 +78,7 @@
   [conn {:keys [company-slug section-name] :as section} authorized]
   (-> section
     (assoc :revisions (section/list-revisions conn company-slug section-name))
-    (update :revisions #(map (fn [rev] (revision-link company-slug section-name (:created-at rev))) %))
+    (update :revisions #(map (fn [rev] (revision-link company-slug section-name (:updated-at rev))) %))
     (section-links authorized)
     (common/clean clean-properties)))
 
@@ -100,5 +100,5 @@
                  :links [(common/self-link (revisions-url company-slug section-name) collection-media-type)]
                  :revisions (->> revisions
                                 (map #(common/clean % clean-properties))
-                                (map #(revision-links company-slug section-name (:created-at %) % authorized)))}}
+                                (map #(revision-links company-slug section-name (:updated-at %) % authorized)))}}
    {:pretty true}))

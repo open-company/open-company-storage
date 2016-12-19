@@ -29,8 +29,8 @@
 (defn delete-link [url]
   (array-map :rel "delete" :method DELETE :href url))
 
-(defn revision-link [url created-at media-type]
-  (assoc (link-map "revision" GET url media-type) :created-at created-at))
+(defn revision-link [url updated-at media-type]
+  (assoc (link-map "revision" GET url media-type) :updated-at updated-at))
 
 (defn clean [rep clean-props]
   (apply dissoc rep clean-props))
