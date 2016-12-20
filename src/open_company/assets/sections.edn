@@ -31,6 +31,18 @@
 
   :templates [
 
+    {   
+      :section-name "custom-{4-char-UUID}"
+      :title ""   
+      :description "Custom topic"   
+      :headline ""    
+      :body-placeholder "What would you like to say..."   
+      :body ""    
+      :image-url  nil   
+      :image-height 0   
+      :image-width 0    
+    }
+
     {
       :section-name "mission"
       :title "Mission"
