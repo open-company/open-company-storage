@@ -422,7 +422,7 @@ Archive a section from a company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"sections": ["update", diversity", "team"]}' \
+-d '{"sections": ["update", "diversity", "team"]}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -440,18 +440,6 @@ curl -i -X PATCH \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
 http://localhost:3000/companies/hotel-procrastination
-```
-
-Add new section to the company with cURL:
-
-```console
-curl -i -X PUT \
--d '{"headline": "Fred is killing it"}' \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/hotel-procrastination/kudos
 ```
 
 Delete the company with cURL:
