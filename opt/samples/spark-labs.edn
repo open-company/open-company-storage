@@ -15,7 +15,7 @@
       :user-id "7777"
       :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
     }
-    :sections ["update" "growth" "team" "finances" "fundraising"
+    :sections ["update" "growth" "customers" "team" "finances" "fundraising"
                "product" "marketing" "press" "help"]
     :stakeholder-update {:sections ["update" "fundraising"]
                          :title ""}
@@ -49,10 +49,48 @@
 
     { 
       :section {
+        :body ""
+        :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
+               {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}]
+        :headline ""
+        :title "Finances"
+      }
+      :section-name "finances"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }      
+      :timestamp "2016-07-02T16:23:11.560Z"
+    }
+
+    { 
+      :section {
+        :body "<p>We have invoiced our new partner for $800k, which is due for payment in November. Our current monthly expenditure is approximately $100k.</p>"
+        :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
+               {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}
+               {:cash 1800000, :costs 100000, :period "2016-10", :revenue ""}
+               {:cash "", :costs 85000, :period "2016-08", :revenue nil}
+               {:cash "", :costs 100000, :period "2016-09", :revenue nil}
+               {:cash "", :costs 75000, :period "2016-07", :revenue nil}]
+        :headline ""
+        :title "Finances"
+      }
+      :section-name "finances"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }      
+      :timestamp "2016-10-15T16:23:11.560Z"
+    }
+
+    { 
+      :section {
         :body "<p>We have $2.175m in the bank today (including the $800k paid by strategic investor in October). Our expenditure in October and November was approximately $200k/month as we stepped up our work with Microsoft.</p><p>With the $1.64m investment, we will begin 2017 with $3.6m in the bank. We currently have 8 full-time employees in Austin, plus 3 full-time and 5 part-time contractors.</p>"
         :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
                {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}
-               {:cash 1800000, :costs 200000, :period "2016-10", :revenue ""}
+               {:cash 1800000, :costs 100000, :period "2016-10", :revenue ""}
                {:cash "", :costs 85000, :period "2016-08", :revenue nil}
                {:cash 2175000, :costs 200000, :period "2016-11", :revenue nil}
                {:cash "", :costs 100000, :period "2016-09", :revenue nil}
@@ -66,6 +104,43 @@
         :name "Sam Lawson"
         :user-id "7777"
       }      
+      :timestamp "2016-12-03T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>Their first 12 months is free, funded by our partner.</p>"
+        :headline "44 apps in 7 days"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Customers"
+      }
+      :section-name "customers"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg",
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
+      :timestamp "2016-10-15T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>Good news: in the past six weeks, we have signed up 155 apps - representing more than 20% of the App Directory - to use us to translate their apps.</p>
+        <p>Our contractual target was 100 apps translated by January 15th, so we’re ahead of schedule.</p>"
+        :headline "155 apps in the past six weeks"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Customers"
+      }
+      :section-name "customers"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg",
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
       :timestamp "2016-12-03T16:23:11.560Z"
     }
 
@@ -133,6 +208,25 @@
 
     {
       :section {
+        :body "<p>Apple currently has a monopoly in the enterprise app market, despite having less than 10% of enterprise users. Other major enterprise platforms (e.g., Android, Microsoft, Blackberry, etc) are playing catch-up. The value proposition for enterprise app developers is strong because they can reach new/different customers on other platforms (unlike consumer, where there is plenty of overlap).</p>
+        <p>Look out for our PR launch in early November, timed to coincide with the announcement of our partner's new enterprise app platform. We will announce our seed financing round separately later in November.</p>"
+        :headline "Our beachhead market for 'app translation' is enterprise apps. Launch in early November."
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Marketing"
+      }
+      :section-name "marketing"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }
+      :timestamp "2016-10-15T16:23:11.560Z"
+    }
+
+    {
+      :section {
         :body "<p>We launched in private beta in early November and announced the partnership in mid-November - see press links below.</p><p>You may also enjoy my guest post on TechCrunch today: <a href=\"https://techcrunch.com/2016/11/30/google-launches-app-maker/\">Apps That Work Everywhere</a>.</p>"
         :headline ""
         :image-height 0
@@ -169,6 +263,24 @@
 
     {
       :section {
+        :body "<p>I am preparing an offer letter for Jane Lozensmitz, the former head of engineering at Nest, who is likely to join the team as Chief Product Officer in July.</p>"
+        :headline "An offer for Chief Product Officer"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "Team and Hiring"
+      }
+      :section-name "team"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg"
+        :name "Sam Lawson"
+        :user-id "7777"
+      }
+      :timestamp "2016-07-02T16:23:11.560Z"
+    }
+
+    {
+      :section {
         :body "<p>Our new VP Developer Relations, Chris Thaminsky, previously built the developer community for Apple and Tivo.</p><p>We have recently appointed a director of marketing and a senior product manager. We will also be adding four new engineers to the team, taking our headcount to 11 employees plus 3 full-time contractors.</p><p>My technical co-founder, Jimmy, is moving his family to Tampa. John Louis, our Chief Product Officer and former head of engineering at Google, is a rockstar.</p>"
         :headline ""
         :image-height 0
@@ -187,7 +299,29 @@
 
     {
       :section {
-        :body "<p>Confidentially, we have signed a $1 million contract with one of the world’s largest software companies to port apps to their soon-to-be-announced platform using our translation tool.</p><p>They are paying us $800k upfront (unconditional), plus up to $200k to offer our service without charge for 12 months to first 200 developers who use us to deploy to their new platform.<b>Please keep this highly confidential. We are permitted to share this news with our investors/advisors, but otherwise we are under a very strict NDA.</b></p>"
+        :body "<p>Our 'app translation tool' enables developers to deploy an existing app to all languages in 15 minutes with no coding changes.</p>
+        <p>Assuming beta testing goes well over the next few weeks, we will be embarking on aggressive acquisition campaign. We are building a
+        database of every app developer, and our goal is speak directly with all of them in the coming months.</p>
+        <p>I’d like to emphasize that we are still very early on all fronts - product development, acquisition, business development,
+        etc - but we’re moving rapidly and I’m delighted with how the product is taking shape.</p>"
+        :headline "Good news - v1.0 now live"
+        :image-height 0
+        :image-url nil
+        :image-width 0
+        :title "CEO Update"
+      }
+      :section-name "update"
+      :author {
+        :image "https://pbs.twimg.com/profile_images/418788926917066752/hKSTUPMS.jpeg",
+        :name "Sam Lawson",
+        :user-id "7777"
+      }
+      :timestamp "2016-07-02T16:23:11.560Z"
+    }
+
+    {
+      :section {
+        :body "<p>Confidentially, we have signed a $1 million contract with one of the world’s largest software companies to port apps to their soon-to-be-announced platform using our translation tool.</p><p>They are paying us $800k upfront (unconditional), plus up to $200k to offer our service without charge for 12 months to first 200 developers who use us to deploy to their new platform. <b>Please keep this highly confidential. We are permitted to share this news with our investors/advisors, but otherwise we are under a very strict NDA.</b></p>"
         :headline "$1M contract signed"
         :image-height 0
         :image-url nil
@@ -202,5 +336,6 @@
       }
       :timestamp "2016-10-15T16:23:11.560Z"
    }
+
   ]
 }
