@@ -65,10 +65,26 @@
 (declare get-section)
 (defn patch-revision
   "
-  Given the company slug, section name, revision timestamp and section property map, update an exising section revision,
-  returning the property map for the resource or `false`.
+  Given the company slug, section name, optional revision timestamp and an updated section property map, update an
+  exising section revision, returning the property map for the resource or `false`.
   "
-  [conn company-slug section-name original-timestamp revision user]
+  ([conn company-slug section-name revision user]
+  {:pre [(map? conn)
+         (or (string? company-slug) (keyword? company-slug))
+         (or (string? section-name) (keyword? section-name))
+         (map? revision)
+         (map? user)]}
+  (if-let [original-section (get-section conn company-slug section-name)]
+    (patch-revision conn company-slug section-name (:updated-at original-section) revision user)
+    false))
+  
+  ([conn company-slug section-name original-timestamp revision user]
+  {:pre [(map? conn)
+         (or (string? company-slug) (keyword? company-slug))
+         (or (string? section-name) (keyword? section-name))
+         (or (string? original-timestamp) (keyword? original-timestamp))
+         (map? revision)
+         (map? user)]}
   (let [original-company (company/get-company conn company-slug) ; company before the update
         original-revision (get-section conn company-slug section-name original-timestamp) ; revision before the update
         original-authorship (:author original-revision)
@@ -103,7 +119,7 @@
           (company/update-company conn company-slug updated-company))
         ;; update the section revision or
         (common/update-resource conn table-name primary-key original-revision completed-revision updated-at))
-      false)))
+      false))))
 
 ;; ----- Section CRUD -----
 

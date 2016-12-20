@@ -228,8 +228,8 @@ Then enter these commands one-by-one, noting the output:
 
 (company/create-company!
   conn
-  (company/->company {:name "Blank Inc."
-                      :slug (slug/find-available-slug "Blank Inc." (company/taken-slugs conn))
+  (company/->company {:name "Blank.com"
+                      :slug "blank"
                       :currency "GBP"}
                     author))
 
@@ -260,45 +260,49 @@ Then enter these commands one-by-one, noting the output:
 (company/list-companies conn)
 
 ;; get a company
-(aprint (company/get-company conn "blank-inc"))
+(aprint (company/get-company conn "blank"))
 (aprint (company/get-company conn "open"))
 (aprint (company/get-company conn "buffer"))
 
-;; create/update a section
-(section/put-section conn "blank-inc" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
-(section/put-section conn "blank-inc" :finances {:body "we got our first customer! revenue ftw!"
+;; create a section
+(section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
+
+;; add additional entries to the section
+(section/put-section conn "blank" :finances {:body "we got our first customer! revenue ftw!"
                                                  :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
                                                         {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]} author)
-(section/put-section conn "blank-inc" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
+(section/put-section conn "blank" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
                                                         {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
                                                         {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]} author)
-(section/put-section conn "blank-inc" :finances {:body "we got our second customer! more revenue ftw!"
+;; update existing entry
+(section/patch-revision conn "blank" :finances {:body "we got our second customer! more revenue ftw!"
                                                  :data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
                                                         {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
                                                         {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
                                                         {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]} author)
 (aprint (company/get-company conn "blank-inc"))
 
+;; 3 entries, not 4, the last entry has been edited once
+(count (section/list-revisions conn "blank" :finances))
+
+;; create a section
 (section/put-section conn "buffer" :update {:headline "it's all meh."} author)
 (aprint (company/get-company conn "buffer"))
 
 ;; get a section
-(aprint (section/get-section conn "blank-inc" :finances))
+(aprint (section/get-section conn "blank" :finances))
 (aprint (section/get-section conn "buffer" :update))
 (aprint (section/get-section conn "buffer" :finances))
 
 ;; list revisions
-(section/list-revisions conn "blank-inc" :finances)
-(section/list-revisions conn "buffer" :update)
-(section/list-revisions conn "buffer" :finances)
-;; note: due to revision collapsing by same author in a short period, there won't as many revisions as you
-;; might think. the introduction of a new note by the same author in finances section of blank-inc causes
-;; a new revision, but the rest of the updates above are collapsed into one revision.
+(aprint (section/list-revisions conn "blank" :finances))
+(aprint (section/list-revisions conn "buffer" :update))
+(aprint (section/list-revisions conn "buffer" :finances))
 
 ;; get revisions
-(section/get-revisions conn "blank-inc" :finances)
-(section/get-revisions conn "buffer" :update)
-(section/get-revisions conn "buffer" :finances)
+(aprint (section/get-revisions conn "blank" :finances))
+(aprint (section/get-revisions conn "buffer" :update))
+(aprint (section/get-revisions conn "buffer" :finances))
 
 ;; create a stakeholder update
 (su/create-stakeholder-update!
@@ -307,11 +311,12 @@ Then enter these commands one-by-one, noting the output:
     conn
     (company/get-company conn "open")
     {:title "OpenCompany Update"
+     :medium :link
      :sections ["finances"]}
     author))
 
 ;; delete a company
-(company/delete-company! conn "blank-inc")
+(company/delete-company! conn "blank")
 
 ;; cleanup
 (company/delete-all-companies! conn)
@@ -389,7 +394,7 @@ curl -i -X PATCH \
 http://localhost:3000/companies/hotel-procrastination
 ```
 
-Revise a section for the company with cURL:
+Create a new section entry with cURL:
 
 ```console
 curl -i -X PUT \
@@ -440,13 +445,13 @@ http://localhost:3000/companies/hotel-procrastination
 Add new section to the company with cURL:
 
 ```console
-curl -i -X PATCH \
--d '{"sections": ["update", "diversity", "team", "mission", "kudos"], "kudos": {"headline": "Fred is killing it"}}' \
+curl -i -X PUT \
+-d '{"headline": "Fred is killing it"}' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3000/companies/hotel-procrastination/kudos
 ```
 
 Delete the company with cURL:
