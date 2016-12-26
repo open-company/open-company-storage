@@ -21,8 +21,9 @@
 ;; Identified combinatorial variation...
 ;; Method: Company PATCH, Section PUT
 ;; Operation: add, add many
+;; Order: first, middle, end
 ;; Which type: content, data, custom, unknown
-;; Section contents: blank, valid section content, invalid section content, section content only
+;; Section contents: blank, minimal, maximal, invalid, section content only
 
 ;; The system should support PATCHing the company, and handle the following scenarios:
 
