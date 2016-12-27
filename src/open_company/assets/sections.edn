@@ -120,7 +120,7 @@
       :title "Key Metrics"
       :description "Key metrics and performance indicators"
       :headline ""
-      :body-placeholder "Discuss recent performance. How are you doing against your targets?"
+      :body-placeholder "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart."
       :body ""
       :prompt "Enter the most important metric for the stakeholders of your organization. You'll be able
       to add more later."
@@ -271,7 +271,7 @@
       :title "Cash Flow"
       :description "Cash on hand, burn and runway"
       :headline ""
-      :body-placeholder "Discuss the financial health of the business, and what's changed since the last update."
+      :body-placeholder "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart."
       :body ""
       :data []
     }
