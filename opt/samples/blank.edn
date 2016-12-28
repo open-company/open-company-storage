@@ -1,26 +1,14 @@
-;; Sample data, a see of nothingness
-{
-  :company {
-    :slug "blank"
-    :public false
-    :promoted false
-    :name "Blank"
-    :logo ""
-    :org-id "slack-T06SBMH60"
-    :currency "USD"
-    :timestamp "2015-07-13T12:59:28.000Z"
-    :author {
-      :name "Sean Johnson"
-      :user-id "123456"
-      :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
-    }
-    :sections []
-    :stakeholder-update {
-      :title ""
-      :sections []
-    }
-  }
-
-  :sections []
-  :stakeholder-updates []
-}
+{:company {:created-at "2016-12-28T13:23:48.771Z",
+           :currency "USD",
+           :logo "",
+           :name "Blank",
+           :org-id "slack-T06SBMH60",
+           :promoted false,
+           :public false,
+           :sections [],
+           :slug "blank",
+           :stakeholder-update {:sections [], :title ""},
+           :updated-at "2016-12-28T13:23:48.816Z",
+           :uuid "b87cc399-8562-494d-b98d-33e26c146f0d"},
+ :sections [],
+ :updates []}

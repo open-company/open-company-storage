@@ -1,203 +1,143 @@
-;; Sample finances data, a made up older startup that's post-revenue but not profitable
-{
-  :company {
-    :slug "ent-inc"
-    :public false
-    :promoted false
-    :name "Enterprise Inc."
-    :logo "https://open-company-assets.s3.amazonaws.com/ent-inc.png"
-    :logo-width 245
-    :logo-height 67
-    :org-id "slack-T06SBMH60"
-    :currency "USD"
-    :timestamp "2015-05-01T12:59:28.000Z"
-    :author {
-      :name "Orin Oldin"
-      :user-id "345678"
-      :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
-    }
-    :sections ["finances"]
-    :stakeholder-update {
-      :title ""
-      :sections ["finances"]
-    }
-  }
-  :sections [
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 25486744
-            :revenue 497639
-            :costs 1128754
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Orin Oldin"
-        :user-id "345678"
-        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
-      }
-      :timestamp "2016-04-13T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 25486744
-            :revenue 497639
-            :costs 1128754
-          }
-          {
-            :period "2016-04"
-            :cash 24678388
-            :revenue 506231
-            :costs 1314587
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Orin Oldin"
-        :user-id "345678"
-        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
-      }
-      :timestamp "2016-05-04T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 25486744
-            :revenue 497639
-            :costs 1128754
-          }
-          {
-            :period "2016-04"
-            :cash 24678388
-            :revenue 506231
-            :costs 1314587
-          }
-          {
-            :period "2016-05"
-            :cash 23802795
-            :revenue 365008
-            :costs 1240601
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Orin Oldin"
-        :user-id "345678"
-        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
-      }
-      :timestamp "2016-06-06T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 25486744
-            :revenue 497639
-            :costs 1128754
-          }
-          {
-            :period "2016-04"
-            :cash 24678388
-            :revenue 506231
-            :costs 1314587
-          }
-          {
-            :period "2016-05"
-            :cash 23802795
-            :revenue 365008
-            :costs 1240601
-          }
-          {
-            :period "2016-06"
-            :cash 23073720
-            :revenue 656221
-            :costs 1385296
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Orin Oldin"
-        :user-id "345678"
-        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
-      }
-      :timestamp "2016-07-09T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline "Revenue is up and to the right."
-        :body "<p>Stay thirsty my friends.</p>"
-        :data [
-          {
-            :period "2016-03"
-            :cash 25486744
-            :revenue 497639
-            :costs 1128754
-          }
-          {
-            :period "2016-04"
-            :cash 24678388
-            :revenue 506231
-            :costs 1314587
-          }
-          {
-            :period "2016-05"
-            :cash 23802795
-            :revenue 365008
-            :costs 1240601
-          }
-          {
-            :period "2016-06"
-            :cash 23073720
-            :revenue 656221
-            :costs 1385296
-          }
-          {
-            :period "2016-07"
-            :cash 22404967
-            :revenue 710095
-            :costs 1378848
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Orin Oldin"
-        :user-id "345678"
-        :image "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G"
-      }
-      :timestamp "2016-08-08T12:59:28.000Z"
-    }
-  ]
-  :stakeholder-updates []
-}
+{:company
+   {:created-at "2016-12-28T13:23:52.220Z",
+    :currency "USD",
+    :finances
+      {:author
+         [{:image
+             "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G",
+           :name "Orin Oldin",
+           :updated-at "2016-08-08T12:59:28.000Z",
+           :user-id "345678"}],
+       :body "<p>Stay thirsty my friends.</p>",
+       :body-placeholder
+         "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+       :created-at "2016-08-08T12:59:28.000Z",
+       :data
+         [{:cash 25486744, :costs 1128754, :period "2016-03", :revenue 497639}
+          {:cash 24678388, :costs 1314587, :period "2016-04", :revenue 506231}
+          {:cash 23802795, :costs 1240601, :period "2016-05", :revenue 365008}
+          {:cash 23073720, :costs 1385296, :period "2016-06", :revenue 656221}
+          {:cash 22404967, :costs 1378848, :period "2016-07", :revenue 710095}],
+       :description "Cash on hand, burn and runway",
+       :headline "Revenue is up and to the right.",
+       :title "Finances",
+       :updated-at "2016-08-08T12:59:28.000Z"},
+    :logo "https://open-company-assets.s3.amazonaws.com/ent-inc.png",
+    :logo-height 67,
+    :logo-width 245,
+    :name "Enterprise Inc.",
+    :org-id "slack-T06SBMH60",
+    :promoted false,
+    :public false,
+    :sections ["finances"],
+    :slug "ent-inc",
+    :stakeholder-update {:sections ["finances"], :title ""},
+    :updated-at "2016-12-28T13:23:52.605Z",
+    :uuid "bfea6d34-3864-4e53-ba25-50329facbc38"},
+ :sections
+   [{:author
+       [{:image
+           "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G",
+         :name "Orin Oldin",
+         :updated-at "2016-07-09T12:59:28.000Z",
+         :user-id "345678"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "ent-inc",
+     :created-at "2016-07-09T12:59:28.000Z",
+     :data
+       [{:cash 25486744, :costs 1128754, :period "2016-03", :revenue 497639}
+        {:cash 24678388, :costs 1314587, :period "2016-04", :revenue 506231}
+        {:cash 23802795, :costs 1240601, :period "2016-05", :revenue 365008}
+        {:cash 23073720, :costs 1385296, :period "2016-06", :revenue 656221}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "7d2e605c-1905-46e1-99c7-fceedad6dfc3",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-07-09T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G",
+         :name "Orin Oldin",
+         :updated-at "2016-06-06T12:59:28.000Z",
+         :user-id "345678"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "ent-inc",
+     :created-at "2016-06-06T12:59:28.000Z",
+     :data
+       [{:cash 25486744, :costs 1128754, :period "2016-03", :revenue 497639}
+        {:cash 24678388, :costs 1314587, :period "2016-04", :revenue 506231}
+        {:cash 23802795, :costs 1240601, :period "2016-05", :revenue 365008}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "58d9b167-6bbc-42fb-afb3-2cc77a5c892c",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-06-06T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G",
+         :name "Orin Oldin",
+         :updated-at "2016-04-13T12:59:28.000Z",
+         :user-id "345678"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "ent-inc",
+     :created-at "2016-04-13T12:59:28.000Z",
+     :data
+       [{:cash 25486744, :costs 1128754, :period "2016-03", :revenue 497639}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "e0a93eab-409d-4326-92c6-a55599440c57",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-04-13T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G",
+         :name "Orin Oldin",
+         :updated-at "2016-08-08T12:59:28.000Z",
+         :user-id "345678"}],
+     :body "<p>Stay thirsty my friends.</p>",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "ent-inc",
+     :created-at "2016-08-08T12:59:28.000Z",
+     :data
+       [{:cash 25486744, :costs 1128754, :period "2016-03", :revenue 497639}
+        {:cash 24678388, :costs 1314587, :period "2016-04", :revenue 506231}
+        {:cash 23802795, :costs 1240601, :period "2016-05", :revenue 365008}
+        {:cash 23073720, :costs 1385296, :period "2016-06", :revenue 656221}
+        {:cash 22404967, :costs 1378848, :period "2016-07", :revenue 710095}],
+     :description "Cash on hand, burn and runway",
+     :headline "Revenue is up and to the right.",
+     :id "a7f5284b-fe03-4a30-afa3-6f549ed20b37",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-08-08T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://0.gravatar.com/avatar/c4a85c55f8cbe37706c309b77855a951?s=32&d=&r=G",
+         :name "Orin Oldin",
+         :updated-at "2016-05-04T12:59:28.000Z",
+         :user-id "345678"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "ent-inc",
+     :created-at "2016-05-04T12:59:28.000Z",
+     :data
+       [{:cash 25486744, :costs 1128754, :period "2016-03", :revenue 497639}
+        {:cash 24678388, :costs 1314587, :period "2016-04", :revenue 506231}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "cc1ed66f-4746-485d-a9bc-990c33fe8a05",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-05-04T12:59:28.000Z"}],
+ :updates []}

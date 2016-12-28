@@ -1,201 +1,137 @@
-;; Sample finances data, a made up typical young startup that's pre-revenue
-{
-  :company {
-    :slug "new"
-    :public false
-    :promoted false
-    :name "New.ly"
-    :logo "https://open-company-assets.s3.amazonaws.com/new.png"
-    :logo-width 264
-    :logo-height 254
-    :org-id "slack-T06SBMH60"
-    :currency "USD"
-    :timestamp "2015-05-01T12:59:28.000Z"
-    :author {
-      :name "Nick Newsome"
-      :user-id "234567"
-      :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
-    }
-    :sections ["finances"]
-    :stakeholder-update {
-      :title ""
-      :sections ["finances"]
-    }
-  }
-  :sections [
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 250000
-            :revenue 0
-            :costs 4857
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Nick Newsome"
-        :user-id "234567"
-        :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
-      }
-      :timestamp "2015-04-13T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 245143
-            :revenue 0
-            :costs 4857
-          }
-          {
-            :period "2016-04"
-            :cash 238970
-            :revenue 0
-            :costs 6173
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Nick Newsome"
-        :user-id "234567"
-        :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
-      }
-      :timestamp "2016-05-04T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 245143
-            :revenue 0
-            :costs 4857
-          }
-          {
-            :period "2016-04"
-            :cash 238970
-            :revenue 0
-            :costs 6173
-          }
-          {
-            :period "2016-05"
-            :cash 232671
-            :revenue 0
-            :costs 6299
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Nick Newsome"
-        :user-id "234567"
-        :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
-      }
-      :timestamp "2016-06-06T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :data [
-          {
-            :period "2016-03"
-            :cash 245143
-            :revenue 0
-            :costs 4857
-          }
-          {
-            :period "2016-04"
-            :cash 238970
-            :revenue 0
-            :costs 6173
-          }
-          {
-            :period "2016-05"
-            :cash 232671
-            :revenue 0
-            :costs 6299
-          }
-          {
-            :period "2016-06"
-            :cash 221087
-            :revenue 0
-            :costs 11584
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Nick Newsome"
-        :user-id "234567"
-        :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
-      }
-      :timestamp "2016-07-09T12:59:28.000Z"
-    }
-
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body ""
-        :data [
-          {
-            :period "2016-03"
-            :cash 245143
-            :revenue 0
-            :costs 4857
-          }
-          {
-            :period "2016-04"
-            :cash 238970
-            :revenue 0
-            :costs 6173
-          }
-          {
-            :period "2016-05"
-            :cash 232671
-            :revenue 0
-            :costs 6299
-          }
-          {
-            :period "2016-06"
-            :cash 221087
-            :revenue 0
-            :costs 11584
-          }
-          {
-            :period "2016-07"
-            :cash 208899
-            :revenue 0
-            :costs 12188
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Nick Newsome"
-        :user-id "234567"
-        :image "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G"
-      }
-      :timestamp "2016-08-08T12:59:28.000Z"
-    }
-  ]
-  :stakeholder-updates []
-}
+{:company
+   {:created-at "2016-12-28T13:23:53.471Z",
+    :currency "USD",
+    :finances
+      {:author
+         [{:image
+             "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G",
+           :name "Nick Newsome",
+           :updated-at "2016-08-08T12:59:28.000Z",
+           :user-id "234567"}],
+       :body "",
+       :body-placeholder
+         "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+       :created-at "2016-08-08T12:59:28.000Z",
+       :data [{:cash 245143, :costs 4857, :period "2016-03", :revenue 0}
+              {:cash 238970, :costs 6173, :period "2016-04", :revenue 0}
+              {:cash 232671, :costs 6299, :period "2016-05", :revenue 0}
+              {:cash 221087, :costs 11584, :period "2016-06", :revenue 0}
+              {:cash 208899, :costs 12188, :period "2016-07", :revenue 0}],
+       :description "Cash on hand, burn and runway",
+       :headline "",
+       :title "Finances",
+       :updated-at "2016-08-08T12:59:28.000Z"},
+    :logo "https://open-company-assets.s3.amazonaws.com/new.png",
+    :logo-height 254,
+    :logo-width 264,
+    :name "New.ly",
+    :org-id "slack-T06SBMH60",
+    :promoted false,
+    :public false,
+    :sections ["finances"],
+    :slug "new",
+    :stakeholder-update {:sections ["finances"], :title ""},
+    :updated-at "2016-12-28T13:23:53.847Z",
+    :uuid "8d054c11-f780-44f5-99e1-2269fe00a8d5"},
+ :sections
+   [{:author
+       [{:image
+           "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G",
+         :name "Nick Newsome",
+         :updated-at "2016-05-04T12:59:28.000Z",
+         :user-id "234567"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "new",
+     :created-at "2016-05-04T12:59:28.000Z",
+     :data [{:cash 245143, :costs 4857, :period "2016-03", :revenue 0}
+            {:cash 238970, :costs 6173, :period "2016-04", :revenue 0}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "2f0fe92b-43ce-412f-8b3e-14378eceac72",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-05-04T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G",
+         :name "Nick Newsome",
+         :updated-at "2016-08-08T12:59:28.000Z",
+         :user-id "234567"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "new",
+     :created-at "2016-08-08T12:59:28.000Z",
+     :data [{:cash 245143, :costs 4857, :period "2016-03", :revenue 0}
+            {:cash 238970, :costs 6173, :period "2016-04", :revenue 0}
+            {:cash 232671, :costs 6299, :period "2016-05", :revenue 0}
+            {:cash 221087, :costs 11584, :period "2016-06", :revenue 0}
+            {:cash 208899, :costs 12188, :period "2016-07", :revenue 0}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "29e9cf84-69a6-41b6-b74b-b99b1159b8ec",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-08-08T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G",
+         :name "Nick Newsome",
+         :updated-at "2016-07-09T12:59:28.000Z",
+         :user-id "234567"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "new",
+     :created-at "2016-07-09T12:59:28.000Z",
+     :data [{:cash 245143, :costs 4857, :period "2016-03", :revenue 0}
+            {:cash 238970, :costs 6173, :period "2016-04", :revenue 0}
+            {:cash 232671, :costs 6299, :period "2016-05", :revenue 0}
+            {:cash 221087, :costs 11584, :period "2016-06", :revenue 0}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "b2aec4b9-27a1-4d39-82e8-4a49d69a2f45",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-07-09T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G",
+         :name "Nick Newsome",
+         :updated-at "2015-04-13T12:59:28.000Z",
+         :user-id "234567"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "new",
+     :created-at "2015-04-13T12:59:28.000Z",
+     :data [{:cash 250000, :costs 4857, :period "2016-03", :revenue 0}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "f9e74ac1-96f2-4b84-a8d6-47a01ff4ec72",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2015-04-13T12:59:28.000Z"}
+    {:author
+       [{:image
+           "http://2.gravatar.com/avatar/22bd03ace6f176bfe0c593650bcf45d8?s=48&d=&r=G",
+         :name "Nick Newsome",
+         :updated-at "2016-06-06T12:59:28.000Z",
+         :user-id "234567"}],
+     :body "",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "new",
+     :created-at "2016-06-06T12:59:28.000Z",
+     :data [{:cash 245143, :costs 4857, :period "2016-03", :revenue 0}
+            {:cash 238970, :costs 6173, :period "2016-04", :revenue 0}
+            {:cash 232671, :costs 6299, :period "2016-05", :revenue 0}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "b32ce44a-600a-4a74-9708-e6e1918f95c8",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-06-06T12:59:28.000Z"}],
+ :updates []}

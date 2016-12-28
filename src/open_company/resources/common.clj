@@ -224,17 +224,19 @@
 
 (defn create-resource
   "Create a resource in the DB, returning the property map for the resource."
-  [conn table-name resource timestamp]
+  ([conn table-name resource timestamp] (create-resource conn table-name resource timestamp timestamp))
+
+  ([conn table-name resource created-at updated-at]
   (let [timed-resource (merge resource {
-          :created-at timestamp
-          :updated-at timestamp})
+          :created-at created-at
+          :updated-at updated-at})
         insert (with-timeout default-timeout
                  (-> (r/table table-name)
                      (r/insert timed-resource)
                      (r/run conn)))]
   (if (= 1 (:inserted insert))
     timed-resource
-    (throw (RuntimeException. (str "RethinkDB insert failure: " insert))))))
+    (throw (RuntimeException. (str "RethinkDB insert failure: " insert)))))))
 
 (defn read-resource
   "Given a table name and a primary key value, retrieve the resource from the database,

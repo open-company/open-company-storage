@@ -31,12 +31,13 @@
     [com.taoensso/timbre "4.8.0"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.4.1"] ; HTTP client https://github.com/dakrone/clj-http
-    [clj-time "0.12.2"] ; Date and time lib https://github.com/clj-time/clj-time
+    [clj-time "0.13.0"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
     [amazonica "0.3.80"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [zprint "0.2.10"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [open-company/lib "0.0.6-04c024d"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 

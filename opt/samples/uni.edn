@@ -1,69 +1,76 @@
-;; A made up startup that's very fond of Unicode
-{
-  :company {
-    :slug "uni"
-    :public false
-    :promoted false
-    :name "Ūnīcõdé.īõ"
-    :logo "https://open-company-assets.s3.amazonaws.com/unicode.png"
-    :logo-width 339
-    :logo-height 197
-    :org-id "slack-T06SBMH60"
-    :currency "USD"
-    :timestamp "2015-10-29T07:02:00.000Z"
-    :author {
-      :name "Ulster Ulrich"
-      :user-id "miner-49er"
-      :image "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png"
-    }
-    :sections ["update"]
-    :stakeholder-update {
-      :title ""
-      :sections ["update"]
-    }
-  }
-  :sections [
-
-    {
-      :section {
-        :title "Üpdåtę"
-        :headline "Wė’ré vérÿ fõnd ôf Ūnīcõdé"
-        :image-url nil
-        :image-height 0
-        :image-width 0
-        :body "
-        <p>“à-á-â-ã-ā-ă-ȧ-ä-ả-å-ǎ-ȁ-ą-ạ-ḁ-ẚ-ầ-ấ-ẫ-ẩ-ằ-ắ-ẵ-ẳ-ǡ-ǟ-ǻ-ậ-ặ”</p>
-        <p>γλώσσαthis-μουέδωσανis-ελληνικήalso-მივჰხვდეaმასჩემსაالزجاجوهذالايؤلمني.slug मैकाँचखासकताฉันกินกระจกได้לאמזיק</p>"
-      }
-      :section-name "update"
-      :author {
-        :name "Ulster Ulrich"
-        :user-id "miner-49er"
-        :image "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png"
-      }
-      :timestamp "2015-10-29T07:02:00.000Z"
-    }
-
-    {
-      :section {
-        :title "Üpdåtę"
-        :headline "Wė rèmâìn førēvėr fõnd ôf Ūnīcõdé and Em😆ji🌠 :) 🍿🦃."
-        :image-url "http://kunststube.net/encoding/img/unicode-table.png"
-        :image-height 492
-        :image-width 377
-        :body "
-        <p>“à-á-â-ã-ā-ă-ȧ-ä-ả-å-ǎ-ȁ-ą-ạ-ḁ-ẚ-ầ-ấ-ẫ-ẩ-ằ-ắ-ẵ-ẳ-ǡ-ǟ-ǻ-ậ-ặ”</p>
-        <p>γλώσσαthis-μουέδωσανis-ελληνικήalso-მივჰხვდეaმასჩემსაالزجاجوهذالايؤلمني.slug मैकाँचखासकताฉันกินกระจกได้לאמזיק</p>"
-      }
-      :section-name "update"
-      :author {
-        :name "Ulster Ulrich"
-        :user-id "miner-49er"
-        :image "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png"
-      }
-      :timestamp "2015-11-29T07:02:00.000Z"
-    }
-
-  ]
-  :stakeholder-updates []
-}
+{:company
+   {:created-at "2016-12-28T13:23:56.017Z",
+    :currency "USD",
+    :logo "https://open-company-assets.s3.amazonaws.com/unicode.png",
+    :logo-height 197,
+    :logo-width 339,
+    :name "Ūnīcõdé.īõ",
+    :org-id "slack-T06SBMH60",
+    :promoted false,
+    :public false,
+    :sections ["update"],
+    :slug "uni",
+    :stakeholder-update {:sections ["update"], :title ""},
+    :update
+      {:author
+         [{:image
+             "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png",
+           :name "Ulster Ulrich",
+           :updated-at "2015-11-29T07:02:00.000Z",
+           :user-id "miner-49er"}],
+       :body
+         "\n        <p>“à-á-â-ã-ā-ă-ȧ-ä-ả-å-ǎ-ȁ-ą-ạ-ḁ-ẚ-ầ-ấ-ẫ-ẩ-ằ-ắ-ẵ-ẳ-ǡ-ǟ-ǻ-ậ-ặ”</p>\n        <p>γλώσσαthis-μουέδωσανis-ελληνικήalso-მივჰხვდეaმასჩემსაالزجاجوهذالايؤلمني.slug मैकाँचखासकताฉันกินกระจกได้לאמזיק</p>",
+       :body-placeholder
+         "A quick take on what's happened since the last update.",
+       :created-at "2015-11-29T07:02:00.000Z",
+       :description "organization update",
+       :headline "Wė rèmâìn førēvėr fõnd ôf Ūnīcõdé and Em😆ji🌠 :) 🍿🦃.",
+       :image-height 492,
+       :image-url "http://kunststube.net/encoding/img/unicode-table.png",
+       :image-width 377,
+       :title "Üpdåtę",
+       :updated-at "2015-11-29T07:02:00.000Z"},
+    :updated-at "2016-12-28T13:23:56.188Z",
+    :uuid "8f770a9a-b855-4b8e-9e35-4745888888a9"},
+ :sections
+   [{:author
+       [{:image
+           "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png",
+         :name "Ulster Ulrich",
+         :updated-at "2015-11-29T07:02:00.000Z",
+         :user-id "miner-49er"}],
+     :body
+       "\n        <p>“à-á-â-ã-ā-ă-ȧ-ä-ả-å-ǎ-ȁ-ą-ạ-ḁ-ẚ-ầ-ấ-ẫ-ẩ-ằ-ắ-ẵ-ẳ-ǡ-ǟ-ǻ-ậ-ặ”</p>\n        <p>γλώσσαthis-μουέδωσανis-ελληνικήalso-მივჰხვდეaმასჩემსაالزجاجوهذالايؤلمني.slug मैकाँचखासकताฉันกินกระจกได้לאמזיק</p>",
+     :body-placeholder "A quick take on what's happened since the last update.",
+     :company-slug "uni",
+     :created-at "2015-11-29T07:02:00.000Z",
+     :description "organization update",
+     :headline "Wė rèmâìn førēvėr fõnd ôf Ūnīcõdé and Em😆ji🌠 :) 🍿🦃.",
+     :id "de9077b0-68ac-43a1-b676-dcd95a174c8e",
+     :image-height 492,
+     :image-url "http://kunststube.net/encoding/img/unicode-table.png",
+     :image-width 377,
+     :section-name "update",
+     :title "Üpdåtę",
+     :updated-at "2015-11-29T07:02:00.000Z"}
+    {:author
+       [{:image
+           "https://discourse-cdn.global.ssl.fastly.net/try/user_avatar/try.discourse.org/codinghorror/45/186_1.png",
+         :name "Ulster Ulrich",
+         :updated-at "2015-10-29T07:02:00.000Z",
+         :user-id "miner-49er"}],
+     :body
+       "\n        <p>“à-á-â-ã-ā-ă-ȧ-ä-ả-å-ǎ-ȁ-ą-ạ-ḁ-ẚ-ầ-ấ-ẫ-ẩ-ằ-ắ-ẵ-ẳ-ǡ-ǟ-ǻ-ậ-ặ”</p>\n        <p>γλώσσαthis-μουέδωσανis-ελληνικήalso-მივჰხვდეaმასჩემსაالزجاجوهذالايؤلمني.slug मैकाँचखासकताฉันกินกระจกได้לאמזיק</p>",
+     :body-placeholder "A quick take on what's happened since the last update.",
+     :company-slug "uni",
+     :created-at "2015-10-29T07:02:00.000Z",
+     :description "organization update",
+     :headline "Wė’ré vérÿ fõnd ôf Ūnīcõdé",
+     :id "3554dd26-670a-433e-b88f-d107c625acb6",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "update",
+     :title "Üpdåtę",
+     :updated-at "2015-10-29T07:02:00.000Z"}],
+ :updates []}

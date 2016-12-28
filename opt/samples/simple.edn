@@ -1,209 +1,169 @@
-;; Sample data, Bago's updates from https://open.bufferapp.com/
-{
-  :company {
-    :slug "simple"
-    :public false
-    :promoted false
-    :name "Simple"
-    :logo "https://open-company-assets.s3.amazonaws.com/simple.png"
-    :logo-width 146
-    :logo-height 174
-    :org-id "slack-T06SBMH60"
-    :currency "USD"
-    :timestamp "2015-07-13T12:59:28.000Z"
-    :author {
-      :name "Sean Johnson"
-      :user-id "123456"
-      :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
-    }
-    :sections ["growth" "finances"]
-    :stakeholder-update {
-      :title ""
-      :sections ["growth" "finances"]
-    }
-  }
-
-  :sections [
-        
-    {
-      :section {
-        :title "Finances"
-        :headline ""
-        :body "<p>We're simple! Simple is good...</p>"
-        :data [
-          {
-            :period "2016-01"
-            :cash 1200000
-            :revenue 0
-            :costs 100000
-          }
-          {
-            :period "2016-02"
-            :cash 1000000
-            :revenue 0
-            :costs 100000
-          }
-          {
-            :period "2016-03"
-            :cash 900000
-            :revenue 0
-            :costs 100000
-          }
-          {
-            :period "2016-04"
-            :cash 800000
-            :revenue 0
-            :costs 100000
-          }
-          {
-            :period "2016-05"
-            :cash 700000
-            :revenue 0
-            :costs 100000
-          }
-          {
-            :period "2016-06"
-            :cash 650000
-            :revenue 50000
-            :costs 100000
-          }
-          {
-            :period "2016-07"
-            :cash 550000
-            :revenue 0
-            :costs 100000
-          }
-        ]
-      }
-      :section-name "finances"
-      :author {
-        :name "Sean Johnson"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
-      }
-      :timestamp "2016-08-23T11:12:02.000Z"
-    }
-
-    {
-      :section {
-        :title "Key Metrics"
-        :headline ""
-        :body "<p>This is excitingly simple growth!</p>"
-        :metrics [
-          {
-            :slug "mau"
-            :name "Monthly active users"
-            :interval "monthly"
-            :unit "number"
-            :target "increase"
-          }
-          {
-            :slug "dau"
-            :name "Average daily active users"
-            :interval "weekly"
-            :unit "number"
-            :target "increase"
-          }
-          {
-            :slug "profit"
-            :name "Profit"
-            :interval "quarterly"
-            :unit "currency"
-            :target "increase"
-          }
-        ]
-
-        :data [
-          {
-            :period "2016-04"
-            :slug "mau"
-            :value 0
-          }
-          {
-            :period "2016-05"
-            :slug "mau"
-            :value 1000
-          }
-          {
-            :period "2016-06"
-            :slug "mau"
-            :value 2000
-          }
-          {
-            :period "2016-07"
-            :slug "mau"
-            :value 3000
-          }
-          {
-            :period "2016-08-08"
-            :slug "dau"
-            :value 700
-          }
-          {
-            :period "2016-08-01"
-            :slug "dau"
-            :value 600
-          }
-          {
-            :period "2016-07-25"
-            :slug "dau"
-            :value 500
-          }
-          {
-            :period "2016-07-18"
-            :slug "dau"
-            :value 400
-          }
-          {
-            :period "2016-07-11"
-            :slug "dau"
-            :value 300
-          }
-          {
-            :period "2016-07-04"
-            :slug "dau"
-            :value 200
-          }
-          {
-            :period "2016-06-27"
-            :slug "dau"
-            :value 100
-          }
-          {
-            :period "2016-06-20"
-            :slug "dau"
-            :value 0
-          }
-          {
-            :period "2016-07"
-            :slug "profit"
-            :value 10000
-          }
-          {
-            :period "2016-06"
-            :slug "profit"
-            :value 1000
-          }
-          {
-            :period "2016-05"
-            :slug "profit"
-            :value 100
-          }
-          {
-            :period "2016-04"
-            :slug "profit"
-            :value 0
-          }
-        ]
-      }
-      :section-name "growth"
-      :author {
-        :name "Sean Johnson"
-        :user-id "123456"
-        :image "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png"
-      }
-      :timestamp "2015-11-23T11:12:02.000Z"
-    }
-  ]
-  :stakeholder-updates []
-}
+{:company
+   {:created-at "2016-12-28T13:23:54.606Z",
+    :currency "USD",
+    :finances
+      {:author
+         [{:image
+             "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png",
+           :name "Sean Johnson",
+           :updated-at "2016-08-23T11:12:02.000Z",
+           :user-id "123456"}],
+       :body "<p>We're simple! Simple is good...</p>",
+       :body-placeholder
+         "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+       :created-at "2016-08-23T11:12:02.000Z",
+       :data [{:cash 1200000, :costs 100000, :period "2016-01", :revenue 0}
+              {:cash 1000000, :costs 100000, :period "2016-02", :revenue 0}
+              {:cash 900000, :costs 100000, :period "2016-03", :revenue 0}
+              {:cash 800000, :costs 100000, :period "2016-04", :revenue 0}
+              {:cash 700000, :costs 100000, :period "2016-05", :revenue 0}
+              {:cash 650000, :costs 100000, :period "2016-06", :revenue 50000}
+              {:cash 550000, :costs 100000, :period "2016-07", :revenue 0}],
+       :description "Cash on hand, burn and runway",
+       :headline "",
+       :title "Finances",
+       :updated-at "2016-08-23T11:12:02.000Z"},
+    :growth
+      {:author
+         [{:image
+             "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png",
+           :name "Sean Johnson",
+           :updated-at "2015-11-23T11:12:02.000Z",
+           :user-id "123456"}],
+       :body "<p>This is excitingly simple growth!</p>",
+       :body-placeholder
+         "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
+       :created-at "2015-11-23T11:12:02.000Z",
+       :data [{:period "2016-04", :slug "mau", :value 0}
+              {:period "2016-05", :slug "mau", :value 1000}
+              {:period "2016-06", :slug "mau", :value 2000}
+              {:period "2016-07", :slug "mau", :value 3000}
+              {:period "2016-08-08", :slug "dau", :value 700}
+              {:period "2016-08-01", :slug "dau", :value 600}
+              {:period "2016-07-25", :slug "dau", :value 500}
+              {:period "2016-07-18", :slug "dau", :value 400}
+              {:period "2016-07-11", :slug "dau", :value 300}
+              {:period "2016-07-04", :slug "dau", :value 200}
+              {:period "2016-06-27", :slug "dau", :value 100}
+              {:period "2016-06-20", :slug "dau", :value 0}
+              {:period "2016-07", :slug "profit", :value 10000}
+              {:period "2016-06", :slug "profit", :value 1000}
+              {:period "2016-05", :slug "profit", :value 100}
+              {:period "2016-04", :slug "profit", :value 0}],
+       :description "Key metrics and performance indicators",
+       :headline "",
+       :intervals ["weekly" "monthly" "quarterly"],
+       :metrics
+         [{:interval "monthly",
+           :name "Monthly active users",
+           :slug "mau",
+           :target "increase",
+           :unit "number"}
+          {:interval "weekly",
+           :name "Average daily active users",
+           :slug "dau",
+           :target "increase",
+           :unit "number"}
+          {:interval "quarterly",
+           :name "Profit",
+           :slug "profit",
+           :target "increase",
+           :unit "currency"}],
+       :prompt
+         "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
+       :title "Key Metrics",
+       :units [{:name "Currency", :unit "currency"}
+               {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
+       :updated-at "2015-11-23T11:12:02.000Z"},
+    :logo "https://open-company-assets.s3.amazonaws.com/simple.png",
+    :logo-height 174,
+    :logo-width 146,
+    :name "Simple",
+    :org-id "slack-T06SBMH60",
+    :promoted false,
+    :public false,
+    :sections ["growth" "finances"],
+    :slug "simple",
+    :stakeholder-update {:sections ["growth" "finances"], :title ""},
+    :updated-at "2016-12-28T13:23:54.791Z",
+    :uuid "d7e12234-742c-4c6a-8164-93e78958fc31"},
+ :sections
+   [{:author
+       [{:image
+           "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png",
+         :name "Sean Johnson",
+         :updated-at "2015-11-23T11:12:02.000Z",
+         :user-id "123456"}],
+     :body "<p>This is excitingly simple growth!</p>",
+     :body-placeholder
+       "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
+     :company-slug "simple",
+     :created-at "2015-11-23T11:12:02.000Z",
+     :data [{:period "2016-04", :slug "mau", :value 0}
+            {:period "2016-05", :slug "mau", :value 1000}
+            {:period "2016-06", :slug "mau", :value 2000}
+            {:period "2016-07", :slug "mau", :value 3000}
+            {:period "2016-08-08", :slug "dau", :value 700}
+            {:period "2016-08-01", :slug "dau", :value 600}
+            {:period "2016-07-25", :slug "dau", :value 500}
+            {:period "2016-07-18", :slug "dau", :value 400}
+            {:period "2016-07-11", :slug "dau", :value 300}
+            {:period "2016-07-04", :slug "dau", :value 200}
+            {:period "2016-06-27", :slug "dau", :value 100}
+            {:period "2016-06-20", :slug "dau", :value 0}
+            {:period "2016-07", :slug "profit", :value 10000}
+            {:period "2016-06", :slug "profit", :value 1000}
+            {:period "2016-05", :slug "profit", :value 100}
+            {:period "2016-04", :slug "profit", :value 0}],
+     :description "Key metrics and performance indicators",
+     :headline "",
+     :id "2a286aff-4dc0-4ecf-b6ba-2ac122a626a3",
+     :intervals ["weekly" "monthly" "quarterly"],
+     :metrics
+       [{:interval "monthly",
+         :name "Monthly active users",
+         :slug "mau",
+         :target "increase",
+         :unit "number"}
+        {:interval "weekly",
+         :name "Average daily active users",
+         :slug "dau",
+         :target "increase",
+         :unit "number"}
+        {:interval "quarterly",
+         :name "Profit",
+         :slug "profit",
+         :target "increase",
+         :unit "currency"}],
+     :prompt
+       "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
+     :section-name "growth",
+     :title "Key Metrics",
+     :units [{:name "Currency", :unit "currency"}
+             {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
+     :updated-at "2015-11-23T11:12:02.000Z"}
+    {:author
+       [{:image
+           "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png",
+         :name "Sean Johnson",
+         :updated-at "2016-08-23T11:12:02.000Z",
+         :user-id "123456"}],
+     :body "<p>We're simple! Simple is good...</p>",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "simple",
+     :created-at "2016-08-23T11:12:02.000Z",
+     :data [{:cash 1200000, :costs 100000, :period "2016-01", :revenue 0}
+            {:cash 1000000, :costs 100000, :period "2016-02", :revenue 0}
+            {:cash 900000, :costs 100000, :period "2016-03", :revenue 0}
+            {:cash 800000, :costs 100000, :period "2016-04", :revenue 0}
+            {:cash 700000, :costs 100000, :period "2016-05", :revenue 0}
+            {:cash 650000, :costs 100000, :period "2016-06", :revenue 50000}
+            {:cash 550000, :costs 100000, :period "2016-07", :revenue 0}],
+     :description "Cash on hand, burn and runway",
+     :headline "",
+     :id "58e42071-20ec-4a4c-a011-66bb8f88ea85",
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-08-23T11:12:02.000Z"}],
+ :updates []}
