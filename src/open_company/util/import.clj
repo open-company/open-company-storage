@@ -13,8 +13,6 @@
             [oc.lib.rethinkdb.pool :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
-            [open-company.resources.section :as section]
-            [open-company.resources.stakeholder-update :as su]
             [open-company.config :as c])
   (:gen-class))
 
