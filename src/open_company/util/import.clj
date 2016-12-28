@@ -54,7 +54,7 @@
 
 (defn usage [options-summary]
   (s/join \newline
-     ["This program imports OpenCompany data from EDN file(s)."
+     ["\nThis program imports OpenCompany data from EDN file(s)."
       ""
       "Usage:"
       "  lein run -m open-company.util.import -- [options] company-data.edn"
