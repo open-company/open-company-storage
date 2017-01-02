@@ -1,10 +1,10 @@
 (ns dev
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :as ctnrepl]
-            [open-company.config :as c]
-            [open-company.app :as app]
+            [oc.api.config :as c]
+            [oc.api.app :as app]
             [oc.lib.rethinkdb.pool :as pool]
-            [open-company.components :as components]))
+            [oc.api.components :as components]))
 
 (def system nil)
 (def conn nil)

@@ -1,4 +1,4 @@
-(ns open-company.app
+(ns oc.api.app
   "Namespace for the web application which serves the REST API."
   (:gen-class)
   (:require
@@ -12,12 +12,12 @@
     [ring.middleware.cors :refer (wrap-cors)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
-    [open-company.components :as components]
-    [open-company.config :as c]
-    [open-company.api.entry :as entry-api]
-    [open-company.api.companies :as comp-api]
-    [open-company.api.sections :as sect-api]
-    [open-company.api.stakeholder-updates :as su-api]))
+    [oc.api.components :as components]
+    [oc.api.config :as c]))
+    ; [open-company.api.entry :as entry-api]
+    ; [open-company.api.companies :as comp-api]
+    ; [open-company.api.sections :as sect-api]
+    ; [open-company.api.stakeholder-updates :as su-api]))
 
 ;; Send unhandled exceptions to Sentry
 ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
@@ -36,10 +36,11 @@
   (compojure/routes
     (GET "/---error-test---" req (/ 1 0))
     (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
-    (entry-api/entry-routes sys)
-    (comp-api/company-routes sys)
-    (sect-api/section-routes sys)
-    (su-api/stakeholder-update-routes sys)))
+    ; (entry-api/entry-routes sys)
+    ; (comp-api/company-routes sys)
+    ; (sect-api/section-routes sys)
+    ; (su-api/stakeholder-update-routes sys)
+    ))
 
 ;; ----- System Startup -----
 

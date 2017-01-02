@@ -1,0 +1,22 @@
+(ns oc.api.db.migrations.create-updates
+  (:require [rethinkdb.query :as r]
+            [oc.lib.rethinkdb.migrations :as m]
+            [oc.api.config :as c]
+            [oc.api.resources.update :as update]))
+
+(defn up [conn]
+  
+  (println "Creating table: " update/table-name)
+  (println (m/create-table conn c/db-name update/table-name update/primary-key))
+  (println (m/create-index conn update/table-name "slug"))
+  (println (m/create-index conn update/table-name "dashboard-uuid"))
+  (println (m/create-index conn update/table-name "org-uuid"))
+  (println (m/create-compound-index conn update/table-name "slug-dashboard-uuid"
+              (r/fn [row] [(r/get-field row "slug") (r/get-field row "dashboard-uuid")])))
+  (println (m/create-compound-index conn update/table-name "slug-org-uuid"
+              (r/fn [row] [(r/get-field row "slug") (r/get-field row "org-uuid")])))
+  (println (m/create-compound-index conn update/table-name "slug-dashboard-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "slug") (r/get-field row "dashboard-uuid") (r/get-field row "org-uuid")])))
+  (println (m/create-index conn update/table-name "to" {:multi true}))
+
+  true) ; return true on success

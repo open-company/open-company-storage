@@ -201,6 +201,7 @@ open http://localhost:8080/
 Next, you can try some things with Clojure by running the REPL from within this project:
 
 ```console
+lein migrate-db
 lein repl
 ```
 
@@ -210,59 +211,52 @@ Then enter these commands one-by-one, noting the output:
 ;; start the development system
 (go) ; NOTE: if you are already running the API externally to the REPL, use `(go 3737)` to change the port
 
-;; create db and tables and indexes
-(db/init)
-
-;; create some companies
+;; create some orgs
 
 (def author {
-  :user-id "slack:123456"
-  :name "coyote"
-  :real-name "Wile E. Coyote"
-  :avatar "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
+  :user-id "c133-43fe-8712"
+  :teams ["51ab-4c86-a474"]
+  :name "Wile E. Coyote"
+  :first-name "Wile"
+  :last-name "Coyote"
+  :avatar-url "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
   :email "wile.e.coyote@acme.com"
-  :owner false
-  :admin false
-  :org-id "slack:98765"
+  :auth-source "slack"
 })
 
-(company/create-company!
+(org/create-org!
   conn
-  (company/->company {:name "Blank.com"
-                      :slug "blank"
-                      :currency "GBP"}
-                    author))
+  (org/->org {:name "Blank"
+              :currency "GBP"}
+              author))
 
-(company/create-company!
+(org/create-org!
   conn
-  (company/->company {:name "OpenCompany"
-                      :slug "open"
-                      :logo "https://open-company-assets.s3.amazonaws.com/open-company.png"
-                      :currency "USD"
-                      :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]}}
-                    author))
+  (org/->org {:name "OpenCompany"
+              :slug "open"
+              :logo-url "https://open-company-assets.s3.amazonaws.com/open-company.png"
+              :logo-width 142
+              :logo-height 142
+              :currency "FKP"}
+              author))
 
-(company/create-company!
+(org/create-org!
   conn
-  (company/->company {:name "Buffer"
-                      :slug (slug/find-available-slug "Buffer" (company/taken-slugs conn))
-                      :currency "USD"
-                      :logo "https://open-company-assets.s3.amazonaws.com/buffer.png"
-                      :update {:title "Founder's Update"
-                               :headline "Buffer in October."
-                               :body "October was an unusual month for us, numbers-wise, as a result of us moving from 7-day to 30- day trials of Buffer for Business."}
-                      :finances {:body "Good stuff! Revenue is up."
-                                 :data [{:period "2015-08" :cash 1182329 :revenue 1215 :costs 28019}
-                                        {:period "2015-09" :cash 1209133 :revenue 977 :costs 27155}]}}
-                    author))
+  (org/->org {:name "Buffer"
+              :slug (slug/find-available-slug "Buffer" (org/taken-slugs conn))
+              :logo-url "https://open-company-assets.s3.amazonaws.com/buffer.png"
+              :logo-width 313
+              :logo-height 319
+              :currency "USD"}
+              author))
 
-;; list companies
-(company/list-companies conn)
+;; list orgs
+(org/list-orgs conn)
 
-;; get a company
-(aprint (company/get-company conn "blank"))
-(aprint (company/get-company conn "open"))
-(aprint (company/get-company conn "buffer"))
+;; get an org
+(aprint (org/get-org conn "blank"))
+(aprint (org/get-org conn "open"))
+(aprint (org/get-org conn "buffer"))
 
 ;; create a section
 (section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)

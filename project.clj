@@ -36,9 +36,9 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
-    [amazonica "0.3.80"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
-    [zprint "0.2.10"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [open-company/lib "0.0.7-cc3a427"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [amazonica "0.3.80"] ; A comprehensive Clojure client for the entire Amazon AWS API https://github.com/mcohen01/amazonica
+    [zprint "0.2.10"] ; Pretty-print Clojure and EDN https://github.com/kkinnear/zprint
+    [open-company/lib "0.0.9-f13f956"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -109,12 +109,12 @@
                  '[cheshire.core :as json]
                  '[ring.mock.request :refer (request body content-type header)]
                  ; '[open-company.lib.rest-api-mock :refer (api-request)]
-                 ; '[open-company.app :refer (app)]
-                 ; '[open-company.config :as c]
-                 ; '[open-company.db.init :as db]
-                 ; '[oc.lib.slugify :as slug]
-                 ; '[open-company.resources.common :as common]
-                 ; '[open-company.resources.company :as company]
+                 '[oc.lib.rethinkdb.common :as db-common]
+                 '[oc.lib.slugify :as slug]
+                 '[oc.api.app :refer (app)]
+                 '[oc.api.config :as c]
+                 '[oc.api.resources.common :as common]
+                 '[oc.api.resources.org :as org]
                  ; '[open-company.resources.section :as section]
                  ; '[open-company.resources.stakeholder-update :as su]
                  ; '[open-company.representations.company :as company-rep]

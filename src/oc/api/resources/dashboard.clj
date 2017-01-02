@@ -4,6 +4,6 @@
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/dashboard-table-name)
-(def primary-key :id)
+(def primary-key :uuid)
 
 ;r.db('open_company_dev').table('sections').getAll('green-labs', {index: 'company-slug'}).group('section-name').max('created-at')

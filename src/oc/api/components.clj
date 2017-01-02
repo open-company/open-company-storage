@@ -1,9 +1,9 @@
-(ns open-company.components
+(ns oc.api.components
   (:require [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre]
             [org.httpkit.server :as httpkit]
             [oc.lib.rethinkdb.pool :as pool]
-            [open-company.config :as c]))
+            [oc.api.config :as c]))
 
 (defrecord HttpKit [options handler server]
   component/Lifecycle

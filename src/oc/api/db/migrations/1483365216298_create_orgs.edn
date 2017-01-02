@@ -8,7 +8,8 @@
   
   (println "Creating table: " org/table-name)
   (println (m/create-table conn c/db-name org/table-name org/primary-key))
-  (println (m/create-index conn org/table-name "org-id"))
+  (println (m/create-index conn org/table-name "uuid"))
+  (println (m/create-index conn org/table-name "team-id"))
   (println (m/create-index conn org/table-name "admins" {:multi true}))
   
   true) ; return true on success
