@@ -1,4 +1,4 @@
-(ns open-company.config
+(ns oc.api.config
   "Namespace for the configuration parameters."
   (:require [clojure.walk :refer (keywordize-keys)]
             [environ.core :refer (env)]
@@ -19,8 +19,8 @@
 
 ;; ----- RethinkDB -----
 
-(defonce migrations-dir "./src/open_company/db/migrations")
-(defonce migration-template "./src/open_company/assets/migration.template.edn")
+(defonce migrations-dir "./src/oc/api/db/migrations")
+(defonce migration-template "./src/oc/api/assets/migration.template.edn")
 
 (defonce db-host (or (env :db-host) "localhost"))
 (defonce db-port (or (env :db-port) 28015))

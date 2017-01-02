@@ -38,7 +38,7 @@
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
     [amazonica "0.3.80"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
     [zprint "0.2.10"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [open-company/lib "0.0.6-04c024d"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.0.7-cc3a427"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -108,18 +108,19 @@
                  '[schema.core :as schema]
                  '[cheshire.core :as json]
                  '[ring.mock.request :refer (request body content-type header)]
-                 '[open-company.lib.rest-api-mock :refer (api-request)]
-                 '[open-company.app :refer (app)]
-                 '[open-company.config :as c]
-                 '[open-company.db.init :as db]
-                 '[oc.lib.slugify :as slug]
-                 '[open-company.resources.common :as common]
-                 '[open-company.resources.company :as company]
-                 '[open-company.resources.section :as section]
-                 '[open-company.resources.stakeholder-update :as su]
-                 '[open-company.representations.company :as company-rep]
-                 '[open-company.representations.section :as section-rep]
-                 '[open-company.representations.stakeholder-update :as su-rep])
+                 ; '[open-company.lib.rest-api-mock :refer (api-request)]
+                 ; '[open-company.app :refer (app)]
+                 ; '[open-company.config :as c]
+                 ; '[open-company.db.init :as db]
+                 ; '[oc.lib.slugify :as slug]
+                 ; '[open-company.resources.common :as common]
+                 ; '[open-company.resources.company :as company]
+                 ; '[open-company.resources.section :as section]
+                 ; '[open-company.resources.stakeholder-update :as su]
+                 ; '[open-company.representations.company :as company-rep]
+                 ; '[open-company.representations.section :as section-rep]
+                 ; '[open-company.representations.stakeholder-update :as su-rep]
+                 )
       ]
     }]
 
@@ -137,20 +138,19 @@
   :repl-options {
     :welcome (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
                       "OpenCompany API REPL\n"
-                      "Database: " open-company.config/db-name "\n"
+                      "Database: " oc.api.config/db-name "\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
     :init-ns dev
   }
 
   :aliases {
     "build" ["do" "clean," "deps," "compile"] ; clean and build code
-    "init-db" ["run" "-m" "open-company.db.init"] ; create RethinkDB tables and indexes
-    "create-migration" ["run" "-m" "open-company.db.migrations" "create"] ; create a data migration
-    "migrate-db" ["run" "-m" "open-company.db.migrations" "migrate"] ; run pending data migrations
-    "start" ["do" "init-db," "run"] ; start a development server
-    "start!" ["with-profile" "prod" "do" "build," "init-db," "run"] ; start a server in production
-    "autotest" ["with-profile" "qa" "do" "init-db," "midje" ":autotest"] ; watch for code changes and run affected tests
-    "test!" ["with-profile" "qa" "do" "clean," "build," "init-db," "midje"] ; build, init the DB and run all tests
+    "create-migration" ["run" "-m" "oc.api.db.migrations" "create"] ; create a data migration
+    "migrate-db" ["run" "-m" "oc.api.db.migrations" "migrate"] ; run pending data migrations
+    "start" ["do" "migrate-db," "run"] ; start a development server
+    "start!" ["with-profile" "prod" "do" "start"] ; start a server in production
+    "autotest" ["with-profile" "qa" "do" "migrate-db," "midje" ":autotest"] ; watch for code changes and run affected tests
+    "test!" ["with-profile" "qa" "do" "clean," "build," "migrate-db," "midje"] ; build, init the DB and run all tests
     "repl" ["with-profile" "+repl-config" "repl"]
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
@@ -175,9 +175,9 @@
   ;; ----- API -----
 
   :ring {
-    :handler open-company.app/app
+    :handler oc.api.app/app
     :reload-paths ["src"] ; work around issue https://github.com/weavejester/lein-ring/issues/68
   }
 
-  :main open-company.app
+  :main oc.api.app
 )

@@ -1,0 +1,17 @@
+(ns oc.api.db.migrations.create-dashboards
+  (:require [rethinkdb.query :as r]
+            [oc.lib.rethinkdb.migrations :as m]
+            [oc.api.config :as c]
+            [oc.api.resources.dashboard :as dash]))
+
+(defn up [conn]
+  
+  (println "Creating table: " dash/table-name)
+  (println (m/create-table conn c/db-name dash/table-name dash/primary-key))
+  (println (m/create-index conn dash/table-name "slug"))
+  (println (m/create-index conn dash/table-name "company-slug"))
+  (println (m/create-index conn dash/table-name "authors" {:multi true}))
+  (println (m/create-index conn dash/table-name "viewers" {:multi true}))
+  (println (m/create-index conn dash/table-name "sections" {:multi true}))
+
+  true) ; return true on success

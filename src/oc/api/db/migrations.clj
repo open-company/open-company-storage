@@ -1,6 +1,6 @@
-(ns open-company.db.migrations
+(ns oc.api.db.migrations
   "Lein main to migrate RethinkDB data."
-  (:require [open-company.config :as c]
+  (:require [oc.api.config :as c]
             [oc.lib.rethinkdb.migrations :as m])
   (:gen-class))
 
