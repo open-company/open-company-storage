@@ -12,6 +12,6 @@
   (println (m/create-index conn dash/table-name "company-slug"))
   (println (m/create-index conn dash/table-name "authors" {:multi true}))
   (println (m/create-index conn dash/table-name "viewers" {:multi true}))
-  (println (m/create-index conn dash/table-name "sections" {:multi true}))
+  (println (m/create-index conn dash/table-name "topics" {:multi true}))
 
   true) ; return true on success

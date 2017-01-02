@@ -58,10 +58,7 @@
 
 ;; ----- OpenCompany -----
 
-;; how long to wait before a sequential edit by the same author is considered a new version
-(defonce collapse-edit-time (or (env :open-company-collapse-edit-time) (* 24 60))) ; 24 hours in minutes
-
-(defonce sections (-> "open_company/assets/sections.edn"
+(defonce topics (-> "oc/api/assets/topics.edn"
                     clojure.java.io/resource
                     slurp
                     read-string

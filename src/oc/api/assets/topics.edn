@@ -1,6 +1,6 @@
 {
 
-  :sections ["update" "mission" "values" "highlights" "growth" "challenges" "takeaways" "team" "diversity" "product" "press" "customers" "sales" "marketing" "competition" "help" "kudos" "finances" "fundraising"]
+  :topics ["update" "mission" "values" "highlights" "growth" "challenges" "takeaways" "team" "diversity" "product" "press" "customers" "sales" "marketing" "competition" "help" "kudos" "finances" "fundraising"]
   
   :categories [
     {
@@ -32,7 +32,7 @@
   :templates [
 
     {   
-      :section-name "custom-{4-char-UUID}"
+      :slug "custom-{4-char-UUID}"
       :title ""   
       :description "Custom topic"   
       :headline ""    
@@ -44,7 +44,7 @@
     }
 
     {
-      :section-name "mission"
+      :slug "mission"
       :title "Mission"
       :description "Why the organization exists"
       :headline ""
@@ -56,7 +56,7 @@
     }
 
     {
-      :section-name "values"
+      :slug "values"
       :title "Values"
       :description "Core values the organization lives by"
       :headline ""
@@ -68,7 +68,7 @@
     }
 
     {
-      :section-name "diversity"
+      :slug "diversity"
       :title "Diversity"
       :description "Diversity goals and makeup"
       :headline ""
@@ -80,7 +80,7 @@
     }
 
     {
-      :section-name "competition"
+      :slug "competition"
       :title "Competition"
       :description "Key competitors and competitive threats"
       :headline ""
@@ -92,7 +92,7 @@
     }
 
     {
-      :section-name "update"
+      :slug "update"
       :title "CEO Update"
       :description "organization update"
       :headline ""
@@ -104,7 +104,7 @@
     }
 
     {
-      :section-name "highlights"
+      :slug "highlights"
       :title "Highlights"
       :description "Milestones and accomplishments"
       :headline ""
@@ -116,7 +116,7 @@
     }
 
     {
-      :section-name "growth"
+      :slug "growth"
       :title "Key Metrics"
       :description "Key metrics and performance indicators"
       :headline ""
@@ -147,7 +147,7 @@
     }
 
     {
-      :section-name "challenges"
+      :slug "challenges"
       :title "Key Challenges"
       :description "Challenges facing the organization"
       :headline ""
@@ -159,7 +159,7 @@
     }
 
    {
-      :section-name "takeaways"
+      :slug "takeaways"
       :title "Lessons Learned"
       :description "What we've learned"
       :headline ""
@@ -171,7 +171,7 @@
     }
 
     {
-      :section-name "team"
+      :slug "team"
       :title "Team and Hiring"
       :description "Team and hiring update"
       :headline ""
@@ -183,7 +183,7 @@
     }
 
     {
-      :section-name "product"
+      :slug "product"
       :title "Products"
       :description "Product release and roadmap update"
       :headline ""
@@ -195,7 +195,7 @@
     }
 
     {
-      :section-name "customers"
+      :slug "customers"
       :title "Customers"
       :description "Customer update"
       :headline ""
@@ -207,7 +207,7 @@
     }
 
     {
-      :section-name "marketing"
+      :slug "marketing"
       :title "Marketing"
       :description "Notable marketing activities and results"
       :headline ""
@@ -219,7 +219,7 @@
     }
 
     {
-      :section-name "press"    
+      :slug "press"    
       :title "Press"   
       :description "Press mentions and PR activities"    
       :headline ""   
@@ -231,7 +231,7 @@
     }
 
     {
-      :section-name "sales"
+      :slug "sales"
       :title "Sales"
       :description "Notable sales activity and wins and losses"
       :headline ""
@@ -243,7 +243,7 @@
     }
 
     {
-      :section-name "help"
+      :slug "help"
       :title "How You Can Help"
       :description "Ask your stakeholders for help and ideas"
       :headline ""
@@ -255,7 +255,7 @@
     }
 
     {
-      :section-name "kudos"
+      :slug "kudos"
       :title "Kudos"
       :description "Celebrate great actions that helped the organization"
       :headline ""
@@ -267,7 +267,7 @@
     }
 
     {
-      :section-name "finances"
+      :slug "finances"
       :title "Cash Flow"
       :description "Cash on hand, burn and runway"
       :headline ""
@@ -277,7 +277,7 @@
     }
 
     {
-      :section-name "fundraising"
+      :slug "fundraising"
       :title "Fundraising"
       :description "Updates on the fundraising process"
       :headline ""
