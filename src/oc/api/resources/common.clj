@@ -36,7 +36,7 @@
 (defn topic-name? [topic-name]
   (or (topic-names (keyword topic-name)) (re-matches custom-topic-name (name topic-name))))
 
-;; ----- Data Schemas -----
+;; ----- Persistent Data Schemas -----
 
 (def NonBlankString (schema/pred #(and (string? %) (not (s/blank? %)))))
 
@@ -134,6 +134,17 @@
   (schema/optional-key :note) schema/Str
   :created-at ISO8601
   :updated-at ISO8601})
+
+;; ----- Non-persistent Data Schemas -----
+
+;; The portion of JWT properties that we care about for authorship
+(def User {
+    :user-id UniqueID
+    :name NonBlankString
+    :teams [UniqueID]
+    :avatar-url (schema/maybe schema/Str)
+    schema/Keyword schema/Any ; and whatever else is in the JWT map
+  })
 
 ;; ----- Utility functions -----
 

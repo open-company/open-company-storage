@@ -224,24 +224,20 @@ Then enter these commands one-by-one, noting the output:
   :auth-source "slack"
 })
 
-(org/create-org!
-  conn
+(org/create-org! conn
   (org/->org {:name "Blank"
               :currency "GBP"}
               author))
 
-(org/create-org!
-  conn
-  (org/->org {:name "OpenCompany"
-              :slug "open"
-              :logo-url "https://open-company-assets.s3.amazonaws.com/open-company.png"
-              :logo-width 142
-              :logo-height 142
-              :currency "FKP"}
-              author))
+(org/put-org! conn "open" {
+    :name "OpenCompany"
+    :logo-url "https://open-company-assets.s3.amazonaws.com/open-company.png"
+    :logo-width 142
+    :logo-height 142
+    :currency "FKP"}
+    author)
 
-(org/create-org!
-  conn
+(org/create-org! conn
   (org/->org {:name "Buffer"
               :slug (slug/find-available-slug "Buffer" (org/taken-slugs conn))
               :logo-url "https://open-company-assets.s3.amazonaws.com/buffer.png"
@@ -258,7 +254,20 @@ Then enter these commands one-by-one, noting the output:
 (aprint (org/get-org conn "open"))
 (aprint (org/get-org conn "buffer"))
 
-;; create a section
+;; update an org
+(org/update-org! conn "blank" {:name "Blank.com"})
+
+;; get a dashboard
+(aprint (dash/get-dashboard conn "blank" "default"))
+
+;; create a dashboard
+(dash/create-dashboard! conn "blank"
+  (dash/->dashboard {:name "Sales"}))
+
+(dash/create-dashboard! conn "open"
+  (dash/->dashboard {:name "Engineering" :topics [:product :team]}))
+
+;; create an entry
 (section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
 
 ;; add additional entries to the section
