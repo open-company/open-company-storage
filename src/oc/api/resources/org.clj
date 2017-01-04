@@ -15,7 +15,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:uuid :slug :team-id :admins})
+  #{:team-id :admins})
 
 ;; ----- Utility functions -----
 
@@ -38,13 +38,13 @@
 
 (declare list-orgs)
 (defn taken-slugs
-  "Return all slugs which are in use as a set."
+  "Return all org slugs which are in use as a set."
   [conn]
   {:pre [(db-common/conn? conn)]}
   (into reserved-slugs (map :slug (list-orgs conn))))
 
 (defn slug-available?
-  "Return true if the slug is not used by any org in the database."
+  "Return true if the slug is not used by any org in the system."
   [conn slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
@@ -58,8 +58,8 @@
   (->org (or (:slug org-props) (slug/slugify (:name org-props))) org-props user))
 
   ([slug org-props user :- common/User]
-  {:pre [(map? org-props)
-         (slug/valid-slug? slug)]}
+  {:pre [(slug/valid-slug? slug)
+         (map? org-props)]}
   (let [ts (db-common/current-timestamp)]
     (-> org-props
         keywordize-keys
@@ -74,17 +74,23 @@
         (assoc :updated-at ts)))))
 
 (schema/defn ^:always-validate create-org!
-  "Create an org document in RethinkDB. Throws a runtime exception if org doesn't conform to the common/Org schema."
+  "Create an org in the system. Throws a runtime exception if org doesn't conform to the common/Org schema."
   [conn org :- common/Org]
   {:pre [(db-common/conn? conn)]}
   (db-common/create-resource conn table-name org (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
-  "Given the slug of the org, retrieve it from the database, or return nil if it doesn't exist."
+  "Given the slug of the org, return the org, or return nil if it doesn't exist."
   [conn slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
   (db-common/read-resource conn table-name slug))
+
+(schema/defn ^:always-validate uuid-for :- (schema/maybe common/UniqueID)
+  [conn slug]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (:uuid (get-org conn slug)))
 
 (schema/defn ^:always-validate update-org! :- common/Org
   "
@@ -117,10 +123,10 @@
          (map? org)]}
   (if (get-org conn slug)
     (update-org! conn slug org)
-    (create-org! conn (->org org user))))
+    (create-org! conn (->org slug org user))))
 
 (defn delete-org!
-  "Given the slug of the org, delete it and all its updates, entries, and dashboards and return `true` on success."
+  "Given the slug of the org, delete it and all its dashboards, entries, and updates and return `true` on success."
   [conn slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
@@ -149,7 +155,8 @@
 (defn list-orgs
   "
   Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
-  Note: if additional-keys are supplied, they will be included in the map, and only orgs
+  
+  NOTE: if additional-keys are supplied, they will be included in the map, and only orgs
   containing those keys will be returned.
   "
   ([conn] (list-orgs conn []))
@@ -163,7 +170,7 @@
     (sort-by primary-key)
     vec)))
 
-(defn list-orgs-by-index
+(defn get-orgs-by-index
   "
   Given the name of a secondary index and a value, retrieve all matching orgs.
 

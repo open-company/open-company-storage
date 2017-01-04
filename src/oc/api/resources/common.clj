@@ -20,7 +20,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:created-at :updated-at :author :links :revisions})
+  #{:uuid :created-at :updated-at :author :links})
 
 ;; ----- Topic definitions -----
 
@@ -88,9 +88,10 @@
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Dashboard {
+  :uuid UniqueID
   :slug Slug
   :name NonBlankString
-  :company-slug Slug
+  :org-uuid UniqueID
   :access AccessLevel
   :promoted schema/Bool
   :authors [NonBlankString]

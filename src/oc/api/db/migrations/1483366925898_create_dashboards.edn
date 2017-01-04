@@ -10,6 +10,8 @@
   (println (m/create-table conn c/db-name dash/table-name dash/primary-key))
   (println (m/create-index conn dash/table-name "slug"))
   (println (m/create-index conn dash/table-name "org-uuid"))
+  (println (m/create-compound-index conn dash/table-name "slug-org-uuid"
+              (r/fn [row] [(r/get-field row "slug") (r/get-field row "org-uuid")])))
   (println (m/create-compound-index conn dash/table-name "access-promoted"
               (r/fn [row] [(r/get-field row "access") (r/get-field row "promoted")])))
   (println (m/create-index conn dash/table-name "authors" {:multi true}))

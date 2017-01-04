@@ -258,14 +258,18 @@ Then enter these commands one-by-one, noting the output:
 (org/update-org! conn "blank" {:name "Blank.com"})
 
 ;; get a dashboard
-(aprint (dash/get-dashboard conn "blank" "default"))
+(aprint (dash/get-dashboard conn (org/uuid-for conn "blank") "default"))
 
 ;; create a dashboard
-(dash/create-dashboard! conn "blank"
-  (dash/->dashboard {:name "Sales"}))
+(dash/create-dashboard! conn
+  (dash/->dashboard (org/uuid-for conn "blank") {:name "Sales"} author))
 
-(dash/create-dashboard! conn "open"
-  (dash/->dashboard {:name "Engineering" :topics [:product :team]}))
+(dash/create-dashboard! conn
+  (dash/->dashboard (org/uuid-for conn "open") {:name "Engineering" :topics [:product :team]} author))
+
+;; list dashboards
+(dash/list-dashboards conn (org/uuid-for conn "blank"))
+(dash/list-dashboards conn (org/uuid-for conn "open"))
 
 ;; create an entry
 (section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
