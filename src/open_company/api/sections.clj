@@ -44,6 +44,9 @@
 (defn- patch-revision [conn company-slug section-name as-of revision author]
   {:updated-section (section-res/patch-revision conn company-slug section-name as-of revision author)})
 
+(defn- delete-revision [conn company-slug section-name as-of author]
+  {:updated-section (section-res/delete-revision conn company-slug section-name as-of author)})
+
 (defn- get-revision-list [conn company-slug section-name]
   (if-let [section (section-res/get-section conn company-slug section-name)]
     {:revisions (section-res/get-revisions conn company-slug section-name)}))
@@ -53,13 +56,13 @@
 (defresource section [conn company-slug section-name as-of]
   common/open-company-anonymous-resource  ; verify validity of JWToken if it's provided, but it's not required
 
-  :allowed-methods [:options :get :put :patch]
+  :allowed-methods [:options :get :put :patch :delete]
   :available-media-types [section-rep/media-type]
   :exists? (by-method {
                        :get (fn [_] (get-section conn company-slug section-name as-of))
                        :put (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))
                        :patch (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))
-                       :delete (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))})
+                       :delete (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))})
 
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
 
@@ -70,7 +73,7 @@
                         :put (fn [ctx] (common/allow-org-members conn company-slug ctx))
                         :patch (fn [ctx] (common/allow-org-members conn company-slug ctx))
                         :post false
-                        :delete false})
+                        :delete (fn [ctx] (common/allow-org-members conn company-slug ctx))})
 
   :can-put-to-missing? true
   
@@ -79,14 +82,16 @@
                             :options true
                             :get true
                             :put true
-                            :patch true})
+                            :patch true
+                            :delete true})
 
   ;; Handlers
   :handle-ok
     (by-method {
                 :get (fn [ctx] (section-rep/render-section conn (:section ctx) (common/allow-org-members conn company-slug ctx) (not (nil? as-of))))
                 :put (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
-                :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
+                :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
+                :delete (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 section-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
@@ -96,6 +101,7 @@
   :new? (by-method {:put (fn [ctx] (not (:section ctx)))})
   :put! (fn [ctx] (put-section conn company-slug section-name (:data ctx) (:user ctx)))
   :patch! (fn [ctx] (patch-revision conn company-slug section-name as-of (merge (:section ctx) (:data ctx)) (:user ctx)))
+  :delete! (fn [ctx] (delete-revision conn company-slug section-name as-of (:user ctx)))
   :handle-created (fn [ctx] (section-location-response conn (:updated-section ctx))))
 
 ;; A resource for a list of all the revisions of the section the user has access to.
