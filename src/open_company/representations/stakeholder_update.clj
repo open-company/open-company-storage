@@ -37,7 +37,7 @@
       :created-at (:created-at update)
       :medium (:medium update)
       :author (:author update)
-      :links (if authorized [su-link (common/delete-link (stakeholder-update-url company-url slug))] [su-link])
+      :links (if authorized [su-link (common/delete-link (stakeholder-update-url company-url slug) media-type)] [su-link])
     }))
 
 (defn- stakeholder-update-links
@@ -48,7 +48,7 @@
                    (conj su-links (common/link-map "company" common/GET company-url common/company-media-type))
                    su-links)
         with-write (if write-access
-                     (conj with-read (common/delete-link (stakeholder-update-url company-url (:slug update))))
+                     (conj with-read (common/delete-link (stakeholder-update-url company-url (:slug update)) media-type))
                      with-read)]
     (assoc update :links with-write)))
 
