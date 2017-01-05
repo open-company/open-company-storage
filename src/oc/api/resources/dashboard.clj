@@ -96,7 +96,8 @@
          (slug/valid-slug? slug)]}
   (first (db-common/read-resources conn table-name "slug-org-uuid" [slug org-uuid])))
 
-;r.db('open_company_dev').table('sections').getAll('green-labs', {index: 'company-slug'}).group('section-name').max('created-at')
+; filter for archived topics
+;r.db('open_company_dev').table('entries').getAll('1234-1234-1234', {index: 'dashboard-uuid'}).group('topic-slug').max('created-at')
 
 ;; ----- Collection of dashboards -----
 
