@@ -26,8 +26,8 @@
 (defn partial-update-link [url media-type]
   (link-map "partial-update" PATCH url media-type))
 
-(defn delete-link [url]
-  (array-map :rel "delete" :method DELETE :href url))
+(defn delete-link [url media-type]
+  (link-map "delete" DELETE url media-type))
 
 (defn revision-link [url updated-at media-type]
   (assoc (link-map "revision" GET url media-type) :updated-at updated-at))

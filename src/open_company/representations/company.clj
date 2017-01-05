@@ -32,7 +32,7 @@
   (common/partial-update-link (url company) media-type))
 
 (defn- delete-link [company]
-  (common/delete-link (url company)))
+  (common/delete-link (url company) media-type))
 
 (defn- revision-link [company updated-at]
   (common/revision-link (url company updated-at) updated-at media-type))
