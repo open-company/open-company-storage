@@ -54,6 +54,7 @@
   (assoc section :links (flatten [
     (self-link company-slug section-name)
     (revisions-link company-slug section-name)
+    (partial-update-link company-slug section-name (:updated-at section))
     (update-link company-slug section-name)]))))
 
 (defun- revision-links
