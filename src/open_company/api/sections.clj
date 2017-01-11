@@ -61,7 +61,7 @@
   :exists? (by-method {
                        :get (fn [_] (get-section conn company-slug section-name as-of))
                        :put (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))
-                       :patch (fn [_] (and (get-section conn company-slug section-name as-of)))
+                       :patch (fn [_] (get-section conn company-slug section-name as-of))
                        :delete (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))})
 
   :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
