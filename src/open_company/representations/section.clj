@@ -41,7 +41,7 @@
   (common/partial-update-link (url company-slug section-name updated-at) media-type))
 
 (defn- delete-link [company-slug section-name updated-at]
-  (common/delete-link (url company-slug section-name updated-at) media-type))
+  (common/delete-link (url company-slug section-name updated-at)))
 
 (defun- section-links
   "Add the HATEAOS links to the section"

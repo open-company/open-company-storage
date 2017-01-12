@@ -64,7 +64,11 @@
                        :patch (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))
                        :delete (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))})
 
-  :known-content-type? (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
+  :known-content-type? (by-method {
+                        :get (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
+                        :put (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
+                        :patch (fn [ctx] (common/known-content-type? ctx section-rep/media-type))
+                        :delete true})
 
   :allowed? (by-method {
                         :options (fn [ctx] (common/allow-anonymous ctx))
@@ -76,7 +80,8 @@
                         :delete (fn [ctx] (common/allow-org-members conn company-slug ctx))})
 
   :can-put-to-missing? true
-  
+  :media-type-available? (by-method {:delete true})
+
   ;; TODO: handle with prismatic schema check
   :processable? (by-method {
                             :options true
@@ -90,8 +95,7 @@
     (by-method {
                 :get (fn [ctx] (section-rep/render-section conn (:section ctx) (common/allow-org-members conn company-slug ctx) (not (nil? as-of))))
                 :put (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
-                :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))
-                :delete (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
+                :patch (fn [ctx] (section-rep/render-section conn (:updated-section ctx)))})
   :handle-not-acceptable (fn [_] (common/only-accept 406 section-rep/media-type))
   :handle-unsupported-media-type (fn [_] (common/only-accept 415 section-rep/media-type))
   :handle-unprocessable-entity (fn [ctx] (unprocessable-reason (:reason ctx)))
