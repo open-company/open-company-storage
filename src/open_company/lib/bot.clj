@@ -21,7 +21,7 @@
   (select-keys m [:name :logo :slug :description :currency]))
 
 (defmethod adapt :user [_ m]
-  {:name (first (string/split (:real-name m) #"\ "))})
+  {:name (:first-name m)})
 
 (defmethod adapt :stakeholder-update [_ m]
   (select-keys m [:slug :note :created-at :title]))

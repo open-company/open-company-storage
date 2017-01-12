@@ -18,11 +18,11 @@
     [org.clojure/core.async "0.2.395"] ; Async programming and communication https://github.com/clojure/core.async
     [defun "0.3.0-RC1"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
-    [ring/ring-devel "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-core "1.6.0-beta6"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-devel "1.6.0-beta7"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-core "1.6.0-beta7"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [http-kit "2.3.0-alpha1"] ; Web server http://http-kit.org/
-    [compojure "1.6.0-beta2"] ; Web routing https://github.com/weavejester/compojure
+    [compojure "1.6.0-beta3"] ; Web routing https://github.com/weavejester/compojure
     [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     [com.apa512/rethinkdb "0.15.26"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
@@ -36,8 +36,8 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
-    [amazonica "0.3.80"] ; A comprehensive Clojure client for the entire Amazon AWS API https://github.com/mcohen01/amazonica
-    [zprint "0.2.10"] ; Pretty-print Clojure and EDN https://github.com/kkinnear/zprint
+    [amazonica "0.3.83"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [zprint "0.2.12"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [open-company/lib "0.0.11-deee910"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
@@ -89,7 +89,7 @@
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
-        [lein-zprint "0.1.10"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
+        [lein-zprint "0.1.12"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
       ]  
     }]
     :repl-config [:dev {

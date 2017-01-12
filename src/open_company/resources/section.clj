@@ -26,30 +26,30 @@
 
 (defun- time-lte
   "
-  Specialized function to return the :id of the {:id :updated-at} map to satisfy the `some`
+  Specialized function to return the :id of the {:id :created-at} map to satisfy the `some`
   function if the timestamp strings are the same, or if the timestamp in the map (time1) is before
   timestamp2, otherwise return nil.
   "
   ([time1 :guard map? time2 :guard string?]
-  (if (= (:updated-at time1) time2)
+  (if (= (:created-at time1) time2)
     (:id time1)
     (time-lte time1 (format/parse common/timestamp-format time2))))
 
   ([time1 time2]
-  (when (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
+  (when (t/before? (format/parse common/timestamp-format (:created-at time1)) time2)
     (:id time1))))
 
 (defn- list-revision-ids
   "Given the slug of the company, and a section name retrieve the timestamps and database id of the section revisions."
   [conn company-slug section-name]
-  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:updated-at :id]))
+  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:created-at :updated-at :id]))
 
 ;; ----- Section revisions -----
 
 (defn list-revisions
   "Given the slug of the company, and a section name retrieve the timestamp and author of the section revisions."
   [conn company-slug section-name]
-  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author]))
+  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:created-at :updated-at :author]))
 
 (defn get-revisions
   "Given the slug of the company a section name, and an optional specific updated-at timestamp,
@@ -75,7 +75,7 @@
          (map? revision)
          (map? user)]}
   (if-let [original-section (get-section conn company-slug section-name)]
-    (patch-revision conn company-slug section-name (:updated-at original-section) revision user)
+    (patch-revision conn company-slug section-name (:created-at original-section) revision user)
     false))
   
   ([conn company-slug section-name original-timestamp revision user]
@@ -120,6 +120,42 @@
         ;; update the section revision or
         (common/update-resource conn table-name primary-key original-revision completed-revision updated-at))
       false))))
+
+(defn delete-revision
+  "
+  Given the company slug, section name, optional revision timestamp and an updated section property map, update an
+  exising section revision, returning the property map for the resource or `false`.
+  "
+  [conn company-slug section-name original-timestamp user]
+  {:pre [(map? conn)
+         (or (string? company-slug) (keyword? company-slug))
+         (or (string? section-name) (keyword? section-name))
+         (or (string? original-timestamp) (keyword? original-timestamp))
+         (map? user)]}
+  (let [original-company (company/get-company conn company-slug) ; company before the update
+        company-revision ((keyword section-name) original-company) ; current section in the company
+        all-revisions (get-revisions conn company-slug section-name)
+        filtered-revisions (sort #(compare (:created-at %2) (:created-at %1)) (filter #(not= (:created-at %) original-timestamp) all-revisions))
+        update-sections? (zero? (count filtered-revisions)) ; are we removing the last revision of this section?
+        update-company-section? (= (:updated-at company-revision) original-timestamp) ; are we removing the latest revision
+        original-sections (:sections original-company)
+        updated-sections (if update-sections?
+                           ; if we are removing the last section, remove the section from the list of sections
+                           (filter #(not= (name section-name) (name %)) original-sections)
+                           original-sections)
+        sectioned-company (assoc original-company :sections updated-sections)
+        updated-company (if update-company-section?
+                          ; if we are removing the latest revision, replace the section in company with the previous revision
+                          (assoc sectioned-company (keyword section-name) (dissoc (first filtered-revisions) :placeholder :company-slug :section-name))
+                          (when update-sections?
+                            ; if we are removing the last revision remove the section from the company too
+                            (dissoc sectioned-company section-name)))]
+    (if (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
+      (do
+        (when (or update-sections? update-company-section?)
+          (company/update-company conn company-slug updated-company))
+        (common/delete-resource conn common/section-table-name "company-slug-section-name-updated-at" [company-slug section-name original-timestamp]))
+      false)))
 
 ;; ----- Section CRUD -----
 
