@@ -121,6 +121,42 @@
         (common/update-resource conn table-name primary-key original-revision completed-revision updated-at))
       false))))
 
+(defn delete-revision
+  "
+  Given the company slug, section name, optional revision timestamp and an updated section property map, update an
+  exising section revision, returning the property map for the resource or `false`.
+  "
+  [conn company-slug section-name original-timestamp user]
+  {:pre [(map? conn)
+         (or (string? company-slug) (keyword? company-slug))
+         (or (string? section-name) (keyword? section-name))
+         (or (string? original-timestamp) (keyword? original-timestamp))
+         (map? user)]}
+  (let [original-company (company/get-company conn company-slug) ; company before the update
+        company-revision ((keyword section-name) original-company) ; current section in the company
+        all-revisions (get-revisions conn company-slug section-name)
+        filtered-revisions (sort #(compare (:created-at %2) (:created-at %1)) (filter #(not= (:created-at %) original-timestamp) all-revisions))
+        update-sections? (zero? (count filtered-revisions)) ; are we removing the last revision of this section?
+        update-company-section? (= (:updated-at company-revision) original-timestamp) ; are we removing the latest revision
+        original-sections (:sections original-company)
+        updated-sections (if update-sections?
+                           ; if we are removing the last section, remove the section from the list of sections
+                           (filter #(not= (name section-name) (name %)) original-sections)
+                           original-sections)
+        sectioned-company (assoc original-company :sections updated-sections)
+        updated-company (if update-company-section?
+                          ; if we are removing the latest revision, replace the section in company with the previous revision
+                          (assoc sectioned-company (keyword section-name) (dissoc (first filtered-revisions) :placeholder :company-slug :section-name))
+                          (when update-sections?
+                            ; if we are removing the last revision remove the section from the company too
+                            (dissoc sectioned-company section-name)))]
+    (if (= (:org-id original-company) (:org-id user)) ; user is valid to do this update
+      (do
+        (when (or update-sections? update-company-section?)
+          (company/update-company conn company-slug updated-company))
+        (common/delete-resource conn common/section-table-name "company-slug-section-name-updated-at" [company-slug section-name original-timestamp]))
+      false)))
+
 ;; ----- Section CRUD -----
 
 (defun get-section
