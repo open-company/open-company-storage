@@ -40,6 +40,9 @@
 (defn- partial-update-link [company-slug section-name updated-at]
   (common/partial-update-link (url company-slug section-name updated-at) media-type))
 
+(defn- delete-link [company-slug section-name updated-at]
+  (common/delete-link (url company-slug section-name updated-at)))
+
 (defun- section-links
   "Add the HATEAOS links to the section"
   ([section authorized] (section-links (:company-slug section) (:section-name section) section authorized))
@@ -66,7 +69,8 @@
   ([company-slug section-name updated-at revision true]
   (assoc revision :links (flatten [
     (self-link company-slug section-name updated-at)
-    (partial-update-link company-slug section-name updated-at)]))))
+    (partial-update-link company-slug section-name updated-at)
+    (delete-link company-slug section-name updated-at)]))))
 
 (defn section-template-for-rendering
   "Add a create link to the provided section template."
