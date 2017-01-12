@@ -11,7 +11,7 @@
 
 (def BotTrigger
   {:api-token s/Str
-   :script   {:id KnownScripts :params {s/Keyword s/Str}}
+   :script   {:id KnownScripts :params {s/Keyword (s/maybe s/Str)}}
    :receiver {:type (s/enum :all-members :user :channel) (s/optional-key :id) s/Str}
    :bot      {:token s/Str :id s/Str}})
 
