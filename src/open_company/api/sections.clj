@@ -1,5 +1,6 @@
 (ns open-company.api.sections
-  (:require [if-let.core :refer (if-let*)]
+  (:require [clojure.string :as s]
+            [if-let.core :refer (if-let*)]
             [compojure.core :refer (routes ANY)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.rethinkdb.pool :as pool]
@@ -42,7 +43,9 @@
   {:updated-section (section-res/put-section conn company-slug section-name section author)})
 
 (defn- patch-revision [conn company-slug section-name as-of revision author]
-  {:updated-section (section-res/patch-revision conn company-slug section-name as-of revision author)})
+  {:updated-section (if (s/blank? as-of)
+                      (section-res/patch-revision conn company-slug section-name revision author)
+                      (section-res/patch-revision conn company-slug section-name as-of revision author))})
 
 (defn- delete-revision [conn company-slug section-name as-of author]
   {:updated-section (section-res/delete-revision conn company-slug section-name as-of author)})
@@ -61,8 +64,8 @@
   :exists? (by-method {
                        :get (fn [_] (get-section conn company-slug section-name as-of))
                        :put (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))
-                       :patch (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))
-                       :delete (fn [_] (and (not (nil? as-of)) (get-section conn company-slug section-name as-of)))})
+                       :patch (fn [_] (get-section conn company-slug section-name as-of))
+                       :delete (fn [_] (and (nil? as-of) (get-section conn company-slug section-name as-of)))})
 
   :known-content-type? (by-method {
                         :get (fn [ctx] (common/known-content-type? ctx section-rep/media-type))

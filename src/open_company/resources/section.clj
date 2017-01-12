@@ -26,30 +26,30 @@
 
 (defun- time-lte
   "
-  Specialized function to return the :id of the {:id :updated-at} map to satisfy the `some`
+  Specialized function to return the :id of the {:id :created-at} map to satisfy the `some`
   function if the timestamp strings are the same, or if the timestamp in the map (time1) is before
   timestamp2, otherwise return nil.
   "
   ([time1 :guard map? time2 :guard string?]
-  (if (= (:updated-at time1) time2)
+  (if (= (:created-at time1) time2)
     (:id time1)
     (time-lte time1 (format/parse common/timestamp-format time2))))
 
   ([time1 time2]
-  (when (t/before? (format/parse common/timestamp-format (:updated-at time1)) time2)
+  (when (t/before? (format/parse common/timestamp-format (:created-at time1)) time2)
     (:id time1))))
 
 (defn- list-revision-ids
   "Given the slug of the company, and a section name retrieve the timestamps and database id of the section revisions."
   [conn company-slug section-name]
-  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:updated-at :id]))
+  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:created-at :updated-at :id]))
 
 ;; ----- Section revisions -----
 
 (defn list-revisions
   "Given the slug of the company, and a section name retrieve the timestamp and author of the section revisions."
   [conn company-slug section-name]
-  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:updated-at :author]))
+  (common/read-resources-in-order conn table-name "company-slug-section-name" [company-slug section-name] [:created-at :updated-at :author]))
 
 (defn get-revisions
   "Given the slug of the company a section name, and an optional specific updated-at timestamp,
@@ -75,7 +75,7 @@
          (map? revision)
          (map? user)]}
   (if-let [original-section (get-section conn company-slug section-name)]
-    (patch-revision conn company-slug section-name (:updated-at original-section) revision user)
+    (patch-revision conn company-slug section-name (:created-at original-section) revision user)
     false))
   
   ([conn company-slug section-name original-timestamp revision user]
