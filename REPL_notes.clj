@@ -8,7 +8,7 @@
 (require '[oc.api.resources.common :as common] :reload)
 (require '[oc.api.resources.org :as org] :reload)
 (require '[oc.api.resources.dashboard :as dash] :reload)
-(require '[oc.api.resources.topic :as topic] :reload)
+(require '[oc.api.resources.entry :as entry] :reload)
 (require '[oc.api.resources.update :as update] :reload)
 
 ;; productive set of development namespaces (REST API)

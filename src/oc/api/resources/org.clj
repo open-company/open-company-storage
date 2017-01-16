@@ -3,6 +3,7 @@
             [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
+            [oc.lib.schema :as lib-schema]
             [oc.lib.rethinkdb.common :as db-common]
             [oc.api.resources.common :as common]))
 
@@ -86,7 +87,7 @@
          (slug/valid-slug? slug)]}
   (db-common/read-resource conn table-name slug))
 
-(schema/defn ^:always-validate uuid-for :- (schema/maybe common/UniqueID)
+(schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
   [conn slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
@@ -94,7 +95,7 @@
 
 (schema/defn ^:always-validate update-org! :- common/Org
   "
-  Given an updated org property map, update the org and return `true` on success.
+  Given an updated org property map, update the org and return the updated org on success.
 
   Throws a runtime exception if the merge of the prior org and the updated org property map doesn't conform
   to the common/Org schema.
@@ -104,10 +105,12 @@
   "
   [conn slug org]
   {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)]}
+         (slug/valid-slug? slug)
+         (map? org)]}
   (if-let [original-org (get-org conn slug)]
-    (let [updated-org (clean org)]
-      (db-common/update-resource conn table-name primary-key original-org (merge original-org updated-org)))))
+    (let [updated-org (merge original-org (clean org))]
+      (schema/validate updated-org common/Org)
+      (db-common/update-resource conn table-name primary-key original-org updated-org))))
 
 (schema/defn ^:always-validate put-org! :- common/Org
   "

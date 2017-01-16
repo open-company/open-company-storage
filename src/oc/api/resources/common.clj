@@ -6,6 +6,7 @@
             [clj-time.format :as format]
             [clj-time.core :as time]
             [rethinkdb.query :as r]
+            [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.api.config :as config]))
 
@@ -38,15 +39,6 @@
 
 ;; ----- Persistent Data Schemas -----
 
-(def NonBlankString (schema/pred #(and (string? %) (not (s/blank? %)))))
-
-;; 12 character fragment from a UUID e.g. 51ab-4c86-a474
-(def UniqueID (schema/pred #(and (string? %)
-                                 (re-matches #"^(\d|[a-f]){4}-(\d|[a-f]){4}-(\d|[a-f]){4}$" %)))) 
-
-(def ISO8601 (schema/pred #(and (string? %)
-                                (re-matches #"(?i)^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$" %))))
-
 ;; Known topic names and custom topic names
 (def TopicName (schema/pred topic-name?))
 
@@ -59,16 +51,16 @@
     (= (count (set %)) (count %))))) ; there are no duplicates
 
 (def Author {
-  :name NonBlankString
-  :user-id UniqueID
+  :name lib-schema/NonBlankString
+  :user-id lib-schema/UniqueID
   :avatar-url (schema/maybe schema/Str)})
 
 (def EntryAuthor
-  (merge Author {:updated-at ISO8601}))
+  (merge Author {:updated-at lib-schema/ISO8601}))
 
 (def UpdateEntry {
   :slug TopicName
-  :title NonBlankString
+  :title lib-schema/NonBlankString
   :headline schema/Str
   :body schema/Str
   (schema/optional-key :image-url) (schema/maybe schema/Str)
@@ -77,45 +69,45 @@
   (schema/optional-key :data) [{}]
   (schema/optional-key :metrics) [{}]
   :author [EntryAuthor]
-  :created-at ISO8601
-  :updated-at ISO8601})
+  :created-at lib-schema/ISO8601
+  :updated-at lib-schema/ISO8601})
 
 (def Entry
   (merge UpdateEntry {
-    :dashboard-slug NonBlankString
-    :body-placeholder NonBlankString}))
+    :dashboard-slug lib-schema/NonBlankString
+    :body-placeholder lib-schema/NonBlankString}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Dashboard {
-  :uuid UniqueID
+  :uuid lib-schema/UniqueID
   :slug Slug
-  :name NonBlankString
-  :org-uuid UniqueID
+  :name lib-schema/NonBlankString
+  :org-uuid lib-schema/UniqueID
   :access AccessLevel
   :promoted schema/Bool
-  :authors [NonBlankString]
-  :viewers [NonBlankString]
+  :authors [lib-schema/UniqueID]
+  :viewers [lib-schema/UniqueID]
   :topics TopicOrder
   :update-template {:title schema/Str
                     :topics TopicOrder}
   :author Author
-  :created-at ISO8601
-  :updated-at ISO8601})
+  :created-at lib-schema/ISO8601
+  :updated-at lib-schema/ISO8601})
 
 (def Org {
-  :uuid UniqueID
+  :uuid lib-schema/UniqueID
   :slug Slug
-  :name NonBlankString
-  :team-id UniqueID
+  :name lib-schema/NonBlankString
+  :team-id lib-schema/UniqueID
   :currency schema/Str
   (schema/optional-key :logo-url) schema/Str
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
-  :admins [NonBlankString]
+  :admins [lib-schema/UniqueID]
   :author Author
-  :created-at ISO8601
-  :updated-at ISO8601})
+  :created-at lib-schema/ISO8601
+  :updated-at lib-schema/ISO8601})
 
 (def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
 
@@ -133,16 +125,16 @@
   :medium ShareMedium
   (schema/optional-key :to) [schema/Str]
   (schema/optional-key :note) schema/Str
-  :created-at ISO8601
-  :updated-at ISO8601})
+  :created-at lib-schema/ISO8601
+  :updated-at lib-schema/ISO8601})
 
 ;; ----- Non-persistent Data Schemas -----
 
 ;; The portion of JWT properties that we care about for authorship
 (def User {
-    :user-id UniqueID
-    :name NonBlankString
-    :teams [UniqueID]
+    :user-id lib-schema/UniqueID
+    :name lib-schema/NonBlankString
+    :teams [lib-schema/UniqueID]
     :avatar-url (schema/maybe schema/Str)
     schema/Keyword schema/Any ; and whatever else is in the JWT map
   })

@@ -3,6 +3,7 @@
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.rethinkdb.common :as db-common]
+            [oc.lib.schema :as lib-schema]
             [oc.api.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----
@@ -40,14 +41,14 @@
   "Return all dashboard slugs which are in use as a set."
   [conn org-uuid]
   {:pre [(db-common/conn? conn)
-         (schema/validate common/UniqueID org-uuid)]}
+         (schema/validate lib-schema/UniqueID org-uuid)]}
   (map :slug (list-dashboards conn org-uuid)))
 
 (defn slug-available?
   "Return true if the slug is not used by any dashboard in the org."
   [conn org-uuid slug]
   {:pre [(db-common/conn? conn)
-         (schema/validate common/UniqueID org-uuid)
+         (schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)]}
   (not (contains? (taken-slugs conn) slug)))
 
@@ -62,7 +63,7 @@
   (->dashboard org-uuid (or (:slug dash-props) (slug/slugify (:name dash-props))) dash-props user))
 
   ([org-uuid slug dash-props user :- common/User]
-  {:pre [(schema/validate common/UniqueID org-uuid)
+  {:pre [(schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)
          (map? dash-props)]}
   (let [ts (db-common/current-timestamp)]
@@ -92,7 +93,7 @@
   "Given the uuid of the org and slug of the dashboard, retrieve the dasdboard, or return nil if it doesn't exist."
   [conn org-uuid slug]
   {:pre [(db-common/conn? conn)
-         (schema/validate common/UniqueID org-uuid)
+         (schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)]}
   (first (db-common/read-resources conn table-name "slug-org-uuid" [slug org-uuid])))
 
@@ -111,7 +112,7 @@
 
   ([conn org-uuid additional-keys]
   {:pre [(db-common/conn? conn)
-         (schema/validate common/UniqueID org-uuid)
+         (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
   (->> (into [primary-key "slug" "name"] additional-keys)
