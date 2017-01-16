@@ -67,7 +67,16 @@
             (r/get-field row :section-name)
             (r/get-field row :updated-at)]))
         (r/run conn))
-      (wait-for-index conn section/table-name "company-slug-section-name-updated-at"))))
+      (wait-for-index conn section/table-name "company-slug-section-name-updated-at"))
+    (when (not-any? #(= "company-slug-section-name-created-at" %) indexes)
+      (-> (r/table section/table-name)
+        (r/index-create "company-slug-section-name-created-at"
+          (r/fn [row] [
+            (r/get-field row :company-slug)
+            (r/get-field row :section-name)
+            (r/get-field row :created-at)]))
+        (r/run conn))
+      (wait-for-index conn section/table-name "company-slug-section-name-created-at"))))
 
 (defn- create-stakeholder-updates-compound-index
   "Create RethinkDB table indexes for the stakeholder-updates table if they don't exist."

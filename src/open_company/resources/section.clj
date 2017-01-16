@@ -123,21 +123,21 @@
 
 (defn delete-revision
   "
-  Given the company slug, section name, optional revision timestamp and an updated section property map, update an
+  Given the company slug, section name, and a revision timestamp, delete an
   exising section revision, returning the property map for the resource or `false`.
   "
-  [conn company-slug section-name original-timestamp user]
+  [conn company-slug section-name created-at user]
   {:pre [(map? conn)
          (or (string? company-slug) (keyword? company-slug))
          (or (string? section-name) (keyword? section-name))
-         (or (string? original-timestamp) (keyword? original-timestamp))
+         (string? created-at)
          (map? user)]}
   (let [original-company (company/get-company conn company-slug) ; company before the update
         company-revision ((keyword section-name) original-company) ; current section in the company
         all-revisions (get-revisions conn company-slug section-name)
-        filtered-revisions (sort #(compare (:created-at %2) (:created-at %1)) (filter #(not= (:created-at %) original-timestamp) all-revisions))
+        filtered-revisions (sort #(compare (:created-at %2) (:created-at %1)) (filter #(not= (:created-at %) created-at) all-revisions))
         update-sections? (zero? (count filtered-revisions)) ; are we removing the last revision of this section?
-        update-company-section? (= (:updated-at company-revision) original-timestamp) ; are we removing the latest revision
+        update-company-section? (= (:created-at company-revision) created-at) ; are we removing the latest revision?
         original-sections (:sections original-company)
         updated-sections (if update-sections?
                            ; if we are removing the last section, remove the section from the list of sections
@@ -154,7 +154,7 @@
       (do
         (when (or update-sections? update-company-section?)
           (company/update-company conn company-slug updated-company))
-        (common/delete-resource conn common/section-table-name "company-slug-section-name-updated-at" [company-slug section-name original-timestamp]))
+        (common/delete-resource conn common/section-table-name "company-slug-section-name-created-at" [company-slug section-name created-at]))
       false)))
 
 ;; ----- Section CRUD -----
