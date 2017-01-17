@@ -87,6 +87,7 @@
          (map? user)]}
   (let [original-company (company/get-company conn company-slug) ; company before the update
         original-revision (get-section conn company-slug section-name original-timestamp) ; revision before the update
+        original-authorship (:author original-revision)
         merged-revision (merge (keywordize-keys original-revision) (keywordize-keys revision)) ; old revision updated with the new
         updated-at (common/current-timestamp)
         completed-revision (-> merged-revision
