@@ -83,7 +83,6 @@
                         :delete (fn [ctx] (common/allow-org-members conn company-slug ctx))})
 
   :can-put-to-missing? true
-  :media-type-available? (by-method {:delete true})
 
   ;; TODO: handle with prismatic schema check
   :processable? (by-method {
