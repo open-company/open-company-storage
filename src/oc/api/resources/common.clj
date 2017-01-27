@@ -51,7 +51,7 @@
     (= (count (set %)) (count %))))) ; there are no duplicates
 
 (def Author {
-  :name lib-schema/NonBlankString
+  :name lib-schema/NonBlankStr
   :user-id lib-schema/UniqueID
   :avatar-url (schema/maybe schema/Str)})
 
@@ -60,7 +60,7 @@
 
 (def UpdateEntry {
   :slug TopicName
-  :title lib-schema/NonBlankString
+  :title lib-schema/NonBlankStr
   :headline schema/Str
   :body schema/Str
   (schema/optional-key :image-url) (schema/maybe schema/Str)
@@ -74,15 +74,15 @@
 
 (def Entry
   (merge UpdateEntry {
-    :dashboard-slug lib-schema/NonBlankString
-    :body-placeholder lib-schema/NonBlankString}))
+    :dashboard-slug lib-schema/NonBlankStr
+    :body-placeholder lib-schema/NonBlankStr}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Dashboard {
   :uuid lib-schema/UniqueID
   :slug Slug
-  :name lib-schema/NonBlankString
+  :name lib-schema/NonBlankStr
   :org-uuid lib-schema/UniqueID
   :access AccessLevel
   :promoted schema/Bool
@@ -98,7 +98,7 @@
 (def Org {
   :uuid lib-schema/UniqueID
   :slug Slug
-  :name lib-schema/NonBlankString
+  :name lib-schema/NonBlankStr
   :team-id lib-schema/UniqueID
   :currency schema/Str
   (schema/optional-key :logo-url) schema/Str
@@ -133,7 +133,7 @@
 ;; The portion of JWT properties that we care about for authorship
 (def User {
     :user-id lib-schema/UniqueID
-    :name lib-schema/NonBlankString
+    :name lib-schema/NonBlankStr
     :teams [lib-schema/UniqueID]
     :avatar-url (schema/maybe schema/Str)
     schema/Keyword schema/Any ; and whatever else is in the JWT map

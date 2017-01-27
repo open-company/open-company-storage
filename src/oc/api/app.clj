@@ -12,6 +12,7 @@
     [ring.middleware.cors :refer (wrap-cors)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
+    [oc.lib.sentry-appender :as sa]
     [oc.api.components :as components]
     [oc.api.config :as c]))
     ; [open-company.api.entry :as entry-api]
@@ -19,7 +20,9 @@
     ; [open-company.api.sections :as sect-api]
     ; [open-company.api.stakeholder-updates :as su-api]))
 
-;; Send unhandled exceptions to Sentry
+;; ----- Unhandled Exceptions -----
+
+;; Send unhandled exceptions to log and Sentry
 ;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
 (Thread/setDefaultUncaughtExceptionHandler
  (reify Thread$UncaughtExceptionHandler
@@ -34,6 +37,7 @@
 
 (defn routes [sys]
   (compojure/routes
+    (GET "/ping" [] (ring/text-response  "OpenCompany API server: OK" 200)) ; Up-time monitor
     (GET "/---error-test---" req (/ 1 0))
     (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
     ; (entry-api/entry-routes sys)
@@ -53,27 +57,23 @@
    c/hot-reload      wrap-reload
    c/dsn             (sentry-mw/wrap-sentry c/dsn)))
 
-;; Start components in production (nginx-clojure)
-(declare handler)
-(when c/prod?
-  (timbre/set-config! c/log-config)
-  (timbre/info "Starting production system without HTTP server")
-  (def handler
-    (-> (components/oc-system {:handler-fn app})
-        (dissoc :server)
-        component/start
-        (get-in [:handler :handler])))
-  (timbre/info "Started"))
-
 (defn start
   "Start a development server"
   [port]
-  (timbre/set-config! c/log-config)
 
-  (-> {:handler-fn app :port port}
+  ;; Stuff logged at error level goes to Sentry
+  (if c/dsn
+    (timbre/merge-config!
+      {:level (keyword c/log-level)
+       :appenders {:sentry (sa/sentry-appender c/dsn)}})
+    (timbre/merge-config! {:level (keyword c/log-level)}))
+
+    ;; Start the system
+    (-> {:handler-fn app :port port}
       components/oc-system
       component/start)
 
+  ;; Echo config information
   (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
     "OpenCompany API Server\n\n"
     "Running on port: " port "\n"
