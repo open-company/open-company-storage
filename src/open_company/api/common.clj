@@ -139,7 +139,7 @@
   (boolean (or (nil? (:jwtoken ctx)) (:jwtoken ctx))))
 
 (defn allow-authenticated
-  "Allow unless there is a JWToken provided and it's invalid"
+  "Allow only if a valid JWToken is provided."
   [ctx]
   (authenticated? ctx))
 

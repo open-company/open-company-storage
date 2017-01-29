@@ -17,6 +17,14 @@
 
 (defonce prod? (= "production" (env :env)))
 
+;; ----- Sentry -----
+
+(defonce dsn (or (env :open-company-sentry-api) false))
+
+;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
+
+(defonce log-level (or (env :log-level) :info))
+
 ;; ----- RethinkDB -----
 
 (defonce migrations-dir "./src/oc/api/db/migrations")
@@ -40,10 +48,6 @@
 ;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (defonce liberator-trace (bool (or (env :liberator-trace) false)))
 
-;; ----- Sentry -----
-
-(defonce dsn (or (env :open-company-sentry-api) false))
-
 ;; ----- AWS SQS -----
 
 (defonce aws-access-key-id (env :aws-access-key-id))
@@ -63,7 +67,3 @@
                     slurp
                     read-string
                     keywordize-keys))
-
-;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
-
-(defonce log-level (or (env :log-level) :info))
