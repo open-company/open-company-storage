@@ -27,7 +27,7 @@
     [com.apa512/rethinkdb "0.15.26"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [cheshire "5.6.3"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
+    [cheshire "5.7.0"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.8.0"] ; Logging https://github.com/ptaoussanis/timbre
     [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.4.1"] ; HTTP client https://github.com/dakrone/clj-http
@@ -36,9 +36,9 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
-    [amazonica "0.3.83"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
-    [zprint "0.2.12"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [open-company/lib "0.2.1-080373b"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [amazonica "0.3.85"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
+    [open-company/lib "0.2.3-87f646d"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -89,7 +89,7 @@
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
-        [lein-zprint "0.1.12"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
+        [lein-zprint "0.1.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
       ]  
     }]
     :repl-config [:dev {
