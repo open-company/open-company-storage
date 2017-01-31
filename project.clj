@@ -38,7 +38,7 @@
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
     [amazonica "0.3.85"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
     [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [open-company/lib "0.2.3-87f646d"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.5.1-e6633f1"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
@@ -115,7 +115,7 @@
                  '[oc.api.config :as c]
                  '[oc.api.resources.common :as common]
                  '[oc.api.resources.org :as org]
-                 '[oc.api.resources.dashboard :as dash]
+                 '[oc.api.resources.board :as board]
                  '[oc.api.resources.entry :as entry]
                  '[oc.api.resources.update :as update]
                  ; '[open-company.representations.company :as company-rep]

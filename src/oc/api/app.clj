@@ -13,6 +13,7 @@
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
     [oc.lib.sentry-appender :as sa]
+    [oc.lib.api.common :as api-common]
     [oc.api.components :as components]
     [oc.api.config :as c]))
     ; [open-company.api.entry :as entry-api]
@@ -37,7 +38,7 @@
 
 (defn routes [sys]
   (compojure/routes
-    (GET "/ping" [] (ring/text-response  "OpenCompany API server: OK" 200)) ; Up-time monitor
+    (GET "/ping" [] (api-common/text-response  "OpenCompany API server: OK" 200)) ; Up-time monitor
     (GET "/---error-test---" req (/ 1 0))
     (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
     ; (entry-api/entry-routes sys)

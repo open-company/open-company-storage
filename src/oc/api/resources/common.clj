@@ -1,5 +1,5 @@
 (ns oc.api.resources.common
-  "Resources are any thing stored in the open company platform: orgs, dashboards, topics, updates"
+  "Resources are any thing stored in the open company platform: orgs, boards, topics, updates"
   (:require [clojure.string :as s]
             [clojure.core.async :as async]
             [schema.core :as schema]
@@ -13,7 +13,7 @@
 ;; ----- RethinkDB metadata -----
 
 (def org-table-name "orgs")
-(def dashboard-table-name "dashboards")
+(def board-table-name "boards")
 (def entry-table-name "entries")
 (def update-table-name "updates")
 
@@ -74,12 +74,12 @@
 
 (def Entry
   (merge UpdateEntry {
-    :dashboard-slug lib-schema/NonBlankStr
+    :board-slug lib-schema/NonBlankStr
     :body-placeholder lib-schema/NonBlankStr}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
-(def Dashboard {
+(def Board {
   :uuid lib-schema/UniqueID
   :slug Slug
   :name lib-schema/NonBlankStr
@@ -113,7 +113,7 @@
 
 (def Update {
   :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
-  :dashboard-slug Slug
+  :board-slug Slug
   :company-slug Slug
   :currency schema/Str
   (schema/optional-key :logo-url) schema/Str

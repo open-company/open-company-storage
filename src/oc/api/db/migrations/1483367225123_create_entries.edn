@@ -9,14 +9,14 @@
   (println "Creating table: " entry/table-name)
   (println (m/create-table conn c/db-name entry/table-name entry/primary-key))
   (println (m/create-index conn entry/table-name "topic-slug"))
-  (println (m/create-index conn entry/table-name "dashboard-uuid"))
+  (println (m/create-index conn entry/table-name "board-uuid"))
   (println (m/create-index conn entry/table-name "org-uuid"))
-  (println (m/create-compound-index conn entry/table-name "topic-slug-dashboard-uuid"
-              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "dashboard-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "topic-slug-board-uuid"
+              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
   (println (m/create-compound-index conn entry/table-name "topic-slug-org-uuid"
               (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
-  (println (m/create-compound-index conn entry/table-name "topic-slug-dashboard-uuid-org-uuid"
-              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "dashboard-uuid") (r/get-field row "org-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "topic-slug-board-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "board-uuid") (r/get-field row "org-uuid")])))
   (println (m/create-index conn entry/table-name "created-at"))
 
   true) ; return true on success

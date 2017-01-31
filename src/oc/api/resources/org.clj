@@ -129,7 +129,7 @@
     (create-org! conn (->org slug org user))))
 
 (defn delete-org!
-  "Given the slug of the org, delete it and all its dashboards, entries, and updates and return `true` on success."
+  "Given the slug of the org, delete it and all its boards, entries, and updates and return `true` on success."
   [conn slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
@@ -144,10 +144,10 @@
       (try
         (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
-      ;; Dashboards
+      ;; Boards
       (try
-        (db-common/delete-resource conn common/dashboard-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no dashboards to delete
+        (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; it's OK if there are no boards to delete
       ;; The org itself
       (db-common/delete-resource conn table-name slug))
     
@@ -193,8 +193,8 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, entries, dashboards and orgs
+  ;; Delete all udpates, entries, boards and orgs
   (db-common/delete-all-resources! conn common/update-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn common/dashboard-table-name)
+  (db-common/delete-all-resources! conn common/board-table-name)
   (db-common/delete-all-resources! conn table-name))
