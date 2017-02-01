@@ -1,5 +1,5 @@
-(defproject open-company-api "0.0.2-SNAPSHOT"
-  :description "OpenCompany Platform API"
+(defproject open-company-api "0.2.0-SNAPSHOT"
+  :description "OpenCompany Storage Service"
   :url "https://opencompany.com/"
   :license {
     :name "Mozilla Public License v2.0"
@@ -111,13 +111,13 @@
                  ; '[open-company.lib.rest-api-mock :refer (api-request)]
                  '[oc.lib.rethinkdb.common :as db-common]
                  '[oc.lib.slugify :as slug]
-                 '[oc.api.app :refer (app)]
-                 '[oc.api.config :as c]
-                 '[oc.api.resources.common :as common]
-                 '[oc.api.resources.org :as org]
-                 '[oc.api.resources.board :as board]
-                 '[oc.api.resources.entry :as entry]
-                 '[oc.api.resources.update :as update]
+                 '[oc.storage.app :refer (app)]
+                 '[oc.storage.config :as c]
+                 '[oc.storage.resources.common :as common]
+                 '[oc.storage.resources.org :as org]
+                 '[oc.storage.resources.board :as board]
+                 '[oc.storage.resources.entry :as entry]
+                 '[oc.storage.resources.update :as update]
                  ; '[open-company.representations.company :as company-rep]
                  ; '[open-company.representations.section :as section-rep]
                  ; '[open-company.representations.stakeholder-update :as su-rep]
@@ -138,16 +138,16 @@
 
   :repl-options {
     :welcome (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
-                      "OpenCompany API REPL\n"
-                      "Database: " oc.api.config/db-name "\n"
+                      "OpenCompany Storage REPL\n"
+                      "Database: " oc.storage.config/db-name "\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
     :init-ns dev
   }
 
   :aliases {
     "build" ["do" "clean," "deps," "compile"] ; clean and build code
-    "create-migration" ["run" "-m" "oc.api.db.migrations" "create"] ; create a data migration
-    "migrate-db" ["run" "-m" "oc.api.db.migrations" "migrate"] ; run pending data migrations
+    "create-migration" ["run" "-m" "oc.storage.db.migrations" "create"] ; create a data migration
+    "migrate-db" ["run" "-m" "oc.storage.db.migrations" "migrate"] ; run pending data migrations
     "start" ["do" "migrate-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "start"] ; start a server in production
     "autotest" ["with-profile" "qa" "do" "migrate-db," "midje" ":autotest"] ; watch for code changes and run affected tests
@@ -176,9 +176,9 @@
   ;; ----- API -----
 
   :ring {
-    :handler oc.api.app/app
+    :handler oc.storage.app/app
     :reload-paths ["src"] ; work around issue https://github.com/weavejester/lein-ring/issues/68
   }
 
-  :main oc.api.app
+  :main oc.storage.app
 )

@@ -1,4 +1,4 @@
-# OpenCompany API Service Diagrams
+# OpenCompany Storage Service Diagrams
 
 ### Viewing Diagrams
 

@@ -1,5 +1,5 @@
-(ns oc.api.resources.update
-  (:require [oc.api.resources.common :as common]))
+(ns oc.storage.resources.update
+  (:require [oc.storage.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----
 

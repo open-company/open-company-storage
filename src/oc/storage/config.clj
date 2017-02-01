@@ -1,4 +1,4 @@
-(ns oc.api.config
+(ns oc.storage.config
   "Namespace for the configuration parameters."
   (:require [clojure.walk :refer (keywordize-keys)]
             [environ.core :refer (env)]
@@ -27,8 +27,8 @@
 
 ;; ----- RethinkDB -----
 
-(defonce migrations-dir "./src/oc/api/db/migrations")
-(defonce migration-template "./src/oc/api/assets/migration.template.edn")
+(defonce migrations-dir "./src/oc/storage/db/migrations")
+(defonce migration-template "./src/oc/storage/assets/migration.template.edn")
 
 (defonce db-host (or (env :db-host) "localhost"))
 (defonce db-port (or (env :db-port) 28015))
@@ -41,7 +41,7 @@
 ;; ----- HTTP server -----
 
 (defonce hot-reload (bool (or (env :hot-reload) false)))
-(defonce api-server-port (Integer/parseInt (or (env :port) "3000")))
+(defonce storage-server-port (Integer/parseInt (or (env :port) "3000")))
 
 ;; ----- Liberator -----
 
@@ -62,7 +62,7 @@
 
 ;; ----- OpenCompany -----
 
-(defonce topics (-> "oc/api/assets/topics.edn"
+(defonce topics (-> "oc/storage/assets/topics.edn"
                     clojure.java.io/resource
                     slurp
                     read-string

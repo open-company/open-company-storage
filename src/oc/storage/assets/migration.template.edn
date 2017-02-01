@@ -1,4 +1,4 @@
-(ns oc.api.db.migrations.MIGRATION-NAME
+(ns oc.storage.db.migrations.MIGRATION-NAME
   (:require [rethinkdb.query :as r]
             [oc.lib.rethinkdb.migrations :as m]))
 

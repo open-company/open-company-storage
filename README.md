@@ -1,4 +1,4 @@
-# [OpenCompany](https://opencompany.com/) Platform API
+# [OpenCompany](https://opencompany.com/) Storage Service
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
@@ -22,19 +22,19 @@ To maintain transparency, OpenCompany information is always accessible and easy 
 
 Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OpenCompany platform turns transparency into a competitive advantage.
 
-Like the open companies we promote and support, the [OpenCompany](https://opencompany.com/) platform is completely transparent. The company supporting this effort, OpenCompany, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [platform API](https://github.com/open-company/open-company-api).
+Like the open companies we promote and support, the [OpenCompany](https://opencompany.com/) platform is completely transparent. The company supporting this effort, OpenCompany, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [Storage Service API](https://github.com/open-company/open-company-api).
 
 To get started, head to: [OpenCompany](https://opencompany.com/)
 
 
 ## Overview
 
-The OpenCompany Platform API handles data access and data management of open company content and data. It supports other OpenCompany services, such as the Web application and OpenCompany Bot, as well as open API access.
+The OpenCompany Storage Service handles data access and data management of open company content and data. It supports other OpenCompany services, such as the Web application and OpenCompany Bot, as well as open API access.
 
 
 ## Local Setup
 
-Users of the [OpenCompany](https://opencompany.com/) platform should get started by going to [OpenCompany](https://opencompany.com/). The following local setup is **for developers** wanting to work on the platform's API software.
+Users of the [OpenCompany](https://opencompany.com/) platform should get started by going to [OpenCompany](https://opencompany.com/). The following local setup is **for developers** wanting to work on the storage service.
 
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 
@@ -167,9 +167,9 @@ RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/is
 
 #### Required Secrets
 
-A secret is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the API for creating and validating [JSON Web Tokens](https://jwt.io/).
+A secret is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the Storage Service for creating and validating [JSON Web Tokens](https://jwt.io/).
 
-An [AWS SQS queue](https://aws.amazon.com/sqs/) is used to pass messages from the API to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API.
+An [AWS SQS queue](https://aws.amazon.com/sqs/) is used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API.
 
 Make sure you update the section in `project.clj` that looks like this to contain your actual JWT and AWS SQS secrets:
 
@@ -209,7 +209,7 @@ Then enter these commands one-by-one, noting the output:
 
 ```clojure
 ;; start the development system
-(go) ; NOTE: if you are already running the API externally to the REPL, use `(go 3737)` to change the port
+(go) ; NOTE: if you are already running the service externally to the REPL, use `(go 3737)` to change the port
 
 ;; create some orgs
 
@@ -332,13 +332,13 @@ Then enter these commands one-by-one, noting the output:
 
 #### Server
 
-Start a production API server:
+Start a production instance:
 
 ```console
 lein start!
 ```
 
-Or start a development API server:
+Or start a development instance:
 
 ```console
 lein start

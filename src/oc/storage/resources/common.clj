@@ -1,4 +1,4 @@
-(ns oc.api.resources.common
+(ns oc.storage.resources.common
   "Resources are any thing stored in the open company platform: orgs, boards, topics, updates"
   (:require [clojure.string :as s]
             [clojure.core.async :as async]
@@ -8,7 +8,7 @@
             [rethinkdb.query :as r]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
-            [oc.api.config :as config]))
+            [oc.storage.config :as config]))
 
 ;; ----- RethinkDB metadata -----
 

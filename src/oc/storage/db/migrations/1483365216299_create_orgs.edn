@@ -1,8 +1,8 @@
-(ns oc.api.db.migrations.create-orgs
+(ns oc.storage.db.migrations.create-orgs
   (:require [rethinkdb.query :as r]
             [oc.lib.rethinkdb.migrations :as m]
-            [oc.api.config :as c]
-            [oc.api.resources.org :as org]))
+            [oc.storage.config :as c]
+            [oc.storage.resources.org :as org]))
 
 (defn up [conn]
   
@@ -10,6 +10,6 @@
   (println (m/create-table conn c/db-name org/table-name org/primary-key))
   (println (m/create-index conn org/table-name "uuid"))
   (println (m/create-index conn org/table-name "team-id"))
-  (println (m/create-index conn org/table-name "admins" {:multi true}))
+  (println (m/create-index conn org/table-name "authors" {:multi true}))
   
   true) ; return true on success

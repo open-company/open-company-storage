@@ -1,4 +1,4 @@
-(ns oc.api.app
+(ns oc.storage.app
   "Namespace for the web application which serves the REST API."
   (:gen-class)
   (:require
@@ -14,12 +14,13 @@
     [com.stuartsierra.component :as component]
     [oc.lib.sentry-appender :as sa]
     [oc.lib.api.common :as api-common]
-    [oc.api.components :as components]
-    [oc.api.config :as c]))
-    ; [open-company.api.entry :as entry-api]
-    ; [open-company.api.companies :as comp-api]
-    ; [open-company.api.sections :as sect-api]
-    ; [open-company.api.stakeholder-updates :as su-api]))
+    [oc.storage.components :as components]
+    [oc.storage.config :as c]
+    [oc.storage.api.entry-point :as entry-point-api]))
+    ; [oc.storage.api.orgs :as org-api]
+    ; [oc.storae.api.boards :as boards-api]
+    ; [oc.storae.api.entries :as entries-api]
+    ; [oc.storage.api.updates :as updates-api]
 
 ;; ----- Unhandled Exceptions -----
 
@@ -38,13 +39,14 @@
 
 (defn routes [sys]
   (compojure/routes
-    (GET "/ping" [] (api-common/text-response  "OpenCompany API server: OK" 200)) ; Up-time monitor
-    (GET "/---error-test---" req (/ 1 0))
-    (GET "/---500-test---" req {:status 500 :body "Testing bad things."})
-    ; (entry-api/entry-routes sys)
-    ; (comp-api/company-routes sys)
-    ; (sect-api/section-routes sys)
-    ; (su-api/stakeholder-update-routes sys)
+    (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
+    (GET "/---error-test---" [] (/ 1 0))
+    (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
+    (entry-point-api/routes sys)
+    ; (orgs-api/routes sys)
+    ; (boards-api/routes sys)
+    ; (entries-api/routes sys)
+    ; (updates-api/routes sys)
     ))
 
 ;; ----- System Startup -----
@@ -76,7 +78,7 @@
 
   ;; Echo config information
   (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
-    "OpenCompany API Server\n\n"
+    "OpenCompany Storage Service\n\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
@@ -88,4 +90,4 @@
     "Ready to serve...\n")))
 
 (defn -main []
-  (start c/api-server-port))
+  (start c/storage-server-port))

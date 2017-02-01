@@ -1,11 +1,11 @@
-(ns oc.api.resources.org
+(ns oc.storage.resources.org
   (:require [clojure.string :as s]
             [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
             [oc.lib.rethinkdb.common :as db-common]
-            [oc.api.resources.common :as common]))
+            [oc.storage.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----
 

@@ -1,8 +1,8 @@
-(ns oc.api.db.migrations.create-entries
+(ns oc.storage.db.migrations.create-entries
   (:require [rethinkdb.query :as r]
             [oc.lib.rethinkdb.migrations :as m]
-            [oc.api.config :as c]
-            [oc.api.resources.entry :as entry]))
+            [oc.storage.config :as c]
+            [oc.storage.resources.entry :as entry]))
 
 (defn up [conn]
   

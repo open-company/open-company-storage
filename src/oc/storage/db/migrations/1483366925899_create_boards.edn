@@ -1,8 +1,8 @@
-(ns oc.api.db.migrations.create-boards
+(ns oc.storage.db.migrations.create-boards
   (:require [rethinkdb.query :as r]
             [oc.lib.rethinkdb.migrations :as m]
-            [oc.api.config :as c]
-            [oc.api.resources.board :as board]))
+            [oc.storage.config :as c]
+            [oc.storage.resources.board :as board]))
 
 (defn up [conn]
   
