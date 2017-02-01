@@ -65,7 +65,7 @@
 (def Author {
   :name schema/Str
   :user-id schema/Str
-  :image (schema/maybe schema/Str)
+  (schema/optional-key :image) (schema/maybe schema/Str)
   (schema/optional-key :updated-at) (schema/maybe schema/Str)})
 
 (def Section
