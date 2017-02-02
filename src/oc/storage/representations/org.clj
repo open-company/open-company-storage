@@ -5,6 +5,8 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.representations.media-types :as mt]))
 
+(def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height :created-at :updated-at])
+
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
   ([org :guard map?] (url (:slug org))))
@@ -14,6 +16,16 @@
   [org]
   (assoc org :links [
     (hateoas/item-link (url org) {:accept mt/org-media-type})]))
+
+(defn render-org
+  "Given an org, create a JSON representation of the org for the REST API."
+  [org]
+  (let [slug (:slug org)]
+    (json/generate-string
+      (-> org
+        (select-keys representation-props)
+        (org-links))
+      {:pretty true})))
 
 (defn render-org-list
   "
