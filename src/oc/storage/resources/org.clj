@@ -109,7 +109,9 @@
          (map? org)]}
   (if-let [original-org (get-org conn slug)]
     (let [updated-org (merge original-org (clean org))]
-      (schema/validate updated-org common/Org)
+      ;; TODO Why is this not working?
+      ;; (schema/validate updated-org common/Org)
+      ;; Even: (schema/validate original-org common/Org) doesn't work here!
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
 
 (schema/defn ^:always-validate put-org! :- common/Org
@@ -178,14 +180,41 @@
   Given the name of a secondary index and a value, retrieve all matching orgs.
 
   Secondary indexes:
-  :uuid
-  :team-id
-  :admins
+  `uuid`
+  `team-id`
+  `admins`
   "
   [conn index-key v]
   {:pre [(db-common/conn? conn)
          (string? index-key)]}
   (db-common/read-resources conn table-name index-key v))
+
+(defn get-orgs-by-teams
+  "
+  Get orgs by a sequence of team-id's, returning `slug` and `name`. 
+  
+  Additional fields can be optionally specified.
+  "
+  ([conn team-ids] (get-orgs-by-teams conn team-ids []))
+
+  ([conn team-ids additional-fields]
+  {:pre [(db-common/conn? conn)
+         (schema/validate [lib-schema/UniqueID] team-ids)
+         (sequential? additional-fields)
+         (every? #(or (string? %) (keyword? %)) additional-fields)]}
+    (db-common/read-resources conn table-name :team-id team-ids (concat [:slug :name] additional-fields))))
+
+(defn get-orgs-by-team
+  "
+  Get orgs by a team-id, returning `slug` and `name`. 
+  
+  Additional fields can be optionally specified.
+  "
+  ([conn team-id] (get-orgs-by-team conn team-id []))
+  
+  ([conn team-id additional-fields]
+    {:pre (schema/validate lib-schema/UniqueID team-id)}
+  (get-orgs-by-teams conn [team-id] additional-fields)))
 
 ;; ----- Armageddon -----
 

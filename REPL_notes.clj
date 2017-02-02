@@ -1,7 +1,7 @@
 ;; productive set of development namespaces (Clojure API)
 (require '[rethinkdb.query :as r])
 (require '[schema.core :as schema])
-(require '[oc.storage.config :as c])
+(require '[oc.storage.config :as cosfig])
 (require '[oc.lib.rethinkdb.pool :as pool] :reload)
 (require '[oc.lib.slugify :as slug] :reload)
 (require '[oc.lib.rethinkdb.common :as db-common] :reload)
@@ -33,10 +33,22 @@
 ;; RethinkDB usage
 (def conn2 [:host "127.0.0.1" :port 28015 :db "open_company"])
 
-;; Get a company
+;; Get an org
 (aprint (with-open [c (apply r/connect conn2)]
-  (-> (r/table "companies")
+  (-> (r/table "orgs")
       (r/get "buffer")
+      (r/run c))))
+
+;; Get orgs by team ID
+(aprint (with-open [c (apply r/connect conn2)]
+  (-> (r/table "orgs")
+      (r/get-all ["51ab-4c86-a477"] {:index :team-id})
+      (r/run c))))
+
+;; Get orgs by team IDs
+(aprint (with-open [c (apply r/connect conn2)]
+  (-> (r/table "orgs")
+      (r/get-all ["51ab-4c86-a474" "51ab-4c86-a477"] {:index :team-id})
       (r/run c))))
 
 ;; Update the sections in a company
