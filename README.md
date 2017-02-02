@@ -215,7 +215,7 @@ Then enter these commands one-by-one, noting the output:
 
 (def author {
   :user-id "c133-43fe-8712"
-  :teams ["51ab-4c86-a477"]
+  :teams ["f725-4791-80ac"]
   :name "Wile E. Coyote"
   :first-name "Wile"
   :last-name "Coyote"
