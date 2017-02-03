@@ -94,7 +94,7 @@
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)]}
-  (first (db-common/read-resources conn table-name "slug-org-uuid" [slug org-uuid])))
+  (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
 
 ; filter for archived topics
 ;r.db('open_company_dev').table('entries').getAll('1234-1234-1234', {index: 'board-uuid'}).group('topic-slug').max('created-at')

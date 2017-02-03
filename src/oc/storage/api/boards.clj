@@ -41,8 +41,7 @@
   :allowed? (fn [ctx] (allow-team-members conn (:user ctx) org-slug)) ; TODO filter out private boards
 
   :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
-                               boards (board-res/get-boards-by-index conn :slug-org-uuid [slug (:uuid org)])
-                               board (when-not (empty? boards) (first boards))]
+                               board (board-res/get-board conn (:uuid org) slug)]
                         {:existing-org org :existing-board board}
                         false))
 
