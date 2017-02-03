@@ -74,7 +74,7 @@
         (assoc :slug slug)
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
-        (assoc :authors [])
+        (assoc :authors [(:user-id user)])
         (assoc :viewers [])
         (update :topics #(or % []))        
         (update :update-template #(or % default-update-template))        
@@ -103,35 +103,65 @@
 
 (defn list-boards
   "
-  Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
+  Return a sequence of maps with slugs, UUIDs, names and org-uuid, sorted by slug.
+  
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn org-uuid] (list-boards conn org-uuid []))
+  ([conn] (list-boards conn []))
+
+  ([conn additional-keys]
+  {:pre [(db-common/conn? conn)
+         (sequential? additional-keys)
+         (every? #(or (string? %) (keyword? %)) additional-keys)]}
+  (->> (into [primary-key :slug :name :org-uuid] additional-keys)
+    (db-common/read-resources conn table-name)
+    (sort-by :slug)
+    vec)))
+
+(defun get-boards-by-org
+  "
+  Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
+  
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
+  "
+  ([conn org-uuid] (get-boards-by-org conn org-uuid []))
 
   ([conn org-uuid additional-keys]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key "slug" "name"] additional-keys)
-    (db-common/read-resources conn table-name "org-uuid" org-uuid)
-    (sort-by "slug")
+  (->> (into [primary-key :slug :name] additional-keys)
+    (db-common/read-resources conn table-name :org-uuid org-uuid)
+    (sort-by :slug)
     vec)))
 
 (defn get-boards-by-index
   "
-  Given the name of a secondary index and a value, retrieve all matching boards.
-
+  Given the name of a secondary index and a value, retrieve all matching boards
+  as a sequence of maps with slugs, UUIDs and names, sorted by slug.
+  
   Secondary indexes:
   :uuid
   :slug
-  :access-promoted
   :authors
   :viewers
   :topics
+
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
   "
-  [conn index-key index-value]
+  ([conn index-key index-value] (get-boards-by-index conn index-key index-value []))
+
+  ([conn index-key index-value additional-keys]
   {:pre [(db-common/conn? conn)
-         (string? index-key)]}
-  (db-common/read-resources conn table-name index-key index-value))
+         (or (keyword? index-key) (string? index-key))
+         (sequential? additional-keys)
+         (every? #(or (string? %) (keyword? %)) additional-keys)]}
+
+  (->> (into [primary-key :slug :name] additional-keys)
+    (db-common/read-resources conn table-name index-key index-value)
+    (sort-by "slug")
+    vec)))

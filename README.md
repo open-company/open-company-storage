@@ -257,7 +257,11 @@ Then enter these commands one-by-one, noting the output:
 ;; update an org
 (org/update-org! conn "blank" {:name "Blank.com"})
 
-;; get a board
+;; create some boards
+
+(board/create-board! conn (board/->board "57a0-4934-8fe9" {:name "All Hands"} author))
+(board/create-board! conn (board/->board "57a0-4934-8fe9" {:name "Who-we-are"} author))
+
 (aprint (board/get-board conn (org/uuid-for conn "blank") "default"))
 
 ;; create a board
