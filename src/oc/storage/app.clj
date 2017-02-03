@@ -17,9 +17,9 @@
     [oc.storage.components :as components]
     [oc.storage.config :as c]
     [oc.storage.api.entry-point :as entry-point-api]
-    [oc.storage.api.orgs :as orgs-api]))
-    ; [oc.storae.api.boards :as boards-api]
-    ; [oc.storae.api.entries :as entries-api]
+    [oc.storage.api.orgs :as orgs-api]
+    [oc.storage.api.boards :as boards-api]))
+    ; [oc.storage.api.entries :as entries-api]
     ; [oc.storage.api.updates :as updates-api]
 
 ;; ----- Unhandled Exceptions -----
@@ -44,7 +44,7 @@
     (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
     (entry-point-api/routes sys)
     (orgs-api/routes sys)
-    ; (boards-api/routes sys)
+    (boards-api/routes sys)
     ; (entries-api/routes sys)
     ; (updates-api/routes sys)
     ))

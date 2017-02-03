@@ -27,7 +27,7 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-;; A resource for operations on a particular org
+;; A resource for operations on a particular Org
 (defresource org [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
@@ -48,7 +48,7 @@
   :handle-ok (fn [ctx] (let [org (:existing-org ctx)
                              org-id (:uuid org)
                              boards (board-res/get-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
-                             board-reps (map #(board-rep/render-board-for-collection org-id %) boards)]
+                             board-reps (map #(board-rep/render-board-for-collection slug %) boards)]
                           (org-rep/render-org (assoc org :boards board-reps)))))
 
 ;; ----- Routes -----
