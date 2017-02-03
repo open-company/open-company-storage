@@ -8,15 +8,20 @@
 (def representation-props [:slug :name :access :promoted :update-template
                            :author :created-at :updated-at])
 
+(defun url
+  ([org-slug slug :guard string?] (str "/" org-slug "/" slug))
+  ([org-slug board :guard map?] (url org-slug (:slug board))))
+
+(defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/board-media-type}))
+
 (defn- board-collection-links
   [board org-slug]
-  (assoc board :links []))
+  (assoc board :links [
+    (item-link org-slug (:slug board))]))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
   [org-slug board]
-  (println org-slug)
-  (println board)
   (let [slug (:slug board)]
     (-> board
       (select-keys representation-props)
