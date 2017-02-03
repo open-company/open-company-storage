@@ -258,22 +258,20 @@ Then enter these commands one-by-one, noting the output:
 (org/update-org! conn "blank" {:name "Blank.com"})
 
 ;; create some boards
-
-(board/create-board! conn (board/->board "57a0-4934-8fe9" {:name "All Hands"} author))
-(board/create-board! conn (board/->board "57a0-4934-8fe9" {:name "Who-we-are"} author))
-
-(aprint (board/get-board conn (org/uuid-for conn "blank") "default"))
-
-;; create a board
 (board/create-board! conn
   (board/->board (org/uuid-for conn "blank") {:name "Sales"} author))
 
 (board/create-board! conn
-  (board/->board (org/uuid-for conn "open") {:name "Engineering" :topics [:product :team]} author))
+  (board/->board (org/uuid-for conn "open") {:name "Engineering"} author))
 
 ;; list boards
 (board/list-boards conn (org/uuid-for conn "blank"))
 (board/list-boards conn (org/uuid-for conn "open"))
+
+
+
+
+
 
 ;; create an entry
 (section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
