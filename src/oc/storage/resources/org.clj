@@ -18,6 +18,10 @@
   "Properties of a resource that can't be specified during a create and are ignored during an update."
   #{:team-id :admins})
 
+;; ----- Data Defaults -----
+
+(def default-promoted false)
+
 ;; ----- Utility functions -----
 
 (defn- clean
@@ -70,6 +74,7 @@
         (assoc :team-id (first (:teams user))) ; TODO: how do we decide which auth-id to create the org with?
         (assoc :admins [(:user-id user)])
         (update :currency #(or % "USD"))
+        (update :promoted #(or % default-promoted))
         (assoc :author (common/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))

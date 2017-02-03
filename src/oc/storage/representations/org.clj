@@ -5,7 +5,8 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.representations.media-types :as mt]))
 
-(def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height :created-at :updated-at])
+(def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height
+                           :author :created-at :updated-at])
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))

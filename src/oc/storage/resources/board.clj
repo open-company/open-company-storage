@@ -74,7 +74,6 @@
         (assoc :slug slug)
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
-        (update :promoted #(or % default-promoted))
         (assoc :authors [])
         (assoc :viewers [])
         (update :topics #(or % []))        

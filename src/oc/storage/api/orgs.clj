@@ -8,7 +8,9 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
-            [oc.storage.resources.org :as org-res]))
+            [oc.storage.resources.org :as org-res]
+            [oc.storage.representations.board :as board-rep]
+            [oc.storage.resources.board :as board-res]))
 
 ;; ----- Utility Functions -----
 

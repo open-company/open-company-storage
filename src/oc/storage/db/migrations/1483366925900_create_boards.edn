@@ -12,8 +12,6 @@
   (println (m/create-index conn board/table-name "org-uuid"))
   (println (m/create-compound-index conn board/table-name "slug-org-uuid"
               (r/fn [row] [(r/get-field row "slug") (r/get-field row "org-uuid")])))
-  (println (m/create-compound-index conn board/table-name "access-promoted"
-              (r/fn [row] [(r/get-field row "access") (r/get-field row "promoted")])))
   (println (m/create-index conn board/table-name "authors" {:multi true}))
   (println (m/create-index conn board/table-name "viewers" {:multi true}))
   (println (m/create-index conn board/table-name "topics" {:multi true}))

@@ -85,7 +85,6 @@
   :name lib-schema/NonBlankStr
   :org-uuid lib-schema/UniqueID
   :access AccessLevel
-  :promoted schema/Bool
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
   :topics TopicOrder
@@ -104,6 +103,7 @@
   (schema/optional-key :logo-url) schema/Str
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
+  :promoted schema/Bool
   :admins [lib-schema/UniqueID]
   :author Author
   :created-at lib-schema/ISO8601
