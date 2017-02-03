@@ -119,7 +119,7 @@
     (sort-by :slug)
     vec)))
 
-(defun get-boards-by-org
+(defn get-boards-by-org
   "
   Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
   

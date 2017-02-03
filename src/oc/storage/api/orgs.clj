@@ -45,7 +45,11 @@
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (org-rep/render-org (:existing-org ctx))))
+  :handle-ok (fn [ctx] (let [org (:existing-org ctx)
+                             org-id (:uuid org)
+                             boards (board-res/get-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
+                             board-reps (map #(board-rep/render-board-for-collection org-id %) boards)]
+                          (org-rep/render-org (assoc org :boards board-reps)))))
 
 ;; ----- Routes -----
 

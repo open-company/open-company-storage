@@ -9,13 +9,15 @@
                            :author :created-at :updated-at])
 
 (defn- board-collection-links
-  [board org-id]
+  [board org-slug]
   (assoc board :links []))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
-  [org-id board]
+  [org-slug board]
+  (println org-slug)
+  (println board)
   (let [slug (:slug board)]
     (-> board
       (select-keys representation-props)
-      (board-collection-links org-id))))
+      (board-collection-links org-slug))))
