@@ -29,6 +29,7 @@
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [cheshire "5.7.0"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
     [com.taoensso/timbre "4.8.0"] ; Logging https://github.com/ptaoussanis/timbre
+    [ring-logger-timbre "0.7.5"] ; Ring logging https://github.com/nberger/ring-logger-timbre
     [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.4.1"] ; HTTP client https://github.com/dakrone/clj-http
     [clj-time "0.13.0"] ; Date and time lib https://github.com/clj-time/clj-time
@@ -36,9 +37,9 @@
     [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
-    [amazonica "0.3.85"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
+    [amazonica "0.3.86"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
     [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [open-company/lib "0.5.3-d70a87c"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.5.4-642982a"] ; Library for OC projects https://github.com/open-company/open-company-lib
   ]
 
   ;; All profile plugins
