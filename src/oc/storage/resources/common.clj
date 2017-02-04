@@ -21,7 +21,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:uuid :created-at :updated-at :author :links})
+  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at})
 
 ;; ----- Topic definitions -----
 
@@ -59,7 +59,7 @@
   (merge Author {:updated-at lib-schema/ISO8601}))
 
 (def UpdateEntry {
-  :slug TopicName
+  :topic-slug TopicName
   :title lib-schema/NonBlankStr
   :headline schema/Str
   :body schema/Str

@@ -16,7 +16,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:team-id :admins})
+  #{:team-id :authors})
 
 ;; ----- Data Defaults -----
 

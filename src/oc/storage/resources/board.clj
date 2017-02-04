@@ -17,7 +17,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:org-uuid :authors :viewers})
+  #{:authors :viewers})
 
 ;; ----- Data Defaults -----
 
@@ -96,9 +96,6 @@
          (slug/valid-slug? slug)]}
   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
 
-; filter for archived topics
-;r.db('open_company_dev').table('entries').getAll('1234-1234-1234', {index: 'board-uuid'}).group('topic-slug').max('created-at')
-
 ;; ----- Collection of boards -----
 
 (defn list-boards
@@ -165,3 +162,14 @@
     (db-common/read-resources conn table-name index-key index-value)
     (sort-by "slug")
     vec)))
+
+;; ----- Armageddon -----
+
+(defn delete-all-boards!
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
+  [conn]
+  {:pre [(db-common/conn? conn)]}
+  ;; Delete all udpates, entries, boards and orgs
+  (db-common/delete-all-resources! conn common/update-table-name)
+  (db-common/delete-all-resources! conn common/entry-table-name)
+  (db-common/delete-all-resources! conn table-name))
