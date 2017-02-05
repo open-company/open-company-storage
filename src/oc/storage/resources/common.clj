@@ -25,29 +25,29 @@
 
 ;; ----- Topic definitions -----
 
-(def topic-names "All topic names as a set of keywords" (:topics config/topics))
+(def topic-slugs "All topic slugs as a set of keywords" (:topics config/topics))
 
-(def topics-by-name "All topic templates as a map from their name" (:templates config/topics))
+(def topics-by-slug "All topic templates as a map from their name" (:templates config/topics))
 
-(def custom-topic-name "Regex that matches properly named custom topics" #"^custom-.{4}$")
+(def custom-topic-slug "Regex that matches properly named custom topics" #"^custom-.{4}$")
 
-(defn topic-name? [topic-name]
+(defn topic-slug? [topic-slug]
   (and
-    (or (string? topic-name) (keyword? topic-name))
-    (or (topic-names (keyword topic-name))
-        (re-matches custom-topic-name (name topic-name)))))
+    (or (string? topic-slug) (keyword? topic-slug))
+    (or (topic-slugs (keyword topic-slug))
+        (re-matches custom-topic-slug (name topic-slug)))))
 
 ;; ----- Persistent Data Schemas -----
 
-;; Known topic names and custom topic names
-(def TopicName (schema/pred topic-name?))
+;; Known topic slugs and custom topics
+(def TopicSlug (schema/pred topic-slug?))
 
 (def Slug (schema/pred slug/valid-slug?))
 
 (def TopicOrder
   (schema/pred #(and
     (sequential? %) ; it is sequential
-    (every? topic-name? %) ; everything in it is a topic name
+    (every? topic-slug? %) ; everything in it is a topic name
     (= (count (set %)) (count %))))) ; there are no duplicates
 
 (def Author {
@@ -59,7 +59,7 @@
   (merge Author {:updated-at lib-schema/ISO8601}))
 
 (def UpdateEntry {
-  :topic-slug TopicName
+  :topic-slug TopicSlug
   :title lib-schema/NonBlankStr
   :headline schema/Str
   :body schema/Str

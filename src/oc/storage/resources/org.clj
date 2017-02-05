@@ -93,6 +93,7 @@
   (db-common/read-resource conn table-name slug))
 
 (schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
+  "Given an org slug, return the UUID of the org, or nil if it doesn't exist."
   [conn slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}

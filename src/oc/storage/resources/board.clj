@@ -1,5 +1,6 @@
 (ns oc.storage.resources.board
   (:require [clojure.walk :refer (keywordize-keys)]
+            [defun.core :refer (defun)]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.rethinkdb.common :as db-common]
@@ -106,6 +107,7 @@
   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]]))))
 
 (schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
+  "Given an org slug, and a board slug, return the UUID of the board, or nil if it doesn't exist."
   [conn org-slug slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? org-slug)
@@ -113,29 +115,35 @@
   (when-let [org-uuid (org-res/uuid-for conn org-slug)]
     (:uuid (get-board conn org-uuid slug))))
 
-(defn delete-board!
+(defun delete-board!
   "
   Given the uuid of the org, and slug of the board, delete the board and all its entries, and updates,
   and return `true` on success.
   "
-  [conn org-uuid slug]
+  ([conn board :guard map?]
   {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID org-uuid)
-         (slug/valid-slug? slug)]}
-  (if-let [uuid (:uuid (get-board conn org-uuid slug))]    
-    (do
-      ;; Updates
-      (try
-        (db-common/delete-resource conn common/update-table-name :board-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no updates to delete
-      ;; Entries
-      (try
-        (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
-      ;; The board itself
-      (db-common/delete-resource conn table-name uuid))
-    
-    false)) ; it's OK if there is no board to delete
+         (schema/validate common/Board board)]}
+  (delete-board! conn (:uuid board)))
+
+  ([conn org-uuid :guard string? slug :guard slug/valid-slug?]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UniqueID org-uuid)]}
+  (if-let [uuid (:uuid (get-board conn org-uuid slug))]
+    (delete-board! conn uuid)))
+
+  ([conn uuid :guard string?]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UniqueID uuid)]}
+  ;; Delete updates
+  (try
+    (db-common/delete-resource conn common/update-table-name :board-uuid uuid)
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no updates to delete
+  ;; Delete entries
+  (try
+    (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
+  ;; Delete the board itself
+  (db-common/delete-resource conn table-name uuid)))
 
 ;; ----- Collection of boards -----
 

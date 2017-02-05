@@ -33,13 +33,13 @@
   Take an org UUID, a board UUID, a topic slug, a minimal map describing a Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
   "
-  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicName org-props user :- common/User]
+  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug org-props user :- common/User]
   {:pre [(db-common/conn? conn)
          (map? org-props)]}
   (if-let* [ts (db-common/current-timestamp)
             topic-name (keyword topic-slug)
-            template-props (or (topic-name common/topics-by-name)
-                               (:custom common/topics-by-name))
+            template-props (or (topic-name common/topics-by-slug)
+                               (:custom common/topics-by-slug))
             board (board-res/get-board conn board-uuid)]
     (-> (merge template-props (-> org-props
                                 keywordize-keys
@@ -64,19 +64,22 @@
     (db-common/create-resource conn table-name (assoc entry :author author) ts)))
 
 (schema/defn ^:always-validate get-entry
-  ""
-  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicName created-at :- lib-schema/ISO8601]
+  "
+  Given the UUID of the board, the slug of the topic and the created-at timestamp, retrieve the entry,
+  or return nil if it doesn't exist.
+  "
+  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
   )
 
 (schema/defn ^:always-validate delete-entry!
   "
-  Given the uuid of the org, and slug of the board, delete the board and all its entries, and updates,
+  Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
   and return `true` on success.
   "
   ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:topic-slug entry) (:created-at entry)))
 
-  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicName created-at :- lib-schema/ISO8601]
+  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
   ; TODO delete by index
   ;(db-common/delete-resource conn table-name uuid))
