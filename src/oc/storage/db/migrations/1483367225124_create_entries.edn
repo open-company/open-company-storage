@@ -15,8 +15,8 @@
               (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
   (println (m/create-compound-index conn entry/table-name "topic-slug-org-uuid"
               (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
-  (println (m/create-compound-index conn entry/table-name "topic-slug-board-uuid-org-uuid"
-              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "board-uuid") (r/get-field row "org-uuid")])))
-  (println (m/create-index conn entry/table-name "created-at"))
-
+  (println (m/create-compound-index conn entry/table-name "created-at-topic-slug-board-uuid"
+              (r/fn [row] [(r/get-field row "created-at") (r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "created-at-topic-slug-org-uuid"
+              (r/fn [row] [(r/get-field row "created-at") (r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
   true) ; return true on success

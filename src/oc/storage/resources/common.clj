@@ -25,17 +25,17 @@
 
 ;; ----- Topic definitions -----
 
-(def topics "All possible topic templates as a set" (set (:templates config/topics)))
+(def topic-names "All topic names as a set of keywords" (:topics config/topics))
 
-(def topic-names "All topic names as a set of keywords" (set (map keyword (:topics config/topics))))
-
-(def topics-by-name "All topic templates as a map from their name"
-  (zipmap (map #(keyword (:topic-name %)) (:templates config/topics)) (:templates config/topics)))
+(def topics-by-name "All topic templates as a map from their name" (:templates config/topics))
 
 (def custom-topic-name "Regex that matches properly named custom topics" #"^custom-.{4}$")
 
 (defn topic-name? [topic-name]
-  (or (topic-names (keyword topic-name)) (re-matches custom-topic-name (name topic-name))))
+  (and
+    (or (string? topic-name) (keyword? topic-name))
+    (or (topic-names (keyword topic-name))
+        (re-matches custom-topic-name (name topic-name)))))
 
 ;; ----- Persistent Data Schemas -----
 
@@ -74,7 +74,8 @@
 
 (def Entry
   (merge UpdateEntry {
-    :board-slug lib-schema/NonBlankStr
+    :org-uuid lib-schema/UniqueID
+    :board-uuid lib-schema/UniqueID
     :body-placeholder lib-schema/NonBlankStr}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))

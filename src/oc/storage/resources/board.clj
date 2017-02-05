@@ -4,7 +4,8 @@
             [oc.lib.slugify :as slug]
             [oc.lib.rethinkdb.common :as db-common]
             [oc.lib.schema :as lib-schema]
-            [oc.storage.resources.common :as common]))
+            [oc.storage.resources.common :as common]
+            [oc.storage.resources.org :as org-res]))
 
 ;; ----- RethinkDB metadata -----
 
@@ -89,12 +90,52 @@
   (db-common/create-resource conn table-name board (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-board :- (schema/maybe common/Board)
-  "Given the uuid of the org and slug of the board, retrieve the dasdboard, or return nil if it doesn't exist."
+  "
+  Given the uuid of the board, or the uuid of the org and slug of the board, retrieve the board,
+  or return nil if it doesn't exist.
+  "
+  ([conn uuid]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UniqueID uuid)]}
+  (db-common/read-resource conn table-name uuid))
+
+  ([conn org-uuid slug]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UniqueID org-uuid)
+         (slug/valid-slug? slug)]}
+  (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]]))))
+
+(schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
+  [conn org-slug slug]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? org-slug)
+         (slug/valid-slug? slug)]}
+  (when-let [org-uuid (org-res/uuid-for conn org-slug)]
+    (:uuid (get-board conn org-uuid slug))))
+
+(defn delete-board!
+  "
+  Given the uuid of the org, and slug of the board, delete the board and all its entries, and updates,
+  and return `true` on success.
+  "
   [conn org-uuid slug]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)]}
-  (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
+  (if-let [uuid (:uuid (get-board conn org-uuid slug))]    
+    (do
+      ;; Updates
+      (try
+        (db-common/delete-resource conn common/update-table-name :board-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; it's OK if there are no updates to delete
+      ;; Entries
+      (try
+        (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
+      ;; The board itself
+      (db-common/delete-resource conn table-name uuid))
+    
+    false)) ; it's OK if there is no board to delete
 
 ;; ----- Collection of boards -----
 

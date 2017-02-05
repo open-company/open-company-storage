@@ -265,15 +265,25 @@ Then enter these commands one-by-one, noting the output:
   (board/->board (org/uuid-for conn "open") {:name "Engineering"} author))
 
 ;; list boards
-(board/list-boards conn (org/uuid-for conn "blank"))
-(board/list-boards conn (org/uuid-for conn "open"))
+(board/get-boards-by-org conn (org/uuid-for conn "blank"))
+(board/get-boards-by-org conn (org/uuid-for conn "open"))
+
+;; create some entries
+(entry/create-entry! conn
+  (entry/->entry conn (board/uuid-for conn "blank" "sales") :team {:headline "Now hiring blank people."} author))
+
+(entry/create-entry! conn
+  (entry/->entry conn (board/uuid-for conn "open" "engineering") :update {:headline "It's all good."} author))
+
+(entry/create-entry! conn
+  (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:body "Hiring Clojure talent."} author))
+
+(entry/create-entry! conn
+  (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:body "Hiring ClojureScript talent."} author))
 
 
 
 
-
-
-;; create an entry
 (section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
 
 ;; add additional entries to the section
