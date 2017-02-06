@@ -131,8 +131,7 @@
          (map? board)]}
   (if-let [original-board (get-board conn uuid)]
     (let [updated-board (merge original-board (clean board))]
-      ;; (schema/validate updated-org common/Org)
-      ;; Even: (schema/validate original-org common/Org) doesn't work here!
+      (schema/validate common/Board updated-board)
       (db-common/update-resource conn table-name primary-key original-board updated-board))))
 
 (defun delete-board!

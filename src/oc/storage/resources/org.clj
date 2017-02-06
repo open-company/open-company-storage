@@ -115,9 +115,7 @@
          (map? org)]}
   (if-let [original-org (get-org conn slug)]
     (let [updated-org (merge original-org (clean org))]
-      ;; TODO Why is this not working?
-      ;; (schema/validate updated-org common/Org)
-      ;; Even: (schema/validate original-org common/Org) doesn't work here!
+      (schema/validate common/Org updated-org)
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
 
 (schema/defn ^:always-validate put-org! :- common/Org
