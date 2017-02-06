@@ -99,11 +99,11 @@
          (slug/valid-slug? slug)]}
   (:uuid (get-org conn slug)))
 
-(schema/defn ^:always-validate update-org! :- common/Org
+(schema/defn ^:always-validate update-org! :- (schema/maybe common/Org)
   "
-  Given an updated org property map, update the org and return the updated org on success.
+  Given the slug of the org and an updated org property map, update the org and return the updated org on success.
 
-  Throws a runtime exception if the merge of the prior org and the updated org property map doesn't conform
+  Throws an exception if the merge of the prior org and the updated org property map doesn't conform
   to the common/Org schema.
   
   NOTE: doesn't update admins, see: `add-admin`, `remove-admin`

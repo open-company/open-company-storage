@@ -115,6 +115,26 @@
   (when-let [org-uuid (org-res/uuid-for conn org-slug)]
     (:uuid (get-board conn org-uuid slug))))
 
+(schema/defn ^:always-validate update-board! :- (schema/maybe common/Board)
+  "
+  Given the board UUID and an updated board property map, update the board and return the updated board on success.
+
+  Throws an exception if the merge of the prior board and the updated board property map doesn't conform
+  to the common/Org schema.
+  
+  NOTE: doesn't update authors, see: `add-author`, `remove-author`
+  NOTE: doesn't update viewers, see: `add-viewer`, `remove-viewer`
+  NOTE: doesn't handle case of slug change.
+  "
+  [conn uuid :- lib-schema/UniqueID board]
+  {:pre [(db-common/conn? conn)
+         (map? board)]}
+  (if-let [original-board (get-board conn uuid)]
+    (let [updated-board (merge original-board (clean board))]
+      ;; (schema/validate updated-org common/Org)
+      ;; Even: (schema/validate original-org common/Org) doesn't work here!
+      (db-common/update-resource conn table-name primary-key original-board updated-board))))
+
 (defun delete-board!
   "
   Given the uuid of the org, and slug of the board, delete the board and all its entries, and updates,

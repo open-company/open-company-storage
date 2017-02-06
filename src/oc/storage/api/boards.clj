@@ -10,7 +10,8 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.resources.org :as org-res]
             [oc.storage.representations.board :as board-rep]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- Utility Functions -----
 
@@ -41,8 +42,10 @@
   :allowed? (fn [ctx] (allow-team-members conn (:user ctx) org-slug)) ; TODO filter out private boards
 
   :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
-                               board (board-res/get-board conn (:uuid org) slug)]
-                        {:existing-org org :existing-board board}
+                               board (board-res/get-board conn (:uuid org) slug)
+                               entries (entry-res/get-entries-by-board conn (:uuid board))
+                               selected-entries (select-keys entries (map name (:topics board)))] ; exclude archived entries
+                        {:existing-org org :existing-board (merge board selected-entries)}
                         false))
 
   ;; Responses

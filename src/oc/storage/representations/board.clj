@@ -4,9 +4,10 @@
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]))
+            [oc.storage.representations.org :as org-rep]
+            [oc.storage.resources.common :as common]))
 
-(def representation-props [:slug :name :access :promoted :update-template
+(def representation-props [:slug :name :access :promoted :topics :update-template
                            :author :created-at :updated-at])
 
 (defun url
@@ -18,6 +19,11 @@
 (defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/board-media-type}))
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
+
+(defn- select-topics
+  "Get all the keys that represent topics in the board and merge the resulting map into the result."
+  [result board]
+  (merge result (select-keys board (filter common/topic-slug? (keys board)))))
 
 (defn- board-collection-links
   [board org-slug]
@@ -42,10 +48,9 @@
 (defn render-board
   "Create a JSON representation of the board for the REST API"
   [org-slug board]
-  (println org-slug)
-  (println board)
   (json/generate-string
     (-> board
       (select-keys representation-props)
+      (select-topics board)
       (board-links org-slug))
     {:pretty true}))
