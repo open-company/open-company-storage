@@ -3,7 +3,7 @@
             [defun.core :refer (defun)]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
-            [oc.lib.rethinkdb.common :as db-common]
+            [oc.lib.db.common :as db-common]
             [oc.lib.schema :as lib-schema]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]))

@@ -1,5 +1,5 @@
 (ns open-company.lib.db
-  (:require [oc.lib.rethinkdb.pool :as pool]
+  (:require [oc.lib.db.pool :as pool]
             [clj-time.core :as t]
             [clj-time.format :as f]
             [open-company.config :as config]

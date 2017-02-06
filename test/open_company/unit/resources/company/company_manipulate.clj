@@ -1,6 +1,6 @@
 (ns open-company.unit.resources.company.company-manipulate
   (:require [midje.sweet :refer :all]
-            [oc.lib.rethinkdb.pool :as pool]
+            [oc.lib.db.pool :as pool]
             [open-company.lib.test-setup :as ts]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]

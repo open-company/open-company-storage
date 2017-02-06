@@ -1,6 +1,6 @@
 (ns oc.storage.db.migrations.create-orgs
   (:require [rethinkdb.query :as r]
-            [oc.lib.rethinkdb.migrations :as m]
+            [oc.lib.db.migrations :as m]
             [oc.storage.config :as c]
             [oc.storage.resources.org :as org]))
 

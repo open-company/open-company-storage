@@ -4,7 +4,7 @@
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
             [liberator.core :refer (defresource by-method)]
-            [oc.lib.rethinkdb.pool :as pool]
+            [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]

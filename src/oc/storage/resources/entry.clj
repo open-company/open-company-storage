@@ -3,7 +3,7 @@
             [if-let.core :refer (if-let*)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
-            [oc.lib.rethinkdb.common :as db-common]
+            [oc.lib.db.common :as db-common]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
@@ -87,17 +87,18 @@
 
 ;; ----- Collection of entries -----
 
-(defn get-entries-by-topic
-  ""
-  [conn board-uuid topic-slug]
-  )
+(schema/defn ^:always-validate get-entries-by-topic
+  "Given the UUID of the board, and a topic slug, return all the entries for the topic slug, ordered by `created-at`."
+  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug]
+  {:pre [(db-common/conn? conn)]}
+  (vec (sort-by :created-at
+    (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
 
-(defn get-entries-by-board
-  ""
-  [conn board-uuid]
-  ;r.db('open_company_dev').table('entries').getAll('1234-1234-1234', {index: 'board-uuid'}).group('topic-slug').max('created-at')
-  ; filter for archived topics
-  )
+(schema/defn ^:always-validate get-entries-by-board
+  "Given the UUID of the board, return the latest entry (by :created-at) for each topic."
+  [conn board-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-in-group conn table-name :board-uuid board-uuid :topic-slug :created-at))
 
 ;; ----- Armageddon -----
 

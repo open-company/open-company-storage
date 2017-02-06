@@ -4,7 +4,7 @@
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
-            [oc.lib.rethinkdb.common :as db-common]
+            [oc.lib.db.common :as db-common]
             [oc.storage.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----

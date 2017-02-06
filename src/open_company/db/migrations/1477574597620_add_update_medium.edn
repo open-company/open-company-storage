@@ -1,6 +1,6 @@
 (ns open-company.db.migrations.add-update-medium
   (:require [rethinkdb.query :as r]
-            [oc.lib.rethinkdb.migrations :as m]))
+            [oc.lib.db.migrations :as m]))
 
 (defn up [conn]
   (-> (r/table "stakeholder_updates")

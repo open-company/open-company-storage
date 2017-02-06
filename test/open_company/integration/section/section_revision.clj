@@ -5,7 +5,7 @@
             [open-company.lib.rest-api-mock :as mock]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
-            [oc.lib.rethinkdb.pool :as pool]
+            [oc.lib.db.pool :as pool]
             [open-company.lib.test-setup :as ts]
             [open-company.api.common :as common]
             [open-company.resources.company :as c]

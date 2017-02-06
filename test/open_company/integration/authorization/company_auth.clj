@@ -2,7 +2,7 @@
   "Authorization tests for the company API."
   (:require [midje.sweet :refer :all]
             [open-company.lib.test-setup :as ts]
-            [oc.lib.rethinkdb.pool :as pool]
+            [oc.lib.db.pool :as pool]
             [open-company.lib.resources :as r]
             [oc.lib.slugify :refer (slugify)]
             [open-company.lib.rest-api-mock :as mock]

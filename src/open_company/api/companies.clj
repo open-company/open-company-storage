@@ -3,7 +3,7 @@
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [open-company.config :as config]
-            [oc.lib.rethinkdb.pool :as pool]
+            [oc.lib.db.pool :as pool]
             [oc.lib.slugify :as slug]
             [open-company.lib.bot :as bot]
             [open-company.api.common :as common]

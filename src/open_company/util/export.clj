@@ -8,7 +8,7 @@
   "
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
-            [oc.lib.rethinkdb.pool :as db]
+            [oc.lib.db.pool :as db]
             [open-company.resources.common :as common]
             [open-company.resources.company :as company]
             [open-company.config :as c]

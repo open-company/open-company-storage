@@ -4,7 +4,7 @@
             [open-company.lib.hateoas :as hateoas]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
-            [oc.lib.rethinkdb.pool :as pool]
+            [oc.lib.db.pool :as pool]
             [open-company.lib.test-setup :as ts]
             [oc.lib.slugify :refer (slugify)]
             [open-company.api.common :as common]

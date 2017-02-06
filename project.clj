@@ -14,37 +14,39 @@
   ;; All profile dependencies
   :dependencies [
     [org.clojure/clojure "1.9.0-alpha14"] ; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/core.match "0.3.0-alpha4"] ; Erlang-esque pattern matching https://github.com/clojure/core.match
-    [org.clojure/core.async "0.2.395"] ; Async programming and communication https://github.com/clojure/core.async
-    [defun "0.3.0-RC1"] ; Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
-    [lockedon/if-let "0.1.0"] ; More than one binding for if/when macros https://github.com/LockedOn/if-let
     [ring/ring-devel "1.6.0-beta7"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.0-beta7"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [http-kit "2.3.0-alpha1"] ; Web server http://http-kit.org/
     [compojure "1.6.0-beta3"] ; Web routing https://github.com/weavejester/compojure
-    [liberator "0.14.1"] ; WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
-    [com.apa512/rethinkdb "0.15.26"] ; RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
-    [cheshire "5.7.0"] ; JSON encoding / decoding https://github.com/dakrone/cheshire
-    [com.taoensso/timbre "4.8.0"] ; Logging https://github.com/ptaoussanis/timbre
     [ring-logger-timbre "0.7.5"] ; Ring logging https://github.com/nberger/ring-logger-timbre
-    [raven-clj "1.5.0"] ; Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     [clj-http "3.4.1"] ; HTTP client https://github.com/dakrone/clj-http
-    [clj-time "0.13.0"] ; Date and time lib https://github.com/clj-time/clj-time
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
-    [clj-jwt "0.1.1"] ; Library for JSON Web Token (JWT) https://github.com/liquidz/clj-jwt
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
-    [com.stuartsierra/component "0.3.2"] ; Component Lifecycle
-    [amazonica "0.3.86"] ; A comprehensive Clojure client for the entire Amazon AWS api https://github.com/mcohen01/amazonica
     [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [open-company/lib "0.5.4-642982a"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    
+    [open-company/lib "0.6.0-dd600f9"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    ; In addition to common functions, brings in the following common dependencies used by this project:
+    ; core.async - Async programming and communication https://github.com/clojure/core.async
+    ; core.match - Erlang-esque pattern matching https://github.com/clojure/core.match
+    ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
+    ; if-let - More than one binding for if/when macros https://github.com/LockedOn/if-let
+    ; Component - Component Lifecycle https://github.com/stuartsierra/component
+    ; Liberator - WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
+    ; RethinkDB - RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    ; Timbre - Pure Clojure/Script logging library https://github.com/ptaoussanis/timbre
+    ; Amazonica - A comprehensive Clojure client for the AWS API. https://github.com/mcohen01/amazonica
+    ; Raven - Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
+    ; Cheshire - JSON encoding / decoding https://github.com/dakrone/cheshire
+    ; clj-jwt - A Clojure library for JSON Web Token(JWT) https://github.com/liquidz/clj-jwt
+    ; clj-time - Date and time lib https://github.com/clj-time/clj-time
   ]
 
   ;; All profile plugins
   :plugins [
-    [lein-ring "0.10.0"] ; Common ring tasks https://github.com/weavejester/lein-ring
+    [lein-ring "0.11.0"] ; Common ring tasks https://github.com/weavejester/lein-ring
     [lein-environ "1.1.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
   ]
 
@@ -111,7 +113,7 @@
                  '[ring.mock.request :refer (request body content-type header)]
                  ; '[open-company.lib.rest-api-mock :refer (api-request)]
                  '[oc.lib.jwt :as jwt]
-                 '[oc.lib.rethinkdb.common :as db-common]
+                 '[oc.lib.db.common :as db-common]
                  '[oc.lib.slugify :as slug]
                  '[oc.storage.app :refer (app)]
                  '[oc.storage.config :as config]

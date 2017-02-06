@@ -6,7 +6,7 @@
               [open-company.lib.resources :as r]
               [open-company.lib.test-setup :as ts]
               [open-company.lib.hateoas :as hateoas]
-              [oc.lib.rethinkdb.pool :as pool]
+              [oc.lib.db.pool :as pool]
               [open-company.resources.company :as company]
               [open-company.representations.common :refer (PUT)]
               [open-company.representations.company :as company-rep]
