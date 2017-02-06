@@ -7,7 +7,7 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.common :as common]))
 
-(def representation-props [:slug :name :access :promoted :topics :update-template
+(def representation-props [:slug :name :access :promoted :topics :archived :update-template
                            :author :created-at :updated-at])
 
 (defun url
