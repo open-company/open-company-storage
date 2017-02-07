@@ -1,14 +1,21 @@
-{:company {:created-at "2016-12-28T13:23:48.771Z",
-           :currency "USD",
-           :logo "",
-           :name "Blank",
-           :org-id "slack-T06SBMH60",
-           :promoted false,
-           :public false,
-           :sections [],
-           :slug "blank",
-           :stakeholder-update {:sections [], :title ""},
-           :updated-at "2016-12-28T13:23:48.816Z",
-           :uuid "b87cc399-8562-494d-b98d-33e26c146f0d"},
- :sections [],
- :updates []}
+{
+  :slug "blank"
+  :name "Blank"
+  :team-id "1234-abcd-1234"
+  :currency "USD"
+  :logo-url ""
+  :promoted false
+
+  :author {
+    :avatar-url "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg"
+    :name "Stuart Levinson"
+    :user-id "1234-5678-1234"
+  }
+
+  :boards [
+    {
+      :name "Default" 
+      :topics []
+    }
+  ]
+}

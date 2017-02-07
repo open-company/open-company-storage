@@ -1,0 +1,449 @@
+{:company
+   {:challenges
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-07-28T17:55:36.642Z",
+           :user-id "78901"}],
+       :body
+         "<p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>",
+       :body-placeholder
+         "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?",
+       :created-at "2016-07-28T17:55:36.642Z",
+       :description "Challenges facing the company",
+       :headline "Recruiting; maintaining growth are focus areas",
+       :image-height 348,
+       :image-url "https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN",
+       :image-width 462,
+       :title "Key Challenges",
+       :updated-at "2016-07-28T17:55:36.642Z"},
+    :created-at "2016-12-28T13:23:52.635Z",
+    :currency "USD",
+    :custom-89de
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-07-28T18:05:09.308Z",
+           :user-id "78901"}],
+       :body
+         "<ul><li>Total Revenue $83K<br></li><li>MRR: $79K</li><li>MRR Bookings $12.5K (goal $12K)</li><li>Revenue Churn: 4.2% (goal 3%)</li></ul>",
+       :body-placeholder "What would you like to say about this?",
+       :created-at "2016-07-28T18:05:09.308Z",
+       :description "Custom topic",
+       :headline "July 2016",
+       :image-height 0,
+       :image-url nil,
+       :image-width 0,
+       :title "KPI's",
+       :updated-at "2016-07-28T18:05:09.308Z"},
+    :finances
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-08-24T16:20:11.411Z",
+           :user-id "78901"}],
+       :body
+         "<p>Though monthly expenses have been kept in check, we expect to ramp up marketing expenses in the fall to pursue a higher rate of growth.</p><p>Our cash runway is growing because of the revenue, but we are still planning a capital raise in early 2017 so we can grow the team more quickly.</p>",
+       :body-placeholder
+         "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+       :created-at "2016-08-24T16:20:11.411Z",
+       :data [{:cash 967500, :costs 89000, :period "2016-05", :revenue 58500}
+              {:cash 878500, :costs 96500, :period "2016-06", :revenue 74000}
+              {:cash 784000, :costs 94000, :period "2016-07", :revenue 83000}],
+       :description "Cash on hand, burn and runway",
+       :headline "Revenue rising, expenses steady&nbsp;⚖",
+       :image-height 0,
+       :image-url nil,
+       :image-width 0,
+       :title "Finances",
+       :updated-at "2016-08-24T16:20:11.411Z"},
+    :growth
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-08-24T16:44:10.331Z",
+           :user-id "78901"}],
+       :body
+         "<p>The past two years have seen the greatest increase in lab work assigned to robots, but this is the first time the 20% threshold has been breached.</p><p>Automation is expected to handle up to 80% within five years.</p>",
+       :body-placeholder
+         "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
+       :created-at "2016-08-24T16:44:10.331Z",
+       :data [{:period "2016-04", :slug "reliability", :value 7}
+              {:period "2016-05", :slug "reliability", :value 7}
+              {:period "2016-06", :slug "reliability", :value 11}
+              {:period "2016-07", :slug "reliability", :value 22}
+              {:period "2016-04", :slug "automated", :value 18}
+              {:period "2016-05", :slug "automated", :value 19.3}
+              {:period "2016-06", :slug "automated", :value 19.7}
+              {:period "2016-07", :slug "automated", :value 20.2}],
+       :description "Growth metrics and key performance indicators",
+       :headline "Automated Lab Work Tops 20%",
+       :image-height 0,
+       :image-url nil,
+       :image-width 0,
+       :intervals ["weekly" "monthly" "quarterly"],
+       :metrics
+         [{:description "Percentage of Lab Work Handled By Robots",
+           :interval "monthly",
+           :name "% Automated",
+           :slug "automated",
+           :unit "%"}
+          {:description "Number of Lab Tests We Can Handle Automatically",
+           :interval "monthly",
+           :name "Lab Tests",
+           :slug "reliability",
+           :unit "number"}],
+       :prompt
+         "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
+       :title "Key Metrics",
+       :units [{:name "Currency", :unit "currency"}
+               {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
+       :updated-at "2016-08-24T16:44:10.331Z"},
+    :help
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-07-28T18:07:42.845Z",
+           :user-id "78901"}],
+       :body
+         "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>",
+       :body-placeholder
+         "Where do you need the most help from your team and investors?",
+       :created-at "2016-07-28T18:07:42.845Z",
+       :description "Ask your company stakeholders for help and ideas",
+       :headline "New Office Space, Key Hires",
+       :image-height 0,
+       :image-url nil,
+       :image-width 0,
+       :title "How You Can Help",
+       :updated-at "2016-07-28T18:07:42.845Z"},
+    :highlights
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-07-28T18:14:24.985Z",
+           :user-id "78901"}],
+       :body
+         "<p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>",
+       :body-placeholder
+         "What new milestones or accomplishments are you most proud of?",
+       :created-at "2016-07-28T18:14:24.985Z",
+       :description "Company milestones and accomplishments",
+       :headline "GreenLabs featured in Slate!",
+       :image-height 842,
+       :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r",
+       :image-width 1180,
+       :title "Highlights",
+       :updated-at "2016-07-28T18:14:24.985Z"},
+    :logo "https://open-company-assets.s3.amazonaws.com/green-labs.png",
+    :name "GreenLabs",
+    :org-id "slack-T06SBMH60",
+    :promoted true,
+    :public true,
+    :sections ["update" "highlights" "team" "challenges" "custom-89de" "help"
+               "finances" "growth"],
+    :slug "green-labs",
+    :stakeholder-update {:sections ["update" "highlights" "custom-89de" "growth"
+                                    "finances" "challenges" "team" "help"],
+                         :title ""},
+    :team
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-07-28T18:02:07.397Z",
+           :user-id "78901"}],
+       :body
+         "\n          <p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>\n          <p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>",
+       :body-placeholder
+         "Welcome new hires, discuss open positions, and let everyone know about other team changes.",
+       :created-at "2016-07-28T18:02:07.397Z",
+       :description "Team and hiring update",
+       :headline "Welcome!",
+       :image-height 0,
+       :image-url nil,
+       :image-width 0,
+       :title "Team and Hiring",
+       :updated-at "2016-07-28T18:02:07.397Z"},
+    :update
+      {:author
+         [{:image
+             "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+           :name "Stuart Levinson",
+           :updated-at "2016-07-28T18:25:03.085Z",
+           :user-id "78901"}],
+       :body
+         "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>",
+       :body-placeholder
+         "A quick take on what's happened since the last update.",
+       :created-at "2016-07-28T18:25:03.085Z",
+       :description "Company update",
+       :headline "Passing $1M in ARR ↗ 💸",
+       :image-height 0,
+       :image-url nil,
+       :image-width 0,
+       :title "CEO Update",
+       :updated-at "2016-07-28T18:25:03.085Z"},
+    :updated-at "2016-12-28T13:23:53.440Z",
+    :uuid "cf2463b1-2c8d-4e99-ba44-3d644efb41cf"},
+ :sections
+   [{:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-07-28T18:14:24.985Z",
+         :user-id "78901"}],
+     :body
+       "<p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>",
+     :body-placeholder
+       "What new milestones or accomplishments are you most proud of?",
+     :company-slug "green-labs",
+     :created-at "2016-07-28T18:14:24.985Z",
+     :description "Company milestones and accomplishments",
+     :headline "GreenLabs featured in Slate!",
+     :id "0470f632-9d9e-42a5-b7e7-10ed56361145",
+     :image-height 842,
+     :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r",
+     :image-width 1180,
+     :section-name "highlights",
+     :title "Highlights",
+     :updated-at "2016-07-28T18:14:24.985Z"}
+    {:author
+       [{:image
+           "https://secure.gravatar.com/avatar/f5b8fc1affa266c8072068f811f63e04.jpg?s=192&d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F7fa9%2Fimg%2Favatars%2Fava_0020-192.png",
+         :name "Sean Johnson",
+         :updated-at "2016-06-29T18:05:09.308Z",
+         :user-id "123456"}],
+     :body
+       "<ul><li>Total Revenue $75K<br></li><li>MRR: $74K</li><li>MRR Bookings $10.5K (goal $12K)</li><li>Revenue Churn: 4.1% (goal 3%)</li></ul>",
+     :body-placeholder "What would you like to say about this?",
+     :company-slug "green-labs",
+     :created-at "2016-06-29T18:05:09.308Z",
+     :description "Custom topic",
+     :headline "June is Done",
+     :id "902e01a3-c920-44e7-9e08-8409737cdc08",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "custom-89de",
+     :title "KPI's",
+     :updated-at "2016-06-29T18:05:09.308Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-07-28T18:05:09.308Z",
+         :user-id "78901"}],
+     :body
+       "<ul><li>Total Revenue $83K<br></li><li>MRR: $79K</li><li>MRR Bookings $12.5K (goal $12K)</li><li>Revenue Churn: 4.2% (goal 3%)</li></ul>",
+     :body-placeholder "What would you like to say about this?",
+     :company-slug "green-labs",
+     :created-at "2016-07-28T18:05:09.308Z",
+     :description "Custom topic",
+     :headline "July 2016",
+     :id "e9226d72-0938-4122-93ce-f2eb5f3de42c",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "custom-89de",
+     :title "KPI's",
+     :updated-at "2016-07-28T18:05:09.308Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-08-24T16:20:11.411Z",
+         :user-id "78901"}],
+     :body
+       "<p>Though monthly expenses have been kept in check, we expect to ramp up marketing expenses in the fall to pursue a higher rate of growth.</p><p>Our cash runway is growing because of the revenue, but we are still planning a capital raise in early 2017 so we can grow the team more quickly.</p>",
+     :body-placeholder
+       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
+     :company-slug "green-labs",
+     :created-at "2016-08-24T16:20:11.411Z",
+     :data [{:cash 967500, :costs 89000, :period "2016-05", :revenue 58500}
+            {:cash 878500, :costs 96500, :period "2016-06", :revenue 74000}
+            {:cash 784000, :costs 94000, :period "2016-07", :revenue 83000}],
+     :description "Cash on hand, burn and runway",
+     :headline "Revenue rising, expenses steady&nbsp;⚖",
+     :id "63f26acc-404e-4e6c-bd47-be4c28447450",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "finances",
+     :title "Finances",
+     :updated-at "2016-08-24T16:20:11.411Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-07-28T18:25:03.085Z",
+         :user-id "78901"}],
+     :body
+       "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>",
+     :body-placeholder "A quick take on what's happened since the last update.",
+     :company-slug "green-labs",
+     :created-at "2016-07-28T18:25:03.085Z",
+     :description "Company update",
+     :headline "Passing $1M in ARR ↗ 💸",
+     :id "146f20af-a3c5-46df-92ac-9d24c5edd9be",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "update",
+     :title "CEO Update",
+     :updated-at "2016-07-28T18:25:03.085Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-07-28T18:07:42.845Z",
+         :user-id "78901"}],
+     :body
+       "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>",
+     :body-placeholder
+       "Where do you need the most help from your team and investors?",
+     :company-slug "green-labs",
+     :created-at "2016-07-28T18:07:42.845Z",
+     :description "Ask your company stakeholders for help and ideas",
+     :headline "New Office Space, Key Hires",
+     :id "14cf3792-0db9-42bf-9700-cb0ab040048c",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "help",
+     :title "How You Can Help",
+     :updated-at "2016-07-28T18:07:42.845Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-06-28T18:25:03.085Z",
+         :user-id "78901"}],
+     :body
+       "\n          <p>We're looking for 5 new hires in engineering, a senior dev-ops engineer and 4 junior developers for dev and QA roles.</p>\n          <p>To help fill these roles, we've annouced a $5k referral bonus, payable 90 days after the new hires start date. If you\n          know people we should be recruiting, let Jennifer know immediately!</p>",
+     :body-placeholder "A quick take on what's happened since the last update.",
+     :company-slug "green-labs",
+     :created-at "2016-06-28T18:25:03.085Z",
+     :description "Company update",
+     :headline "Big Hiring Push",
+     :id "a5ccc9f6-b089-4142-b792-8642b32dfad1",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "update",
+     :title "CEO Update",
+     :updated-at "2016-06-28T18:25:03.085Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-08-24T16:44:10.331Z",
+         :user-id "78901"}],
+     :body
+       "<p>The past two years have seen the greatest increase in lab work assigned to robots, but this is the first time the 20% threshold has been breached.</p><p>Automation is expected to handle up to 80% within five years.</p>",
+     :body-placeholder
+       "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
+     :company-slug "green-labs",
+     :created-at "2016-08-24T16:44:10.331Z",
+     :data [{:period "2016-04", :slug "reliability", :value 7}
+            {:period "2016-05", :slug "reliability", :value 7}
+            {:period "2016-06", :slug "reliability", :value 11}
+            {:period "2016-07", :slug "reliability", :value 22}
+            {:period "2016-04", :slug "automated", :value 18}
+            {:period "2016-05", :slug "automated", :value 19.3}
+            {:period "2016-06", :slug "automated", :value 19.7}
+            {:period "2016-07", :slug "automated", :value 20.2}],
+     :description "Growth metrics and key performance indicators",
+     :headline "Automated Lab Work Tops 20%",
+     :id "1542f737-8c5d-4758-856b-8c62ceb7f731",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :intervals ["weekly" "monthly" "quarterly"],
+     :metrics
+       [{:description "Percentage of Lab Work Handled By Robots",
+         :interval "monthly",
+         :name "% Automated",
+         :slug "automated",
+         :unit "%"}
+        {:description "Number of Lab Tests We Can Handle Automatically",
+         :interval "monthly",
+         :name "Lab Tests",
+         :slug "reliability",
+         :unit "number"}],
+     :prompt
+       "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
+     :section-name "growth",
+     :title "Key Metrics",
+     :units [{:name "Currency", :unit "currency"}
+             {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
+     :updated-at "2016-08-24T16:44:10.331Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-07-28T17:55:36.642Z",
+         :user-id "78901"}],
+     :body
+       "<p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>",
+     :body-placeholder
+       "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?",
+     :company-slug "green-labs",
+     :created-at "2016-07-28T17:55:36.642Z",
+     :description "Challenges facing the company",
+     :headline "Recruiting; maintaining growth are focus areas",
+     :id "aca9c678-e72f-4fcb-8df0-63e8c9be6a24",
+     :image-height 348,
+     :image-url "https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN",
+     :image-width 462,
+     :section-name "challenges",
+     :title "Key Challenges",
+     :updated-at "2016-07-28T17:55:36.642Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-06-17T18:25:03.085Z",
+         :user-id "78901"}],
+     :body
+       "\n          <p>Super excited to be trying out OpenCompany for our team and investor updates.</p>\n          <p>Ping me on Slack and let me know what kind of things we should be providing more information about.</p>",
+     :body-placeholder "A quick take on what's happened since the last update.",
+     :company-slug "green-labs",
+     :created-at "2016-06-17T18:25:03.085Z",
+     :description "Company update",
+     :headline "Transparency FTW! 🔎",
+     :id "e2788fe5-bc8a-4507-a6e1-4f84e680dd67",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "update",
+     :title "CEO Update",
+     :updated-at "2016-06-17T18:25:03.085Z"}
+    {:author
+       [{:image
+           "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg",
+         :name "Stuart Levinson",
+         :updated-at "2016-07-28T18:02:07.397Z",
+         :user-id "78901"}],
+     :body
+       "\n          <p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>\n          <p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>",
+     :body-placeholder
+       "Welcome new hires, discuss open positions, and let everyone know about other team changes.",
+     :company-slug "green-labs",
+     :created-at "2016-07-28T18:02:07.397Z",
+     :description "Team and hiring update",
+     :headline "Welcome!",
+     :id "f4589752-384f-4187-8435-d64890a91bea",
+     :image-height 0,
+     :image-url nil,
+     :image-width 0,
+     :section-name "team",
+     :title "Team and Hiring",
+     :updated-at "2016-07-28T18:02:07.397Z"}],
+ :updates []}

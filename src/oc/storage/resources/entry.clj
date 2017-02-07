@@ -33,19 +33,19 @@
   Take an org UUID, a board UUID, a topic slug, a minimal map describing a Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
   "
-  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug org-props user :- common/User]
+  [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug org-props user :- common/User]
   {:pre [(db-common/conn? conn)
          (map? org-props)]}
   (if-let* [ts (db-common/current-timestamp)
-            topic-name (keyword topic-slug)
-            template-props (or (topic-name common/topics-by-slug)
+            topic-slug (keyword slug)
+            template-props (or (topic-slug common/topics-by-slug)
                                (:custom common/topics-by-slug))
             board (board-res/get-board conn board-uuid)]
     (-> (merge template-props (-> org-props
                                 keywordize-keys
                                 clean))
         (dissoc :description :slug)
-        (assoc :topic-slug topic-name)
+        (assoc :topic-slug topic-slug)
         (update :title #(or % (:title template-props)))
         (update :headline #(or % ""))
         (update :body #(or % ""))
