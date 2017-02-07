@@ -10,6 +10,7 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.resources.org :as org-res]
             [oc.storage.representations.board :as board-rep]
+            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]))
 
@@ -46,8 +47,9 @@
                                topic-slugs (map name (:topics board)) ; slug for each active topic
                                entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
                                selected-entries (select-keys entries topic-slugs) ; active entries
+                               selected-entry-reps (zipmap topic-slugs (map #(entry-rep/render-entry-for-collection org-slug slug (get selected-entries %)) topic-slugs))
                                archived (clojure.set/difference (set (keys entries)) (set topic-slugs))] ; archived entries
-                        {:existing-org org :existing-board (merge (assoc board :archived archived) selected-entries)}
+                        {:existing-org org :existing-board (merge (assoc board :archived archived) selected-entry-reps)}
                         false))
 
   ;; Responses

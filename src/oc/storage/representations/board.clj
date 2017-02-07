@@ -40,10 +40,9 @@
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
   [org-slug board]
-  (let [slug (:slug board)]
-    (-> board
-      (select-keys representation-props)
-      (board-collection-links org-slug))))
+  (-> board
+    (select-keys representation-props)
+    (board-collection-links org-slug)))
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"
