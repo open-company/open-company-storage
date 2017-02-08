@@ -1,5 +1,5 @@
-(ns oc.storage.api.boards
-  "Liberator API for board resources."
+(ns oc.storage.api.entries
+  "Liberator API for entry resources."
   (:require [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
@@ -8,7 +8,6 @@
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
@@ -29,37 +28,40 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-;; A resource for operations on a particular Board
-(defresource board [conn org-slug slug]
+; A resource for operations on a particular entry
+(defresource entry [conn org-slug board-slug topic-slug as-of]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/board-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/board-media-type)
+  :available-media-types [mt/entry-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-media-type)
   
   ;; Authorization
   :allowed? (fn [ctx] (allow-team-members conn (:user ctx) org-slug)) ; TODO filter out private boards
 
-  :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
-                               board (board-res/get-board conn (:uuid org) slug)
-                               topic-slugs (map name (:topics board)) ; slug for each active topic
-                               entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
-                               selected-entries (select-keys entries topic-slugs) ; active entries
-                               selected-entry-reps (zipmap topic-slugs (map #(entry-rep/render-entry-for-collection org-slug slug (get selected-entries %)) topic-slugs))
-                               archived (clojure.set/difference (set (keys entries)) (set topic-slugs))] ; archived entries
-                        {:existing-org org :existing-board (merge (assoc board :archived archived) selected-entry-reps)}
+  :exists? (fn [ctx] (if-let [entry (entry-res/get-entry conn (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
+                        {:existing-entry entry}
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (board-rep/render-board org-slug (:existing-board ctx))))
+  :handle-ok (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx))))
 
 ;; ----- Routes -----
+
+(defn- dispatch [db-pool org-slug board-slug topic-slug as-of]
+  (pool/with-pool [conn db-pool] 
+    (if as-of
+      (entry conn org-slug board-slug topic-slug as-of)
+      ;(entry-list conn org-slug board-slug topic-slug)
+      )))
 
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Board operations
-      (OPTIONS "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
-      (GET "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug))))))
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of))
+      (GET "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of)))))

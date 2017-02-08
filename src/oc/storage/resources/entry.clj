@@ -70,7 +70,8 @@
   "
   [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
-  )
+  (first
+    (db-common/read-resources conn table-name :created-at-topic-slug-board-uuid [[created-at topic-slug board-uuid]])))
 
 (schema/defn ^:always-validate delete-entry!
   "
