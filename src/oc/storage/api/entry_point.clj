@@ -2,7 +2,6 @@
   "Liberator API for HATEOAS entry point to storage service."
   (:require [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
             [liberator.core :refer (defresource)]
-            [cheshire.core :as json]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]

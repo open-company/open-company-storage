@@ -27,7 +27,7 @@
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.6.0-dd600f9"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.6.2-de649bd"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; core.async - Async programming and communication https://github.com/clojure/core.async
     ; core.match - Erlang-esque pattern matching https://github.com/clojure/core.match

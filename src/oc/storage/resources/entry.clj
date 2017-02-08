@@ -4,7 +4,6 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 

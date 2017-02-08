@@ -1,7 +1,6 @@
 (ns oc.storage.api.orgs
   "Liberator API for team resources."
-  (:require [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
+  (:require [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]

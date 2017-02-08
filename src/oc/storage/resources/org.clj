@@ -1,6 +1,5 @@
 (ns oc.storage.resources.org
-  (:require [clojure.string :as s]
-            [clojure.walk :refer (keywordize-keys)]
+  (:require [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
@@ -217,7 +216,7 @@
   ([conn team-id] (get-orgs-by-team conn team-id []))
   
   ([conn team-id additional-fields]
-    {:pre (schema/validate lib-schema/UniqueID team-id)}
+    {:pre [(schema/validate lib-schema/UniqueID team-id)]}
   (get-orgs-by-teams conn [team-id] additional-fields)))
 
 ;; ----- Armageddon -----

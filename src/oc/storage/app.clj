@@ -14,7 +14,6 @@
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
     [oc.lib.sentry-appender :as sa]
-    [oc.lib.api.common :as api-common]
     [oc.storage.components :as components]
     [oc.storage.config :as c]
     [oc.storage.api.entry-point :as entry-point-api]

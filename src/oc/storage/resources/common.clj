@@ -1,11 +1,6 @@
 (ns oc.storage.resources.common
   "Resources are any thing stored in the open company platform: orgs, boards, topics, updates"
-  (:require [clojure.string :as s]
-            [clojure.core.async :as async]
-            [schema.core :as schema]
-            [clj-time.format :as format]
-            [clj-time.core :as time]
-            [rethinkdb.query :as r]
+  (:require [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.storage.config :as config]))

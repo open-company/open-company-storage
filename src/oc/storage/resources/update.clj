@@ -14,7 +14,7 @@
 
 ;; ----- Utility functions -----
 
-(defn- clean
-  "Remove any reserved properties from the org."
-  [update]
-  (apply dissoc (common/clean update) reserved-properties))
+; (defn- clean
+;   "Remove any reserved properties from the org."
+;   [update]
+;   (apply dissoc (common/clean update) reserved-properties))

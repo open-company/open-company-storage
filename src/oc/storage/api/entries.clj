@@ -1,8 +1,6 @@
 (ns oc.storage.api.entries
   "Liberator API for entry resources."
-  (:require [if-let.core :refer (if-let*)]
-            [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
+  (:require [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
