@@ -48,14 +48,33 @@
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx))))
 
+; A resource for operations on a particular entry
+(defresource entry-list [conn org-slug board-slug topic-slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
+  
+  ;; Authorization
+  :allowed? (fn [ctx] (allow-team-members conn (:user ctx) org-slug)) ; TODO filter out private boards
+
+  :exists? (fn [ctx] (if-let [entries (entry-res/get-entries-by-topic conn (board-res/uuid-for conn org-slug board-slug) topic-slug)]
+                        {:existing-entries entries}
+                        false))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug (:existing-entries ctx))))
+
 ;; ----- Routes -----
 
 (defn- dispatch [db-pool org-slug board-slug topic-slug as-of]
   (pool/with-pool [conn db-pool] 
     (if as-of
       (entry conn org-slug board-slug topic-slug as-of)
-      ;(entry-list conn org-slug board-slug topic-slug)
-      )))
+      (entry-list conn org-slug board-slug topic-slug))))
 
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]

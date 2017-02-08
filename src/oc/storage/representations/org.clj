@@ -29,13 +29,11 @@
       {:pretty true})))
 
 (defn render-org-list
-  "
-  Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API.
-  "
+  "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
   [orgs]
   (json/generate-string
     {:collection {:version hateoas/json-collection-version
                   :href "/"
                   :links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})]
-                  :orgs (map org-links orgs)}}
+                  :items (map org-links orgs)}}
     {:pretty true}))

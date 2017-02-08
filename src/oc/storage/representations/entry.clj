@@ -74,3 +74,17 @@
       (select-data-props entry data-props)
       (entry-links board-slug org-slug))
     {:pretty true}))
+
+(defn render-entry-list
+  "
+  Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
+  entries for the REST API.
+  "
+  [org-slug board-slug topic-slug entries]
+  (let [collection-url (url org-slug board-slug topic-slug)]
+    (json/generate-string
+      {:collection {:version hateoas/json-collection-version
+                    :href collection-url
+                    :links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})]
+                    :items (map #(entry-links % board-slug org-slug) entries)}}
+      {:pretty true})))
