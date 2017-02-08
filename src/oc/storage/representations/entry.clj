@@ -1,13 +1,15 @@
 (ns oc.storage.representations.entry
   "Resource representations for OpenCompany entries."
-  (:require [defun.core :refer (defun)]
+  (:require [defun.core :refer (defun defun-)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]))
 
-(def representation-props [:topic-slug :title :headline :body :image-url :image-height :image-width
+(def representation-props [:topic-slug :title :headline :body :body-placeholder :image-url :image-height :image-width
                            :author :created-at :updated-at])
+
+(def data-props [:prompt :data :metrics :intervals :units])
 
 (defun url
   
@@ -46,12 +48,21 @@
       (self-link org-slug board-slug topic-slug timestamp)
       (up-link org-slug board-slug)])))
 
+(defun- select-data-props
+  ([entry data []] entry) ; all done
+
+  ([entry data data-props]
+  (let [data-prop (first data-props)
+        data-value (data-prop data)
+        updated-entry (if data-value (assoc entry data-prop data-value) entry)]
+    (select-data-props updated-entry data (vec (rest data-props)))))) ; recurse
+
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the REST API"
   [org-slug board-slug entry]
   (-> entry
     (select-keys representation-props)
-    ;; TODO data props
+    (select-data-props entry data-props)
     (entry-collection-links board-slug org-slug)))
 
 (defn render-entry
@@ -60,6 +71,6 @@
   (json/generate-string
     (-> entry
       (select-keys representation-props)
-      ;; TODO data props
+      (select-data-props entry data-props)
       (entry-links board-slug org-slug))
     {:pretty true}))
