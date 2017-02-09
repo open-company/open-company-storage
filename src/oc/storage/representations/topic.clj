@@ -6,6 +6,8 @@
 (defn url [org-slug board-slug topic]
   (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (:slug topic)))
 
+(defn list-link [board-url] (hateoas/link-map "new" hateoas/GET (str board-url "/topics/new") {:accept mt/topic-list-media-type}))
+
 (defn topic-template-for-rendering
   "Add a create link to the provided topic template."
   [org-slug board-slug topic]

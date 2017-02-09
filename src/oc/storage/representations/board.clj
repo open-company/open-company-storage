@@ -5,6 +5,7 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
+            [oc.storage.representations.topic :as topic-rep]
             [oc.storage.resources.common :as common]))
 
 (def representation-props [:slug :name :access :promoted :topics :archived :update-template
@@ -35,7 +36,8 @@
   (let [slug (:slug board)]
     (assoc board :links [
       (self-link org-slug slug)
-      (up-link org-slug)])))
+      (up-link org-slug)
+      (topic-rep/list-link (url org-slug slug))])))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
