@@ -27,25 +27,25 @@
       :name "Progress"
       :column 1
       :order 1
-      :sections [:update :highlights :growth :challenges :takeaways :team :kudos :help]
+      :topics [:update :highlights :growth :challenges :takeaways :team :kudos :help]
     }
     {
       :name "Market"
       :column 2
       :order 1
-      :sections [:product :customers :sales :marketing :competition :press]
+      :topics [:product :customers :sales :marketing :competition :press]
     }
     {
       :name "Finance"
       :column 3
       :order 1,
-      :sections [:finances :fundraising]
+      :topics [:finances :fundraising]
     }
     {
       :name "Who We Are"
       :column 3
       :order 2
-      :sections [:mission :values :diversity]
+      :topics [:mission :values :diversity]
     }
   ]
 
