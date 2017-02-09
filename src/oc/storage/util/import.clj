@@ -24,12 +24,15 @@
   (println msg)
   (System/exit status))
 
-;; ----- Resource import -----
+;; ----- REPL functions for porting legacy sample data -----
 
 (defn to-entry [section]
-  (-> section
-    (dissoc :description :updated-at :body-placeholder :id :company-slug :prompt :units :intervals)
-    (clojure.set/rename-keys {:section-name :topic-slug})))
+  (let [entry (-> section
+                (dissoc :description :updated-at :body-placeholder :id :company-slug :prompt :units :intervals)
+                (clojure.set/rename-keys {:section-name :topic-slug}))]
+    (if (s/blank? (:image-url entry))
+      (dissoc entry :image-url :image-height :image-width)
+      entry)))
 
 (defn port-entries [old]
   (let [sections (:sections old)
@@ -42,17 +45,20 @@
         org (clojure.set/rename-keys props {:logo :logo-url})]
     (zp/zprint (assoc org :team-id "1234-abcd-1234") {:map {:comma? false}})))
 
+;; ----- Resource import -----
+
 (defn import-update [conn board update author]
   ;; TODO
   )
 
-(defn- import-entry [conn board entry author]
+(defn- import-entry [conn org board entry author]
   (let [timestamp (:created-at entry)
         slug (:topic-slug entry)
-        entry-author (:author entry)]
+        entry-author (or (first (:author entry)) author)
+        author (assoc entry-author :teams [(:team-id org)])]
     (println (str "Creating entry for " slug " topic at " timestamp))
     (db-common/create-resource conn entry/table-name
-      (entry/->entry conn (:uuid board) slug entry (or entry-author author)) timestamp)))
+      (entry/->entry conn (:uuid board) slug entry author) timestamp)))
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
@@ -62,7 +68,7 @@
       ;; Create the entries
       (println (str "Creating " (count (:entries board)) " entries."))
       (doseq [entry (:entries board)]
-        (import-entry conn new-board entry author))
+        (import-entry conn org new-board entry author))
 
       ;; Create the updates
       (println (str "Creating " (count (:updates board)) " updates."))
