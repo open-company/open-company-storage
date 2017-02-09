@@ -11,6 +11,7 @@
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
             [clojure.walk :refer (keywordize-keys)]
+            [zprint.core :as zp]
             [oc.lib.db.pool :as db]
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.org :as org]
@@ -24,6 +25,22 @@
   (System/exit status))
 
 ;; ----- Resource import -----
+
+(defn to-entry [section]
+  (-> section
+    (dissoc :description :updated-at :body-placeholder :id :company-slug :prompt :units :intervals)
+    (clojure.set/rename-keys {:section-name :topic-slug})))
+
+(defn port-entries [old]
+  (let [sections (:sections old)
+        entries (map to-entry sections)]
+    (zp/zprint entries {:map {:comma? false}})))
+
+(defn port-org [old]
+  (let [company (:company old)
+        props (select-keys company [:slug :name :currency :team-id :logo :promoted :topics])
+        org (clojure.set/rename-keys props {:logo :logo-url})]
+    (zp/zprint (assoc org :team-id "1234-abcd-1234") {:map {:comma? false}})))
 
 (defn import-update [conn board update author]
   ;; TODO

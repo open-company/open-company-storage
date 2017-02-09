@@ -1,161 +1,81 @@
-{:company
-   {:created-at "2016-12-28T13:23:56.223Z",
-    :currency "USD",
-    :finances
-      {:author
-         [{:image
-             "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-           :name "Yasmin Young",
-           :updated-at "2016-08-08T12:59:28.000Z",
-           :user-id "234567"}],
-       :body "",
-       :body-placeholder
-         "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-       :created-at "2016-08-08T12:59:28.000Z",
-       :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}
-              {:cash 148630, :costs 10235, :period "2016-03", :revenue 12544}
-              {:cash 146162, :costs 12657, :period "2016-04", :revenue 10189}
-              {:cash 149651, :costs 10077, :period "2016-05", :revenue 13566}
-              {:cash 145518, :costs 13388, :period "2016-06", :revenue 9255}
-              {:cash 151290, :costs 10219, :period "2016-07", :revenue 15991}],
-       :description "Cash on hand, burn and runway",
-       :headline "",
-       :title "Finances",
-       :updated-at "2016-08-08T12:59:28.000Z"},
-    :logo "https://open-company-assets.s3.amazonaws.com/yoyo.png",
-    :logo-height 192,
-    :logo-width 360,
-    :name "YoYo",
-    :org-id "slack-T06SBMH60",
-    :promoted false,
-    :public false,
-    :sections ["finances"],
-    :slug "yoyo",
-    :stakeholder-update {:sections ["finances"], :title ""},
-    :updated-at "2016-12-28T13:23:56.694Z",
-    :uuid "b22d9bef-801e-4aae-8e0a-cb06df2ee47b"},
- :sections
-   [{:author
-       [{:image
-           "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-         :name "Yasmin Young",
-         :updated-at "2016-05-09T12:59:28.000Z",
-         :user-id "234567"}],
-     :body "",
-     :body-placeholder
-       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-     :company-slug "yoyo",
-     :created-at "2016-05-09T12:59:28.000Z",
-     :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}
-            {:cash 148630, :costs 10235, :period "2016-03", :revenue 12544}
-            {:cash 146162, :costs 12657, :period "2016-04", :revenue 10189}],
-     :description "Cash on hand, burn and runway",
-     :headline "",
-     :id "28ebe4e1-05e9-44b2-b7f8-92f57c9c5129",
-     :section-name "finances",
-     :title "Finances",
-     :updated-at "2016-05-09T12:59:28.000Z"}
-    {:author
-       [{:image
-           "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-         :name "Yasmin Young",
-         :updated-at "2016-04-11T12:59:28.000Z",
-         :user-id "234567"}],
-     :body "",
-     :body-placeholder
-       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-     :company-slug "yoyo",
-     :created-at "2016-04-11T12:59:28.000Z",
-     :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}
-            {:cash 148630, :costs 10235, :period "2016-03", :revenue 12544}],
-     :description "Cash on hand, burn and runway",
-     :headline "",
-     :id "29b9ec19-f538-4251-b39c-5e9a368e8f8d",
-     :section-name "finances",
-     :title "Finances",
-     :updated-at "2016-04-11T12:59:28.000Z"}
-    {:author
-       [{:image
-           "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-         :name "Yasmin Young",
-         :updated-at "2016-06-05T12:59:28.000Z",
-         :user-id "234567"}],
-     :body "",
-     :body-placeholder
-       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-     :company-slug "yoyo",
-     :created-at "2016-06-05T12:59:28.000Z",
-     :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}
-            {:cash 148630, :costs 10235, :period "2016-03", :revenue 12544}
-            {:cash 146162, :costs 12657, :period "2016-04", :revenue 10189}
-            {:cash 149651, :costs 10077, :period "2016-05", :revenue 13566}],
-     :description "Cash on hand, burn and runway",
-     :headline "",
-     :id "05134fad-48e6-49d9-90f2-a6b53639feb9",
-     :section-name "finances",
-     :title "Finances",
-     :updated-at "2016-06-05T12:59:28.000Z"}
-    {:author
-       [{:image
-           "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-         :name "Yasmin Young",
-         :updated-at "2016-08-08T12:59:28.000Z",
-         :user-id "234567"}],
-     :body "",
-     :body-placeholder
-       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-     :company-slug "yoyo",
-     :created-at "2016-08-08T12:59:28.000Z",
-     :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}
-            {:cash 148630, :costs 10235, :period "2016-03", :revenue 12544}
-            {:cash 146162, :costs 12657, :period "2016-04", :revenue 10189}
-            {:cash 149651, :costs 10077, :period "2016-05", :revenue 13566}
-            {:cash 145518, :costs 13388, :period "2016-06", :revenue 9255}
-            {:cash 151290, :costs 10219, :period "2016-07", :revenue 15991}],
-     :description "Cash on hand, burn and runway",
-     :headline "",
-     :id "075052d9-6e8a-495b-a7c7-3b336150f25a",
-     :section-name "finances",
-     :title "Finances",
-     :updated-at "2016-08-08T12:59:28.000Z"}
-    {:author
-       [{:image
-           "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-         :name "Yasmin Young",
-         :updated-at "2016-07-12T12:59:28.000Z",
-         :user-id "234567"}],
-     :body "",
-     :body-placeholder
-       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-     :company-slug "yoyo",
-     :created-at "2016-07-12T12:59:28.000Z",
-     :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}
-            {:cash 148630, :costs 10235, :period "2016-03", :revenue 12544}
-            {:cash 146162, :costs 12657, :period "2016-04", :revenue 10189}
-            {:cash 149651, :costs 10077, :period "2016-05", :revenue 13566}
-            {:cash 145518, :costs 13388, :period "2016-06", :revenue 9255}],
-     :description "Cash on hand, burn and runway",
-     :headline "",
-     :id "9a02b368-de1d-4b17-8c56-36c74c161307",
-     :section-name "finances",
-     :title "Finances",
-     :updated-at "2016-07-12T12:59:28.000Z"}
-    {:author
-       [{:image
-           "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G",
-         :name "Yasmin Young",
-         :updated-at "2016-03-13T12:59:28.000Z",
-         :user-id "234567"}],
-     :body "",
-     :body-placeholder
-       "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
-     :company-slug "yoyo",
-     :created-at "2016-03-13T12:59:28.000Z",
-     :data [{:cash 146321, :costs 10457, :period "2016-02", :revenue 9856}],
-     :description "Cash on hand, burn and runway",
-     :headline "",
-     :id "d3279f7b-a15c-4d79-b748-7b48279348b9",
-     :section-name "finances",
-     :title "Finances",
-     :updated-at "2016-03-13T12:59:28.000Z"}],
- :updates []}
+{
+  :slug "yoyo"
+  :name "YoYo"
+  :team-id "1234-abcd-1234"
+  :currency "USD"
+  :logo-url "https://open-company-assets.s3.amazonaws.com/yoyo.png"
+  :promoted false
+
+  :author {
+    :name "Yasmin Young"
+    :avatar-url "http://1.gravatar.com/avatar/1a77175d40d2ba42a18ab49d2f772de2?s=32&d=&r=G"
+    :user-id "1234-5678-1234"
+  }
+
+  :boards [
+    {
+      :name "Data"
+      :topics ["finances"]
+
+      :entries [
+
+        {   
+          :topic-slug "finances"
+          :data [{:cash 146321 :costs 10457 :period "2016-02" :revenue 9856}
+                 {:cash 148630 :costs 10235 :period "2016-03" :revenue 12544}
+                 {:cash 146162 :costs 12657 :period "2016-04" :revenue 10189}]
+
+          :created-at "2016-05-09T12:59:28.000Z"
+        }
+
+        {
+          :topic-slug "finances"
+          :data [{:cash 146321 :costs 10457 :period "2016-02" :revenue 9856}
+                 {:cash 148630 :costs 10235 :period "2016-03" :revenue 12544}]
+
+          :created-at "2016-04-11T12:59:28.000Z"
+        }
+
+        {
+          :topic-slug "finances"
+          :data [{:cash 146321 :costs 10457 :period "2016-02" :revenue 9856}
+                 {:cash 148630 :costs 10235 :period "2016-03" :revenue 12544}
+                 {:cash 146162 :costs 12657 :period "2016-04" :revenue 10189}
+                 {:cash 149651 :costs 10077 :period "2016-05" :revenue 13566}]
+
+          :created-at "2016-06-05T12:59:28.000Z"
+        }
+
+        {
+          :topic-slug "finances"
+          :data [{:cash 146321 :costs 10457 :period "2016-02" :revenue 9856}
+                 {:cash 148630 :costs 10235 :period "2016-03" :revenue 12544}
+                 {:cash 146162 :costs 12657 :period "2016-04" :revenue 10189}
+                 {:cash 149651 :costs 10077 :period "2016-05" :revenue 13566}
+                 {:cash 145518 :costs 13388 :period "2016-06" :revenue 9255}
+                 {:cash 151290 :costs 10219 :period "2016-07" :revenue 15991}]
+
+          :created-at "2016-08-08T12:59:28.000Z"
+        }
+   
+        {
+          :topic-slug "finances"
+          :data [{:cash 146321 :costs 10457 :period "2016-02" :revenue 9856}
+                 {:cash 148630 :costs 10235 :period "2016-03" :revenue 12544}
+                 {:cash 146162 :costs 12657 :period "2016-04" :revenue 10189}
+                 {:cash 149651 :costs 10077 :period "2016-05" :revenue 13566}
+                 {:cash 145518 :costs 13388 :period "2016-06" :revenue 9255}]
+
+          :created-at "2016-07-12T12:59:28.000Z"
+        }
+
+       {
+          :topic-slug "finances"
+          :data [{:cash 146321 :costs 10457 :period "2016-02" :revenue 9856}]
+
+          :created-at "2016-03-13T12:59:28.000Z"
+        }
+      ]
+    }
+  ]
+}

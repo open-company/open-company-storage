@@ -14,28 +14,26 @@
   ;; All profile dependencies
   :dependencies [
     [org.clojure/clojure "1.9.0-alpha14"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
+    [http-kit "2.3.0-alpha1"] ; Web server http://http-kit.org/
     [ring/ring-devel "1.6.0-beta7"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.0-beta7"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
-    [http-kit "2.3.0-alpha1"] ; Web server http://http-kit.org/
-    [compojure "1.6.0-beta3"] ; Web routing https://github.com/weavejester/compojure
-    [prismatic/schema "1.1.3"] ; Data validation https://github.com/Prismatic/schema
-    [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     [ring-logger-timbre "0.7.5"] ; Ring logging https://github.com/nberger/ring-logger-timbre
+    [compojure "1.6.0-beta3"] ; Web routing https://github.com/weavejester/compojure
     [clj-http "3.4.1"] ; HTTP client https://github.com/dakrone/clj-http
-    [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
+    [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     
     [open-company/lib "0.6.2-de649bd"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
-    ; core.async - Async programming and communication https://github.com/clojure/core.async
-    ; core.match - Erlang-esque pattern matching https://github.com/clojure/core.match
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     ; if-let - More than one binding for if/when macros https://github.com/LockedOn/if-let
     ; Component - Component Lifecycle https://github.com/stuartsierra/component
     ; Liberator - WebMachine (REST API server) port to Clojure https://github.com/clojure-liberator/liberator
     ; RethinkDB - RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
+    ; Schema - Data validation https://github.com/Prismatic/schema
     ; Timbre - Pure Clojure/Script logging library https://github.com/ptaoussanis/timbre
     ; Amazonica - A comprehensive Clojure client for the AWS API. https://github.com/mcohen01/amazonica
     ; Raven - Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
