@@ -71,7 +71,7 @@
         (assoc :slug slug)
         (assoc :uuid (db-common/unique-id))
         (assoc :team-id (first (:teams user))) ; TODO: how do we decide which auth-id to create the org with?
-        (assoc :admins [(:user-id user)])
+        (assoc :authors [(:user-id user)])
         (update :currency #(or % "USD"))
         (update :promoted #(or % default-promoted))
         (assoc :author (common/author-for-user user))

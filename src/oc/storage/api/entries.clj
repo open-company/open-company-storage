@@ -5,6 +5,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
+            [oc.storage.api.common :as storage-common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.org :as org-res]
@@ -17,31 +18,43 @@
 
 ;; ----- Validations -----
 
-(defn allow-team-members
-  "Return true if the JWToken user is a member of the org's team."
-  [conn {teams :teams} org-slug]
-  (if-let [org (org-res/get-org conn org-slug)]
-    ((set teams) (:team-id org))
-    false))
-
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ; A resource for operations on a particular entry
 (defresource entry [conn org-slug board-slug topic-slug as-of]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :get]
+  :allowed-methods [:options :get :patch :post :delete]
 
   ;; Media type client accepts
   :available-media-types [mt/entry-media-type]
   :handle-not-acceptable (api-common/only-accept 406 mt/entry-media-type)
   
-  ;; Authorization
-  :allowed? (fn [ctx] (allow-team-members conn (:user ctx) org-slug)) ; TODO filter out private boards
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :get true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
+                          :patch (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
+                          :delete true})
 
+  ;; Authorization
+  :allowed? (by-method {
+    :options (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
+    :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
+    :post (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
+    :patch (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
+    :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
+
+  ;; Existentialism
   :exists? (fn [ctx] (if-let [entry (entry-res/get-entry conn (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
                         {:existing-entry entry}
                         false))
+
+  ;; Actions
+  :delete! (println "POST!")
+  :patch! (println "PATCH!")
+  :delete! (println "DELETE!")
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx))))
@@ -57,8 +70,9 @@
   :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
   
   ;; Authorization
-  :allowed? (fn [ctx] (allow-team-members conn (:user ctx) org-slug)) ; TODO filter out private boards
+  :allowed? (fn [ctx] (storage-common/access-level-for conn org-slug board-slug (:user ctx)))
 
+  ;; Existentialism
   :exists? (fn [ctx] (if-let [entries (entry-res/get-entries-by-topic conn (board-res/uuid-for conn org-slug board-slug) topic-slug)]
                         {:existing-entries entries}
                         false))
@@ -81,4 +95,12 @@
       (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
         (dispatch db-pool org-slug board-slug topic-slug as-of))
       (GET "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of))
+      (PATCH "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of))
+      (POST "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of))
+      (POST "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of))
+      (DELETE "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
         (dispatch db-pool org-slug board-slug topic-slug as-of)))))

@@ -5,6 +5,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
+            [oc.storage.api.common :as storage-common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.org :as org-res]
@@ -16,13 +17,6 @@
 ;; ----- Actions -----
 
 ;; ----- Validations -----
-
-(defn allow-team-members
-  "Return true if the JWToken user is a member of the org's team."
-  [conn {teams :teams} slug]
-  (if-let [org (org-res/get-org conn slug)]
-    ((set teams) (:team-id org))
-    false))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -37,7 +31,7 @@
   :handle-not-acceptable (api-common/only-accept 406 mt/org-media-type)
   
   ;; Authorization
-  :allowed? (fn [ctx] (allow-team-members conn (:user ctx) slug))
+  :allowed? (fn [ctx] (storage-common/access-level-for conn slug (:user ctx)))
 
   :exists? (fn [ctx] (if-let [org (org-res/get-org conn slug)]
                         {:existing-org org}

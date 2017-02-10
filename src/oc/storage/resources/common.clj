@@ -133,7 +133,7 @@
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
-  :admins [lib-schema/UniqueID]
+  :authors [lib-schema/UniqueID]
   :author Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})

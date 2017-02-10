@@ -32,12 +32,11 @@
     (item-link org-slug (:slug board))]))
 
 (defn- board-links
-  [board org-slug]
-  (let [slug (:slug board)]
-    (assoc board :links [
-      (self-link org-slug slug)
-      (up-link org-slug)
-      (topic-rep/list-link (url org-slug slug))])))
+  [board org-slug access-level]
+  (let [slug (:slug board)
+        links [(self-link org-slug slug) (up-link org-slug)]
+        full-links (if (= access-level :author) (conj links (topic-rep/list-link (url org-slug slug))) links)]
+    (assoc board :links full-links)))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
@@ -48,10 +47,12 @@
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"
-  [org-slug board]
+  ([org slug] (render-board org slug :unknown))
+
+  ([org-slug board access-level]
   (json/generate-string
     (-> board
       (select-keys representation-props)
       (select-topics board)
-      (board-links org-slug))
-    {:pretty true}))
+      (board-links org-slug access-level))
+    {:pretty true})))
