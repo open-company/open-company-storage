@@ -20,7 +20,7 @@
 
 ;; ----- Utility functions -----
 
-(defn- clean
+(defn clean
   "Remove any reserved properties from the org."
   [entry]
   (apply dissoc (common/clean entry) reserved-properties))
@@ -64,13 +64,38 @@
 
 (schema/defn ^:always-validate get-entry
   "
-  Given the UUID of the board, the slug of the topic and the created-at timestamp, retrieve the entry,
-  or return nil if it doesn't exist.
+  Given the ID of the entry, or the UUID of the board, the slug of the topic and the created-at timestamp,
+  retrieve the entry, or return nil if it doesn't exist.
   "
-  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
+  ([conn id :- lib-schema/NonBlankStr]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resource conn table-name id))
+  
+  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
   (first
-    (db-common/read-resources conn table-name :created-at-topic-slug-board-uuid [[created-at topic-slug board-uuid]])))
+    (db-common/read-resources conn table-name :created-at-topic-slug-board-uuid [[created-at topic-slug board-uuid]]))))
+
+(schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
+  "
+  Given the ID of the entry, an updated entry property map, and a user (as the author), update the entry and
+  return the updated entry on success.
+
+  Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
+  to the common/Entry schema.
+  "
+  [conn id entry user :- common/User]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UUIDStr id)
+         (map? entry)]}
+  (if-let [original-entry (get-entry conn id)]
+    (let [authors (:author original-entry)
+          merged-entry (merge original-entry (clean entry))
+          ts (db-common/current-timestamp)
+          updated-authors (conj authors (assoc (common/author-for-user user) :updated-at ts))
+          updated-entry (assoc merged-entry :author updated-authors)]
+      (schema/validate common/Entry updated-entry)
+      (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
 (schema/defn ^:always-validate delete-entry!
   "

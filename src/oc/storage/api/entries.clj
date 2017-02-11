@@ -1,13 +1,17 @@
 (ns oc.storage.api.entries
   "Liberator API for entry resources."
-  (:require [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
+  (:require [if-let.core :refer (if-let*)]
+            [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [schema.core :as schema]
+            [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]
             [oc.storage.api.common :as storage-common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]))
@@ -46,18 +50,40 @@
     :patch (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
     :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
 
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :get true
+    :post (fn [ctx] true)
+    :patch (fn [ctx] (let [existing-entry (entry-res/get-entry conn
+                                            (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)
+                           updated-entry (merge existing-entry (entry-res/clean (:data ctx)))]
+                        (if (lib-schema/valid? common-res/Entry updated-entry)
+                          {:existing-entry existing-entry :updated-entry updated-entry}
+                          [false, {:updated-entry updated-entry}])))
+    :delete true})
+
   ;; Existentialism
-  :exists? (fn [ctx] (if-let [entry (entry-res/get-entry conn (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
+  :exists? (fn [ctx] (if-let [entry (or (:existing-entry ctx)
+                                        (entry-res/get-entry conn
+                                          (board-res/uuid-for conn org-slug board-slug) topic-slug as-of))]
                         {:existing-entry entry}
                         false))
 
   ;; Actions
-  :delete! (println "POST!")
-  :patch! (println "PATCH!")
-  :delete! (println "DELETE!")
+  :post! (fn [ctx] (println "POST!"))
+  :patch! (fn [ctx] (if-let* [updated-entry (:updated-entry ctx)
+                              result (entry-res/update-entry! conn (:id updated-entry) updated-entry (:user ctx))]
+                      {:updated-entry result}
+                      false))
+  :delete! (fn [ctx] (println "DELETE!"))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx))))
+  :handle-ok (by-method {
+    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx)))
+    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug (:updated-entry ctx)))})
+  :handle-unprocessable-entity (by-method {
+    :patch (fn [ctx] (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx))))}))
 
 ; A resource for operations on a particular entry
 (defresource entry-list [conn org-slug board-slug topic-slug]
