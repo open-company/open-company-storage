@@ -25,10 +25,6 @@
         with-links (map #(topic-rep/topic-template-for-rendering org-slug slug (% templates)) topic-slugs)]
     (json/generate-string (assoc topics :templates (zipmap topic-slugs with-links)) {:pretty true})))
 
-;; ----- Actions -----
-
-;; ----- Validations -----
-
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular Board

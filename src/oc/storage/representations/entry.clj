@@ -45,7 +45,7 @@
   (let [topic-slug (:topic-slug entry)
         timestamp (:created-at entry)]
     (assoc entry :links [
-      (self-link org-slug board-slug topic-slug timestamp)
+      (self-link org-slug board-slug (name topic-slug) timestamp)
       (up-link org-slug board-slug)])))
 
 (defun- select-data-props

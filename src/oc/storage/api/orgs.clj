@@ -12,12 +12,6 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.board :as board-res]))
 
-;; ----- Utility Functions -----
-
-;; ----- Actions -----
-
-;; ----- Validations -----
-
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular Org

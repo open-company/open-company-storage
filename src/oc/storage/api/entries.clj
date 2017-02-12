@@ -16,11 +16,48 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]))
 
-;; ----- Utility Functions -----
+;; ----- Validations -----
+
+(defn- valid-new-entry? [conn org-slug board-slug topic-slug ctx]
+  (if-let [board (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug)]
+    (try
+      ;; Create the new entry from the URL and data provided
+      (let [entry-map (:data ctx)
+            author (:user ctx)
+            new-entry (entry-res/->entry conn (:uuid board) topic-slug entry-map author)]
+        {:new-entry new-entry :existing-board board})
+
+      (catch clojure.lang.ExceptionInfo e
+        [false, (.getMessage e)])) ; Not a valid new entry
+    [false, "Invalid board."])) ; couldn't find the specified board
+
+(defn- valid-entry-update? [conn org-slug board-slug topic-slug as-of ctx]
+  (if-let [existing-entry (entry-res/get-entry conn
+                          (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
+    ;; Merge the existing entry with the new updates
+    (let [entry-map (:data ctx)
+          updated-entry (merge existing-entry (entry-res/clean entry-map))]
+      (if (lib-schema/valid? common-res/Entry updated-entry)
+        {:existing-entry existing-entry :updated-entry updated-entry}
+        [false, {:updated-entry updated-entry}])) ; invalid updates
+    
+    true)) ; no existing entry, will fail existence check later
 
 ;; ----- Actions -----
 
-;; ----- Validations -----
+(defn- create-entry [conn ctx]
+  (if-let* [new-entry (:new-entry ctx)
+            topic-slug (:topic-slug new-entry)
+            board (:existing-board ctx)
+            board-uuid (:uuid board)
+            topics (:topics board)
+            entry-result (entry-res/create-entry! conn new-entry) ; Add the entry
+            _board-result (if ((set topics) topic-slug)
+                            true ; new entry for existing topic
+                            ; new entry for new or archived topic, add the topic to the board
+                            (board-res/update-board! conn board-uuid {:topics (conj topics topic-slug)}))]
+    {:new-entry entry-result}
+    false))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -28,7 +65,7 @@
 (defresource entry [conn org-slug board-slug topic-slug as-of]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :get :patch :post :delete]
+  :allowed-methods [:options :get :patch :delete]
 
   ;; Media type client accepts
   :available-media-types [mt/entry-media-type]
@@ -38,7 +75,6 @@
   :known-content-type? (by-method {
                           :options true
                           :get true
-                          :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
                           :patch (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
                           :delete true})
 
@@ -46,7 +82,6 @@
   :allowed? (by-method {
     :options (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
     :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
-    :post (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
     :patch (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
     :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
 
@@ -54,13 +89,8 @@
   :processable? (by-method {
     :options true
     :get true
-    :post (fn [ctx] true)
-    :patch (fn [ctx] (let [existing-entry (entry-res/get-entry conn
-                                            (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)
-                           updated-entry (merge existing-entry (entry-res/clean (:data ctx)))]
-                        (if (lib-schema/valid? common-res/Entry updated-entry)
-                          {:existing-entry existing-entry :updated-entry updated-entry}
-                          [false, {:updated-entry updated-entry}])))
+    :post (fn [ctx] (valid-new-entry? conn org-slug board-slug topic-slug ctx))
+    :patch (fn [ctx] (valid-entry-update? conn org-slug board-slug topic-slug as-of ctx))
     :delete true})
 
   ;; Existentialism
@@ -71,7 +101,6 @@
                         false))
 
   ;; Actions
-  :post! (fn [ctx] (println "POST!"))
   :patch! (fn [ctx] (if-let* [updated-entry (:updated-entry ctx)
                               result (entry-res/update-entry! conn (:id updated-entry) updated-entry (:user ctx))]
                       {:updated-entry result}
@@ -89,22 +118,50 @@
 (defresource entry-list [conn org-slug board-slug topic-slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :get]
+  :allowed-methods [:options :get :post]
 
   ;; Media type client accepts
-  :available-media-types [mt/entry-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
+  :available-media-types (by-method {
+                            :get [mt/entry-collection-media-type]
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :get (api-common/only-accept 406 mt/entry-collection-media-type)
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :get true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
+                          :delete true})  
   
   ;; Authorization
-  :allowed? (fn [ctx] (storage-common/access-level-for conn org-slug board-slug (:user ctx)))
+  :allowed? (by-method {
+    :options (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
+    :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
+    :post (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
+
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :get true
+    :post (fn [ctx] (valid-new-entry? conn org-slug board-slug topic-slug ctx))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let [entries (entry-res/get-entries-by-topic conn (board-res/uuid-for conn org-slug board-slug) topic-slug)]
                         {:existing-entries entries}
                         false))
 
+  ;; Actions
+  :post! (fn [ctx] (create-entry conn ctx))
+
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug (:existing-entries ctx))))
+  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug (:existing-entries ctx)))
+  :handle-created (fn [ctx] (let [new-entry (:new-entry ctx)]
+                              (api-common/location-response
+                                (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
+                                (entry-rep/render-entry org-slug board-slug new-entry)
+                                mt/entry-media-type))))
 
 ;; ----- Routes -----
 
