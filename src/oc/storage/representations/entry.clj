@@ -107,6 +107,7 @@
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
-                    :links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})]
+                    :links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
+                            (create-link org-slug board-slug topic-slug)]
                     :items (map #(entry-links % board-slug org-slug access-level) entries)}}
       {:pretty true})))
