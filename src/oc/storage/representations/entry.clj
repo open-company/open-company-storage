@@ -29,12 +29,16 @@
 (defn- item-link [org-slug board-slug entry timestamp]
   (hateoas/item-link (url org-slug board-slug entry timestamp) {:accept mt/entry-media-type}))
 
-(defn- partial-update-link [org-slug board-slug entry timestamp]
-  (hateoas/partial-update-link (url org-slug board-slug entry timestamp) {:content-type mt/entry-media-type
-                                                                          :accept mt/entry-media-type}))
+(defn- create-link [org-slug board-slug topic-slug]
+  (hateoas/create-link (str (url org-slug board-slug topic-slug) "/") {:content-type mt/entry-media-type
+                                                                       :accept mt/entry-media-type}))
 
-(defn- delete-link [org-slug board-slug entry timestamp]
-  (hateoas/delete-link (url org-slug board-slug entry timestamp)))
+(defn- partial-update-link [org-slug board-slug topic-slug timestamp]
+  (hateoas/partial-update-link (url org-slug board-slug topic-slug timestamp) {:content-type mt/entry-media-type
+                                                                               :accept mt/entry-media-type}))
+
+(defn- delete-link [org-slug board-slug topic-slug timestamp]
+  (hateoas/delete-link (url org-slug board-slug topic-slug timestamp)))
 
 (defn- collection-link [org-slug board-slug topic-slug]
   (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
@@ -44,11 +48,13 @@
 (defn- entry-collection-links
   [entry board-slug org-slug access-level]
   (let [timestamp (:created-at entry)
+        topic-slug (:topic-slug entry)
         links [(collection-link org-slug board-slug entry)
                (item-link org-slug board-slug entry timestamp)]
         full-links (if (= access-level :author)
-                      (concat links [(partial-update-link org-slug board-slug entry timestamp)
-                                     (delete-link org-slug board-slug entry timestamp)])
+                      (concat links [(partial-update-link org-slug board-slug topic-slug timestamp)
+                                     (delete-link org-slug board-slug topic-slug timestamp)
+                                     (create-link org-slug board-slug topic-slug)])
                       links)]
     (assoc entry :links full-links)))
 
