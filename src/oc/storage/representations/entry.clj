@@ -29,24 +29,40 @@
 (defn- item-link [org-slug board-slug entry timestamp]
   (hateoas/item-link (url org-slug board-slug entry timestamp) {:accept mt/entry-media-type}))
 
+(defn- partial-update-link [org-slug board-slug entry timestamp]
+  (hateoas/partial-update-link (url org-slug board-slug entry timestamp) {:content-type mt/entry-media-type
+                                                                          :accept mt/entry-media-type}))
+
+(defn- delete-link [org-slug board-slug entry timestamp]
+  (hateoas/delete-link (url org-slug board-slug entry timestamp)))
+
 (defn- collection-link [org-slug board-slug topic-slug]
   (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
 (defn- up-link [org-slug board-slug] (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
 
 (defn- entry-collection-links
-  [entry board-slug org-slug]
-  (assoc entry :links [
-    (collection-link org-slug board-slug entry)
-    (item-link org-slug board-slug entry (:created-at entry))]))
+  [entry board-slug org-slug access-level]
+  (let [timestamp (:created-at entry)
+        links [(collection-link org-slug board-slug entry)
+               (item-link org-slug board-slug entry timestamp)]
+        full-links (if (= access-level :author)
+                      (concat links [(partial-update-link org-slug board-slug entry timestamp)
+                                     (delete-link org-slug board-slug entry timestamp)])
+                      links)]
+    (assoc entry :links full-links)))
 
 (defn- entry-links
-  [entry board-slug org-slug]
+  [entry board-slug org-slug access-level]
   (let [topic-slug (:topic-slug entry)
-        timestamp (:created-at entry)]
-    (assoc entry :links [
-      (self-link org-slug board-slug (name topic-slug) timestamp)
-      (up-link org-slug board-slug)])))
+        timestamp (:created-at entry)
+        links [(self-link org-slug board-slug (name topic-slug) timestamp)
+               (up-link org-slug board-slug)]
+        full-links (if (= access-level :author)
+                      (concat links [(partial-update-link org-slug board-slug entry timestamp)
+                                     (delete-link org-slug board-slug entry timestamp)])
+                      links)]
+    (assoc entry :links full-links)))
 
 (defun- select-data-props
   ([entry data []] entry) ; all done
@@ -59,20 +75,20 @@
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the REST API"
-  [org-slug board-slug entry]
+  [org-slug board-slug entry access-level]
   (-> entry
     (select-keys representation-props)
     (select-data-props entry data-props)
-    (entry-collection-links board-slug org-slug)))
+    (entry-collection-links board-slug org-slug access-level)))
 
 (defn render-entry
   "Create a JSON representation of the board for the REST API"
-  [org-slug board-slug entry]
+  [org-slug board-slug entry access-level]
   (json/generate-string
     (-> entry
       (select-keys representation-props)
       (select-data-props entry data-props)
-      (entry-links board-slug org-slug))
+      (entry-links board-slug org-slug access-level))
     {:pretty true}))
 
 (defn render-entry-list
@@ -80,11 +96,11 @@
   Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
   entries for the REST API.
   "
-  [org-slug board-slug topic-slug entries]
+  [org-slug board-slug topic-slug entries access-level]
   (let [collection-url (url org-slug board-slug topic-slug)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})]
-                    :items (map #(entry-links % board-slug org-slug) entries)}}
+                    :items (map #(entry-links % board-slug org-slug access-level) entries)}}
       {:pretty true})))

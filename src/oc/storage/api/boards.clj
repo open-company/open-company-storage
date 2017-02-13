@@ -47,7 +47,7 @@
                                entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
                                selected-entries (select-keys entries topic-slugs) ; active entries
                                selected-entry-reps (zipmap topic-slugs
-                                                    (map #(entry-rep/render-entry-for-collection org-slug slug (get selected-entries %))
+                                                    (map #(entry-rep/render-entry-for-collection org-slug slug (get selected-entries %) (:access-level ctx))
                                                       topic-slugs))
                                archived (clojure.set/difference (set (keys entries)) (set topic-slugs))] ; archived entries
                         {:existing-org org :existing-board (merge (assoc board :archived archived) selected-entry-reps)}

@@ -47,12 +47,10 @@
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"
-  ([org slug] (render-board org slug :unknown))
-
-  ([org-slug board access-level]
+  [org-slug board access-level]
   (json/generate-string
     (-> board
       (select-keys representation-props)
       (select-topics board)
       (board-links org-slug access-level))
-    {:pretty true})))
+    {:pretty true}))

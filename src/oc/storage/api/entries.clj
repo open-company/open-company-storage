@@ -95,8 +95,8 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx)))
-    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug (:updated-entry ctx)))})
+    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx) (:access-level ctx)))
+    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug (:updated-entry ctx) (:access-level ctx)))})
   :handle-unprocessable-entity (by-method {
     :patch (fn [ctx] (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx))))}))
 
@@ -145,11 +145,12 @@
                       false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug (:existing-entries ctx)))
+  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug
+                          (:existing-entries ctx) (:access-level ctx)))
   :handle-created (fn [ctx] (let [new-entry (:new-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry)
+                                (entry-rep/render-entry org-slug board-slug new-entry (:access-level ctx))
                                 mt/entry-media-type))))
 
 ;; ----- Routes -----
