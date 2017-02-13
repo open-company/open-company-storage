@@ -28,8 +28,8 @@
         {:new-entry new-entry :existing-board board})
 
       (catch clojure.lang.ExceptionInfo e
-        [false, (.getMessage e)])) ; Not a valid new entry
-    [false, "Invalid board."])) ; couldn't find the specified board
+        [false, {:reason (.getMessage e)}])) ; Not a valid new entry
+    [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
 (defn- valid-entry-update? [conn org-slug board-slug topic-slug as-of ctx]
   (if-let [existing-entry (entry-res/get-entry conn
@@ -141,7 +141,7 @@
 
   ;; Actions
   :post! (fn [ctx] (if-let* [new-entry (:new-entry ctx)
-                            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
+                             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
                       {:new-entry entry-result}
                       false))
 
@@ -152,7 +152,9 @@
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
                                 (entry-rep/render-entry org-slug board-slug new-entry (:access-level ctx))
-                                mt/entry-media-type))))
+                                mt/entry-media-type)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (:reason ctx))))
 
 ;; ----- Routes -----
 

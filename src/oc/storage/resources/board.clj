@@ -62,6 +62,7 @@
   any missing properties.
   "
   ([org-uuid board-props user]
+  {:pre [(schema/validate lib-schema/NonBlankStr (:name board-props))]}
   (->board org-uuid (or (:slug board-props) (slug/slugify (:name board-props))) board-props user))
 
   ([org-uuid slug board-props user :- common/User]

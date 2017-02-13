@@ -94,13 +94,19 @@
     :options true
     :post (fn [ctx] (valid-new-board? conn org-slug ctx))})
 
-  ;; Existentialism
-
   ;; Actions
-  :post! (fn [ctx] (println "POST!"))
+  :post! (fn [ctx] (if-let* [new-board (:new-board ctx)
+                             board-result (board-res/create-board! conn new-board)] ; Add the board
+                      {:new-board board-result}
+                      false))
 
   ;; Responses
-  ;:handle-created 
+  :handle-created (fn [ctx] (let [new-board (:new-board ctx)
+                                  board-slug (:slug new-board)]
+                              (api-common/location-response
+                                (board-rep/url org-slug board-slug)
+                                (board-rep/render-board org-slug new-board (:access-level ctx))
+                                mt/board-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 

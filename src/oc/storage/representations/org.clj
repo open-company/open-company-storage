@@ -16,7 +16,9 @@
   "HATEOAS links for an org resource."
   [org]
   (assoc org :links [
-    (hateoas/item-link (url org) {:accept mt/org-media-type})]))
+    (hateoas/item-link (url org) {:accept mt/org-media-type})
+    (hateoas/create-link (str (url org) "/boards/") {:content-type mt/board-media-type
+                                                     :accept mt/board-media-type})]))
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
