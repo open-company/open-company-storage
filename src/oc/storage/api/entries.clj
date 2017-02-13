@@ -78,7 +78,8 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [board (or (:existing-board ctx)
+  :exists? (fn [ctx] (if-let* [_valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+                               board (or (:existing-board ctx)
                                          (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug))
                                entry (or (:existing-entry ctx)
                                          (entry-res/get-entry conn (:uuid board) topic-slug as-of))]
@@ -100,7 +101,7 @@
   :handle-unprocessable-entity (by-method {
     :patch (fn [ctx] (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx))))}))
 
-; A resource for operations on a particular entry
+; A resource for operations on all entries of a particular topic
 (defresource entry-list [conn org-slug board-slug topic-slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
@@ -134,7 +135,8 @@
     :post (fn [ctx] (valid-new-entry? conn org-slug board-slug topic-slug ctx))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let [entries (entry-res/get-entries-by-topic conn (board-res/uuid-for conn org-slug board-slug) topic-slug)]
+  :exists? (fn [ctx] (if-let* [_valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+                               entries (entry-res/get-entries-by-topic conn (board-res/uuid-for conn org-slug board-slug) topic-slug)]
                         {:existing-entries entries}
                         false))
 

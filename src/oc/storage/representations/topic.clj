@@ -4,7 +4,7 @@
             [oc.storage.representations.media-types :as mt]))
 
 (defn url [org-slug board-slug topic]
-  (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (:slug topic)))
+  (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (:slug topic) "/"))
 
 (defn list-link [board-url] (hateoas/link-map "new" hateoas/GET (str board-url "/topics/new") {:accept mt/topic-list-media-type}))
 
