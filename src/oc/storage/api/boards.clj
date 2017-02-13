@@ -25,6 +25,21 @@
         with-links (map #(topic-rep/topic-template-for-rendering org-slug slug (% templates)) topic-slugs)]
     (json/generate-string (assoc topics :templates (zipmap topic-slugs with-links)) {:pretty true})))
 
+;; ----- Validations -----
+
+(defn- valid-new-board? [conn org-slug ctx]
+  (if-let [org (org-res/get-org conn org-slug)]
+    (try
+      ;; Create the new board from the URL and data provided
+      (let [board-map (:data ctx)
+            author (:user ctx)
+            new-board (board-res/->board (:uuid org) board-map author)]
+        {:new-board new-board :existing-org org})
+
+      (catch clojure.lang.ExceptionInfo e
+        [false, {:reason (.getMessage e)}])) ; Not a valid new entry
+    [false, {:reason "Invalid org."}])) ; couldn't find the specified org
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular Board
@@ -56,6 +71,39 @@
   ;; Responses
   :handle-ok (fn [ctx] (board-rep/render-board org-slug (:existing-board ctx) (:access-level ctx))))
 
+;; A resource for operations on a list of boards
+(defresource board-list [conn org-slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :post]
+
+  ;; Media type client accepts
+  :available-media-types [mt/board-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/board-media-type)
+  
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))})
+
+  ;; Authorization
+  :allowed? (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))
+
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (valid-new-board? conn org-slug ctx))})
+
+  ;; Existentialism
+
+  ;; Actions
+  :post! (fn [ctx] (println "POST!"))
+
+  ;; Responses
+  ;:handle-created 
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (:reason ctx))))
+
 ;; A resource for the available topics for a specific company.
 (defresource topic-list [conn org-slug slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -85,6 +133,9 @@
       ;; Board operations
       (OPTIONS "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
       (GET "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
+      ;; Board creation
+      (OPTIONS "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
+      (POST "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
       ;; Topic list operations
       (OPTIONS "/orgs/:org-slug/boards/:slug/topics/new" [org-slug slug] (pool/with-pool [conn db-pool] (topic-list conn org-slug slug)))
       (GET "/orgs/:org-slug/boards/:slug/topics/new" [org-slug slug] (pool/with-pool [conn db-pool] (topic-list conn org-slug slug))))))

@@ -73,7 +73,6 @@
   :processable? (by-method {
     :options true
     :get true
-    :post (fn [ctx] (valid-new-entry? conn org-slug board-slug topic-slug ctx))
     :patch (fn [ctx] (valid-entry-update? conn org-slug board-slug topic-slug as-of ctx))
     :delete true})
 
@@ -98,8 +97,8 @@
   :handle-ok (by-method {
     :get (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx) (:access-level ctx)))
     :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug (:updated-entry ctx) (:access-level ctx)))})
-  :handle-unprocessable-entity (by-method {
-    :patch (fn [ctx] (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx))))}))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
 ; A resource for operations on all entries of a particular topic
 (defresource entry-list [conn org-slug board-slug topic-slug]

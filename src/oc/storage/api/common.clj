@@ -14,7 +14,7 @@
     :public
     false
 
-  Given an org slug, board slug and user map, return the authorization level for the user on the board:
+  Or, given an org slug, board slug and user map, return the authorization level for the user on the board:
     :author
     :viewer
     false
@@ -71,6 +71,13 @@
     true)))
 
 (defn allow-authors
-  "Given an org slug, board slug and user map, return true if the user is an author on the board."
-  [conn org-slug board-slug user]
-  (= (:access-level (access-level-for conn org-slug board-slug user)) :author))
+  "
+  Given an org slug, and user map, return true if the user is an author on the org.
+
+  Or, given an org slug, board slug and user map, return true if the user is an author on the board.
+  "
+  ([conn org-slug user]
+  (= (:access-level (access-level-for conn org-slug user)) :author))
+
+  ([conn org-slug board-slug user]
+  (= (:access-level (access-level-for conn org-slug board-slug user)) :author)))
