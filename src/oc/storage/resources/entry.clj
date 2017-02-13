@@ -35,11 +35,11 @@
   [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- common/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (if-let* [ts (db-common/current-timestamp)
-            topic-slug (keyword slug)
+  (if-let* [topic-slug (keyword slug)
             template-props (or (topic-slug common/topics-by-slug)
                                (:custom common/topics-by-slug))
-            board (board-res/get-board conn board-uuid)]
+            board (board-res/get-board conn board-uuid)
+            ts (db-common/current-timestamp)]
     (-> (merge template-props (-> entry-props
                                 keywordize-keys
                                 clean))

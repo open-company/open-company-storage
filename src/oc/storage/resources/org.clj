@@ -74,6 +74,8 @@
         (assoc :authors [(:user-id user)])
         (update :currency #(or % "USD"))
         (update :promoted #(or % default-promoted))
+        (update :logo-width #(or % 0))
+        (update :logo-height #(or % 0))
         (assoc :author (common/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))

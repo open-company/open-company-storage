@@ -2,9 +2,9 @@
   (:require [clojure.walk :refer (keywordize-keys)]
             [defun.core :refer (defun)]
             [schema.core :as schema]
+            [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
-            [oc.lib.schema :as lib-schema]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]))
 
@@ -23,8 +23,7 @@
 
 ;; ----- Data Defaults -----
 
-(def default-slug "who-we-are")
-(def default-name "Who-we-are")
+(def default-names ["Who We Are" "All Hands"])
 (def default-access :team)
 (def default-promoted false)
 (def default-update-template {:title "" :topics []})
@@ -38,13 +37,13 @@
 
 ;; ----- Board Slug -----
 
-(declare list-boards)
+(declare get-boards-by-org)
 (defn taken-slugs
   "Return all board slugs which are in use as a set."
   [conn org-uuid]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)]}
-  (map :slug (list-boards conn org-uuid)))
+  (map :slug (get-boards-by-org conn org-uuid)))
 
 (defn slug-available?
   "Return true if the slug is not used by any board in the org."

@@ -1,15 +1,17 @@
 {
   :slug "green-labs"
   :name "GreenLabs"
-  :team-id "f725-4791-80ac"
+  :team-id "1234-abcd-5678"
   :currency "USD"
   :logo-url "https://open-company-assets.s3.amazonaws.com/green-labs.png"
+  :logo-width 160
+  :logo-height 160
   :promoted true
 
   :author {
     :avatar-url "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg"
-    :name "Stuart Levinson"
-    :user-id "1234-5678-1234"
+    :name "Albert Camus"
+    :user-id "ac53-4d41-8894"
   }
 
   :boards [
