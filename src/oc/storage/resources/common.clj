@@ -26,7 +26,9 @@
 
 (def custom-topic-slug "Regex that matches properly named custom topics" #"^custom-.{4}$")
 
-(defn topic-slug? [topic-slug]
+(defn topic-slug? 
+  "Return true if the argument is a valid named or custem topic slug."
+  [topic-slug]
   (and
     (or (string? topic-slug) (keyword? topic-slug))
     (or (topic-slugs (keyword topic-slug))
@@ -34,12 +36,11 @@
 
 ;; ----- Persistent Data Schemas -----
 
-;; Known topic slugs and custom topics
-(def TopicSlug (schema/pred topic-slug?))
+(def TopicSlug "Known topic slugs and custom topics." (schema/pred topic-slug?))
 
-(def Slug (schema/pred slug/valid-slug?))
+(def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
-(def TopicOrder
+(def TopicOrder "A sequence of topic slugs."
   (schema/pred #(and
     (sequential? %) ; it is sequential
     (every? topic-slug? %) ; everything in it is a topic name
@@ -143,8 +144,7 @@
 
 (def Update {
   :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
-  :board-slug Slug
-  :company-slug Slug
+  :org-uuid lib-schema/UniqueID
   :currency schema/Str
   (schema/optional-key :logo-url) schema/Str
   (schema/optional-key :logo-width) schema/Int
@@ -160,8 +160,7 @@
 
 ;; ----- Non-persistent Data Schemas -----
 
-;; The portion of JWT properties that we care about for authorship
-(def User {
+(def User "The portion of JWT properties that we care about for authorship" {
     :user-id lib-schema/UniqueID
     :name lib-schema/NonBlankStr
     :teams [lib-schema/UniqueID]
