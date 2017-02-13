@@ -55,12 +55,27 @@
         (assoc :updated-at ts))))
 
 (schema/defn ^:always-validate create-entry!
-  "Create a board in the system. Throws a runtime exception if org doesn't conform to the common/Board schema."
+  "Create an entry in the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
+
+  Updates the `topics` of the board if neccessary.
+
+  Returns the newly created entry, or false if the board specified in the entry can't be found."
   [conn entry :- common/Entry]
   {:pre [(db-common/conn? conn)]}
-  (let [ts (db-common/current-timestamp)
-        author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
-    (db-common/create-resource conn table-name (assoc entry :author author) ts)))
+  (if-let* [board-uuid (:board-uuid entry)
+            board (board-res/get-board conn board-uuid)]
+    (let [topic-slug (:topic-slug entry)
+          topics (:topics board) ; topics currently on the board
+          add-topic? (not ((set topics) (name topic-slug))) ; need to add the topic for this entry to the board?
+          ts (db-common/current-timestamp)
+          author (assoc (first (:author entry)) :updated-at ts) ; update initial author timestamp
+          entry-result (db-common/create-resource conn table-name (assoc entry :author author) ts)] ; create the entry
+      (when (and entry-result add-topic?)
+        ;; Add the topic to the board
+        (board-res/update-board! conn board-uuid {:topics (conj topics topic-slug)}))
+      entry-result)
+    ;; No board
+    false))
 
 (schema/defn ^:always-validate get-entry
   "
@@ -97,6 +112,7 @@
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
+(declare get-entries-by-topic)
 (schema/defn ^:always-validate delete-entry!
   "
   Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
@@ -106,9 +122,19 @@
 
   ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
-  ; TODO delete by index
-  ;(db-common/delete-resource conn table-name uuid))
-  ))
+  (if-let [board (board-res/get-board conn board-uuid)]
+    (let [topics (:topics board) ; topics currently on the board
+          has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
+          entry-result (db-common/delete-resource conn table-name
+                          :created-at-topic-slug-board-uuid [created-at topic-slug board-uuid])]
+      (when (and entry-result
+                 has-topic?
+                 (empty? (get-entries-by-topic conn board-uuid topic-slug)))
+          ;; Remove the topic from the board
+          (board-res/update-board! conn board-uuid {:topics (vec (disj (set topics) (name topic-slug)))}))
+      entry-result)
+    ;; No board
+    false)))
 
 ;; ----- Collection of entries -----
 

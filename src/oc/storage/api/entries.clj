@@ -33,7 +33,7 @@
 
 (defn- valid-entry-update? [conn org-slug board-slug topic-slug as-of ctx]
   (if-let [existing-entry (entry-res/get-entry conn
-                          (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
+                            (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
     ;; Merge the existing entry with the new updates
     (let [entry-map (:data ctx)
           updated-entry (merge existing-entry (entry-res/clean entry-map))]
@@ -42,22 +42,6 @@
         [false, {:updated-entry updated-entry}])) ; invalid updates
     
     true)) ; no existing entry, will fail existence check later
-
-;; ----- Actions -----
-
-(defn- create-entry [conn ctx]
-  (if-let* [new-entry (:new-entry ctx)
-            topic-slug (:topic-slug new-entry)
-            board (:existing-board ctx)
-            board-uuid (:uuid board)
-            topics (:topics board)
-            entry-result (entry-res/create-entry! conn new-entry) ; Add the entry
-            _board-result (if ((set topics) topic-slug)
-                            true ; new entry for existing topic
-                            ; new entry for new or archived topic, add the topic to the board
-                            (board-res/update-board! conn board-uuid {:topics (conj topics topic-slug)}))]
-    {:new-entry entry-result}
-    false))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -94,10 +78,11 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let [entry (or (:existing-entry ctx)
-                                        (entry-res/get-entry conn
-                                          (board-res/uuid-for conn org-slug board-slug) topic-slug as-of))]
-                        {:existing-entry entry}
+  :exists? (fn [ctx] (if-let* [board (or (:existing-board ctx)
+                                         (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug))
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn (:uuid board) topic-slug as-of))]
+                        {:existing-board board :existing-entry entry}
                         false))
 
   ;; Actions
@@ -105,7 +90,8 @@
                               result (entry-res/update-entry! conn (:id updated-entry) updated-entry (:user ctx))]
                       {:updated-entry result}
                       false))
-  :delete! (fn [ctx] (println "DELETE!"))
+  :delete! (fn [ctx] (let [board (:existing-board ctx)]
+                        (entry-res/delete-entry! conn (:uuid board) topic-slug as-of)))
 
   ;; Responses
   :handle-ok (by-method {
@@ -153,7 +139,10 @@
                         false))
 
   ;; Actions
-  :post! (fn [ctx] (create-entry conn ctx))
+  :post! (fn [ctx] (if-let* [new-entry (:new-entry ctx)
+                            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
+                      {:new-entry entry-result}
+                      false))
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug (:existing-entries ctx)))
