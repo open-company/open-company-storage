@@ -122,7 +122,7 @@
                  '[oc.storage.resources.entry :as entry]
                  '[oc.storage.resources.update :as update]
                  '[oc.storage.representations.org :as org-rep]
-                 '[oc.storgae.representations.board :as board-rep]
+                 '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
                  ;'[oc.storage.representations.update :as update-rep]
                  )
