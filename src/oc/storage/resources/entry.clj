@@ -69,7 +69,7 @@
           add-topic? (not ((set topics) (name topic-slug))) ; need to add the topic for this entry to the board?
           ts (db-common/current-timestamp)
           author (assoc (first (:author entry)) :updated-at ts) ; update initial author timestamp
-          entry-result (db-common/create-resource conn table-name (assoc entry :author author) ts)] ; create the entry
+          entry-result (db-common/create-resource conn table-name (assoc entry :author [author]) ts)] ; create the entry
       (when (and entry-result add-topic?)
         ;; Add the topic to the board
         (board-res/update-board! conn board-uuid {:topics (conj topics topic-slug)}))
