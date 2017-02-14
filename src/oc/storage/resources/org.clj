@@ -1,5 +1,6 @@
 (ns oc.storage.resources.org
   (:require [clojure.walk :refer (keywordize-keys)]
+            [if-let.core :refer (when-let*)]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
@@ -107,7 +108,7 @@
   Throws an exception if the merge of the prior org and the updated org property map doesn't conform
   to the common/Org schema.
   
-  NOTE: doesn't update admins, see: `add-admin`, `remove-admin`
+  NOTE: doesn't update authors, see: `add-author`, `remove-author`
   NOTE: doesn't handle case of slug change.
   "
   [conn slug org]
@@ -124,7 +125,7 @@
   Given the slug of the org and an org property map, create or update the org
   and return `true` on success.
 
-  NOTE: doesn't update admins, see: `add-admin`, `remove-admin`
+  NOTE: doesn't update authors, see: `add-author`, `remove-author`
   NOTE: doesn't handle case of slug change.
   "
   [conn slug org user :- common/User]
@@ -160,6 +161,30 @@
     
     false)) ; it's OK if there is no org to delete
 
+;; ----- Org's set operations -----
+
+(schema/defn ^:always-validate add-author :- (schema/maybe common/Org)
+  "
+  Given the slug of the org, and the user-id of the user, add the user as an author of the org if it exists.
+  Returns the updated org on success, nil on non-existence, and a RethinkDB error map on other errors.
+  "
+  [conn slug user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (when-let* [org (get-org conn slug)]
+    (db-common/add-to-set conn table-name slug "authors" user-id)))
+
+(schema/defn ^:always-validate remove-author :- (schema/maybe common/Org)
+  "
+  Given the slug of the org, and the user-id of the user, remove the user as an author of the org if it exists.
+  Returns the updated org on success, nil on non-existence, and a RethinkDB error map on other errors.
+  "
+  [conn slug user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (if-let [org (get-org conn slug)]
+    (db-common/remove-from-set conn table-name slug "authors" user-id)))
+
 ;; ----- Collection of orgs -----
 
 (defn list-orgs
@@ -187,7 +212,7 @@
   Secondary indexes:
   `uuid`
   `team-id`
-  `admins`
+  `authors`
   "
   [conn index-key v]
   {:pre [(db-common/conn? conn)
