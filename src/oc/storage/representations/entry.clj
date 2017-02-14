@@ -16,12 +16,12 @@
   ([org-slug board-slug topic-slug :guard string?]
   (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (name topic-slug)))
   
-  ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:topic-slug entry)))
+  ([org-slug board-slug entry :guard map?] (url org-slug board-slug (name (:topic-slug entry))))
 
   ([org-slug board-slug topic-slug :guard string? timestamp]
   (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (name topic-slug) "?as-of=" timestamp))
 
-  ([org-slug board-slug entry :guard map? timestamp] (url org-slug board-slug (:topic-slug entry) timestamp)))
+  ([org-slug board-slug entry :guard map? timestamp] (url org-slug board-slug (name (:topic-slug entry)) timestamp)))
 
 (defn- self-link [org-slug board-slug entry timestamp]
   (hateoas/self-link (url org-slug board-slug entry timestamp) {:accept mt/entry-media-type}))
@@ -48,7 +48,7 @@
 (defn- entry-collection-links
   [entry board-slug org-slug access-level]
   (let [timestamp (:created-at entry)
-        topic-slug (:topic-slug entry)
+        topic-slug (name (:topic-slug entry))
         links [(collection-link org-slug board-slug entry)
                (item-link org-slug board-slug entry timestamp)]
         full-links (if (= access-level :author)
@@ -60,12 +60,13 @@
 
 (defn- entry-links
   [entry board-slug org-slug access-level]
-  (let [topic-slug (:topic-slug entry)
+  (let [topic-slug (name (:topic-slug entry))
         timestamp (:created-at entry)
         links [(self-link org-slug board-slug (name topic-slug) timestamp)
                (up-link org-slug board-slug)]
         full-links (if (= access-level :author)
                       (concat links [(partial-update-link org-slug board-slug entry timestamp)
+                                     (create-link org-slug board-slug topic-slug)
                                      (delete-link org-slug board-slug entry timestamp)])
                       links)]
     (assoc entry :links full-links)))

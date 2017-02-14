@@ -151,7 +151,7 @@
   :handle-created (fn [ctx] (let [new-entry (:new-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry (:access-level ctx))
+                                (entry-rep/render-entry org-slug board-slug new-entry :author)
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
