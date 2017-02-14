@@ -26,7 +26,7 @@
     [zprint "0.2.15"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     
-    [open-company/lib "0.6.4-8da0b61"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.6.5-74702f5"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     ; if-let - More than one binding for if/when macros https://github.com/LockedOn/if-let
@@ -106,10 +106,11 @@
                  '[clj-time.format :as f]
                  '[clojure.string :as s]
                  '[rethinkdb.query :as r]
-                 '[schema.core :as schema]
                  '[cheshire.core :as json]
                  '[ring.mock.request :refer (request body content-type header)]
                  ; '[open-company.lib.rest-api-mock :refer (api-request)]
+                 '[schema.core :as schema]
+                 '[oc.lib.schema :as lib-schema]
                  '[oc.lib.jwt :as jwt]
                  '[oc.lib.db.common :as db-common]
                  '[oc.lib.slugify :as slug]
@@ -120,9 +121,10 @@
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
                  '[oc.storage.resources.update :as update]
-                 ; '[open-company.representations.company :as company-rep]
-                 ; '[open-company.representations.section :as section-rep]
-                 ; '[open-company.representations.stakeholder-update :as su-rep]
+                 '[oc.storage.representations.org :as org-rep]
+                 '[oc.storgae.representations.board :as board-rep]
+                 '[oc.storage.representations.entry :as entry-rep]
+                 ;'[oc.storage.representations.update :as update-rep]
                  )
       ]
     }]
