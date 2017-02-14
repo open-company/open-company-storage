@@ -54,12 +54,12 @@
 ;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
-    true              wrap-with-logger
+    c/dsn             (sentry-mw/wrap-sentry c/dsn) ; important that this is first
+    c/prod?           wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
     true              (wrap-cors #".*")
-    c/hot-reload      wrap-reload
-    c/dsn             (sentry-mw/wrap-sentry c/dsn)))
+    c/hot-reload      wrap-reload))
 
 (defn start
   "Start a development server"
