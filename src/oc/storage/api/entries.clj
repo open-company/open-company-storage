@@ -170,6 +170,8 @@
       ;; Board operations
       (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
         (dispatch db-pool org-slug board-slug topic-slug as-of))
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of]
+        (dispatch db-pool org-slug board-slug topic-slug as-of))
       (GET "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
         (dispatch db-pool org-slug board-slug topic-slug as-of))
       (PATCH "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]

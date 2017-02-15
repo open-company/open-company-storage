@@ -32,12 +32,11 @@
     (try
       ;; Create the new board from the URL and data provided
       (let [board-map (:data ctx)
-            author (:user ctx)
-            new-board (board-res/->board (:uuid org) board-map author)]
-        {:new-board new-board :existing-org org})
+            author (:user ctx)]
+        {:new-board (board-res/->board (:uuid org) board-map author) :existing-org org})
 
       (catch clojure.lang.ExceptionInfo e
-        [false, {:reason (.getMessage e)}])) ; Not a valid new entry
+        [false, {:reason (.getMessage e)}])) ; Not a valid new board
     [false, {:reason "Invalid org."}])) ; couldn't find the specified org
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -89,7 +88,6 @@
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))})
 
   ;; Authorization
-
   :allowed? (by-method {
     :options true
     :post (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))})

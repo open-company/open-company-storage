@@ -23,9 +23,9 @@
 
 ;; ----- Data Defaults -----
 
-(def default-names ["Who We Are" "All Hands"])
+(def default-boards ["Who-We-Are" "All-Hands"])
+
 (def default-access :team)
-(def default-promoted false)
 (def default-update-template {:title "" :topics []})
 
 ;; ----- Utility functions -----
