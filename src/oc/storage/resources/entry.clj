@@ -131,7 +131,7 @@
                  has-topic?
                  (empty? (get-entries-by-topic conn board-uuid topic-slug)))
           ;; Remove the topic from the board
-          (board-res/update-board! conn board-uuid {:topics (vec (disj (set topics) (name topic-slug)))}))
+          (board-res/update-board! conn board-uuid {:topics (filterv #(not= % (name topic-slug)) topics)}))
       entry-result)
     ;; No board
     false)))

@@ -64,7 +64,7 @@
 
   ;; Authorization
   :allowed? (by-method {
-    :options (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
+    :options true
     :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
     :patch (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
     :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
@@ -123,7 +123,7 @@
   
   ;; Authorization
   :allowed? (by-method {
-    :options (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
+    :options true
     :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
     :post (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
 

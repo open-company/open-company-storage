@@ -1,7 +1,7 @@
 (ns oc.storage.api.entry-point
   "Liberator API for HATEOAS entry point to storage service."
   (:require [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
-            [liberator.core :refer (defresource)]
+            [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
@@ -30,6 +30,7 @@
   
   ;; Media type client accepts
   :allowed? (fn [ctx] (api-common/allow-anonymous ctx))
+
   :available-media-types ["application/json" mt/org-collection-media-type]
   :handle-not-acceptable (fn [_] (api-common/only-accept 406 ["application/json" mt/org-collection-media-type]))
 

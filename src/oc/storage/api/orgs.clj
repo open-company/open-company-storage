@@ -25,7 +25,9 @@
   :handle-not-acceptable (api-common/only-accept 406 mt/org-media-type)
   
   ;; Authorization
-  :allowed? (fn [ctx] (storage-common/access-level-for conn slug (:user ctx)))
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (storage-common/access-level-for conn slug (:user ctx)))})
 
   :exists? (fn [ctx] (if-let [org (org-res/get-org conn slug)]
                         {:existing-org org}

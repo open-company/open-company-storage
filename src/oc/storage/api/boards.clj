@@ -53,7 +53,9 @@
   :handle-not-acceptable (api-common/only-accept 406 mt/board-media-type)
   
   ;; Authorization
-  :allowed? (fn [ctx] (storage-common/access-level-for conn org-slug slug (:user ctx)))
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (storage-common/access-level-for conn org-slug slug (:user ctx)))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
@@ -87,7 +89,10 @@
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))})
 
   ;; Authorization
-  :allowed? (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))
+
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -121,7 +126,9 @@
   :handle-not-acceptable (api-common/only-accept 406 mt/topic-list-media-type)
 
   ;; Authorization
-  :allowed? (fn [ctx] (storage-common/allow-authors conn org-slug slug (:user ctx)))
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (storage-common/allow-authors conn org-slug slug (:user ctx)))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let [org (org-res/get-org conn org-slug)]
