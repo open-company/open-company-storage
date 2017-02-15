@@ -36,6 +36,8 @@
   (json/generate-string
     {:collection {:version hateoas/json-collection-version
                   :href "/"
-                  :links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})]
+                  :links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})
+                          (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
+                                                         :accept mt/org-media-type})]
                   :items (map org-links orgs)}}
     {:pretty true}))

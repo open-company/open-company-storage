@@ -33,10 +33,6 @@
 
 ;; ----- Validations -----
 
-(defn- allow-admins-or-no-org [conn ctx]
-  ;; TODO
-  {:access-level :author})
-
 (defn- valid-new-org? [conn ctx]
   (try
     ;; Create the new org from the data provided
@@ -94,7 +90,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (allow-admins-or-no-org conn (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
+    :post (fn [ctx] (storage-common/allow-team-admins-or-no-org
+                      conn (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
 
   ;; Validations
   :processable? (by-method {

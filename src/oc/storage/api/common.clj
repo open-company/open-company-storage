@@ -70,6 +70,18 @@
     ;; Will fail existence checks later
     true)))
 
+(defn allow-team-admins
+  ""
+  [user]
+  ;; TODO
+  true)
+
+(defn allow-team-admins-or-no-org
+  ""
+  [conn user]
+  ;; TODO
+  {:access-level :author})
+
 (defn allow-authors
   "
   Given an org slug, and user map, return true if the user is an author on the org.

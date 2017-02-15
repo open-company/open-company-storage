@@ -16,7 +16,11 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:team-id :authors})
+  #{:authors})
+
+(def ignored-properties
+  "Properties of a resource that are ignored during an update."
+  (merge reserved-properties #{:team-id}))
 
 ;; ----- Data Defaults -----
 
@@ -28,6 +32,11 @@
   "Remove any reserved properties from the org."
   [org]
   (apply dissoc (common/clean org) reserved-properties))
+
+(defn ignore-props
+  "Remove any ignored properties from the org."
+  [org]
+  (apply dissoc org ignored-properties))
 
 ;; ----- Organization Slug -----
 
@@ -71,7 +80,6 @@
         clean
         (assoc :slug slug)
         (assoc :uuid (db-common/unique-id))
-        (assoc :team-id (first (:teams user))) ; TODO: how do we decide which auth-id to create the org with?
         (assoc :authors [(:user-id user)])
         (update :currency #(or % "USD"))
         (update :promoted #(or % default-promoted))
@@ -116,7 +124,7 @@
          (slug/valid-slug? slug)
          (map? org)]}
   (if-let [original-org (get-org conn slug)]
-    (let [updated-org (merge original-org (clean org))]
+    (let [updated-org (merge original-org (ignore-props org))]
       (schema/validate common/Org updated-org)
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
 
