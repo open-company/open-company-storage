@@ -89,7 +89,7 @@
   "
   [conn org-slug user]
   (let [access (access-level-for conn org-slug user)]
-    (if (= (:acess-level access) :public)
+    (if (= (:access-level access) :public)
       false
       access)))
 
@@ -100,7 +100,13 @@
   Or, given an org slug, board slug and user map, return true if the user is an author on the board.
   "
   ([conn org-slug user]
-  (= (:access-level (access-level-for conn org-slug user)) :author))
+  (let [access (access-level-for conn org-slug user)]
+    (if (= (:access-level access) :author)
+      access
+      false)))
 
   ([conn org-slug board-slug user]
-  (= (:access-level (access-level-for conn org-slug board-slug user)) :author)))
+  (let [access (access-level-for conn org-slug board-slug user)]
+    (if (= (:access-level access) :author)
+      access
+      false))))

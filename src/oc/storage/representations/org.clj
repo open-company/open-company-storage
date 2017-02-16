@@ -21,12 +21,18 @@
 
 (defn- board-create-link [org] (hateoas/create-link (str (url org) "/boards/") {:content-type mt/board-media-type
                                                                                 :accept mt/board-media-type}))
+
+(defn- add-author-link [org] 
+  (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type
+                                                              :accept mt/org-author-media-type}))
+
 (defn- org-collection-links [org]
   (assoc org :links [(item-link org) (board-create-link org)]))
 
 (defn- org-links [org access-level]
   (let [links [(self-link org) (board-create-link org)]
-        full-links (if (= access-level :author) (concat links [(partial-update-link org)]))]
+        full-links (if (= access-level :author) (concat links [(partial-update-link org)
+                                                               (add-author-link org)]))]
     (assoc org :links full-links)))
 
 (defn render-org
