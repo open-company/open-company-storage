@@ -48,5 +48,5 @@
                   :links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})
                           (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
                                                          :accept mt/org-media-type})]
-                  :items (map org-links orgs)}}
+                  :items (map org-collection-links orgs)}}
     {:pretty true}))
