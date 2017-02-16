@@ -46,6 +46,19 @@
 
 ;; ----- Actions -----
 
+(defn- create-entry [conn ctx entry-for]
+  (timbre/info "Creating entry:" entry-for)
+  (if-let* [new-entry (:new-entry ctx)
+            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
+    
+    (do
+      (timbre/info "Created entry:" entry-for)
+      {:new-entry entry-result})
+
+    (do
+      (timbre/error "Failed creating entry:" entry-for)
+      false)))
+
 (defn- update-entry [conn ctx entry-for]
   (timbre/info "Updating entry:" entry-for)
   (if-let* [updated-entry (:updated-entry ctx)
@@ -165,10 +178,7 @@
                         false))
 
   ;; Actions
-  :post! (fn [ctx] (if-let* [new-entry (:new-entry ctx)
-                             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
-                      {:new-entry entry-result}
-                      false))
+  :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug board-slug topic-slug])))
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug
