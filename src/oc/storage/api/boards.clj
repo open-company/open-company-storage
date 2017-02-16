@@ -1,6 +1,7 @@
 (ns oc.storage.api.boards
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
+            [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
             [liberator.core :refer (defresource by-method)]
             [cheshire.core :as json]
@@ -42,11 +43,16 @@
 ;; ----- Actions -----
 
 (defn- create-board [conn ctx org-slug]
+  (timbre/info "Creating board for org:" org-slug)
   (if-let* [new-board (:new-board ctx)
             access-level (if (= :author (:access-level ctx)) :team :private)
             board-result (board-res/create-board! conn (assoc new-board :access access-level))] ; Add the board
-              {:new-board board-result}
-              false))
+    
+    (do
+      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
+      {:new-board board-result})
+    
+    (do (timbre/error "Failed creating board for org:" org-slug) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
