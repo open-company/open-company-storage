@@ -6,7 +6,7 @@
             [oc.storage.representations.media-types :as mt]))
 
 (def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height
-                           :boards :author :created-at :updated-at])
+                           :boards :author :authors :created-at :updated-at])
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -26,6 +26,9 @@
   (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type
                                                               :accept mt/org-author-media-type}))
 
+(defn- remove-author-link [org user-id]
+  (hateoas/remove-link (str (url org) "/authors/" user-id)))
+
 (defn- org-collection-links [org]
   (assoc org :links [(item-link org) (board-create-link org)]))
 
@@ -34,6 +37,12 @@
         full-links (if (= access-level :author) (concat links [(partial-update-link org)
                                                                (add-author-link org)]))]
     (assoc org :links full-links)))
+
+(defn render-author-for-collection
+  "Create a map of the org author for use in a collection in the REST API"
+  [org user-id]
+  {:user-id user-id
+   :links [(remove-author-link org user-id)]})
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."

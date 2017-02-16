@@ -1,10 +1,27 @@
 (ns oc.storage.api.common
   "Common functions for storage API resources."
   (:require [if-let.core :refer (if-let*)]
+            [taoensso.timbre :as timbre]
+            [oc.lib.schema :as lib-schema]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]))
+
+;; ----- Validation -----
  
-;; ----- Authorization Functions -----
+ (defn malformed-user-id?
+  "Read in the body param from the request and make sure it's a non-blank string
+  that corresponds to a user-id. Otherwise just indicate it's malformed."
+  [ctx]
+  (try
+    (if-let* [user-id (slurp (get-in ctx [:request :body]))
+              valid? (lib-schema/unique-id? user-id)]
+      [false {:data user-id}]
+      true)
+    (catch Exception e
+      (do (timbre/warn "Request body not processable as a user-id: " e)
+        true))))
+
+;; ----- Authorization -----
 
 (defn access-level-for
   "

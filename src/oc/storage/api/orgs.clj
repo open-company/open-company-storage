@@ -2,10 +2,11 @@
   "Liberator API for team resources."
   (:require [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY)]
+            [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
+            [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
@@ -46,6 +47,28 @@
       {:updated-org update-result})
 
     (do (timbre/error "Failed updating org:" slug) false)))
+
+(defn- add-author [conn ctx slug user-id]
+  (timbre/info "Adding author:" user-id "to org:" slug)
+  (if-let [updated-org (org-res/add-author conn slug user-id)]
+    (do
+      (timbre/info "Added author:" user-id "to org:" slug)
+      {:updated-org updated-org})
+    
+    (do
+      (timbre/error "Failed adding author:" user-id "to org:" slug)
+      false)))
+
+(defn- remove-author [conn ctx slug user-id]
+  (timbre/info "Removing author:" user-id "from org:" slug)
+  (if-let [updated-org (org-res/remove-author conn slug user-id)]
+    (do
+      (timbre/info "Removed author:" user-id "from org:" slug)
+      {:updated-org updated-org})
+    
+    (do
+      (timbre/error "Failed removing author:" user-id "to org:" slug)
+      false)))
 
 ;; ----- Validations -----
 
@@ -110,10 +133,65 @@
   :handle-ok (fn [ctx] (let [org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
                              boards (board-res/get-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
-                             board-reps (map #(board-rep/render-board-for-collection slug %) boards)]
-                          (org-rep/render-org (assoc org :boards board-reps) (:access-level ctx))))
+                             board-reps (map #(board-rep/render-board-for-collection slug %) boards)
+                             authors (:authors org)
+                             author-reps (map #(org-rep/render-author-for-collection org %) authors)]
+                          (org-rep/render-org (-> org
+                                                (assoc :boards board-reps)
+                                                (assoc :authors author-reps))
+                                              (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
+
+;; A resource for the authors of a particular org
+(defresource author [conn org-slug user-id]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :post :delete]
+
+  ;; Media type client accepts
+  :available-media-types [mt/org-author-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/org-author-media-type)
+
+  ;; Media type client sends
+  :malformed? (by-method {
+    :options false
+    :post (fn [ctx] (storage-common/malformed-user-id? ctx))
+    :delete false})
+  :known-content-type? (by-method {
+    :options true
+    :post (fn [ctx] (api-common/known-content-type? ctx mt/org-author-media-type))
+    :delete true})
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))
+    :delete (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))})
+
+  ;; Existentialism
+  :exists? (by-method {
+    :post (fn [ctx] (if-let [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))]
+                        {:existing-org org :existing-author ((set (:authors org)) (:data ctx))}
+                        false))
+    :delete (fn [ctx] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
+                                exists? ((set (:authors org)) user-id)]
+                        {:existing-org org :existing-author true}
+                        false))}) ; org or author doesn't exist
+
+  ;; Actions
+  :post! (fn [ctx] (when-not (:existing-author ctx) (add-author conn ctx org-slug (:data ctx))))
+  :delete! (fn [ctx] (when (:existing-author ctx) (remove-author conn ctx org-slug user-id)))
+  
+  ;; Responses
+  :respond-with-entity? false
+  :handle-created (fn [ctx] (if (:existing-org ctx)
+                              (api-common/blank-response)
+                              (api-common/missing-response)))
+  :handle-no-content (fn [ctx] (when-not (:updated-org ctx) (api-common/missing-response)))
+  :handle-options (if user-id
+                    (api-common/options-response [:options :delete])
+                    (api-common/options-response [:options :post])))
 
 
 ;; A resource for operations on a list of orgs
@@ -159,9 +237,22 @@
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
+      ;; Org creation
+      (ANY "/orgs" [] (pool/with-pool [conn db-pool] (org-list conn)))
+      (ANY "/orgs/" [] (pool/with-pool [conn db-pool] (org-list conn)))
       ;; Org operations
       (ANY "/orgs/:slug" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
       (ANY "/orgs/:slug/" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
-      ;; Org creation
-      (ANY "/orgs" [] (pool/with-pool [conn db-pool] (org-list conn)))
-      (ANY "/orgs/" [] (pool/with-pool [conn db-pool] (org-list conn))))))
+      ;; Org author operations
+      (OPTIONS "/orgs/:slug/authors" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (OPTIONS "/orgs/:slug/authors/" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (POST "/orgs/:slug/authors" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (POST "/orgs/:slug/authors/" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (OPTIONS "/orgs/:slug/authors/:user-id" [slug user-id] (pool/with-pool [conn db-pool]
+        (author conn slug user-id)))
+      (OPTIONS "/orgs/:slug/authors/:user-id/" [slug user-id]
+        (pool/with-pool [conn db-pool] (author conn slug user-id)))
+      (DELETE "/orgs/:slug/authors/:user-id" [slug user-id]
+        (pool/with-pool [conn db-pool] (author conn slug user-id)))
+      (DELETE "/orgs/:slug/authors/:user-id/" [slug user-id] (pool/with-pool [conn db-pool]
+        (author conn slug user-id))))))
