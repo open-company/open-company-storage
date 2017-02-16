@@ -111,7 +111,7 @@
                              org-id (:uuid org)
                              boards (board-res/get-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
                              board-reps (map #(board-rep/render-board-for-collection slug %) boards)]
-                          (org-rep/render-org (assoc org :boards board-reps))))
+                          (org-rep/render-org (assoc org :boards board-reps) (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
@@ -150,7 +150,7 @@
                                   slug (:slug new-org)]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org new-org)
+                                (org-rep/render-org new-org :author)
                                 mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

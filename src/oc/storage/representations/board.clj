@@ -26,10 +26,7 @@
   [result board]
   (merge result (select-keys board (filter common/topic-slug? (keys board)))))
 
-(defn- board-collection-links
-  [board org-slug]
-  (assoc board :links [
-    (item-link org-slug (:slug board))]))
+(defn- board-collection-links [board org-slug] (assoc board :links [(item-link org-slug (:slug board))]))
 
 (defn- board-links
   [board org-slug access-level]
