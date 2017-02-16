@@ -39,6 +39,15 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
     [false, {:reason "Invalid org."}])) ; couldn't find the specified org
 
+;; ----- Actions -----
+
+(defn- create-board [conn ctx org-slug]
+  (if-let* [new-board (:new-board ctx)
+            access-level (if (= :author (:access-level ctx)) :team :private)
+            board-result (board-res/create-board! conn (assoc new-board :access access-level))] ; Add the board
+              {:new-board board-result}
+              false))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular Board
@@ -90,7 +99,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (storage-common/allow-members conn org-slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -98,10 +107,7 @@
     :post (fn [ctx] (valid-new-board? conn org-slug ctx))})
 
   ;; Actions
-  :post! (fn [ctx] (if-let* [new-board (:new-board ctx)
-                             board-result (board-res/create-board! conn new-board)] ; Add the board
-                      {:new-board board-result}
-                      false))
+  :post! (fn [ctx] (create-board conn ctx org-slug))
 
   ;; Responses
   :handle-created (fn [ctx] (let [new-board (:new-board ctx)

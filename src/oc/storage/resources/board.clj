@@ -141,7 +141,7 @@
   Given the uuid of the org, and slug of the board, delete the board and all its entries, and updates,
   and return `true` on success.
   "
-  ([conn :guard db-common/conn? board :guard #((schema/validate common/Board %))]
+  ([conn :guard db-common/conn? board :guard map?]
   (delete-board! conn (:uuid board)))
 
   ([conn :guard db-common/conn? org-uuid :guard #(schema/validate lib-schema/UniqueID %) slug :guard slug/valid-slug?]
@@ -149,10 +149,6 @@
     (delete-board! conn uuid)))
 
   ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %)]
-  ;; Delete updates
-  (try
-    (db-common/delete-resource conn common/update-table-name :board-uuid uuid)
-    (catch java.lang.RuntimeException e)) ; it's OK if there are no updates to delete
   ;; Delete entries
   (try
     (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)

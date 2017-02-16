@@ -82,6 +82,17 @@
   ;; TODO
   {:access-level :author})
 
+(defn allow-members
+  "
+  Given an org slug and a user map, return an access level of :author or :viewer if the user is a team member
+  and false otherwise.
+  "
+  [conn org-slug user]
+  (let [access (access-level-for conn org-slug user)]
+    (if (= (:acess-level access) :public)
+      false
+      access)))
+
 (defn allow-authors
   "
   Given an org slug, and user map, return true if the user is an author on the org.
