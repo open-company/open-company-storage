@@ -1,6 +1,8 @@
 (ns oc.storage.api.entries
   "Liberator API for entry resources."
-  (:require [if-let.core :refer (if-let*)]
+  (:require [clojure.string :as s]
+            [if-let.core :refer (if-let*)]
+            [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
@@ -31,17 +33,44 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
-(defn- valid-entry-update? [conn org-slug board-slug topic-slug as-of ctx]
+(defn- valid-entry-update? [conn org-slug board-slug topic-slug as-of entry-props]
   (if-let [existing-entry (entry-res/get-entry conn
                             (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
     ;; Merge the existing entry with the new updates
-    (let [entry-map (:data ctx)
-          updated-entry (merge existing-entry (entry-res/clean entry-map))]
+    (let [updated-entry (merge existing-entry (entry-res/clean entry-props))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry :updated-entry updated-entry}
-        [false, {:updated-entry updated-entry}])) ; invalid updates
+        [false, {:updated-entry updated-entry}])) ; invalid update
     
-    true)) ; no existing entry, will fail existence check later
+    true)) ; no existing entry, so this will fail existence check later
+
+;; ----- Actions -----
+
+(defn- update-entry [conn ctx entry-for]
+  (timbre/info "Updating entry:" entry-for)
+  (if-let* [updated-entry (:updated-entry ctx)
+            updated-result (entry-res/update-entry! conn (:id updated-entry) updated-entry (:user ctx))]
+    (do 
+      (timbre/info "Updated entry:" entry-for)
+      {:updated-entry updated-result})
+
+    (do
+      (timbre/error "Failed updating entry:" entry-for)
+      false)))
+
+(defn- delete-entry [conn ctx entry-for]
+  (timbre/info "Deleting entry:" entry-for)
+  (if-let* [board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            _delete-result (entry-res/delete-entry! conn (:uuid board) (:topic-slug entry) (:created-at entry))]
+
+    (do
+      (timbre/info "Deleted entry:" entry-for)
+      true)
+
+    (do
+      (timbre/info "Failed deleting entry:" entry-for)
+      false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -57,10 +86,10 @@
   
   ;; Media type client sends
   :known-content-type? (by-method {
-                          :options true
-                          :get true
-                          :patch (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
-                          :delete true})
+    :options true
+    :get true
+    :patch (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
+    :delete true})
 
   ;; Authorization
   :allowed? (by-method {
@@ -73,7 +102,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (valid-entry-update? conn org-slug board-slug topic-slug as-of ctx))
+    :patch (fn [ctx] (valid-entry-update? conn org-slug board-slug topic-slug as-of (:data ctx)))
     :delete true})
 
   ;; Existentialism
@@ -86,12 +115,8 @@
                         false))
 
   ;; Actions
-  :patch! (fn [ctx] (if-let* [updated-entry (:updated-entry ctx)
-                              result (entry-res/update-entry! conn (:id updated-entry) updated-entry (:user ctx))]
-                      {:updated-entry result}
-                      false))
-  :delete! (fn [ctx] (let [board (:existing-board ctx)]
-                        (entry-res/delete-entry! conn (:uuid board) topic-slug as-of)))
+  :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug topic-slug as-of])))
+  :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug topic-slug as-of])))
 
   ;; Responses
   :handle-ok (by-method {
