@@ -3,7 +3,7 @@
   (:require [clojure.string :as s]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (defroutes OPTIONS GET POST PUT PATCH DELETE)]
+            [compojure.core :as compojure :refer (ANY)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
@@ -55,9 +55,7 @@
       (timbre/info "Created entry:" entry-for)
       {:new-entry entry-result})
 
-    (do
-      (timbre/error "Failed creating entry:" entry-for)
-      false)))
+    (do (timbre/error "Failed creating entry:" entry-for) false)))
 
 (defn- update-entry [conn ctx entry-for]
   (timbre/info "Updating entry:" entry-for)
@@ -67,23 +65,15 @@
       (timbre/info "Updated entry:" entry-for)
       {:updated-entry updated-result})
 
-    (do
-      (timbre/error "Failed updating entry:" entry-for)
-      false)))
+    (do (timbre/error "Failed updating entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
   (timbre/info "Deleting entry:" entry-for)
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
             _delete-result (entry-res/delete-entry! conn (:uuid board) (:topic-slug entry) (:created-at entry))]
-
-    (do
-      (timbre/info "Deleted entry:" entry-for)
-      true)
-
-    (do
-      (timbre/info "Failed deleting entry:" entry-for)
-      false)))
+    (do (timbre/info "Deleted entry:" entry-for) true)
+    (do (timbre/info "Failed deleting entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -203,17 +193,7 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Board operations
-      (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
         (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (GET "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (PATCH "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (POST "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (POST "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (DELETE "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
+      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of]
         (dispatch db-pool org-slug board-slug topic-slug as-of)))))

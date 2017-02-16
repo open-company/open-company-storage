@@ -1,19 +1,19 @@
-(ns open-company.lib.bot
-  (:require [amazonica.aws.sqs :as sqs]
+(ns oc.storage.lib.bot
+  (:require [clojure.string :as s]
+            [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [medley.core :as med]
-            [clojure.string :as string]
-            [schema.core :as s]
-            [open-company.config :as c]))
+            [schema.core :as schema]
+            [oc.storage.config :as config]))
 
 (def KnownScripts
-  (s/enum :onboard :onboard-user :onboard-user-authenticated :stakeholder-update))
+  (schema/enum :onboard :onboard-user :onboard-user-authenticated :stakeholder-update))
 
 (def BotTrigger
-  {:api-token s/Str
-   :script   {:id KnownScripts :params {s/Keyword (s/maybe s/Str)}}
-   :receiver {:type (s/enum :all-members :user :channel) (s/optional-key :id) s/Str}
-   :bot      {:token s/Str :id s/Str}})
+  {:api-token schema/Str
+   :script   {:id KnownScripts :params {schema/Keyword (schema/maybe schema/Str)}}
+   :receiver {:type (schema/enum :all-members :user :channel) (schema/optional-key :id) schema/Str}
+   :bot      {:token schema/Str :id schema/Str}})
 
 (defmulti adapt (fn [type _] type))
 
@@ -35,7 +35,7 @@
 
 (defn- add-su-note [ctx]
   (let [note (-> ctx :data :note)]
-    (if-not (string/blank? note)
+    (if-not (s/blank? note)
       (assoc-in ctx [:stakeholder-update :note] note)
       ctx)))
 
@@ -59,13 +59,13 @@
                     (= script-id :stakeholder-update) {:type :all-members})}))
 
 (defn send-trigger! [trigger]
-  (timbre/info "Request to send msg to " c/aws-sqs-bot-queue "\n" trigger)
-  (s/validate BotTrigger trigger)
+  (timbre/info "Request to send msg to " config/aws-sqs-bot-queue "\n" trigger)
+  (schema/validate BotTrigger trigger)
   (timbre/info "Sending")
   (sqs/send-message
-   {:access-key c/aws-access-key-id
-    :secret-key c/aws-secret-access-key}
-   c/aws-sqs-bot-queue
+   {:access-key config/aws-access-key-id
+    :secret-key config/aws-secret-access-key}
+   config/aws-sqs-bot-queue
    trigger))
 
 (comment

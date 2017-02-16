@@ -1,8 +1,8 @@
-(ns open-company.lib.email
+(ns oc.storage.lib.email
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
-            [open-company.config :as c]))
+            [oc.storage.config :as config]))
 
 (def EmailTrigger
   {:to [schema/Str]
@@ -30,11 +30,11 @@
    :origin-url (get-in ctx [:request :headers "origin"])})
 
 (defn send-trigger! [trigger]
-  (timbre/info "Request to send msg to " c/aws-sqs-email-queue "\n" (dissoc trigger :snapshot))
+  (timbre/info "Request to send msg to " config/aws-sqs-email-queue "\n" (dissoc trigger :snapshot))
   (schema/validate EmailTrigger trigger)
   (timbre/info "Sending")
   (sqs/send-message
-   {:access-key c/aws-access-key-id
-    :secret-key c/aws-secret-access-key}
-   c/aws-sqs-email-queue
+   {:access-key config/aws-access-key-id
+    :secret-key config/aws-secret-access-key}
+   config/aws-sqs-email-queue
    trigger))

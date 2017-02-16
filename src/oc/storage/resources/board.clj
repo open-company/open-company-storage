@@ -37,6 +37,8 @@
 
 ;; ----- Board Slug -----
 
+(def reserved-slugs #{"create-board"})
+
 (declare get-boards-by-org)
 (defn taken-slugs
   "Return all board slugs which are in use as a set."
