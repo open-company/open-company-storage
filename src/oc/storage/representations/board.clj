@@ -8,8 +8,7 @@
             [oc.storage.representations.topic :as topic-rep]
             [oc.storage.resources.common :as common]))
 
-(def representation-props [:slug :name :access :promoted :topics :archived :update-template
-                           :author :created-at :updated-at])
+(def representation-props [:slug :name :access :promoted :topics :archived :author :created-at :updated-at])
 
 (defun url
   ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))

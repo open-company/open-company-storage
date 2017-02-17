@@ -17,6 +17,7 @@
             [oc.storage.resources.org :as org]
             [oc.storage.resources.board :as board]
             [oc.storage.resources.entry :as entry]
+            [oc.storage.resources.update :as update]            
             [oc.storage.config :as c])
   (:gen-class))
 
@@ -47,33 +48,32 @@
 
 ;; ----- Resource import -----
 
-(defn import-update [conn board update author]
-  ;; TODO
-  )
+(defn import-update [conn org update author]
+  (let [org-slug (:slug org)
+        title (:title update)]
+    (println (str "Creating update '" title "' for org '" org-slug "'."))
+    (update/create-update! conn (update/->update conn org-slug update author))
+    (println (str "Created update '" title "' for org '" org-slug "'."))))
 
 (defn- import-entry [conn org board entry author]
-  (let [timestamp (:created-at entry)
+  (let [board-uuid (:uuid board)
+        timestamp (:created-at entry)
         slug (:topic-slug entry)
         entry-author (or (first (:author entry)) author)
         author (assoc entry-author :teams [(:team-id org)])]
-    (println (str "Creating entry for " slug " topic at " timestamp))
+    (println (str "Creating entry for " slug " topic at " timestamp " on board '" (:name board) "'"))
     (db-common/create-resource conn entry/table-name
-      (entry/->entry conn (:uuid board) slug entry author) timestamp)))
+      (entry/->entry conn board-uuid slug entry author) timestamp)))
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
   (if-let [new-board (board/create-board! conn (board/->board (:uuid org)
-                        (dissoc board :entries :updates) author))]
+                        (dissoc board :entries) author))]
     (do
       ;; Create the entries
       (println (str "Creating " (count (:entries board)) " entries."))
       (doseq [entry (:entries board)]
-        (import-entry conn org new-board entry author))
-
-      ;; Create the updates
-      (println (str "Creating " (count (:updates board)) " updates."))
-      (doseq [entry (:updates board)]
-        (import-update conn new-board entry author)))
+        (import-entry conn org new-board entry author)))
     
     (do
       (println "\nFailed to create the board!")
@@ -81,8 +81,9 @@
 
 (defn- import-org [conn options data]
   (let [delete (:delete options)
-        org (dissoc data :boards)
+        org (dissoc data :boards :updates)
         boards (:boards data)
+        updates (:updates data)
         org-slug (:slug org)
         author (assoc (:author org) :teams [(:team-id org)])
         prior-org (org/get-org conn org-slug)]
@@ -104,7 +105,11 @@
         ;; Create the boards
         (println (str "Creating " (count boards) " boards."))
         (doseq [board boards]
-          (import-board conn new-org board author)))
+          (import-board conn new-org board author))
+        ;; Create the updates
+        (println (str "Creating " (count updates) " updates."))
+        (doseq [update updates]
+          (import-update conn new-org update author)))
 
       (do
         (println "\nFailed to create the org!")

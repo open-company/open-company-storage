@@ -247,4 +247,22 @@
       ]
     }
   ]
+
+  :updates [
+
+    {
+      :title "18F: October Update"
+      :note "Another great month in the books! 💥"
+      :medium "email"
+      :to ["obama@whitehouse.gov"]
+      :entries [
+        {:topic-slug "team" :created-at "2016-10-18T12:02:16.539Z"}
+        {:topic-slug "sales" :created-at "2016-10-19T12:02:16.539Z"}
+        {:topic-slug "challenges" :created-at "2016-10-14T12:02:16.539Z"}
+        {:topic-slug "growth" :created-at "2016-10-15T12:02:16.539Z"}
+        {:topic-slug "custom-6fc1" :created-at "2016-10-10T12:02:16.539Z"}
+        {:topic-slug "press" :created-at "2016-10-18T12:02:16.539Z"}
+      ]
+    }
+  ]
 }

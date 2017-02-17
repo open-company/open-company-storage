@@ -1,6 +1,6 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let*)]
+            [if-let.core :refer (if-let* when-let*)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
@@ -35,14 +35,14 @@
   [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- common/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (if-let* [topic-slug (keyword slug)
-            template-props (or (topic-slug common/topics-by-slug)
+  (when-let* [topic-slug (keyword slug)
+              template-props (or (topic-slug common/topics-by-slug)
                                (:custom common/topics-by-slug))
-            board (board-res/get-board conn board-uuid)
-            ts (db-common/current-timestamp)]
+              board (board-res/get-board conn board-uuid)
+              ts (db-common/current-timestamp)]
     (-> (merge template-props (-> entry-props
-                                keywordize-keys
-                                clean))
+                                  keywordize-keys
+                                  clean))
         (dissoc :description :slug)
         (assoc :topic-slug topic-slug)
         (update :title #(or % (:title template-props)))
@@ -79,17 +79,23 @@
 
 (schema/defn ^:always-validate get-entry
   "
-  Given the ID of the entry, or the UUID of the board, the slug of the topic and the created-at timestamp,
-  retrieve the entry, or return nil if it doesn't exist.
+  Given the ID of the entry, retrieve the entry, or return nil if it doesn't exist.
+
+  Or given the UUID of the org or board, a topic slug, and the created-at timestampt,
+  retrieve the entry, or return nil if it doesn't exist. In this case a keyword, `:org` or `:board`
+  needs to be provided to indicate what type of UUID is being used.
   "
   ([conn id :- lib-schema/NonBlankStr]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resource conn table-name id))
   
-  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
+  ([conn uuid-type :- (schema/enum :board :org) uuid :- lib-schema/UniqueID
+    topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
-  (first
-    (db-common/read-resources conn table-name :created-at-topic-slug-board-uuid [[created-at topic-slug board-uuid]]))))
+  (let [index-name (if (= uuid-type :board)
+                      :created-at-topic-slug-board-uuid
+                      :created-at-topic-slug-org-uuid)]
+    (first (db-common/read-resources conn table-name index-name [[created-at topic-slug uuid]])))))
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "

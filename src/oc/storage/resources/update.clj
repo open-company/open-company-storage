@@ -1,12 +1,14 @@
 (ns oc.storage.resources.update
-  (:require [clojure.walk :refer (keywordize-keys)]
+  (:require [clojure.string :as s]
+            [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.org :as org-res]))
+            [oc.storage.resources.org :as org-res]
+            [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- RethinkDB metadata -----
 
@@ -25,6 +27,25 @@
   "Remove any reserved properties from the org."
   [update]
   (apply dissoc (common/clean update) reserved-properties))
+
+(defn- slug-for
+  "Create a slug for the update from the slugified title and a short UUID."
+  [title]
+  (let [non-blank-title (if (s/blank? title) "update" title)]
+    (str (slug/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 5))))
+
+(schema/defn ^:always-validate entry-for :- common/UpdateEntry
+  "
+  Given an entry spec from a share requet, get the specified entry from the DB.
+
+  Throws an exception if the entry isn't found.
+  "
+  [conn org-uuid entry]
+  (let [topic-slug (:topic-slug entry)
+        timestamp (:created-at entry)]
+    (if-let [entry (entry-res/get-entry conn :org org-uuid topic-slug timestamp)]
+      (dissoc entry :org-uuid :board-uuid :body-placeholder)
+      (throw (ex-info "Invalid entry." {:org-uuid org-uuid :topic-slug topic-slug :created-at timestamp})))))
 
 ;; ----- Update Slug -----
 
@@ -48,34 +69,36 @@
 
 (schema/defn ^:always-validate ->update :- common/Update
   "
-  Take an org UUID, a minimal map describing as update, a user and an optional slug and 'fill the blanks' with
-  any missing properties.
+  Take an org slug, a minimal map containing a ShareRequest, and a user as the update author
+  and 'fill the blanks' with any missing properties.
   "
-  ; ([conn org-uuid update-props user]
-  ; (->update org-uuid (or (:slug update-props) (slug/slugify (:name board-props))) update-props user))
-
-  ([conn org-slug slug update-props user :- common/User]
+  [conn org-slug update-props :- common/ShareRequest user :- common/User]
   {:pre [(db-common/conn? conn)
-         (slug/valid-slug? org-slug)
-         (slug/valid-slug? slug)
-         (map? update-props)]}
+         (slug/valid-slug? org-slug)]}
   (if-let* [org (org-res/get-org conn org-slug)
-            ts (db-common/current-timestamp)]
+            org-uuid (:uuid org)
+            ts (db-common/current-timestamp)
+            entries (map #(entry-for conn org-uuid %) (:entries update-props))]
     (-> update-props
         keywordize-keys
         clean
-        (assoc :slug slug)
-        (assoc :org-uuid (:uuid org))
+        (assoc :slug (slug-for (:title update-props)))
+        (assoc :org-uuid org-uuid)
         (assoc :currency (:currency org))
         (assoc :logo-url (:logo-url org))
         (assoc :logo-width (or (:logo-width org) 0))
         (assoc :logo-height (or (:logo-height org) 0))
-        (assoc :topics [])
+        (assoc :entries entries)
         (assoc :author (common/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts))
-    
-      false))) ; no org for that slug
+    (throw (ex-info "Invalid org slug." {:slug org-slug}))))
+
+(schema/defn ^:always-validate create-update!
+  "Create an update in the system. Throws a runtime exception if the update doesn't conform to the common/Update schema."
+  [conn update :- common/Update]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/create-resource conn table-name update (db-common/current-timestamp)))
 
 ;; ----- Collection of updates -----
 

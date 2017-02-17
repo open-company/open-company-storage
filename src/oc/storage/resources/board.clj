@@ -26,7 +26,6 @@
 (def default-boards ["Who-We-Are" "All-Hands"])
 
 (def default-access :team)
-(def default-update-template {:title "" :topics []})
 
 ;; ----- Utility functions -----
 
@@ -81,13 +80,12 @@
         (assoc :authors [(:user-id user)])
         (assoc :viewers [])
         (update :topics #(or % []))        
-        (update :update-template #(or % default-update-template))        
         (assoc :author (common/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
 
 (schema/defn ^:always-validate create-board!
-  "Create a board in the system. Throws a runtime exception if org doesn't conform to the common/Board schema."
+  "Create a board in the system. Throws a runtime exception if the board doesn't conform to the common/Board schema."
   [conn board :- common/Board]
   {:pre [(db-common/conn? conn)]}
   (db-common/create-resource conn table-name board (db-common/current-timestamp)))

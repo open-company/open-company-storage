@@ -90,17 +90,20 @@
         (assoc :updated-at ts)))))
 
 (schema/defn ^:always-validate create-org!
-  "Create an org in the system. Throws a runtime exception if org doesn't conform to the common/Org schema."
+  "Create an org in the system. Throws a runtime exception if the org doesn't conform to the common/Org schema."
   [conn org :- common/Org]
   {:pre [(db-common/conn? conn)]}
   (db-common/create-resource conn table-name org (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
-  "Given the slug of the org, return the org, or return nil if it doesn't exist."
-  [conn slug]
+  "Given the slug or UUID of the org, return the org, or return nil if it doesn't exist."
+  [conn identifier]
   {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)]}
-  (db-common/read-resource conn table-name slug))
+         (or (lib-schema/unique-id? identifier)
+             (slug/valid-slug? identifier))]}
+  (if (lib-schema/unique-id? identifier)
+    (first (db-common/read-resources conn table-name :uuid identifier))
+    (db-common/read-resource conn table-name identifier)))
 
 (schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
   "Given an org slug, return the UUID of the org, or nil if it doesn't exist."

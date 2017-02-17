@@ -34,7 +34,7 @@
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
 (defn- valid-entry-update? [conn org-slug board-slug topic-slug as-of entry-props]
-  (if-let [existing-entry (entry-res/get-entry conn
+  (if-let [existing-entry (entry-res/get-entry conn :board
                             (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
     ;; Merge the existing entry with the new updates
     (let [updated-entry (merge existing-entry (entry-res/clean entry-props))]
@@ -113,7 +113,7 @@
                                board (or (:existing-board ctx)
                                          (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug))
                                entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn (:uuid board) topic-slug as-of))]
+                                         (entry-res/get-entry conn :board (:uuid board) topic-slug as-of))]
                         {:existing-board board :existing-entry entry}
                         false))
 

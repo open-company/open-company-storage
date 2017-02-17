@@ -34,7 +34,7 @@
     (or (topic-slugs (keyword topic-slug))
         (re-matches custom-topic-slug (name topic-slug)))))
 
-;; ----- Persistent Data Schemas -----
+;; ----- Data Schemas -----
 
 (def TopicSlug "Known topic slugs and custom topics." (schema/pred topic-slug?))
 
@@ -119,8 +119,6 @@
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
   :topics TopicOrder
-  :update-template {:title schema/Str
-                    :topics TopicOrder}
   :author Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
@@ -142,23 +140,25 @@
 
 (def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
 
-(def Update {
-  :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
-  :org-uuid lib-schema/UniqueID
-  :currency schema/Str
-  (schema/optional-key :logo-url) schema/Str
-  (schema/optional-key :logo-width) schema/Int
-  (schema/optional-key :logo-height) schema/Int          
+(def ShareRequest {
   :title schema/Str
-  :topics [UpdateEntry]
-  :author Author ; user that created the update
   :medium ShareMedium
+  :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
   (schema/optional-key :to) [schema/Str]
-  (schema/optional-key :note) schema/Str
-  :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
+  (schema/optional-key :note) schema/Str})
 
-;; ----- Non-persistent Data Schemas -----
+(def Update 
+  (merge ShareRequest {
+    :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
+    :org-uuid lib-schema/UniqueID
+    :currency schema/Str
+    (schema/optional-key :logo-url) schema/Str
+    (schema/optional-key :logo-width) schema/Int
+    (schema/optional-key :logo-height) schema/Int          
+    :entries [UpdateEntry]
+    :author Author ; user that created the update
+    :created-at lib-schema/ISO8601
+    :updated-at lib-schema/ISO8601}))
 
 (def User "The portion of JWT properties that we care about for authorship" {
     :user-id lib-schema/UniqueID
