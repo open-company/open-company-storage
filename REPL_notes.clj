@@ -22,10 +22,13 @@
 (require '[oc.storage.api.orgs :as orgs-api] :reload)
 (require '[oc.storage.api.boards :as boards-api] :reload)
 (require '[oc.storage.api.entries :as entries-api] :reload)
+(require '[oc.storage.api.updates :as updates-api] :reload)
+(require '[oc.storage.representations.media-types :as mt] :reload)
 (require '[oc.storage.representations.org :as org-rep] :reload)
 (require '[oc.storage.representations.board :as board-rep] :reload)
 (require '[oc.storage.representations.topic :as topic-rep] :reload)
 (require '[oc.storage.representations.entry :as entry-rep] :reload)
+(require '[oc.storage.representations.update :as update-rep] :reload)
 
 ;; make a (fake) REST API request
 (api-request :get "/companies/buffer" {:headers {:Accept (company-rep/media-type)}})

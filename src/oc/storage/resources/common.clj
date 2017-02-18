@@ -149,8 +149,10 @@
 
 (def Update 
   (merge ShareRequest {
+    (schema/optional-key :id) lib-schema/UUIDStr
     :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
     :org-uuid lib-schema/UniqueID
+    :org-name lib-schema/NonBlankStr
     :currency schema/Str
     (schema/optional-key :logo-url) schema/Str
     (schema/optional-key :logo-width) schema/Int

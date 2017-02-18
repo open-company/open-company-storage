@@ -84,6 +84,7 @@
         clean
         (assoc :slug (slug-for (:title update-props)))
         (assoc :org-uuid org-uuid)
+        (assoc :org-name (:name org))
         (assoc :currency (:currency org))
         (assoc :logo-url (:logo-url org))
         (assoc :logo-width (or (:logo-width org) 0))
@@ -99,6 +100,18 @@
   [conn update :- common/Update]
   {:pre [(db-common/conn? conn)]}
   (db-common/create-resource conn table-name update (db-common/current-timestamp)))
+
+(schema/defn ^:always-validate get-update :- (schema/maybe common/Update)
+  "
+  Given the unique ID of the org, and slug of the update, retrieve the update,
+  or return nil if it doesn't exist.
+  "
+  [conn org-uuid :- lib-schema/UniqueID slug]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (println slug)
+  (println org-uuid)
+  (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
 
 ;; ----- Collection of updates -----
 

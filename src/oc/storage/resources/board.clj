@@ -100,9 +100,8 @@
          (schema/validate lib-schema/UniqueID uuid)]}
   (db-common/read-resource conn table-name uuid))
 
-  ([conn org-uuid slug]
+  ([conn org-uuid :- lib-schema/UniqueID slug]
   {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)]}
   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]]))))
 

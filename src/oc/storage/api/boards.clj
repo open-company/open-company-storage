@@ -28,25 +28,21 @@
 
 ;; ----- Validations -----
 
-(defn- valid-new-board? [conn org-slug ctx]
+(defn- valid-new-board? [conn org-slug {board-map :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
-      ;; Create the new board from the URL and data provided
-      (let [board-map (:data ctx)
-            author (:user ctx)]
-        {:new-board (board-res/->board (:uuid org) board-map author) :existing-org org})
+      {:new-board (board-res/->board (:uuid org) board-map author) :existing-org org}
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
-    [false, {:reason "Invalid org."}])) ; couldn't find the specified org
+    [false, {:reason :invalid-org}])) ; couldn't find the specified org
 
 ;; ----- Actions -----
 
-(defn- create-board [conn ctx org-slug]
+(defn- create-board [conn {access-level :access-level :as new-board} org-slug]
   (timbre/info "Creating board for org:" org-slug)
-  (if-let* [new-board (:new-board ctx)
-            access-level (if (= :author (:access-level ctx)) :team :private)
-            board-result (board-res/create-board! conn (assoc new-board :access access-level))] ; Add the board
+  (if-let* [access (if (= :author access-level) :team :private)
+            board-result (board-res/create-board! conn (assoc new-board :access access))] ; Add the board
     
     (do
       (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
@@ -56,7 +52,7 @@
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-;; A resource for operations on a particular Board
+;; A resource for operations on a particular board
 (defresource board [conn org-slug slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 

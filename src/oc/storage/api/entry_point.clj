@@ -24,7 +24,7 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 (defresource entry-point [conn]
-  (api-common/anonymous-resource config/passphrase)
+  (api-common/anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get]
   
