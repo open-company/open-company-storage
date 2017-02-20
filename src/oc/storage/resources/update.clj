@@ -140,7 +140,7 @@
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn org-uuid] (get-updates-by-org conn org-uuid []))
+  ([conn org-uuid] (list-updates-by-org conn org-uuid []))
 
   ([conn org-uuid :- lib-schema/UniqueID additional-keys]
   {:pre [(db-common/conn? conn)
@@ -158,7 +158,7 @@
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn org-uuid user-id] (get-updates-by-org conn org-uuid []))
+  ([conn org-uuid user-id] (list-updates-by-author conn org-uuid user-id []))
 
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID additional-keys]
   {:pre [(db-common/conn? conn)
