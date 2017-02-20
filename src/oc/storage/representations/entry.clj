@@ -70,7 +70,6 @@
                (up-link org-slug board-slug)]
         full-links (if (= access-level :author)
                       (concat links [(partial-update-link org-slug board-slug entry timestamp)
-                                     (create-link org-slug board-slug topic-slug)
                                      (delete-link org-slug board-slug entry timestamp)])
                       links)]
     (assoc entry :links full-links)))
@@ -108,11 +107,15 @@
   entries for the REST API.
   "
   [org-slug board-slug topic-slug entries access-level]
-  (let [collection-url (url org-slug board-slug topic-slug)]
+  (let [collection-url (url org-slug board-slug topic-slug)
+        links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})]
+        full-links (if (= access-level :author)
+                      (concat links [(create-link org-slug board-slug topic-slug)
+                                     (archive-link org-slug board-slug topic-slug)])
+                      links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
-                    :links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
-                            (create-link org-slug board-slug topic-slug)]
+                    :links full-links
                     :items (map #(entry-links % board-slug org-slug access-level) entries)}}
       {:pretty true})))
