@@ -40,6 +40,9 @@
 (defn- delete-link [org-slug board-slug topic-slug timestamp]
   (hateoas/delete-link (url org-slug board-slug topic-slug timestamp)))
 
+(defn- archive-link [org-slug board-slug topic-slug]
+  (hateoas/archive-link (url org-slug board-slug topic-slug)))
+
 (defn- collection-link [org-slug board-slug topic-slug]
   (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
@@ -54,7 +57,8 @@
         full-links (if (= access-level :author)
                       (concat links [(partial-update-link org-slug board-slug topic-slug timestamp)
                                      (delete-link org-slug board-slug topic-slug timestamp)
-                                     (create-link org-slug board-slug topic-slug)])
+                                     (create-link org-slug board-slug topic-slug)
+                                     (archive-link org-slug board-slug topic-slug)])
                       links)]
     (assoc entry :links full-links)))
 
