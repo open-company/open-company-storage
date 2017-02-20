@@ -31,7 +31,9 @@
   [board org-slug access-level]
   (let [slug (:slug board)
         links [(self-link org-slug slug) (up-link org-slug)]
-        full-links (if (= access-level :author) (conj links (topic-rep/list-link (url org-slug slug))) links)]
+        full-links (if (= access-level :author)
+                    (conj links (topic-rep/list-link (url org-slug slug)))
+                    links)]
     (assoc board :links full-links)))
 
 (defn render-board-for-collection

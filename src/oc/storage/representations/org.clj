@@ -34,8 +34,13 @@
 
 (defn- org-links [org access-level]
   (let [links [(self-link org) (board-create-link org)]
-        full-links (if (= access-level :author) (concat links [(partial-update-link org)
-                                                               (add-author-link org)]))]
+        full-links (if (= access-level :author) 
+                      (concat links [(partial-update-link org)
+                                     (add-author-link org)
+                                     (hateoas/create-link (str (url org) "/updates/")
+                                        {:content-type mt/share-request-media-type
+                                         :accept mt/update-media-type})])
+                      links)]
     (assoc org :links full-links)))
 
 (defn render-author-for-collection
