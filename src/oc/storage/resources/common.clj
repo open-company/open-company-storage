@@ -145,6 +145,7 @@
   :medium ShareMedium
   :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
   (schema/optional-key :to) [schema/Str]
+  (schema/optional-key :subject) schema/Str
   (schema/optional-key :note) schema/Str})
 
 (def Update 
