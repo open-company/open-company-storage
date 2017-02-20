@@ -8,6 +8,8 @@
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.api.common :as storage-common]
+            [oc.storage.lib.email :as email]
+            [oc.storage.lib.bot :as bot]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.update :as update-rep]
             [oc.storage.resources.org :as org-res]
@@ -26,12 +28,17 @@
 
 ;; ----- Actions -----
 
-(defn- create-update [conn {title :title :as new-update} org-slug]
+(defn- create-update [conn org-slug {{title :title :as new-update} :new-update user :user :as ctx}]
   (timbre/info "Creating update '" title "' for org:" org-slug)
-  (if-let [update-result (update-res/create-update! conn new-update)] ; Add the update
+  (if-let* [update-result (update-res/create-update! conn new-update) ; Add the update
+            origin-url (get-in ctx [:request :headers "origin"])]
     
     (do
       (timbre/info "Created update '" title "' for org:" org-slug)
+      (case (keyword (:medium update-result))
+        :email (email/send-trigger! (email/->trigger org-slug update-result origin-url user))
+        ;:slack (bot/send-trigger! (bot/->trigger update-result))
+        :link nil) ; no-op
       {:new-update update-result})
     
     (do (timbre/error "Failed creating update for org:" org-slug) false)))
@@ -101,7 +108,7 @@
                         false))})
 
   ;; Actions
-  :post! (fn [ctx] (create-update conn (:new-update ctx) org-slug))
+  :post! (fn [ctx] (create-update conn org-slug ctx))
 
   ;; Responses
   :handle-ok (fn [ctx] (let [org (:existing-org ctx)

@@ -44,7 +44,7 @@
     (assoc params :env/origin origin)
     params))
 
-(defn ctx->trigger [script-id ctx]
+(defn ->trigger [script-id ctx]
   {:pre [(map? (:company ctx)) (map? (:user ctx))]}
   (let [rid (-> ctx :user :user-id)
         bot (-> ctx :user :bot)
@@ -59,20 +59,12 @@
                     (= script-id :stakeholder-update) {:type :all-members})}))
 
 (defn send-trigger! [trigger]
-  (timbre/info "Request to send msg to " config/aws-sqs-bot-queue "\n" trigger)
+  (timbre/info "Bot request to:" config/aws-sqs-bot-queue "\n" (dissoc trigger :entries))
   (schema/validate BotTrigger trigger)
-  (timbre/info "Sending")
+  (timbre/info "Sending request to:" config/aws-sqs-bot-queue)
   (sqs/send-message
    {:access-key config/aws-access-key-id
     :secret-key config/aws-secret-access-key}
    config/aws-sqs-bot-queue
-   trigger))
-
-(comment
-  (get-im-channel tkn "U0JSATHT3")
-
-  (send-trigger! {:abc :d})
-
-  (:body @(slack :users.list {:token tkn}))
-
-  )
+   trigger)
+  (timbre/info "Request sent to:" config/aws-sqs-email-queue))
