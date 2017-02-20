@@ -89,7 +89,7 @@
       (DELETE "/orgs/:org-slug/boards/:board-slug/topics/:slug" [org-slug board-slug slug]
         (pool/with-pool [conn db-pool] (topic conn org-slug board-slug slug)))
       ;; Topic list operations
-      (OPTIONS "/orgs/:org-slug/boards/:slug/topics/new" [org-slug board-slug]
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/new" [org-slug board-slug]
         (pool/with-pool [conn db-pool](topic-list conn org-slug board-slug)))
-      (GET "/orgs/:org-slug/boards/:slug/topics/new" [org-slug board-slug]
+      (GET "/orgs/:org-slug/boards/:board-slug/topics/new" [org-slug board-slug]
         (pool/with-pool [conn db-pool] (topic-list conn org-slug board-slug))))))
