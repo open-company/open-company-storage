@@ -39,7 +39,7 @@
 
 ;; ----- Actions -----
 
-(defn- create-board [conn {access-level :access-level :as new-board} org-slug]
+(defn- create-board [conn {access-level :access-level new-board :new-board} org-slug]
   (timbre/info "Creating board for org:" org-slug)
   (if-let* [access (if (= :author access-level) :team :private)
             board-result (board-res/create-board! conn (assoc new-board :access access))] ; Add the board
