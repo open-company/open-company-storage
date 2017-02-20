@@ -49,6 +49,9 @@
     :options true
     :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
 
+  ;; Media type client sends
+  :known-content-type? true ; bug in cljs-http where it always passes a content-type for a delete
+
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
                                board (board-res/get-board conn (:uuid org) board-slug)
