@@ -49,6 +49,9 @@
     :options true
     :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
 
+  ;; Media type client accepts
+  :media-type-available? true ; client browser sends */* as Accept media type
+
   ;; Media type client sends
   :known-content-type? true ; bug in cljs-http where it always passes a content-type for a delete
 
