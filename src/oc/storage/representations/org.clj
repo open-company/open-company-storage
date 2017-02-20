@@ -37,6 +37,8 @@
         full-links (if (= access-level :author) 
                       (concat links [(partial-update-link org)
                                      (add-author-link org)
+                                     (hateoas/collection-link (str (url org) "/updates")
+                                        {:accept mt/update-collection-media-type})
                                      (hateoas/create-link (str (url org) "/updates/")
                                         {:content-type mt/share-request-media-type
                                          :accept mt/update-media-type})])
