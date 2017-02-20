@@ -11,20 +11,10 @@
             [oc.storage.api.common :as storage-common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
-            [oc.storage.representations.topic :as topic-rep]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]))
-
-;; ----- Utility Functions -----
-
-(defn topic-list-for [org-slug slug]
-  (let [topics config/topics
-        templates (:templates topics)
-        topic-slugs (keys templates)
-        with-links (map #(topic-rep/topic-template-for-rendering org-slug slug (% templates)) topic-slugs)]
-    (json/generate-string (assoc topics :templates (zipmap topic-slugs with-links)) {:pretty true})))
 
 ;; ----- Validations -----
 
@@ -121,29 +111,6 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
-;; A resource for the available topics for a specific company.
-(defresource topic-list [conn org-slug slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
-
-  :allowed-methods [:options :get]
-
-  ;; Media type client accepts
-  :available-media-types [mt/topic-list-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/topic-list-media-type)
-
-  ;; Authorization
-  :allowed? (by-method {
-    :options true
-    :get (fn [ctx] (storage-common/allow-authors conn org-slug slug (:user ctx)))})
-
-  ;; Existentialism
-  :exists? (fn [ctx] (if-let [org (org-res/get-org conn org-slug)]
-                        (board-res/get-board conn (:uuid org) slug)
-                        false))
-
-  ;; Responses
-  :handle-ok (fn [_] (topic-list-for org-slug slug)))
-
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -154,7 +121,4 @@
       (GET "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
       ;; Board creation
       (OPTIONS "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
-      (POST "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
-      ;; Topic list operations
-      (OPTIONS "/orgs/:org-slug/boards/:slug/topics/new" [org-slug slug] (pool/with-pool [conn db-pool] (topic-list conn org-slug slug)))
-      (GET "/orgs/:org-slug/boards/:slug/topics/new" [org-slug slug] (pool/with-pool [conn db-pool] (topic-list conn org-slug slug))))))
+      (POST "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug))))))

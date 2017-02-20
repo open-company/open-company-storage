@@ -19,6 +19,7 @@
     [oc.storage.api.entry-point :as entry-point-api]
     [oc.storage.api.orgs :as orgs-api]
     [oc.storage.api.boards :as boards-api]
+    [oc.storage.api.topics :as topics-api]
     [oc.storage.api.entries :as entries-api]
     [oc.storage.api.updates :as updates-api]))
 
@@ -45,6 +46,7 @@
     (entry-point-api/routes sys)
     (orgs-api/routes sys)
     (boards-api/routes sys)
+    (topics-api/routes sys)
     (entries-api/routes sys)
     (updates-api/routes sys)))
 

@@ -21,6 +21,7 @@
 (require '[oc.storage.api.entry-point :as entry-point-api] :reload)
 (require '[oc.storage.api.orgs :as orgs-api] :reload)
 (require '[oc.storage.api.boards :as boards-api] :reload)
+(require '[oc.storage.api.topics :as topics-api] :reload)
 (require '[oc.storage.api.entries :as entries-api] :reload)
 (require '[oc.storage.api.updates :as updates-api] :reload)
 (require '[oc.storage.representations.media-types :as mt] :reload)

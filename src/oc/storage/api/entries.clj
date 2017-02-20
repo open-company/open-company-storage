@@ -132,7 +132,7 @@
 (defresource entry-list [conn org-slug board-slug topic-slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :get :post]
+  :allowed-methods [:options :get :post :delete] ; :delete is handled by the topic resource
 
   ;; Media type client accepts
   :available-media-types (by-method {
