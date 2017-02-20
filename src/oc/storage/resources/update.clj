@@ -49,13 +49,13 @@
 
 ;; ----- Update Slug -----
 
-(declare get-updates-by-org)
+(declare list-updates-by-org)
 (defn taken-slugs
   "Return all update slugs which are in use as a set."
   [conn org-uuid]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)]}
-  (map :slug (get-updates-by-org conn org-uuid)))
+  (map :slug (list-updates-by-org conn org-uuid)))
 
 (defn slug-available?
   "Return true if the slug is not used by any update in the org."
@@ -133,21 +133,38 @@
     (sort-by :slug)
     vec)))
 
-(defn get-updates-by-org
+(schema/defn ^:always-validate list-updates-by-org
   "
-  Return a sequence of maps with slugs, titles, medium, and created-at, sorted by slug.
+  Return a sequence of maps with slugs, titles, medium, and created-at, sorted by created-at.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
   ([conn org-uuid] (get-updates-by-org conn org-uuid []))
 
-  ([conn org-uuid additional-keys]
+  ([conn org-uuid :- lib-schema/UniqueID additional-keys]
   {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
   (->> (into [primary-key :slug :title :medium :created-at] additional-keys)
     (db-common/read-resources conn table-name :org-uuid org-uuid)
-    (sort-by :slug)
+    (sort-by :created-at)
+    vec)))
+
+(schema/defn ^:always-validate list-updates-by-author
+  "
+  Return a sequence of maps with slugs, titles, medium, and created-at, sorted by created-at.
+  
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
+  "
+  ([conn org-uuid user-id] (get-updates-by-org conn org-uuid []))
+
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID additional-keys]
+  {:pre [(db-common/conn? conn)
+         (sequential? additional-keys)
+         (every? #(or (string? %) (keyword? %)) additional-keys)]}
+  (->> (into [primary-key :slug :title :medium :created-at] additional-keys)
+    (db-common/read-resources conn table-name :author-user-id-org-uuid [[user-id org-uuid]])
+    (sort-by :created-at)
     vec)))

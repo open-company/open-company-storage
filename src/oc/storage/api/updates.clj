@@ -18,7 +18,6 @@
 (defn- valid-share-request? [conn org-slug {share-request :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
-        (println "SR:" share-request)
         {:new-update (update-res/->update conn org-slug share-request author) :existing-org org}
 
       (catch clojure.lang.ExceptionInfo e
@@ -95,10 +94,20 @@
     :get true
     :post (fn [ctx] (valid-share-request? conn org-slug ctx))})
 
+  ;; Existentialism
+  :exists? (by-method {
+    :get (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)]
+                        {:existing-org org}
+                        false))})
+
   ;; Actions
   :post! (fn [ctx] (create-update conn (:new-update ctx) org-slug))
 
   ;; Responses
+  :handle-ok (fn [ctx] (let [org (:existing-org ctx)
+                             user (:user ctx)
+                             updates (update-res/list-updates-by-author conn (:uuid org) (:user-id user))]
+                          (update-rep/render-update-list org-slug updates)))
   :handle-created (fn [ctx] (let [new-update (:new-update ctx)
                                   update-slug (:slug new-update)]
                               (api-common/location-response

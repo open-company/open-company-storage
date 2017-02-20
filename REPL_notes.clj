@@ -56,6 +56,18 @@
       (r/get-all ["51ab-4c86-a477"] {:index :team-id})
       (r/run c))))
 
+;; Get updates by org ID and author ID
+(aprint (with-open [c (apply r/connect conn2)]
+  (-> (r/table "updates")
+      (r/get-all [["ac53-4d41-8894" "af94-4f56-aa88"]] {:index :author-user-id-org-uuid})
+      (r/run c))))
+
+;; Get orgs by team ID
+(aprint (with-open [c (apply r/connect conn2)]
+  (-> (r/table "orgs")
+      (r/get-all ["51ab-4c86-a477"] {:index :team-id})
+      (r/run c))))
+
 ;; Get orgs by team IDs
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "orgs")
