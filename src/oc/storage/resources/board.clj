@@ -79,7 +79,7 @@
         (update :access #(or % default-access))
         (assoc :authors [(:user-id user)])
         (assoc :viewers [])
-        (update :topics #(or % []))        
+        (update :topics distinct)
         (assoc :author (common/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
@@ -128,10 +128,12 @@
   [conn uuid :- lib-schema/UniqueID board]
   {:pre [(db-common/conn? conn)
          (map? board)]}
-  (if-let [original-board (get-board conn uuid)]
-    (let [updated-board (merge original-board (clean board))]
+  (when-let [original-board (get-board conn uuid)]
+    (let [updated-board (merge original-board (clean board))
+          topics (:topics updated-board)]
       (schema/validate common/Board updated-board)
-      (db-common/update-resource conn table-name primary-key original-board updated-board))))
+      (db-common/update-resource conn table-name primary-key original-board
+        (update updated-board :topics distinct)))))
 
 (defun delete-board!
   "

@@ -53,7 +53,7 @@
         :else false))
 
     ;; Will fail existence checks later
-    true))
+    {:access-level :does-not-exist}))
 
 
   ([conn org-slug board-slug {user-id :user-id teams :teams}]
@@ -85,7 +85,7 @@
         :else false))
     
     ;; Will fail existence checks later
-    true)))
+    {:access-level :does-not-exist})))
 
 (defn allow-team-admins
   ""
@@ -117,13 +117,17 @@
   Or, given an org slug, board slug and user map, return true if the user is an author on the board.
   "
   ([conn org-slug user]
-  (let [access (access-level-for conn org-slug user)]
-    (if (= (:access-level access) :author)
+  (let [access (access-level-for conn org-slug user)
+        access-level (:access-level access)]
+    (if (or (= access-level :author)
+            (= access-level :does-not-exist))
       access
       false)))
 
   ([conn org-slug board-slug user]
-  (let [access (access-level-for conn org-slug board-slug user)]
-    (if (= (:access-level access) :author)
+  (let [access (access-level-for conn org-slug board-slug user)
+        access-level (:access-level access)]
+    (if (or (= access-level :author)
+            (= access-level :does-not-exist))
       access
       false))))
