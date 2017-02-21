@@ -46,7 +46,8 @@
 (defn- collection-link [org-slug board-slug topic-slug]
   (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
-(defn- up-link [org-slug board-slug] (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
+(defn- up-link [org-slug board-slug topic-slug] (hateoas/up-link 
+                                        (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
 (defn- entry-collection-links
   [entry board-slug org-slug access-level]
@@ -67,7 +68,7 @@
   (let [topic-slug (name (:topic-slug entry))
         timestamp (:created-at entry)
         links [(self-link org-slug board-slug (name topic-slug) timestamp)
-               (up-link org-slug board-slug)]
+               (up-link org-slug board-slug topic-slug)]
         full-links (if (= access-level :author)
                       (concat links [(partial-update-link org-slug board-slug entry timestamp)
                                      (delete-link org-slug board-slug entry timestamp)])
