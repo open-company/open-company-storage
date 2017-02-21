@@ -114,17 +114,16 @@
     :get (fn [ctx] (storage-common/access-level-for conn slug (:user ctx)))
     :patch (fn [ctx] (storage-common/allow-authors conn slug (:user ctx)))})
 
-  ;; Existentialism
-  :exists? (fn [ctx] (if-let [org (org-res/get-org conn slug)]
-                        {:existing-org org}
-                        false))
-
-
   ;; Validations
   :processable? (by-method {
     :options true
     :get true
     :patch (fn [ctx] (valid-org-update? conn slug (:data ctx)))})
+
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let [org (or (:existing-org ctx) (org-res/get-org conn slug))]
+                        {:existing-org org}
+                        false))
 
   ;; Actions
   :patch! (fn [ctx] (update-org conn ctx slug))

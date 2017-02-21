@@ -18,6 +18,10 @@
 
 (defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/board-media-type}))
 
+(defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (url org-slug slug)
+                                              {:content-type mt/board-media-type
+                                               :accept mt/board-media-type}))
+
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
 (defn- select-topics
@@ -32,7 +36,8 @@
   (let [slug (:slug board)
         links [(self-link org-slug slug) (up-link org-slug)]
         full-links (if (= access-level :author)
-                    (conj links (topic-rep/list-link (url org-slug slug)))
+                    (concat links [(topic-rep/list-link (url org-slug slug))
+                                   (partial-update-link org-slug slug)])
                     links)]
     (assoc board :links full-links)))
 
