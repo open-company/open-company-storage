@@ -22,7 +22,7 @@
 ;; ----- Utility functions -----
 
 (defn- assemble-board [conn org-slug slug ctx]
-  (let [board (or (:updated-board ctx) (:existing-board ctx))
+  (let [board (or (:board-update ctx) (:existing-board ctx))
         topic-slugs (map name (:topics board)) ; slug for each active topic
         entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
         selected-entries (select-keys entries topic-slugs) ; active entries
@@ -50,8 +50,8 @@
             board (board-res/get-board conn (:uuid org) slug)]
     (let [updated-board (merge board (board-res/clean board-props))]
       (if (lib-schema/valid? common-res/Board updated-board)
-        {:existing-org org :existing-board board :updated-board updated-board}
-        [false, {:updated-board updated-board}])) ; invalid update
+        {:existing-org org :existing-board board :board-update updated-board}
+        [false, {:board-update updated-board}])) ; invalid update
     true)) ; No org or board, so this will fail existence check later
 
 ;; ----- Actions -----
@@ -69,9 +69,9 @@
 
 (defn- update-board [conn ctx org-slug slug]
   (timbre/info "Updating board:" slug "of org:" org-slug)
-  (if-let* [updated-board (:updated-board ctx)
+  (if-let* [updated-board (:board-update ctx)
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
-    (do 
+    (do
       (timbre/info "Updated board:" slug "of org:" org-slug)
       {:updated-board updated-result})
 
@@ -120,7 +120,7 @@
   :handle-ok (fn [ctx] (let [board (assemble-board conn org-slug slug ctx)]
                           (board-rep/render-board org-slug board (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (schema/check common-res/Board (:updated-board ctx)))))
+    (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
 
 
 ;; A resource for operations on a list of boards
