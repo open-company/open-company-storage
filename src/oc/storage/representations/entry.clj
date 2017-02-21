@@ -109,7 +109,8 @@
   "
   [org-slug board-slug topic-slug entries access-level]
   (let [collection-url (url org-slug board-slug topic-slug)
-        links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})]
+        links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
+               (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type})]
         full-links (if (= access-level :author)
                       (concat links [(create-link org-slug board-slug topic-slug)
                                      (archive-link org-slug board-slug topic-slug)])
