@@ -9,6 +9,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.storage.api.topics :as topics-api]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]            
             [oc.storage.representations.media-types :as mt]
@@ -183,17 +184,19 @@
 
 ;; ----- Routes -----
 
-(defn- dispatch [db-pool org-slug board-slug topic-slug as-of]
+(defn- dispatch [db-pool org-slug board-slug topic-slug as-of rm]
   (pool/with-pool [conn db-pool] 
     (if as-of
       (entry conn org-slug board-slug topic-slug as-of)
-      (entry-list conn org-slug board-slug topic-slug))))
+      (if (= rm :delete)
+        (topics-api/topic conn org-slug board-slug topic-slug)
+        (entry-list conn org-slug board-slug topic-slug)))))
 
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
-      ;; Board operations
-      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of))
-      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of]
-        (dispatch db-pool org-slug board-slug topic-slug as-of)))))
+      ;; Entry list, Entry and Topic operations (dispatched)
+      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug" [org-slug board-slug topic-slug as-of :as {rm :request-method}]
+        (dispatch db-pool org-slug board-slug topic-slug as-of rm))
+      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/" [org-slug board-slug topic-slug as-of :as {rm :request-method}]
+        (dispatch db-pool org-slug board-slug topic-slug as-of rm)))))
