@@ -265,8 +265,8 @@ Then enter these commands one-by-one, noting the output:
   (board/->board (org/uuid-for conn "open") {:name "Engineering"} author))
 
 ;; list boards
-(board/get-boards-by-org conn (org/uuid-for conn "blank"))
-(board/get-boards-by-org conn (org/uuid-for conn "open"))
+(board/list-boards-by-org conn (org/uuid-for conn "blank"))
+(board/list-boards-by-org conn (org/uuid-for conn "open"))
 
 ;; create some entries
 (entry/create-entry! conn

@@ -131,7 +131,7 @@
   ;; Responses
   :handle-ok (fn [ctx] (let [org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
-                             boards (board-res/get-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
                              board-reps (map #(board-rep/render-board-for-collection slug %) boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org %) authors)]

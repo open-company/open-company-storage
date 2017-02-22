@@ -38,13 +38,13 @@
 
 (def reserved-slugs #{"create-board"})
 
-(declare get-boards-by-org)
+(declare list-boards-by-org)
 (defn taken-slugs
   "Return all board slugs which are in use as a set."
   [conn org-uuid]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)]}
-  (map :slug (get-boards-by-org conn org-uuid)))
+  (into reserved-slugs (map :slug (list-boards-by-org conn org-uuid))))
 
 (defn slug-available?
   "Return true if the slug is not used by any board in the org."
@@ -85,10 +85,16 @@
         (assoc :updated-at ts)))))
 
 (schema/defn ^:always-validate create-board!
-  "Create a board in the system. Throws a runtime exception if the board doesn't conform to the common/Board schema."
+  "
+  Create a board in the system. Throws a runtime exception if the board doesn't conform to the common/Board schema.
+
+  Check the slug in the response as it may change if there is a conflict with another board for the org.
+  "
   [conn board :- common/Board]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name board (db-common/current-timestamp)))
+  (db-common/create-resource conn table-name
+    (update board :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
+    (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-board :- (schema/maybe common/Board)
   "
@@ -175,14 +181,14 @@
     (sort-by :slug)
     vec)))
 
-(defn get-boards-by-org
+(defn list-boards-by-org
   "
   Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn org-uuid] (get-boards-by-org conn org-uuid []))
+  ([conn org-uuid] (list-boards-by-org conn org-uuid []))
 
   ([conn org-uuid additional-keys]
   {:pre [(db-common/conn? conn)
@@ -194,7 +200,7 @@
     (sort-by :slug)
     vec)))
 
-(defn get-boards-by-index
+(defn list-boards-by-index
   "
   Given the name of a secondary index and a value, retrieve all matching boards
   as a sequence of maps with slugs, UUIDs and names, sorted by slug.
@@ -209,7 +215,7 @@
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn index-key index-value] (get-boards-by-index conn index-key index-value []))
+  ([conn index-key index-value] (list-boards-by-index conn index-key index-value []))
 
   ([conn index-key index-value additional-keys]
   {:pre [(db-common/conn? conn)

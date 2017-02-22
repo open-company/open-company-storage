@@ -67,7 +67,10 @@
 ;; ----- Org CRUD -----
 
 (schema/defn ^:always-validate ->org :- common/Org
-  "Take a minimal map describing an org and a user and an optional slug and 'fill the blanks' with any missing properties."
+  "
+  Take a minimal map describing an org and a user and an optional slug and 'fill the blanks' with
+  any missing properties.
+  "
   ([org-props user]
   (->org (or (:slug org-props) (slug/slugify (:name org-props))) org-props user))
 
@@ -90,10 +93,15 @@
         (assoc :updated-at ts)))))
 
 (schema/defn ^:always-validate create-org!
-  "Create an org in the system. Throws a runtime exception if the org doesn't conform to the common/Org schema."
+  "
+  Create an org in the system. Throws a runtime exception if the org doesn't conform to the common/Org schema.
+
+  Check the slug in the response as it may change if there is a conflict with another org.
+  "
   [conn org :- common/Org]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name org (db-common/current-timestamp)))
+  (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
+    (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
   "Given the slug or UUID of the org, return the org, or return nil if it doesn't exist."

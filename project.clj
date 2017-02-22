@@ -35,7 +35,7 @@
     ; RethinkDB - RethinkDB client for Clojure https://github.com/apa512/clj-rethinkdb
     ; Schema - Data validation https://github.com/Prismatic/schema
     ; Timbre - Pure Clojure/Script logging library https://github.com/ptaoussanis/timbre
-    ; Amazonica - A comprehensive Clojure client for the AWS API. https://github.com/mcohen01/amazonica
+    ; Amazonica - A comprehensive Clojure client for the AWS API https://github.com/mcohen01/amazonica
     ; Raven - Interface to Sentry error reporting https://github.com/sethtrain/raven-clj
     ; Cheshire - JSON encoding / decoding https://github.com/dakrone/cheshire
     ; clj-jwt - A Clojure library for JSON Web Token(JWT) https://github.com/liquidz/clj-jwt
