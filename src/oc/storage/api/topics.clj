@@ -90,7 +90,7 @@
 
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
-    ;; Requests are also routed here from enties-api's routes
+    ;; Requests are also routed here from entries-api's routes (see: dispatch fn)
     (compojure/routes
       ;; Topic list operations
       (OPTIONS "/orgs/:org-slug/boards/:board-slug/topics/new" [org-slug board-slug]
