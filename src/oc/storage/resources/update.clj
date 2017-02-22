@@ -168,3 +168,12 @@
     (db-common/read-resources conn table-name :author-user-id-org-uuid [[user-id org-uuid]])
     (sort-by :created-at)
     vec)))
+
+;; ----- Armageddon -----
+
+(defn delete-all-updates!
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
+  [conn]
+  {:pre [(db-common/conn? conn)]}
+  ;; Delete all udpates
+  (db-common/delete-all-resources! conn table-name))

@@ -30,7 +30,7 @@
 
 (defn- create-update [conn org-slug {{title :title :as new-update} :new-update user :user :as ctx}]
   (timbre/info "Creating update '" title "' for org:" org-slug)
-  (if-let* [update-result (update-res/create-update! conn new-update) ; Add the update
+  (if-let* [update-result (update-res/create-update! conn (update new-update :to distinct)) ; Add the update
             origin-url (get-in ctx [:request :headers "origin"])]
     
     (do
