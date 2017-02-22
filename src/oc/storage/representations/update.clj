@@ -17,8 +17,6 @@
 
 (defn- self-link [org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/update-media-type}))
 
-(defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/update-media-type}))
-
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
 (defn- create-link [org-slug] (hateoas/create-link (str (org-rep/url org-slug) "/updates/")

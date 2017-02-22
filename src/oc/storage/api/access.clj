@@ -1,5 +1,5 @@
-(ns oc.storage.api.common
-  "Common functions for storage API resources."
+(ns oc.storage.api.access
+  "Access control functions for storage API."
   (:require [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
@@ -36,7 +36,7 @@
     :viewer
     false
   "
-  ([conn org-slug {user-id :user-id teams :teams}]
+  ([conn org-slug {user-id :user-id teams :teams admin :admin}]
   (if-let [org (org-res/get-org conn org-slug)]
     (let [org-authors (set (:authors org))]
       (cond
@@ -44,6 +44,9 @@
         ;; a named author of this org
         (org-authors user-id) {:access-level :author}
         
+        ;; an admin of this org's team
+        ((set admin) (:team-id org)) {:access-level :author}
+
         ;; a team member of this org
         ((set teams) (:team-id org)) {:access-level :viewer}
         
@@ -56,7 +59,7 @@
     {:access-level :does-not-exist}))
 
 
-  ([conn org-slug board-slug {user-id :user-id teams :teams}]
+  ([conn org-slug board-slug {user-id :user-id teams :teams admin :admin}]
   (if-let* [org (org-res/get-org conn org-slug)
             board (board-res/get-board conn (:uuid org) board-slug)]
     (let [org-uuid (:org-uuid org)
@@ -69,8 +72,11 @@
         ;; a named author of this board
         (board-authors user-id) {:access-level :author}
         
-        ;; a team author of this non-private board
+        ;; an org author of this non-private board
         (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
+
+        ;; an admin of this org's team
+        ((set admin) (:team-id org)) {:access-level :author}
         
         ;; a named viewer of this board
         (board-viewers user-id) {:access-level :viewer}

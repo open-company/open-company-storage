@@ -10,7 +10,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
-            [oc.storage.api.common :as storage-common]
+            [oc.storage.api.access :as access]            
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
@@ -97,9 +97,9 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
-    :patch (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))
-    :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
+    :get (fn [ctx] (access/access-level-for conn org-slug (:user ctx)))
+    :patch (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -152,8 +152,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (storage-common/access-level-for conn org-slug (:user ctx)))
-    :post (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
+    :get (fn [ctx] (access/access-level-for conn org-slug (:user ctx)))
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {

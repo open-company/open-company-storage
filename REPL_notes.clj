@@ -17,7 +17,7 @@
 (require '[open-company.lib.rest-api-mock :refer (api-request)] :reload)
 (require '[oc.storage.app :refer (app)] :reload)
 (require '[oc.lib.api.common :as api-common])
-(require '[oc.storage.api.common :as storage-common] :reload)
+(require '[oc.storage.api.access :as access] :reload)
 (require '[oc.storage.api.entry-point :as entry-point-api] :reload)
 (require '[oc.storage.api.orgs :as orgs-api] :reload)
 (require '[oc.storage.api.boards :as boards-api] :reload)

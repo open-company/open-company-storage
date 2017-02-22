@@ -8,7 +8,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
-            [oc.storage.api.common :as storage-common]
+            [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.topic :as topic-rep]
             [oc.storage.resources.org :as org-res]
@@ -47,7 +47,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :delete (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Media type client accepts
   :media-type-available? true ; client browser sends */* as Accept media type
@@ -76,7 +76,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (storage-common/allow-authors conn org-slug board-slug (:user ctx)))})
+    :get (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let [org (org-res/get-org conn org-slug)]

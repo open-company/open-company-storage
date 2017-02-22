@@ -10,7 +10,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
-            [oc.storage.api.common :as storage-common]
+            [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.board :as board-rep]
@@ -111,8 +111,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (storage-common/access-level-for conn slug (:user ctx)))
-    :patch (fn [ctx] (storage-common/allow-authors conn slug (:user ctx)))})
+    :get (fn [ctx] (access/access-level-for conn slug (:user ctx)))
+    :patch (fn [ctx] (access/allow-authors conn slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -155,7 +155,7 @@
   ;; Media type client sends
   :malformed? (by-method {
     :options false
-    :post (fn [ctx] (storage-common/malformed-user-id? ctx))
+    :post (fn [ctx] (access/malformed-user-id? ctx))
     :delete false})
   :known-content-type? (by-method {
     :options true
@@ -165,8 +165,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))
-    :delete (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
 
   ;; Existentialism
   :exists? (by-method {
@@ -211,7 +211,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (storage-common/allow-team-admins-or-no-org
+    :post (fn [ctx] (access/allow-team-admins-or-no-org
                       conn (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
 
   ;; Validations

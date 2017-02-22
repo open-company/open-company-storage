@@ -7,7 +7,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
-            [oc.storage.api.common :as storage-common]
+            [oc.storage.api.access :as access]
             [oc.storage.lib.email :as email]
             [oc.storage.lib.bot :as bot]
             [oc.storage.representations.media-types :as mt]
@@ -92,8 +92,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))
-    :post (fn [ctx] (storage-common/allow-authors conn org-slug (:user ctx)))})
+    :get (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
