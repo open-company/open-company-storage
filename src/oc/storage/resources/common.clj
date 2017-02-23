@@ -129,7 +129,7 @@
   :name lib-schema/NonBlankStr
   :team-id lib-schema/UniqueID
   :currency schema/Str
-  (schema/optional-key :logo-url) schema/Str
+  (schema/optional-key :logo-url) (schema/maybe schema/Str)
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
@@ -141,7 +141,7 @@
 (def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
 
 (def ShareRequest {
-  :title schema/Str
+  :title (schema/maybe schema/Str)
   :medium ShareMedium
   :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
   (schema/optional-key :to) [schema/Str]
@@ -155,7 +155,7 @@
     :org-uuid lib-schema/UniqueID
     :org-name lib-schema/NonBlankStr
     :currency schema/Str
-    (schema/optional-key :logo-url) schema/Str
+    (schema/optional-key :logo-url) (schema/maybe schema/Str)
     (schema/optional-key :logo-width) schema/Int
     (schema/optional-key :logo-height) schema/Int          
     :entries [UpdateEntry]
