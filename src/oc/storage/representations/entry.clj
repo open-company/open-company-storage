@@ -72,7 +72,8 @@
         full-links (if (= access-level :author)
                       (concat links [(partial-update-link org-slug board-slug entry timestamp)
                                      (delete-link org-slug board-slug entry timestamp)
-                                     (create-link org-slug board-slug topic-slug)])
+                                     (create-link org-slug board-slug topic-slug)
+                                     (archive-link org-slug board-slug topic-slug)])
                       links)]
     (assoc entry :links full-links)))
 
