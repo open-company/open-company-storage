@@ -7,7 +7,8 @@
             [oc.storage.resources.common :as common-res]))
 
 (def EmailTrigger
-  {:to [schema/Str]
+  {:type (schema/enum "update")
+   :to [schema/Str]
    :subject schema/Str
    :note schema/Str
    :reply-to (schema/maybe schema/Str)
@@ -21,7 +22,8 @@
    :created-at lib-schema/ISO8601})
 
 (defn ->trigger [org-slug update origin-url user]
-  {:to (vec (:to update))
+  {:type "update"
+   :to (vec (:to update))
    :subject (:subject update)
    :note (:note update)
    :reply-to (:email user)
