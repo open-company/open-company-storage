@@ -2,6 +2,7 @@
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
+            [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common-res]))
 
@@ -16,7 +17,8 @@
    :logo-url (schema/maybe schema/Str)
    :origin-url schema/Str
    :currency schema/Str
-   :entries [common-res/UpdateEntry]})
+   :entries [common-res/UpdateEntry]
+   :created-at lib-schema/ISO8601})
 
 (defn ->trigger [org-slug update origin-url user]
   {:to (vec (:to update))
@@ -29,7 +31,8 @@
    :org-name (:org-name update)
    :logo-url (:logo-url update)
    :currency (:currency update)
-   :entries (:entries update)})
+   :entries (:entries update)
+   :created-at (:created-at update)})
 
 (defn send-trigger! [trigger]
   (timbre/info "Email request to:" config/aws-sqs-email-queue "\n" (dissoc trigger :entries))
