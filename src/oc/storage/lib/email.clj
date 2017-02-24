@@ -11,7 +11,10 @@
    :note schema/Str
    :reply-to (schema/maybe schema/Str)
    :org-slug schema/Str
+   :org-name schema/Str
+   :logo-url (schema/maybe schema/Str)
    :origin-url schema/Str
+   :currency schema/Str
    :entries [common-res/UpdateEntry]})
 
 (defn ->trigger [org-slug update origin-url user]
@@ -21,6 +24,9 @@
    :reply-to (:email user)
    :org-slug org-slug
    :origin-url origin-url
+   :org-name (:org-name update)
+   :logo-url (:logo-url update)
+   :currency (:currency update)
    :entries (:entries update)})
 
 (defn send-trigger! [trigger]
