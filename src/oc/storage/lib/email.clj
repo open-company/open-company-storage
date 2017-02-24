@@ -10,6 +10,7 @@
    :subject schema/Str
    :note schema/Str
    :reply-to (schema/maybe schema/Str)
+   :slug schema/Str
    :org-slug schema/Str
    :org-name schema/Str
    :logo-url (schema/maybe schema/Str)
@@ -22,6 +23,7 @@
    :subject (:subject update)
    :note (:note update)
    :reply-to (:email user)
+   :slug (:slug update)
    :org-slug org-slug
    :origin-url origin-url
    :org-name (:org-name update)
