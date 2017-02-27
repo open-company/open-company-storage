@@ -22,7 +22,7 @@
 ;; ----- Utility functions -----
 
 (defn- assemble-board [conn org-slug slug ctx]
-  (let [board (or (:board-update ctx) (:existing-board ctx))
+  (let [board (or (:updated-board ctx) (:existing-board ctx))
         topic-slugs (map name (:topics board)) ; slug for each active topic
         entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
         selected-entries (select-keys entries topic-slugs) ; active entries
@@ -75,16 +75,6 @@
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
 
-(defn- update-board [conn ctx org-slug slug]
-  (timbre/info "Updating board:" slug "of org:" org-slug)
-  (if-let* [updated-board (:board-update ctx)
-            updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
-    (do
-      (timbre/info "Updated board:" slug "of org:" org-slug)
-      {:updated-board updated-result})
-
-    (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))
-
 (defn- add-member
   "Add the specified author or viewer to the specified board."
   [conn ctx org-slug slug member-type user-id]
@@ -116,6 +106,21 @@
     (do
       (timbre/error "Failed removing" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
       false)))
+
+(defn- update-board [conn ctx org-slug slug]
+  (timbre/info "Updating board:" slug "of org:" org-slug)
+  (if-let* [user (:user ctx)
+            user-id (:user-id user)
+            updated-board (:board-update ctx)
+            updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
+    (do
+      (timbre/info "Updated board:" slug "of org:" org-slug)
+      (if (and (= "private" (:access updated-board)) ; board is being set private
+               (nil? ((set (:authors updated-result)) user-id))) ; and current user is not an author
+        (add-member conn ctx org-slug slug :authors user-id) ; make the current user an author
+        {:updated-board updated-result}))
+
+    (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
