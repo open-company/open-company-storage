@@ -37,7 +37,8 @@
                       (concat links [(partial-update-link org)
                                      (add-author-link org)
                                      (hateoas/collection-link (str (url org) "/updates")
-                                        {:accept mt/update-collection-media-type})
+                                        {:accept mt/update-collection-media-type}
+                                        {:count (:update-count org)})
                                      (hateoas/create-link (str (url org) "/updates/")
                                         {:content-type mt/share-request-media-type
                                          :accept mt/update-media-type})])
@@ -56,8 +57,8 @@
   (let [slug (:slug org)]
     (json/generate-string
       (-> org
-        (select-keys representation-props)
-        (org-links access-level))
+        (org-links access-level)
+        (select-keys (conj representation-props :links)))
       {:pretty true})))
 
 (defn render-org-list

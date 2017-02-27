@@ -16,7 +16,8 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.update :as update-res]))
 
 ;; ----- Actions -----
 
@@ -129,15 +130,19 @@
   :patch! (fn [ctx] (update-org conn ctx slug))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [org (or (:updated-org ctx) (:existing-org ctx))
+  :handle-ok (fn [ctx] (let [user (:user ctx)
+                             user-id (:user-id user)
+                             org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
                              board-reps (map #(board-rep/render-board-for-collection slug %) boards)
                              authors (:authors org)
-                             author-reps (map #(org-rep/render-author-for-collection org %) authors)]
+                             author-reps (map #(org-rep/render-author-for-collection org %) authors)
+                             update-count (count (update-res/list-updates-by-author conn org-id user-id))]
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
-                                                (assoc :authors author-reps))
+                                                (assoc :authors author-reps)
+                                                (assoc :update-count update-count))
                                               (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
@@ -227,7 +232,7 @@
                                   slug (:slug new-org)]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org new-org :author)
+                                (org-rep/render-org (assoc new-org :update-count 0) :author)
                                 mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
