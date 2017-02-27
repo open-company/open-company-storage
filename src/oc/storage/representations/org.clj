@@ -32,9 +32,10 @@
   (assoc org :links [(item-link org) (board-create-link org)]))
 
 (defn- org-links [org access-level]
-  (let [links [(self-link org) (board-create-link org)]
+  (let [links [(self-link org)]
         full-links (if (= access-level :author) 
-                      (concat links [(partial-update-link org)
+                      (concat links [(board-create-link org)
+                                     (partial-update-link org)
                                      (add-author-link org)
                                      (hateoas/collection-link (str (url org) "/updates")
                                         {:accept mt/update-collection-media-type}
