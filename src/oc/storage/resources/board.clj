@@ -175,6 +175,7 @@
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
   (when-let* [board (get-board conn org-uuid slug)]
+    (db-common/remove-from-set conn table-name (:uuid board) "viewers" user-id)
     (db-common/add-to-set conn table-name (:uuid board) "authors" user-id)))
 
 (schema/defn ^:always-validate remove-author :- (schema/maybe common/Board)
@@ -201,6 +202,7 @@
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
   (when-let* [board (get-board conn org-uuid slug)]
+    (db-common/remove-from-set conn table-name (:uuid board) "authors" user-id)
     (db-common/add-to-set conn table-name (:uuid board) "viewers" user-id)))
 
 (schema/defn ^:always-validate remove-viewer :- (schema/maybe common/Board)
