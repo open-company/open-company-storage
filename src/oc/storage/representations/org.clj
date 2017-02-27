@@ -23,8 +23,7 @@
                                                                                 :accept mt/board-media-type}))
 
 (defn- add-author-link [org] 
-  (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type
-                                                              :accept mt/org-author-media-type}))
+  (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type}))
 
 (defn- remove-author-link [org user-id]
   (hateoas/remove-link (str (url org) "/authors/" user-id)))

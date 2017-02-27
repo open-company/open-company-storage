@@ -171,16 +171,16 @@
   ;; Existentialism
   :exists? (by-method {
     :post (fn [ctx] (if-let [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))]
-                        {:existing-org org :existing-author ((set (:authors org)) (:data ctx))}
+                        {:existing-org org :existing-author? ((set (:authors org)) (:data ctx))}
                         false))
     :delete (fn [ctx] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
-                                exists? ((set (:authors org)) user-id)]
-                        {:existing-org org :existing-author true}
+                                exists? ((set (:authors org)) user-id)] ; short circuits the delete w/ a 404
+                        {:existing-org org :existing-author? true}
                         false))}) ; org or author doesn't exist
 
   ;; Actions
-  :post! (fn [ctx] (when-not (:existing-author ctx) (add-author conn ctx org-slug (:data ctx))))
-  :delete! (fn [ctx] (when (:existing-author ctx) (remove-author conn ctx org-slug user-id)))
+  :post! (fn [ctx] (when-not (:existing-author? ctx) (add-author conn ctx org-slug (:data ctx))))
+  :delete! (fn [ctx] (when (:existing-author? ctx) (remove-author conn ctx org-slug user-id)))
   
   ;; Responses
   :respond-with-entity? false

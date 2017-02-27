@@ -8,7 +8,8 @@
             [oc.storage.representations.topic :as topic-rep]
             [oc.storage.resources.common :as common]))
 
-(def representation-props [:slug :name :access :promoted :topics :archived :author :created-at :updated-at])
+(def representation-props [:slug :name :access :promoted :topics :archived :author :authors :viewers
+                           :created-at :updated-at])
 
 (defun url
   ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))
@@ -21,6 +22,18 @@
 (defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (url org-slug slug)
                                               {:content-type mt/board-media-type
                                                :accept mt/board-media-type}))
+
+(defn- add-author-link [org-slug slug] 
+  (hateoas/add-link hateoas/POST (str (url org-slug slug ) "/authors/") {:content-type mt/board-author-media-type}))
+
+(defn- add-viewer-link [org-slug slug] 
+  (hateoas/add-link hateoas/POST (str (url org-slug slug ) "/viewers/") {:content-type mt/board-viewer-media-type}))
+
+(defn- remove-author-link [org-slug slug user-id]
+  (hateoas/remove-link (str (url org-slug slug) "/authors/" user-id)))
+
+(defn- remove-viewer-link [org-slug slug user-id]
+  (hateoas/remove-link (str (url org-slug slug) "/viewers/" user-id)))
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
@@ -37,9 +50,23 @@
         links [(self-link org-slug slug) (up-link org-slug)]
         full-links (if (= access-level :author)
                     (concat links [(topic-rep/list-link (url org-slug slug))
-                                   (partial-update-link org-slug slug)])
+                                   (partial-update-link org-slug slug)
+                                   (add-author-link org-slug slug)
+                                   (add-viewer-link org-slug slug)])
                     links)]
     (assoc board :links full-links)))
+
+(defn render-author-for-collection
+  "Create a map of the board author for use in a collection in the REST API"
+  [org-slug slug user-id]
+  {:user-id user-id
+   :links [(remove-author-link org-slug slug user-id)]})
+
+(defn render-viewer-for-collection
+  "Create a map of the board viewer for use in a collection in the REST API"
+  [org-slug slug user-id]
+  {:user-id user-id
+   :links [(remove-viewer-link org-slug slug user-id)]})
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"

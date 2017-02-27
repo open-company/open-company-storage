@@ -1,5 +1,6 @@
 (ns oc.storage.resources.board
   (:require [clojure.walk :refer (keywordize-keys)]
+            [if-let.core :refer (when-let*)]
             [defun.core :refer (defun)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -125,7 +126,7 @@
   Given the board UUID and an updated board property map, update the board and return the updated board on success.
 
   Throws an exception if the merge of the prior board and the updated board property map doesn't conform
-  to the common/Org schema.
+  to the common/Board schema.
   
   NOTE: doesn't update authors, see: `add-author`, `remove-author`
   NOTE: doesn't update viewers, see: `add-viewer`, `remove-viewer`
@@ -160,6 +161,60 @@
     (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
   ;; Delete the board itself
   (db-common/delete-resource conn table-name uuid)))
+
+;; ----- Board's set operations -----
+
+(schema/defn ^:always-validate add-author :- (schema/maybe common/Board)
+  "
+  Given the unique ID of the org, the slug of the board, and the user-id of the user, add the user as an author of
+  the board if it exists.
+  
+  Returns the updated board on success, nil on non-existence, and a RethinkDB error map on other errors.
+  "
+  [conn org-uuid :- lib-schema/UniqueID slug user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (when-let* [board (get-board conn org-uuid slug)]
+    (db-common/add-to-set conn table-name (:uuid board) "authors" user-id)))
+
+(schema/defn ^:always-validate remove-author :- (schema/maybe common/Board)
+  "
+  Given the unique ID of the org, the slug of the board, and the user-id of the user, remove the user as an author of
+  the board if it exists.
+  
+  Returns the updated board on success, nil on non-existence, and a RethinkDB error map on other errors.
+  "
+  [conn org-uuid :- lib-schema/UniqueID slug user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (when-let* [board (get-board conn org-uuid slug)]
+    (db-common/remove-from-set conn table-name (:uuid board) "authors" user-id)))
+
+(schema/defn ^:always-validate add-viewer :- (schema/maybe common/Board)
+  "
+  Given the unique ID of the org, the slug of the board, and the user-id of the user, add the user as a viewer of
+  the board if it exists.
+  
+  Returns the updated board on success, nil on non-existence, and a RethinkDB error map on other errors.
+  "
+  [conn org-uuid :- lib-schema/UniqueID slug user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (when-let* [board (get-board conn org-uuid slug)]
+    (db-common/add-to-set conn table-name (:uuid board) "viewers" user-id)))
+
+(schema/defn ^:always-validate remove-viewer :- (schema/maybe common/Board)
+  "
+  Given the unique ID of the org, the slug of the board, and the user-id of the user, remove the user as a viewer of
+  the board if it exists.
+  
+  Returns the updated board on success, nil on non-existence, and a RethinkDB error map on other errors.
+  "
+  [conn org-uuid :- lib-schema/UniqueID slug user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)]}
+  (when-let* [board (get-board conn org-uuid slug)]
+    (db-common/remove-from-set conn table-name (:uuid board) "viewers" user-id)))
 
 ;; ----- Collection of boards -----
 
