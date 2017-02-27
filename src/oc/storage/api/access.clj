@@ -69,8 +69,8 @@
           board-viewers (set (:viewers board))]
       (cond
         
-        ;; a named author of this board
-        (board-authors user-id) {:access-level :author}
+        ;; a named author of this private board
+        (and (= board-access :private) (board-authors user-id)) {:access-level :author}
         
         ;; an org author of this non-private board
         (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
@@ -79,7 +79,7 @@
         ((set admin) (:team-id org)) {:access-level :author}
         
         ;; a named viewer of this board
-        (board-viewers user-id) {:access-level :viewer}
+        (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
         
         ;; a team member on a non-private board
         (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
