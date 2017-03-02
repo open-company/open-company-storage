@@ -134,8 +134,9 @@
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at]) ; TODO Filter out private boards
-                             board-reps (map #(board-rep/render-board-for-collection slug %) boards)
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
+                             board-reps (map #(board-rep/render-board-for-collection slug %) allowed-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org %) authors)
                              update-count (count (update-res/list-updates-by-author conn org-id user-id))]

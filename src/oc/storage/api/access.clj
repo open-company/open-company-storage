@@ -1,8 +1,10 @@
 (ns oc.storage.api.access
   "Access control functions for storage API."
   (:require [if-let.core :refer (if-let*)]
+            [defun.core :refer (defun)]
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
+            [oc.lib.slugify :as slugify]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]))
 
@@ -23,75 +25,92 @@
 
 ;; ----- Authorization -----
 
-(defn access-level-for
+(defun access-level-for
   "
-  Given an org slug and a user map, return the authorization level for the user on the org:
+  Given an org (or slug) and a user map, return the authorization level for the user on the org:
     :author
     :viewer
     :public
     false
 
-  Or, given an org slug, board slug and user map, return the authorization level for the user on the board:
+  Or, given an org (or slug), board (or slug) and user map, return the authorization level for the user on the board:
     :author
     :viewer
     false
   "
-  ([conn org-slug {user-id :user-id teams :teams admin :admin}]
+  
+  ;; Access to org
+  
+  ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? user :guard map?]
   (if-let [org (org-res/get-org conn org-slug)]
-    (let [org-authors (set (:authors org))]
-      (cond
-        
-        ;; a named author of this org
-        (org-authors user-id) {:access-level :author}
-        
-        ;; an admin of this org's team
-        ((set admin) (:team-id org)) {:access-level :author}
+    (access-level-for org user)
+    ;; Will fail existence checks later
+    {:access-level :does-not-exist}))
 
-        ;; a team member of this org
-        ((set teams) (:team-id org)) {:access-level :viewer}
-        
-        ;; TODO public access to orgs w/ a public board
+  ([org :guard map? user :guard map?]
+  (let [user-id (:user-id user)
+        teams (:teams user)
+        admin (:admin user)
+        org-authors (set (:authors org))]
+    (cond
+      
+      ;; a named author of this org
+      (org-authors user-id) {:access-level :author}
+      
+      ;; an admin of this org's team
+      ((set admin) (:team-id org)) {:access-level :author}
 
-        ;; no access
-        :else false))
+      ;; a team member of this org
+      ((set teams) (:team-id org)) {:access-level :viewer}
+      
+      ;; TODO public access to orgs w/ a public board
 
+      ;; no access
+      :else false)))
+
+
+  ;; Access to board
+
+  ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? board-slug :guard slugify/valid-slug?
+    user :guard map?]
+  (if-let* [org (org-res/get-org conn org-slug)
+            board (board-res/get-board conn (:uuid org) board-slug)]
+    (access-level-for org board user)
     ;; Will fail existence checks later
     {:access-level :does-not-exist}))
 
 
-  ([conn org-slug board-slug {user-id :user-id teams :teams admin :admin}]
-  (if-let* [org (org-res/get-org conn org-slug)
-            board (board-res/get-board conn (:uuid org) board-slug)]
-    (let [org-uuid (:org-uuid org)
-          org-authors (set (:authors org))
-          board-access (keyword (:access board))
-          board-authors (set (:authors board))
-          board-viewers (set (:viewers board))]
-      (cond
-        
-        ;; a named author of this private board
-        (and (= board-access :private) (board-authors user-id)) {:access-level :author}
-        
-        ;; an org author of this non-private board
-        (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
+  ([org :guard map? board :guard map? user :guard map?]
+  (let [user-id (:user-id user)
+        teams (:teams user)
+        admin (:admin user)
+        org-uuid (:org-uuid org)
+        org-authors (set (:authors org))
+        board-access (keyword (:access board))
+        board-authors (set (:authors board))
+        board-viewers (set (:viewers board))]
+    (cond
+      
+      ;; a named author of this private board
+      (and (= board-access :private) (board-authors user-id)) {:access-level :author}
+      
+      ;; an org author of this non-private board
+      (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
 
-        ;; an admin of this org's team
-        ((set admin) (:team-id org)) {:access-level :author}
-        
-        ;; a named viewer of this board
-        (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
-        
-        ;; a team member on a non-private board
-        (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
-        
-        ;; anyone else on a public board
-        (= board-access :public) {:access-level :viewer}
-        
-        ;; no access
-        :else false))
-    
-    ;; Will fail existence checks later
-    {:access-level :does-not-exist})))
+      ;; an admin of this org's team
+      ((set admin) (:team-id org)) {:access-level :author}
+      
+      ;; a named viewer of this board
+      (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
+      
+      ;; a team member on a non-private board
+      (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
+      
+      ;; anyone else on a public board
+      (= board-access :public) {:access-level :viewer}
+      
+      ;; no access
+      :else false))))
 
 (defn allow-team-admins
   ""
