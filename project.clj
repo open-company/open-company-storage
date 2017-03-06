@@ -26,7 +26,7 @@
     [zprint "0.2.16"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [environ "1.1.0"] ; Environment settings from different sources https://github.com/weavejester/environ
     
-    [open-company/lib "0.6.9-11eb1dd"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.6.11-ee76e0e"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     ; if-let - More than one binding for if/when macros https://github.com/LockedOn/if-let
