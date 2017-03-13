@@ -144,9 +144,13 @@
   :title (schema/maybe schema/Str)
   :medium ShareMedium
   :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
-  (schema/optional-key :to) [schema/Str]
+  ;; Email medium
+  (schema/optional-key :to) [lib-schema/EmailAddress]
   (schema/optional-key :subject) (schema/maybe schema/Str)
-  (schema/optional-key :note) (schema/maybe schema/Str)})
+  (schema/optional-key :note) (schema/maybe schema/Str)
+  ;; Slack medium
+  (schema/optional-key :channel) lib-schema/NonBlankStr
+  (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
 
 (def Update 
   (merge ShareRequest {

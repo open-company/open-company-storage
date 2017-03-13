@@ -37,7 +37,8 @@
       (timbre/info "Created update '" title "' for org:" org-slug)
       (case (keyword (:medium update-result))
         :email (email/send-trigger! (email/->trigger org-slug update-result origin-url user))
-        ;:slack (bot/send-trigger! (bot/->trigger update-result))
+        ;:slack (bot/send-trigger! (bot/->trigger org-slug update-result origin-url ctx))
+        :slack (println (bot/->trigger org-slug update-result origin-url ctx))
         :link nil) ; no-op
       {:new-update update-result})
     
