@@ -1,7 +1,7 @@
 {
   :slug "green-labs"
   :name "GreenLabs"
-  :team-id "1234-abcd-5678"
+  :team-id "d3a0-49ed-8fdf"
   :currency "USD"
   :logo-url "https://open-company-assets.s3.amazonaws.com/green-labs.png"
   :logo-width 160
@@ -11,7 +11,7 @@
   :author {
     :avatar-url "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_192.jpg"
     :name "Albert Camus"
-    :user-id "ac53-4d41-8894"
+    :user-id "d3a0-49ed-8fdf"
   }
 
   :boards [

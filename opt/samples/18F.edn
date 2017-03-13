@@ -1,7 +1,7 @@
 {
   :slug "18f"
   :name "18F"
-  :team-id "4b75-4885-8946"  
+  :team-id "325b-4cb7-8ba2"  
   :currency "USD"
   :logo-url "https://cdn.filestackcontent.com/V5WDoVEwRnqcimyBKirv"
   :logo-width 160
@@ -11,7 +11,7 @@
   :author {
     :name "Albert Camus"
     :avatar-url "http://www.phillipslytle.com/include/uploads/AtteaFrederick_P.jpg"
-    :user-id "ac53-4d41-8894"
+    :user-id "d3a0-49ed-8fdf"
   }
 
   :boards [
