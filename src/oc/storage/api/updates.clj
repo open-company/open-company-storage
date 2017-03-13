@@ -23,9 +23,9 @@
   
   ;; Slack share requests need a bot
   ([share-request :guard #(= (:medium %) "slack") author]
-  (let [slack-org (:slack-org share-request)
+  (let [slack-org-id (:slack-org-id share-request)
         slack-bots (flatten (vals (:slack-bots author)))]
-    (first (filter #(= slack-org (:slack-org %)) slack-bots))))
+    (first (filter #(= slack-org-id (:slack-org-id %)) slack-bots))))
 
   ;; Other share requests don't need a Slack bot
   ([_share-request _author] :not-applicable))
@@ -35,7 +35,7 @@
     (try
       (if-let* [new-update (update-res/->update conn org-slug share-request author)
                 slack-bot (slack-bot-for-share share-request author)]
-        {:new-update new-update :existing-org org :slack-bot (dissoc slack-bot :slack-org)}
+        {:new-update new-update :existing-org org :slack-bot (dissoc slack-bot :slack-org-id)}
         [false, {:existing-org org :reason "Slack bot not configured."}])
       (catch clojure.lang.ExceptionInfo e
         [false, {:existing-org org :reason (.getMessage e)}])) ; Not a valid share request
