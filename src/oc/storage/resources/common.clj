@@ -150,7 +150,7 @@
   (schema/optional-key :note) (schema/maybe schema/Str)
   ;; Slack medium
   (schema/optional-key :channel) lib-schema/NonBlankStr
-  (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
+  (schema/optional-key :slack-org) lib-schema/NonBlankStr})
 
 (def Update 
   (merge ShareRequest {

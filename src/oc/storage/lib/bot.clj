@@ -7,7 +7,7 @@
             [oc.storage.config :as config]))
 
 (def KnownScript
-  (schema/enum :onboard :onboard-user :onboard-user-authenticated :stakeholder-update))
+  (schema/enum :onboard :onboard-user :onboard-user-authenticated :update))
 
 (def BotTrigger
   {:script   {:id KnownScript :params {schema/Keyword (schema/maybe schema/Str)}}
@@ -24,8 +24,8 @@
   (let [slack-org-id (-> ctx :data :slack-org-id)
         channel (-> ctx :data :channel)
         everyone? (or (= channel "__everyone__") (nil? channel))]
-    {:bot         (:bot ctx)
-     :script      {:id "update", :params (-> (select-keys update [:slug :created-at])
+    {:bot         (:slack-bot ctx)
+     :script      {:id :update, :params (-> (select-keys update [:slug :created-at])
                                             (clojure.set/rename-keys {:slug :update/slug :created-at :update/created-at})
                                             (add-note ctx)
                                             (assoc :org/slug org-slug)

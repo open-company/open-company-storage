@@ -1,6 +1,7 @@
 (ns oc.storage.api.updates
   "Liberator API for update resources."
-  (:require [if-let.core :refer (if-let*)]
+  (:require [defun.core :refer (defun-)]
+            [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY)]
             [liberator.core :refer (defresource by-method)]
@@ -17,11 +18,25 @@
 
 ;; ----- Validations -----
 
+(defun- slack-bot-for-share
+  "If a share request is for Slack, make sure we have a Slack bot for the Slack org."
+  
+  ;; Slack share requests need a bot
+  ([share-request :guard #(= (:medium %) "slack") author]
+  (let [slack-org (:slack-org share-request)
+        slack-bots (flatten (vals (:slack-bots author)))]
+    (first (filter #(= slack-org (:slack-org %)) slack-bots))))
+
+  ;; Other share requests don't need a Slack bot
+  ([_share-request _author] :not-applicable))
+
 (defn- valid-share-request? [conn org-slug {share-request :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
-        {:new-update (update-res/->update conn org-slug share-request author) :existing-org org}
-
+      (if-let* [new-update (update-res/->update conn org-slug share-request author)
+                slack-bot (slack-bot-for-share share-request author)]
+        {:new-update new-update :existing-org org :slack-bot (dissoc slack-bot :slack-org)}
+        [false, {:existing-org org :reason "Slack bot not configured."}])
       (catch clojure.lang.ExceptionInfo e
         [false, {:existing-org org :reason (.getMessage e)}])) ; Not a valid share request
     false)) ; couldn't find the specified org
@@ -37,8 +52,7 @@
       (timbre/info "Created update '" title "' for org:" org-slug)
       (case (keyword (:medium update-result))
         :email (email/send-trigger! (email/->trigger org-slug update-result origin-url user))
-        ;:slack (bot/send-trigger! (bot/->trigger org-slug update-result origin-url ctx))
-        :slack (println (bot/->trigger org-slug update-result origin-url ctx))
+        :slack (bot/send-trigger! (bot/->trigger org-slug update-result origin-url ctx))
         :link nil) ; no-op
       {:new-update update-result})
     
