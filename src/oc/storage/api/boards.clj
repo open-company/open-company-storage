@@ -70,7 +70,7 @@
     
     (do
       (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
-      {:new-board board-result})
+      {:created-board board-result})
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
 
@@ -196,7 +196,7 @@
   :post! (fn [ctx] (create-board conn ctx org-slug))
 
   ;; Responses
-  :handle-created (fn [ctx] (let [new-board (:new-board ctx)
+  :handle-created (fn [ctx] (let [new-board (:created-board ctx)
                                   board-slug (:slug new-board)]
                               (api-common/location-response
                                 (board-rep/url org-slug board-slug)

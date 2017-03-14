@@ -54,7 +54,7 @@
         :email (email/send-trigger! (email/->trigger org-slug update-result origin-url user))
         :slack (bot/send-trigger! (bot/->trigger org-slug update-result origin-url ctx))
         :link nil) ; no-op
-      {:new-update update-result})
+      {:created-update update-result})
     
     (do (timbre/error "Failed creating update for org:" org-slug) false)))
 
@@ -130,7 +130,7 @@
                              user (:user ctx)
                              updates (update-res/list-updates-by-author conn (:uuid org) (:user-id user))]
                           (update-rep/render-update-list org-slug updates)))
-  :handle-created (fn [ctx] (let [new-update (:new-update ctx)
+  :handle-created (fn [ctx] (let [new-update (:created-update ctx)
                                   update-slug (:slug new-update)]
                               (api-common/location-response
                                 (update-rep/url org-slug update-slug)

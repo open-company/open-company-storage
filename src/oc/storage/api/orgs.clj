@@ -31,11 +31,11 @@
           author (:user ctx)]
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
-      {:new-org (assoc org-result :boards
-                  (map
-                    #(board-res/create-board! conn
-                      (board-res/->board uuid {:name %} author))
-                    board-res/default-boards))})
+      {:created-org (assoc org-result :boards
+                     (map
+                        #(board-res/create-board! conn
+                          (board-res/->board uuid {:name %} author))
+                        board-res/default-boards))})
     
     (do (timbre/error "Failed creating org.") false)))
 
@@ -229,7 +229,7 @@
   :post! (fn [ctx] (create-org conn ctx))
 
   ;; Responses
-  :handle-created (fn [ctx] (let [new-org (:new-org ctx)
+  :handle-created (fn [ctx] (let [new-org (:created-org ctx)
                                   slug (:slug new-org)]
                               (api-common/location-response
                                 (org-rep/url slug)

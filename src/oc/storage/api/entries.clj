@@ -54,7 +54,7 @@
     
     (do
       (timbre/info "Created entry:" entry-for)
-      {:new-entry entry-result})
+      {:created-entry entry-result})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
@@ -174,7 +174,7 @@
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug
                           (:existing-entries ctx) (:access-level ctx)))
-  :handle-created (fn [ctx] (let [new-entry (:new-entry ctx)]
+  :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
                                 (entry-rep/render-entry org-slug board-slug new-entry :author)
