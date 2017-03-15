@@ -67,8 +67,8 @@
   [orgs authed?]
   (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})]
         full-links (if authed?
-                      (conj self-link (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
-                                                                     :accept mt/org-media-type}))
+                      (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
+                                                                 :accept mt/org-media-type}))
                 links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
