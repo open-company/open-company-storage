@@ -95,7 +95,7 @@
 
 ;; A resource for operations on a particular Org
 (defresource org [conn slug]
-  (api-common/anonymous-resource config/passphrase) ; verify validity of optional JWToken
+  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch]
 
