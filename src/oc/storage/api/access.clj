@@ -41,16 +41,17 @@
   
   ;; Access to org
   
-  ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? user :guard map?]
+  ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? user :guard #(or (map? %) (nil? %))]
   (if-let [org (org-res/get-org conn org-slug)]
-    (access-level-for org user)
+    (access-level-for conn org user)
     ;; Will fail existence checks later
     {:access-level :does-not-exist}))
 
-  ([org :guard map? user :guard map?]
+  ([conn :guard lib-schema/conn? org :guard map? user :guard #(or (map? %) (nil? %))]
   (let [user-id (:user-id user)
         teams (:teams user)
         admin (:admin user)
+        org-uuid (:uuid org)
         org-authors (set (:authors org))]
     (cond
       
@@ -63,8 +64,9 @@
       ;; a team member of this org
       ((set teams) (:team-id org)) {:access-level :viewer}
       
-      ;; TODO public access to orgs w/ a public board
-
+      ;; public access to orgs w/ a public board
+      (not (empty? (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])))
+        {:access-level :viewer}
       ;; no access
       :else false)))
 
@@ -72,7 +74,7 @@
   ;; Access to board
 
   ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? board-slug :guard slugify/valid-slug?
-    user :guard map?]
+    user :guard #(or (map? %) (nil? %))]
   (if-let* [org (org-res/get-org conn org-slug)
             board (board-res/get-board conn (:uuid org) board-slug)]
     (access-level-for org board user)
@@ -80,7 +82,7 @@
     {:access-level :does-not-exist}))
 
 
-  ([org :guard map? board :guard map? user :guard map?]
+  ([org :guard map? board :guard map? user :guard #(or (map? %) (nil? %))]
   (let [user-id (:user-id user)
         teams (:teams user)
         admin (:admin user)

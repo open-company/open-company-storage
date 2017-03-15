@@ -125,7 +125,7 @@
 
 ;; A resource for operations on a particular board
 (defresource board [conn org-slug slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  (api-common/anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch]
 

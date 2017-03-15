@@ -95,7 +95,7 @@
 
 ;; A resource for operations on a particular Org
 (defresource org [conn slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  (api-common/anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch]
 
@@ -139,7 +139,9 @@
                              board-reps (map #(board-rep/render-board-for-collection slug %) allowed-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org %) authors)
-                             update-count (count (update-res/list-updates-by-author conn org-id user-id))]
+                             update-count (if user
+                                            (count (update-res/list-updates-by-author conn org-id user-id))
+                                            0)]
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
                                                 (assoc :authors author-reps)
