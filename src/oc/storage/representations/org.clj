@@ -29,7 +29,7 @@
   (hateoas/remove-link (str (url org) "/authors/" user-id)))
 
 (defn- org-collection-links [org]
-  (assoc org :links [(item-link org) (board-create-link org)]))
+  (assoc org :links [(item-link org)]))
 
 (defn- org-links [org access-level]
   (let [links [(self-link org)]
@@ -64,12 +64,15 @@
 
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
-  [orgs]
-  (json/generate-string
-    {:collection {:version hateoas/json-collection-version
-                  :href "/"
-                  :links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})
-                          (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
-                                                         :accept mt/org-media-type})]
-                  :items (map org-collection-links orgs)}}
-    {:pretty true}))
+  [orgs authed?]
+  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})]
+        full-links (if authed?
+                      (conj self-link (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
+                                                                     :accept mt/org-media-type}))
+                links)]
+    (json/generate-string
+      {:collection {:version hateoas/json-collection-version
+                    :href "/"
+                    :links full-links
+                    :items (map org-collection-links orgs)}}
+      {:pretty true})))

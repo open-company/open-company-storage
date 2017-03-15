@@ -1,25 +1,42 @@
 (ns oc.storage.api.entry-point
   "Liberator API for HATEOAS entry point to storage service."
-  (:require [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
+  (:require [if-let.core :refer (when-let*)]
+            [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
-            [oc.storage.resources.org :as org-res]))
+            [oc.storage.resources.org :as org-res]
+            [oc.storage.resources.board :as board-res]))
+
+;; ----- Utility Functions -----
+
+(defn org-if-public-boards
+  "Return an org if and only if it has any public boards."
+  [conn org-slug]
+  (when-let* [org (org-res/get-org conn org-slug)
+              org-uuid (:uuid org)
+              boards (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])]
+    (if (empty? boards) false org)))
 
 ;; ----- Responses -----
 
-(defn- render-entry-point [conn {:keys [user] :as _ctx}]
+(defn- render-entry-point [conn {:keys [user request] :as _ctx}]
 
-  ;; TODO: public/promoted orgs
-  (let [orgs (if user
-                ;; Auth'd
+  ;; TODO: promoted orgs w/ public boards
+  (let [authed-orgs (if user
+                ;; Auth'd user
                 (org-res/get-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
                 ;; Not auth'd
-                [])]
-    (org-rep/render-org-list orgs)))
+                [])
+        org-slugs (set (map :slug authed-orgs)) ; set of the org slugs for this user
+        requested-org-slug (get-in request [:params "requested"]) ; a public org may be requested specifically
+        check-for-public? (and requested-org-slug (not (org-slugs requested-org-slug))) ; requested and not in the list
+        public-org (when check-for-public? (org-if-public-boards conn requested-org-slug)) ; requested org if public
+        orgs (if public-org (conj authed-orgs public-org) authed-orgs)] ; final set of orgs
+    (org-rep/render-org-list orgs user)))
     
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
