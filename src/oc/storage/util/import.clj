@@ -60,10 +60,13 @@
         timestamp (:created-at entry)
         slug (:topic-slug entry)
         entry-author (or (first (:author entry)) author)
-        author (assoc entry-author :teams [(:team-id org)])]
+        author (assoc entry-author :teams [(:team-id org)])
+        entry (entry/->entry conn board-uuid slug entry author)
+        entry-author (first (:author entry))
+        fixed-timestamp-author (assoc entry-author :updated-at timestamp)
+        fixed-entry (assoc entry :author [fixed-timestamp-author])]
     (println (str "Creating entry for " slug " topic at " timestamp " on board '" (:name board) "'"))
-    (db-common/create-resource conn entry/table-name
-      (entry/->entry conn board-uuid slug entry author) timestamp)))
+    (db-common/create-resource conn entry/table-name fixed-entry timestamp)))
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
