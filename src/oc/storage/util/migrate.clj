@@ -46,38 +46,6 @@
    :name (:name author)
    :user-id "0000-0000-0000"})
 
-; :as-of nil,
-; :author
-;  [{:image
-;      "https://secure.gravatar.com/avatar/63e2e4d667a857c7c850fe8c4f1efddc.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0009-192.png",
-;    :name "Alec Fink",
-;    :updated-at "2016-10-04T14:17:31.437Z",
-;    :user-id "slack:U03C4NJBW"}],
-; :body "",
-; :body-placeholder
-;  "Provide an overview of important happenings in the company since the last update.",
-; :company-slug "10-foot-wave",
-; :created-at "2016-10-04T14:17:31.437Z",
-; :description "Company update",
-; :headline "10 Foot Wave signs deal with Great Expressions",
-; :id "a3067151-64a8-4cad-ba6f-60add56626a5",
-; :image-height 0,
-; :image-url nil,
-; :image-width 0,
-; :read-only false,
-; :section "update",
-; :section-name "update",
-; :title "CEO Update",
-; :updated-at "2016-10-04T14:17:31.437Z"
-
-; :topic-slug "custom-db84"          
-; :title "Welcome!"
-; :headline "Sue Topeka"
-; :body "<p>Sue joins 18F from Microsoft where she worked on the Office 365 team as a developer.</p><p>\"I'm up for this new challenge. I've always wanted a chance to use my skills for good.\"</p><p>Sue's pronoun is she/her.</p>"
-; :image-url "https://cdn.filestackcontent.com/IsgWxSqQRmfRmEh12Njw"
-; :image-width 500
-; :image-height 207
-; :created-at "2016-10-11T12:02:16.539Z"
 (defn- migrate-section [section]
   (let [entry (select-keys section [:section-name :title :headline :body :image-url :image-width :image-height :created-at :updated-at :data :metrics])
         key-names (clojure.set/rename-keys entry {:section-name :topic-slug})

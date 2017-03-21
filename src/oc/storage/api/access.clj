@@ -64,9 +64,10 @@
       ;; a team member of this org
       ((set teams) (:team-id org)) {:access-level :viewer}
       
-      ;; public access to orgs w/ a public board
-      (not (empty? (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])))
+      ;; public access to orgs w/ at least 1 public board
+      (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
         {:access-level :viewer}
+      
       ;; no access
       :else false)))
 
