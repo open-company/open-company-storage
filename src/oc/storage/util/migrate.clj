@@ -1,15 +1,9 @@
 (ns oc.storage.util.migrate
   "Migrate from legacy export format to new import format."
-  (:require [clojure.string :as s]
-            [clojure.tools.cli :refer (parse-opts)]
+  (:require [clojure.tools.cli :refer (parse-opts)]
             [clojure.walk :refer (keywordize-keys)]
             [zprint.core :as zp]
             [oc.lib.db.pool :as db]
-            [oc.lib.db.common :as db-common]
-            [oc.storage.resources.org :as org]
-            [oc.storage.resources.board :as board]
-            [oc.storage.resources.entry :as entry]
-            [oc.storage.resources.update :as update]            
             [oc.storage.config :as c]
             [zprint.core :as zp])
   (:gen-class))
