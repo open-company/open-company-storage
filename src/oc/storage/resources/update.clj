@@ -44,7 +44,7 @@
   (let [topic-slug (:topic-slug entry)
         timestamp (:created-at entry)]
     (if-let [entry (entry-res/get-entry conn :org org-uuid topic-slug timestamp)]
-      (dissoc entry :org-uuid :board-uuid :body-placeholder)
+      (dissoc entry :org-uuid :board-uuid :body-placeholder :prompt)
       (throw (ex-info "Invalid entry." {:org-uuid org-uuid :topic-slug topic-slug :created-at timestamp})))))
 
 ;; ----- Update Slug -----
@@ -97,9 +97,11 @@
 
 (schema/defn ^:always-validate create-update!
   "Create an update in the system. Throws a runtime exception if the update doesn't conform to the common/Update schema."
-  [conn update :- common/Update]
+  ([conn update] (create-update! conn update (db-common/current-timestamp)))
+  
+  ([conn update :- common/Update timestamp :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name update (db-common/current-timestamp)))
+  (db-common/create-resource conn table-name update timestamp)))
 
 (schema/defn ^:always-validate get-update :- (schema/maybe common/Update)
   "

@@ -20,26 +20,6 @@
 
 ;; ----- Migration -----
 
-; SAME
-; slug
-; name
-; currency
-; logo-height
-; logo-width
-; promoted
-; created-at
-; updated-at
-
-
-; MIGRATE
-; logo -> logo-url
-; sections -> board/topics 
-; first section, first author -> author
-; section -> entry
-
-; NEW
-; team-id ""
-; boards
 
 (defn- migrate-author [author]
   {:avatar-url (:image author)
@@ -52,6 +32,54 @@
         author (map migrate-author (:author section))]
     (assoc key-names :author author)))
 
+(defn- migrate-update-section [topic data]
+  (let [section ((keyword topic) data)]
+    {:topic-slug (:section section)
+     :created-at (:created-at section)}))
+
+;; SAME
+;; slug
+;; title
+;; note
+;; logo-height
+;; logo-width
+;; currency
+;; medium
+;; to
+;; created-at
+;; updated-at
+
+;; MIGRATE
+;; author
+;; logo -> logo-url
+;; name -> org-name 
+
+(defn- migrate-update [data]
+  (let [author (migrate-author (:author data))
+        update (select-keys data [:slug :title :note :medium :to :created-at])
+        entries (map #(migrate-update-section % data) (:sections data))]
+    (-> update
+      (assoc :author author)
+      (assoc :entries entries))))
+
+;; SAME
+;; slug
+;; name
+;; currency
+;; logo-height
+;; logo-width
+;; promoted
+;; created-at
+;; updated-at
+
+;; MIGRATE
+;; logo -> logo-url
+;; sections -> board/topics 
+;; first section, first author -> author
+;; section -> entry
+
+;; NEW
+;; team-id ""
 (defn migrate [conn data result-file]
   (println "Migrate!")
   (let [company (:company data)
@@ -60,10 +88,12 @@
         key-names (clojure.set/rename-keys org {:logo :logo-url})
         entries (map migrate-section (:sections data))
         new-board {:name "General" :topics (:sections company) :entries entries}
+        updates (map migrate-update (:updates data))
         new-keys (-> key-names
                     (assoc :team-id "")
                     (assoc :author org-author)
-                    (assoc :boards [new-board]))]
+                    (assoc :boards [new-board])
+                    (assoc :updates updates))]
     (zp/set-options! {:map {:comma? false
                             :key-order [:slug :name :team-id :currency :logo-url :logo-width :logo-height :promoted
                                         :created-at :updated-at :author :boards]}})

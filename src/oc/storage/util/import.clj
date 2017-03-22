@@ -50,9 +50,15 @@
 
 (defn import-update [conn org update author]
   (let [org-slug (:slug org)
-        title (:title update)]
+        update-slug (:slug update)
+        title (:title update)
+        update-author (or (:author update) author)
+        timestamp (:created-at update)]
     (println (str "Creating update '" title "' for org '" org-slug "'."))
-    (update/create-update! conn (update/->update conn org-slug update author))
+    (update/create-update! conn 
+      (clojure.core/update (update/->update conn org-slug (dissoc update :author :slug :created-at) update-author)
+        :slug #(or update-slug %))
+      timestamp)
     (println (str "Created update '" title "' for org '" org-slug "'."))))
 
 (defn- import-entry [conn org board entry author]

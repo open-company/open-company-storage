@@ -167,10 +167,11 @@
     :created-at lib-schema/ISO8601
     :updated-at lib-schema/ISO8601}))
 
-(def User "The portion of JWT properties that we care about for authorship" {
+(def User 
+  "The portion of JWT properties that we care about for authorship attribution"
+  {
     :user-id lib-schema/UniqueID
     :name lib-schema/NonBlankStr
-    :teams [lib-schema/UniqueID]
     :avatar-url (schema/maybe schema/Str)
     schema/Keyword schema/Any ; and whatever else is in the JWT map
   })
