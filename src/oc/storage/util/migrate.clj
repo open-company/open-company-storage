@@ -14,21 +14,28 @@
 
 ;; ----- Migration -----
 
+(defn- migrate-topic-slug [slug]
+  (case (name slug)
+    "customer-service" "customers"
+    slug))
 
 (defn- migrate-author [author]
   {:avatar-url (:image author)
    :name (:name author)
-   :user-id "0000-0000-0000"})
+   :user-id "0000-0000-0000"
+   :updated-at (:updated-at author)})
 
 (defn- migrate-section [section]
   (let [entry (select-keys section [:section-name :title :headline :body :image-url :image-width :image-height :created-at :updated-at :data :metrics])
         key-names (clojure.set/rename-keys entry {:section-name :topic-slug})
         author (map migrate-author (:author section))]
-    (assoc key-names :author author)))
+    (-> key-names
+      (assoc :author author)
+      (assoc :topic-slug (migrate-topic-slug (:topic-slug key-names))))))
 
 (defn- migrate-update-section [topic data]
   (let [section ((keyword topic) data)]
-    {:topic-slug (:section section)
+    {:topic-slug (migrate-topic-slug topic)
      :created-at (:created-at section)}))
 
 ;; SAME

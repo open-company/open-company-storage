@@ -65,12 +65,10 @@
   (let [board-uuid (:uuid board)
         timestamp (:created-at entry)
         slug (:topic-slug entry)
-        entry-author (or (first (:author entry)) author)
-        author (assoc entry-author :teams [(:team-id org)])
-        entry (entry/->entry conn board-uuid slug entry author)
-        entry-author (first (:author entry))
-        fixed-timestamp-author (assoc entry-author :updated-at timestamp)
-        fixed-entry (assoc entry :author [fixed-timestamp-author])]
+        entry-authors (or (:author entry) [author])
+        authors (map #(assoc % :teams [(:team-id org)]) entry-authors)
+        entry (entry/->entry conn board-uuid slug entry (first authors))
+        fixed-entry (assoc entry :author entry-authors)]
     (println (str "Creating entry for " slug " topic at " timestamp " on board '" (:name board) "'"))
     (db-common/create-resource conn entry/table-name fixed-entry timestamp)))
 
