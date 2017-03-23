@@ -53,7 +53,7 @@
             edn-file (second arguments)]
         (if-let [company (company/get-company conn slug)]
           (let [sections (common/read-resources conn common/section-table-name "company-slug" slug)
-                updates (common/read-resources conn common/stakeholder-update-table-name "company-slug" slug)]
+                updates (vec (sort-by :created-at (common/read-resources conn common/stakeholder-update-table-name "company-slug" slug)))]
             (spit edn-file (zp/zprint-str
               {:company company
                :sections sections
