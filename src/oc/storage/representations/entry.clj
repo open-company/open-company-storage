@@ -7,7 +7,7 @@
             [oc.storage.representations.board :as board-rep]))
 
 (def representation-props [:topic-slug :title :headline :body :body-placeholder :image-url :image-height :image-width
-                           :author :created-at :updated-at])
+                           :attachments :author :created-at :updated-at])
 
 (def data-props [:prompt :data :metrics :intervals :units])
 

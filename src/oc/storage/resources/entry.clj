@@ -25,6 +25,13 @@
   [entry]
   (apply dissoc (common/clean entry) reserved-properties))
 
+(defn timestamp-attachments
+  "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
+  ([attachments] (timestamp-attachments attachments (db-common/current-timestamp)))
+  
+  ([attachments timestamp]
+  (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
+
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -48,6 +55,7 @@
         (update :title #(or % (:title template-props)))
         (update :headline #(or % ""))
         (update :body #(or % ""))
+        (update :attachments #(timestamp-attachments % ts))
         (assoc :org-uuid (:org-uuid board))
         (assoc :board-uuid board-uuid)
         (assoc :author [(assoc (common/author-for-user user) :updated-at ts)])
@@ -85,7 +93,7 @@
   retrieve the entry, or return nil if it doesn't exist. In this case a keyword, `:org` or `:board`
   needs to be provided to indicate what type of UUID is being used.
   "
-  ([conn id :- lib-schema/NonBlankStr]
+  ([conn id :- lib-schema/UUIDStr]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resource conn table-name id))
   
@@ -114,7 +122,9 @@
           merged-entry (merge original-entry (clean entry))
           ts (db-common/current-timestamp)
           updated-authors (conj authors (assoc (common/author-for-user user) :updated-at ts))
-          updated-entry (assoc merged-entry :author updated-authors)]
+          updated-author (assoc merged-entry :author updated-authors)
+          attachments (:attachments merged-entry)
+          updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 

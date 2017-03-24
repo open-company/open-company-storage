@@ -77,6 +77,13 @@
   (schema/optional-key :slug) lib-schema/NonBlankStr
   (schema/optional-key :value) schema/Num})
 
+(def Attachment {
+  :file-name lib-schema/NonBlankStr
+  :file-type lib-schema/NonBlankStr
+  :file-size schema/Num
+  :file-url lib-schema/NonBlankStr
+  :created-at lib-schema/ISO8601})
+
 (def EntryAuthor
   (merge Author {:updated-at lib-schema/ISO8601}))
 
@@ -90,6 +97,9 @@
   (schema/optional-key :image-height) schema/Num
   (schema/optional-key :image-width) schema/Num
   
+  ;; Attachments
+  (schema/optional-key :attachments) [Attachment]
+
   ;; Data entries
   (schema/optional-key :prompt) lib-schema/NonBlankStr
   (schema/optional-key :data) [DataPeriod]

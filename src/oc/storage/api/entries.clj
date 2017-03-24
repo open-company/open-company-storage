@@ -38,7 +38,8 @@
   (if-let [existing-entry (entry-res/get-entry conn :board
                             (board-res/uuid-for conn org-slug board-slug) topic-slug as-of)]
     ;; Merge the existing entry with the new updates
-    (let [updated-entry (merge existing-entry (entry-res/clean entry-props))]
+    (let [merged-entry (merge existing-entry (entry-res/clean entry-props))
+          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry :updated-entry updated-entry}
         [false, {:updated-entry updated-entry}])) ; invalid update
