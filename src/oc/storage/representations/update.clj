@@ -3,6 +3,7 @@
   (:require [defun.core :refer (defun)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
+            [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]))
 
@@ -35,7 +36,7 @@
     (-> update
       (select-keys representation-props)
       (update-links org-slug))
-    {:pretty true}))
+    {:pretty config/pretty?}))
 
 (defn render-update-list
   "
@@ -51,4 +52,4 @@
                             (create-link org-slug)]
                     :items (map #(update-links % org-slug)
                               (map #(select-keys % list-props) updates))}}
-      {:pretty true})))
+      {:pretty config/pretty?})))

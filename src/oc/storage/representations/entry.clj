@@ -3,6 +3,7 @@
   (:require [defun.core :refer (defun defun-)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
+            [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]))
 
@@ -102,7 +103,7 @@
       (select-keys representation-props)
       (select-data-props entry data-props)
       (entry-links board-slug org-slug access-level))
-    {:pretty true}))
+    {:pretty config/pretty?}))
 
 (defn render-entry-list
   "
@@ -122,4 +123,4 @@
                     :href collection-url
                     :links full-links
                     :items (map #(entry-links % board-slug org-slug access-level) entries)}}
-      {:pretty true})))
+      {:pretty config/pretty?})))

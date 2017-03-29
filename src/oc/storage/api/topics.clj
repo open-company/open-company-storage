@@ -21,7 +21,7 @@
         templates (:templates topics)
         topic-slugs (keys templates)
         with-links (map #(topic-rep/topic-template-for-rendering org-slug board-slug (% templates)) topic-slugs)]
-    (json/generate-string (assoc topics :templates (zipmap topic-slugs with-links)) {:pretty true})))
+    (json/generate-string (assoc topics :templates (zipmap topic-slugs with-links)) {:pretty config/pretty?})))
 
 ;; ----- Actions -----
 

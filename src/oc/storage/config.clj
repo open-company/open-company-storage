@@ -45,6 +45,7 @@
 
 ;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
 (defonce liberator-trace (bool (or (env :liberator-trace) false)))
+(defonce pretty? (not prod?)) ; JSON response as pretty?
 
 ;; ----- AWS SQS -----
 

@@ -3,6 +3,7 @@
   (:require [defun.core :refer (defun)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
+            [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
 (def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height
@@ -60,7 +61,7 @@
       (-> org
         (org-links access-level)
         (select-keys (conj representation-props :links)))
-      {:pretty true})))
+      {:pretty config/pretty?})))
 
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
@@ -75,4 +76,4 @@
                     :href "/"
                     :links full-links
                     :items (map org-collection-links orgs)}}
-      {:pretty true})))
+      {:pretty config/pretty?})))
