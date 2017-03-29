@@ -25,7 +25,7 @@
     [medley "0.8.4"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.2.16"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.6.17-3987d6e"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.7.0-ff55bd6"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
     ; if-let - More than one binding for if/when macros https://github.com/LockedOn/if-let
