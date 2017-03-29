@@ -3,6 +3,7 @@
   (:require [defun.core :refer (defun)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
+            [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.topic :as topic-rep]
@@ -83,4 +84,4 @@
       (select-keys representation-props)
       (select-topics board)
       (board-links org-slug access-level))
-    {:pretty true}))
+    {:pretty config/pretty?}))
