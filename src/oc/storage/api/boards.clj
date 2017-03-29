@@ -30,8 +30,8 @@
                               (map #(entry-rep/render-entry-for-collection org-slug slug
                                       (get selected-entries %) (:access-level ctx))
                                 topic-slugs))
-                                 archived-entries (clojure.set/difference (set (keys entries)) (set topic-slugs))
-                                 archived (map #(identity {:slug % :title (:title (get entries %))}) archived-entries)
+                                archived-entries (clojure.set/difference (set (keys entries)) (set topic-slugs))
+                                archived (map #(identity {:slug % :title (:title (get entries %))}) archived-entries)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
         viewers (:viewers board)
