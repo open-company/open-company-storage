@@ -25,27 +25,6 @@
   (println msg)
   (System/exit status))
 
-;; ----- REPL functions for porting legacy sample data -----
-
-(defn to-entry [section]
-  (let [entry (-> section
-                (dissoc :description :updated-at :body-placeholder :id :company-slug :prompt :units :intervals)
-                (clojure.set/rename-keys {:section-name :topic-slug}))]
-    (if (s/blank? (:image-url entry))
-      (dissoc entry :image-url :image-height :image-width)
-      entry)))
-
-(defn port-entries [old]
-  (let [sections (:sections old)
-        entries (map to-entry sections)]
-    (zp/zprint entries {:map {:comma? false}})))
-
-(defn port-org [old]
-  (let [company (:company old)
-        props (select-keys company [:slug :name :currency :team-id :logo :promoted :topics])
-        org (clojure.set/rename-keys props {:logo :logo-url})]
-    (zp/zprint (assoc org :team-id "1234-abcd-1234") {:map {:comma? false}})))
-
 ;; ----- Resource import -----
 
 (defn import-update [conn org update author]
@@ -53,10 +32,10 @@
         update-slug (:slug update)
         title (:title update)
         update-author (or (:author update) author)
-        timestamp (:created-at update)]
+        timestamp (or (:created-at update) (db-common/current-timestamp))]
     (println (str "Creating update '" title "' for org '" org-slug "'."))
     (update/create-update! conn 
-      (clojure.core/update (update/->update conn org-slug (dissoc update :author :slug :created-at) update-author)
+      (clojure.core/update (update/->update conn org-slug (dissoc update :slug :author :created-at) update-author)
         :slug #(or update-slug %))
       timestamp)
     (println (str "Created update '" title "' for org '" org-slug "'."))))
@@ -65,7 +44,7 @@
   (let [board-uuid (:uuid board)
         timestamp (:created-at entry)
         slug (:topic-slug entry)
-        entry-authors (or (:author entry) [author])
+        entry-authors (or (:author entry) [(assoc (dissoc author :teams) :updated-at timestamp)])
         authors (map #(assoc % :teams [(:team-id org)]) entry-authors)
         entry (entry/->entry conn board-uuid slug entry (first authors))
         fixed-entry (assoc entry :author entry-authors)]

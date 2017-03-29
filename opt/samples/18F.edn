@@ -1,7 +1,7 @@
 {
   :slug "18f"
   :name "18F"
-  :team-id "325b-4cb7-8ba2"  
+  :team-id "1234-abcd-1234"  
   :currency "USD"
   :logo-url "https://cdn.filestackcontent.com/V5WDoVEwRnqcimyBKirv"
   :logo-width 160
@@ -255,6 +255,7 @@
       :note "Another great month in the books! 💥"
       :medium "email"
       :to ["obama@whitehouse.gov"]
+      :subject "18F: October Update"
       :entries [
         {:topic-slug "team" :created-at "2016-10-18T12:02:16.539Z"}
         {:topic-slug "sales" :created-at "2016-10-19T12:02:16.539Z"}

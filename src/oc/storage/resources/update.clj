@@ -36,7 +36,7 @@
 
 (schema/defn ^:always-validate entry-for :- common/UpdateEntry
   "
-  Given an entry spec from a share requet, get the specified entry from the DB.
+  Given an entry spec from a share request, get the specified entry from the DB.
 
   Throws an exception if the entry isn't found.
   "
