@@ -7,6 +7,7 @@
             [cheshire.core :as json]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
@@ -56,7 +57,8 @@
   :known-content-type? true ; bug in cljs-http where it always passes a content-type for a delete
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
+                               org (org-res/get-org conn org-slug)
                                board (board-res/get-board conn (:uuid org) board-slug)
                                topic ((set (:topics board)) slug)]
                         {:existing-org org :existing-board board}
@@ -79,7 +81,8 @@
     :get (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let [org (org-res/get-org conn org-slug)]
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
+                               org (org-res/get-org conn org-slug)]
                         (board-res/get-board conn (:uuid org) board-slug)
                         false))
 

@@ -149,10 +149,13 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (valid-board-update? conn org-slug slug (:data ctx)))})
+    :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
+                          (slugify/valid-slug? slug)
+                          (valid-board-update? conn org-slug slug (:data ctx))))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [org (or (:existing-org ctx) (org-res/get-org conn org-slug))
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug))
+                               org (or (:existing-org ctx) (org-res/get-org conn org-slug))
                                board (or (:existing-board ctx) (board-res/get-board conn (:uuid org) slug))]
                         {:existing-org org :existing-board board}
                         false))
@@ -190,7 +193,8 @@
   ;; Validations
   :processable? (by-method {
     :options true
-    :post (fn [ctx] (valid-new-board? conn org-slug ctx))})
+    :post (fn [ctx] (and (slugify/valid-slug? org-slug)
+                         (valid-new-board? conn org-slug ctx)))})
 
   ;; Actions
   :post! (fn [ctx] (create-board conn ctx org-slug))
@@ -238,7 +242,8 @@
 
   ;; Existentialism
   :exists? (by-method {
-    :post (fn [ctx] (if-let* [user-id (:data ctx)
+    :post (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug)) 
+                              user-id (:data ctx)
                               org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
                               board (and (slugify/valid-slug? slug) (board-res/get-board conn (:uuid org) slug))]
                         {:existing-org org :existing-board board 

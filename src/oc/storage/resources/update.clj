@@ -111,8 +111,6 @@
   [conn org-uuid :- lib-schema/UniqueID slug]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
-  (println slug)
-  (println org-uuid)
   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
 
 ;; ----- Collection of updates -----

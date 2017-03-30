@@ -9,6 +9,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.lib.slugify :as slugify]
             [oc.storage.api.topics :as topics-api]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]            
@@ -107,11 +108,14 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (valid-entry-update? conn org-slug board-slug topic-slug as-of (:data ctx)))
+    :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
+                          (slugify/valid-slug? board-slug)
+                          (valid-entry-update? conn org-slug board-slug topic-slug as-of (:data ctx))))
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
+                               _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
                                board (or (:existing-board ctx)
                                          (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug))
                                entry (or (:existing-entry ctx)
@@ -161,11 +165,15 @@
   :processable? (by-method {
     :options true
     :get true
-    :post (fn [ctx] (valid-new-entry? conn org-slug board-slug topic-slug ctx))})
+    :post (fn [ctx] (and (slugify/valid-slug? org-slug)
+                         (slugify/valid-slug? board-slug)
+                         (valid-new-entry? conn org-slug board-slug topic-slug ctx)))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
-                               entries (entry-res/get-entries-by-topic conn (board-res/uuid-for conn org-slug board-slug) topic-slug)]
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
+                               _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+                               board-uuid (board-res/uuid-for conn org-slug board-slug)
+                               entries (entry-res/get-entries-by-topic conn board-uuid topic-slug)]
                         {:existing-entries entries}
                         false))
 
