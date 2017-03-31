@@ -160,6 +160,12 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-in-group conn table-name :board-uuid board-uuid :topic-slug :created-at))
 
+(schema/defn ^:always-validate count-entries-by-board
+  "Given the UUID of the board, return a count of the entries for each topic."
+  [conn board-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-in-group conn table-name :board-uuid board-uuid :topic-slug :count))
+
 (schema/defn ^:always-validate get-entries-by-topic
   "Given the UUID of the board, and a topic slug, return all the entries for the topic slug, ordered by `created-at`."
   [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug]

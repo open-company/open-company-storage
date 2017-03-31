@@ -44,17 +44,18 @@
 (defn- archive-link [org-slug board-slug topic-slug]
   (hateoas/archive-link (url org-slug board-slug topic-slug)))
 
-(defn- collection-link [org-slug board-slug topic-slug]
-  (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
+(defn- collection-link [org-slug board-slug topic-slug entry-count]
+  (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}
+                                                                {:count (or entry-count 1)}))
 
 (defn- up-link [org-slug board-slug topic-slug] (hateoas/up-link 
                                         (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
 (defn- entry-collection-links
-  [entry board-slug org-slug access-level]
+  [entry entry-count board-slug org-slug access-level]
   (let [timestamp (:created-at entry)
         topic-slug (name (:topic-slug entry))
-        links [(collection-link org-slug board-slug entry)
+        links [(collection-link org-slug board-slug entry entry-count)
                (item-link org-slug board-slug entry timestamp)]
         full-links (if (= access-level :author)
                       (concat links [(partial-update-link org-slug board-slug topic-slug timestamp)
@@ -89,11 +90,11 @@
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the REST API"
-  [org-slug board-slug entry access-level]
+  [org-slug board-slug entry entry-count access-level]
   (-> entry
     (select-keys representation-props)
     (select-data-props entry data-props)
-    (entry-collection-links board-slug org-slug access-level)))
+    (entry-collection-links entry-count board-slug org-slug access-level)))
 
 (defn render-entry
   "Create a JSON representation of the board for the REST API"
