@@ -5,6 +5,7 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
@@ -33,7 +34,7 @@
                 [])
         org-slugs (set (map :slug authed-orgs)) ; set of the org slugs for this user
         requested-org-slug (get-in request [:params "requested"]) ; a public org may be requested specifically
-        check-for-public? (and requested-org-slug (not (org-slugs requested-org-slug))) ; requested and not in the list
+        check-for-public? (and (slugify/valid-slug? requested-org-slug) (not (org-slugs requested-org-slug))) ; requested and not in the list
         public-org (when check-for-public? (org-if-public-boards conn requested-org-slug)) ; requested org if public
         orgs (if public-org (conj authed-orgs public-org) authed-orgs)] ; final set of orgs
     (org-rep/render-org-list orgs user)))
