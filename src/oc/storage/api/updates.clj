@@ -35,7 +35,9 @@
     (try
       (if-let* [new-update (update-res/->update conn org-slug share-request author)
                 slack-bot (slack-bot-for-share share-request author)]
-        {:new-update new-update :existing-org org :slack-bot (dissoc slack-bot :slack-org-id)}
+        {:new-update new-update
+         :existing-org org
+         :slack-bot (when (map? slack-bot) (dissoc slack-bot :slack-org-id))}
         [false, {:existing-org org :reason "Slack bot not configured."}])
       (catch clojure.lang.ExceptionInfo e
         [false, {:existing-org org :reason (.getMessage e)}])) ; Not a valid share request
