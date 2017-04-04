@@ -25,7 +25,7 @@
           :topic-slug :challenges
           :headline "Recruiting; maintaining growth are focus areas"
           :body "<p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>"
-          :image-url "https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN"
+          :image-url "https://open-company-sample-data.s3.amazonaws.com/recruting.jpg"
           :image-width 462
           :image-height 348
 
@@ -108,7 +108,7 @@
           :topic-slug :highlights
           :headline "GreenLabs featured in Slate!"
           :body "<p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>"
-          :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r"
+          :image-url "https://open-company-sample-data.s3.amazonaws.com/press.jpg"
           :image-width 1180
           :image-height 842
   
