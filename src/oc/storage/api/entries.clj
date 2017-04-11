@@ -82,7 +82,7 @@
 
 ; A resource for operations on a particular entry
 (defresource entry [conn org-slug board-slug topic-slug as-of]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch :delete]
 
@@ -100,7 +100,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn org-slug (:user ctx)))
+    :get (fn [ctx] (access/access-level-for conn org-slug board-slug (:user ctx)))
     :patch (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))
     :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
@@ -136,7 +136,7 @@
 
 ; A resource for operations on all entries of a particular topic
 (defresource entry-list [conn org-slug board-slug topic-slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :post :delete] ; :delete is handled by the topic resource
 
@@ -158,7 +158,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn org-slug (:user ctx)))
+    :get (fn [ctx] (access/access-level-for conn org-slug board-slug (:user ctx)))
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Validations
