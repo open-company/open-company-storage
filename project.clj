@@ -79,8 +79,8 @@
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
-        :aws-sqs-bot-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
-        :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+        :aws-sqs-bot-queue "CHANGE-ME"
+        :aws-sqs-email-queue "CHANGE-ME"
       }
       :plugins [
         [lein-bikeshed "0.4.1"] ; Check for code smells https://github.com/dakrone/lein-bikeshed
