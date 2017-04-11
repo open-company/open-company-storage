@@ -119,10 +119,11 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (valid-org-update? conn slug (:data ctx)))})
+    :patch (fn [ctx] (and (slugify/valid-slug? slug) (valid-org-update? conn slug (:data ctx))))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let [org (or (:existing-org ctx) (org-res/get-org conn slug))]
+  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
                         {:existing-org org}
                         false))
 

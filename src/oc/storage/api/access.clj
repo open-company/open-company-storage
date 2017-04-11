@@ -41,12 +41,19 @@
   
   ;; Access to org
   
+  ;; Invalid org slug
+  ([_conn org-slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _user]
+    ;; Will fail existence checks later
+    {:access-level :does-not-exist})
+
+  ;; With org slug, check if it exists
   ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? user :guard #(or (map? %) (nil? %))]
   (if-let [org (org-res/get-org conn org-slug)]
     (access-level-for conn org user)
     ;; Will fail existence checks later
     {:access-level :does-not-exist}))
 
+  ;; With org resource, return the access level
   ([conn :guard lib-schema/conn? org :guard map? user :guard #(or (map? %) (nil? %))]
   (let [user-id (:user-id user)
         teams (:teams user)
@@ -73,6 +80,16 @@
 
 
   ;; Access to board
+
+  ;; Invalid org slug
+  ([_conn org-slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _board_slug _user]
+    ;; Will fail existence checks later
+    {:access-level :does-not-exist})
+
+  ;; Invalid board slug
+  ([_conn _org-slug _board_slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _user]
+    ;; Will fail existence checks later
+    {:access-level :does-not-exist})
 
   ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? board-slug :guard slugify/valid-slug?
     user :guard #(or (map? %) (nil? %))]

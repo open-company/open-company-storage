@@ -7,6 +7,7 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.lib.email :as email]
@@ -78,7 +79,8 @@
     :get  (fn [ctx] (api-common/allow-anonymous ctx))}) ; these are ObscURLs, so if you know what you're getting it's OK
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug))
+                               org (org-res/get-org conn org-slug)
                                update (update-res/get-update conn (:uuid org) slug)]
                         {:existing-update update}
                         false))
@@ -116,11 +118,12 @@
   :processable? (by-method {
     :options true
     :get true
-    :post (fn [ctx] (valid-share-request? conn org-slug ctx))})
+    :post (fn [ctx] (and (slugify/valid-slug? org-slug) (valid-share-request? conn org-slug ctx)))})
 
   ;; Existentialism
   :exists? (by-method {
-    :get (fn [ctx] (if-let* [org (org-res/get-org conn org-slug)]
+    :get (fn [ctx] (if-let* [_slug? (slugify/valid-slug? org-slug)
+                             org (org-res/get-org conn org-slug)]
                         {:existing-org org}
                         false))})
 
