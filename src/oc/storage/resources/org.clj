@@ -40,6 +40,8 @@
 
 ;; ----- Organization Slug -----
 
+;; Excluded slugs due to existing and potential URL routing conflicts
+;; the person names are excluded because right now we're sending update emails as from: "slug@opencompany.com"
 (def reserved-slugs #{"about" "android" "api" "app" "careers" "companies"
                       "company" "contact" "create-company" "crowd" "developer"
                       "developers" "download" "email-confirmation" "faq" "forum" "forums" 
@@ -48,7 +50,7 @@
                       "news" "newsletter" "press" "privacy" "profile" "register" "reset"
                       "section" "sections" "signin" "signout" "signup" "stakeholder"
                       "stakeholder-update" "subscription-completed" "terms" "topic" "topics"
-                      "update" "updates"})
+                      "update" "updates" "stuart" "sean" "iacopo"})
 
 (declare list-orgs)
 (defn taken-slugs
