@@ -42,7 +42,7 @@
   ;; Access to org
   
   ;; Invalid org slug
-  ([_conn org-slug :guard #(not (slugify/valid-slug? %)) _user]
+  ([_conn org-slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _user]
     ;; Will fail existence checks later
     {:access-level :does-not-exist})
 
@@ -82,12 +82,12 @@
   ;; Access to board
 
   ;; Invalid org slug
-  ([_conn org-slug :guard #(not (slugify/valid-slug? %)) _board_slug _user]
+  ([_conn org-slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _board_slug _user]
     ;; Will fail existence checks later
     {:access-level :does-not-exist})
 
   ;; Invalid board slug
-  ([_conn _org-slug _board_slug :guard #(not (slugify/valid-slug? %)) _user]
+  ([_conn _org-slug _board_slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _user]
     ;; Will fail existence checks later
     {:access-level :does-not-exist})
 
