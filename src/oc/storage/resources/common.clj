@@ -99,6 +99,8 @@
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
+  ;; Charts
+  (schema/optional-key :chart-url) (schema/maybe schema/Str)
 
   ;; Data entries
   (schema/optional-key :prompt) lib-schema/NonBlankStr
