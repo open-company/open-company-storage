@@ -70,12 +70,12 @@
 (def DataPeriod {
   :period lib-schema/NonBlankStr
   ;; Finances
-  (schema/optional-key :cash) schema/Num
-  (schema/optional-key :costs) schema/Num
-  (schema/optional-key :revenue) schema/Num
+  (schema/optional-key :cash) (schema/maybe schema/Num)
+  (schema/optional-key :costs) (schema/maybe schema/Num)
+  (schema/optional-key :revenue) (schema/maybe schema/Num)
   ;; Growth
   (schema/optional-key :slug) lib-schema/NonBlankStr
-  (schema/optional-key :value) schema/Num})
+  (schema/optional-key :value) (schema/maybe schema/Num)})
 
 (def Attachment {
   :file-name lib-schema/NonBlankStr
