@@ -282,7 +282,7 @@
 
   (->> (into [primary-key :slug :name] additional-keys)
     (db-common/read-resources conn table-name index-key index-value)
-    (sort-by "slug")
+    (sort-by :slug)
     vec)))
 
 ;; ----- Armageddon -----
