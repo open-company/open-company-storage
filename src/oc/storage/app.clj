@@ -75,7 +75,7 @@
 
     ;; Start the system
     (-> {:handler-fn app :port port}
-      components/oc-system
+      components/storage-system
       component/start)
 
   ;; Echo config information

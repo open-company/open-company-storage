@@ -12,8 +12,8 @@
 (defn init
   ([] (init c/storage-server-port))
   ([port]
-  (alter-var-root #'system (constantly (components/oc-system {:handler-fn app/app
-                                                              :port port})))))
+  (alter-var-root #'system (constantly (components/storage-system {:handler-fn app/app
+                                                                   :port port})))))
 
 (defn bind-conn! []
   (alter-var-root #'conn (constantly (pool/claim (get-in system [:db-pool :pool])))))
