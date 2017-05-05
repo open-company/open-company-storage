@@ -13,7 +13,8 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha16"] ; Lisp on the JVM http://clojure.org/documentation
+    ;; Don't upgrade to aplha16 until zprint fixes this issue: https://github.com/kkinnear/zprint/issues/26
+    [org.clojure/clojure "1.9.0-alpha15"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [ring/ring-devel "1.6.0"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.0"] ; Web application library https://github.com/ring-clojure/ring
@@ -66,7 +67,8 @@
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.3"] ; Linter https://github.com/jonase/eastwood
-        [lein-kibit "0.1.4"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
+        ;; Don't upgrade to 0.1.4 until this issue is resolved: https://github.com/jonase/kibit/issues/187
+        [lein-kibit "0.1.3"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]
     }
 
