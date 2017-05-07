@@ -67,8 +67,7 @@
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.3"] ; Linter https://github.com/jonase/eastwood
-        ;; Don't upgrade to 0.1.4 until this issue is resolved: https://github.com/jonase/kibit/issues/187
-        [lein-kibit "0.1.3"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
+        [lein-kibit "0.1.5-SNAPSHOT"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]
     }
 
