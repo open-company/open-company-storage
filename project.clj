@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Don't upgrade to aplha16 until zprint fixes this issue: https://github.com/kkinnear/zprint/issues/26
-    [org.clojure/clojure "1.9.0-alpha15"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha16"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [ring/ring-devel "1.6.0"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.0"] ; Web application library https://github.com/ring-clojure/ring
@@ -23,7 +23,7 @@
     [compojure "1.6.0"] ; Web routing https://github.com/weavejester/compojure
     [clj-http "3.5.0"] ; HTTP client https://github.com/dakrone/clj-http
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
-    [zprint "0.3.3"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
+    [zprint "0.4.0"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
     [open-company/lib "0.9.4-8954046"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
@@ -67,7 +67,7 @@
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
         [jonase/eastwood "0.2.3"] ; Linter https://github.com/jonase/eastwood
-        [lein-kibit "0.1.5-SNAPSHOT"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
+        [lein-kibit "0.1.5"] ; Static code search for non-idiomatic code https://github.com/jonase/kibit
       ]
     }
 
@@ -91,7 +91,7 @@
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
-        [lein-zprint "0.2.3"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
+        [lein-zprint "0.3.0"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
       ]  
     }]
     :repl-config [:dev {

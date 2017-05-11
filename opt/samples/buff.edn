@@ -143,8 +143,6 @@
            :name "ARR",
            :slug "arr",
            :unit "currency"}],
-       :prompt
-         "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
        :title "Key metrics",
        :units [{:name "Currency", :unit "currency"}
                {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],

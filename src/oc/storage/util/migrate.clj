@@ -26,7 +26,7 @@
    :updated-at (:updated-at author)})
 
 (defn- migrate-section [section]
-  (let [entry (select-keys section [:section-name :title :headline :body :image-url :image-width :image-height :created-at :updated-at :data :metrics])
+  (let [entry (select-keys section [:section-name :title :headline :body :image-url :image-width :image-height :created-at :updated-at])
         key-names (clojure.set/rename-keys entry {:section-name :topic-slug})
         author (map migrate-author (:author section))]
     (-> key-names

@@ -51,32 +51,6 @@
   :user-id lib-schema/UniqueID
   :avatar-url (schema/maybe schema/Str)})
 
-(def intervals #{:weekly :monthly :quarterly})
-(def units #{:number :currency :%})
-
-(def Interval (schema/pred #(intervals (keyword %))))
-
-(def Unit {
-  :unit lib-schema/NonBlankStr
-  :name lib-schema/NonBlankStr})
-
-(def Metric {
-  :slug Slug
-  :name lib-schema/NonBlankStr
-  :description schema/Str
-  :interval (schema/pred #(intervals (keyword %)))
-  :unit (schema/pred #(units (keyword %)))})
-
-(def DataPeriod {
-  :period lib-schema/NonBlankStr
-  ;; Finances
-  (schema/optional-key :cash) (schema/maybe schema/Num)
-  (schema/optional-key :costs) (schema/maybe schema/Num)
-  (schema/optional-key :revenue) (schema/maybe schema/Num)
-  ;; Growth
-  (schema/optional-key :slug) lib-schema/NonBlankStr
-  (schema/optional-key :value) (schema/maybe schema/Num)})
-
 (def Attachment {
   :file-name lib-schema/NonBlankStr
   :file-type lib-schema/NonBlankStr
@@ -101,14 +75,6 @@
   (schema/optional-key :attachments) [Attachment]
   ;; Charts
   (schema/optional-key :chart-url) (schema/maybe schema/Str)
-
-  ;; Data entries
-  (schema/optional-key :prompt) lib-schema/NonBlankStr
-  (schema/optional-key :data) [DataPeriod]
-  ;; Growth entries
-  (schema/optional-key :metrics) [Metric]
-  (schema/optional-key :intervals) [Interval]
-  (schema/optional-key :units) [Unit]
   
   :author [EntryAuthor]
   :created-at lib-schema/ISO8601

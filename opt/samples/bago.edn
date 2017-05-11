@@ -29,23 +29,7 @@
        :body-placeholder
          "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
        :created-at "2016-08-08T11:12:02.000Z",
-       :data
-         [{:cash 2468881, :costs 128715, :period "2016-04", :revenue 450529}
-          {:cash 2478881, :costs 138715, :period "2015-05", :revenue 460529}
-          {:cash 2488881, :costs 138715, :period "2015-06", :revenue 460529}
-          {:cash 2498881, :costs 148715, :period "2015-07", :revenue 470529}
-          {:cash 2508881, :costs 158715, :period "2015-08", :revenue 480529}
-          {:cash 2508881, :costs 168715, :period "2015-09", :revenue 480529}
-          {:cash 2518881, :costs 178715, :period "2015-10", :revenue 490529}
-          {:cash 2528881, :costs 188715, :period "2015-11", :revenue 500529}
-          {:cash 2538881, :costs 198715, :period "2015-12", :revenue 510529}
-          {:cash 2548881, :costs 208715, :period "2016-01", :revenue 520529}
-          {:cash 2558881, :costs 218715, :period "2016-02", :revenue 530529}
-          {:cash 2568881, :costs 228715, :period "2016-03", :revenue 540529}
-          {:cash 2578881, :costs 238715, :period "2016-04", :revenue 550529}
-          {:cash 2655505, :costs 494907, :period "2016-05", :revenue 571532}
-          {:cash 2789388, :costs 490313, :period "2016-06", :revenue 624196}
-          {:cash 3019388, :costs 501231, :period "2016-07", :revenue 894196}],
+       :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&format=interactive"
        :description "Cash on hand, burn and runway",
        :headline "",
        :title "Finances",
@@ -61,104 +45,10 @@
        :body-placeholder
          "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
        :created-at "2015-11-01T21:12:43.000Z",
-       :data
-         [{:period "2015-03", :slug "total-registered-users", :value 1211292}
-          {:period "2015-04", :slug "total-registered-users", :value 1311292}
-          {:period "2015-05", :slug "total-registered-users", :value 1411292}
-          {:period "2015-06", :slug "total-registered-users", :value 1511292}
-          {:period "2015-07", :slug "total-registered-users", :value 1611292}
-          {:period "2015-08", :slug "total-registered-users", :value 1711292}
-          {:period "2015-09", :slug "total-registered-users", :value 1811292}
-          {:period "2015-10", :slug "total-registered-users", :value 1911292}
-          {:period "2015-11", :slug "total-registered-users", :value 2011292}
-          {:period "2015-12", :slug "total-registered-users", :value 2111292}
-          {:period "2016-01", :slug "total-registered-users", :value 2211292}
-          {:period "2016-02", :slug "total-registered-users", :value 2311292}
-          {:period "2016-03", :slug "total-registered-users", :value 2411292}
-          {:period "2016-04", :slug "total-registered-users", :value 2592194}
-          {:period "2016-05", :slug "total-registered-users", :value 2673418}
-          {:period "2016-06", :slug "total-registered-users", :value 2757998}
-          {:period "2016-07", :slug "total-registered-users", :value 3017998}
-          {:period "2015-02", :slug "mau", :value 76464}
-          {:period "2015-03", :slug "mau", :value 86464}
-          {:period "2015-04", :slug "mau", :value 96464}
-          {:period "2015-05", :slug "mau", :value 106464}
-          {:period "2015-06", :slug "mau", :value 116464}
-          {:period "2015-07", :slug "mau", :value 126464}
-          {:period "2015-08", :slug "mau", :value 136464}
-          {:period "2015-09", :slug "mau", :value 146464}
-          {:period "2015-10", :slug "mau", :value 156464}
-          {:period "2015-11", :slug "mau", :value 166464}
-          {:period "2015-12", :slug "mau", :value 176464}
-          {:period "2016-01", :slug "mau", :value 186464}
-          {:period "2016-02", :slug "mau", :value 196464}
-          {:period "2016-03", :slug "mau", :value 208667}
-          {:period "2016-04", :slug "mau", :value 211520}
-          {:period "2016-06", :slug "mau", :value 219744}
-          {:period "2016-07", :slug "mau", :value 233144}
-          {:period "2015-02", :slug "dau", :value 37229}
-          {:period "2015-03", :slug "dau", :value 39229}
-          {:period "2015-04", :slug "dau", :value 40229}
-          {:period "2015-05", :slug "dau", :value 39229}
-          {:period "2015-06", :slug "dau", :value 43229}
-          {:period "2015-07", :slug "dau", :value 41229}
-          {:period "2015-08", :slug "dau", :value 42229}
-          {:period "2015-09", :slug "dau", :value 43229}
-          {:period "2015-10", :slug "dau", :value 43229}
-          {:period "2015-11", :slug "dau", :value 48229}
-          {:period "2015-12", :slug "dau", :value 45229}
-          {:period "2016-01", :slug "dau", :value 49229}
-          {:period "2016-02", :slug "dau", :value 52229}
-          {:period "2016-03", :slug "dau", :value 51491}
-          {:period "2016-04", :slug "dau", :value 50489}
-          {:period "2016-05", :slug "dau", :value 54357}
-          {:period "2016-07", :slug "dau", :value 58345}
-          {:period "2015-03", :slug "arr", :value 5410000}
-          {:period "2015-04", :slug "arr", :value 5510000}
-          {:period "2015-05", :slug "arr", :value 5610000}
-          {:period "2015-06", :slug "arr", :value 5710000}
-          {:period "2015-07", :slug "arr", :value 5810000}
-          {:period "2015-08", :slug "arr", :value 5910000}
-          {:period "2015-09", :slug "arr", :value 6010000}
-          {:period "2015-10", :slug "arr", :value 6110000}
-          {:period "2015-11", :slug "arr", :value 6210000}
-          {:period "2015-12", :slug "arr", :value 6310000}
-          {:period "2016-01", :slug "arr", :value 6410000}
-          {:period "2016-02", :slug "arr", :value 6510000}
-          {:period "2016-03", :slug "arr", :value 6610000}
-          {:period "2016-04", :slug "arr", :value 6860000}
-          {:period "2016-05", :slug "arr", :value 7490000}
-          {:period "2016-06", :slug "arr", :value 7730000}
-          {:period "2016-07", :slug "arr", :value 7924000}],
+       :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&format=interactive"
        :description "Key metrics and performance indicators",
        :headline "",
-       :intervals ["weekly" "monthly" "quarterly"],
-       :metrics
-         [{:interval "monthly",
-           :name "Total users",
-           :slug "total-registered-users",
-           :target "increase",
-           :unit "number"}
-          {:interval "monthly",
-           :name "MAU",
-           :slug "mau",
-           :target "increase",
-           :unit "number"}
-          {:interval "monthly",
-           :name "Avg DAU",
-           :slug "dau",
-           :target "increase",
-           :unit "number"}
-          {:interval "monthly",
-           :name "ARR",
-           :slug "arr",
-           :target "increase",
-           :unit "currency"}],
-       :prompt
-         "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
        :title "Key metrics",
-       :units [{:name "Currency", :unit "currency"}
-               {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
        :updated-at "2015-11-01T21:12:43.000Z"},
     :logo "https://open-company-assets.s3.amazonaws.com/bago.png",
     :logo-height 96,
@@ -185,22 +75,7 @@
        "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
      :company-slug "bago",
      :created-at "2016-08-08T11:12:02.000Z",
-     :data [{:cash 2468881, :costs 128715, :period "2016-04", :revenue 450529}
-            {:cash 2478881, :costs 138715, :period "2015-05", :revenue 460529}
-            {:cash 2488881, :costs 138715, :period "2015-06", :revenue 460529}
-            {:cash 2498881, :costs 148715, :period "2015-07", :revenue 470529}
-            {:cash 2508881, :costs 158715, :period "2015-08", :revenue 480529}
-            {:cash 2508881, :costs 168715, :period "2015-09", :revenue 480529}
-            {:cash 2518881, :costs 178715, :period "2015-10", :revenue 490529}
-            {:cash 2528881, :costs 188715, :period "2015-11", :revenue 500529}
-            {:cash 2538881, :costs 198715, :period "2015-12", :revenue 510529}
-            {:cash 2548881, :costs 208715, :period "2016-01", :revenue 520529}
-            {:cash 2558881, :costs 218715, :period "2016-02", :revenue 530529}
-            {:cash 2568881, :costs 228715, :period "2016-03", :revenue 540529}
-            {:cash 2578881, :costs 238715, :period "2016-04", :revenue 550529}
-            {:cash 2655505, :costs 494907, :period "2016-05", :revenue 571532}
-            {:cash 2789388, :costs 490313, :period "2016-06", :revenue 624196}
-            {:cash 3019388, :costs 501231, :period "2016-07", :revenue 894196}],
+     :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&format=interactive"
      :description "Cash on hand, burn and runway",
      :headline "",
      :id "dbdda3f8-e544-4f12-a3b0-9b5ac29d3cff",
@@ -237,104 +112,11 @@
        "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
      :company-slug "bago",
      :created-at "2015-11-01T21:12:43.000Z",
-     :data [{:period "2015-03", :slug "total-registered-users", :value 1211292}
-            {:period "2015-04", :slug "total-registered-users", :value 1311292}
-            {:period "2015-05", :slug "total-registered-users", :value 1411292}
-            {:period "2015-06", :slug "total-registered-users", :value 1511292}
-            {:period "2015-07", :slug "total-registered-users", :value 1611292}
-            {:period "2015-08", :slug "total-registered-users", :value 1711292}
-            {:period "2015-09", :slug "total-registered-users", :value 1811292}
-            {:period "2015-10", :slug "total-registered-users", :value 1911292}
-            {:period "2015-11", :slug "total-registered-users", :value 2011292}
-            {:period "2015-12", :slug "total-registered-users", :value 2111292}
-            {:period "2016-01", :slug "total-registered-users", :value 2211292}
-            {:period "2016-02", :slug "total-registered-users", :value 2311292}
-            {:period "2016-03", :slug "total-registered-users", :value 2411292}
-            {:period "2016-04", :slug "total-registered-users", :value 2592194}
-            {:period "2016-05", :slug "total-registered-users", :value 2673418}
-            {:period "2016-06", :slug "total-registered-users", :value 2757998}
-            {:period "2016-07", :slug "total-registered-users", :value 3017998}
-            {:period "2015-02", :slug "mau", :value 76464}
-            {:period "2015-03", :slug "mau", :value 86464}
-            {:period "2015-04", :slug "mau", :value 96464}
-            {:period "2015-05", :slug "mau", :value 106464}
-            {:period "2015-06", :slug "mau", :value 116464}
-            {:period "2015-07", :slug "mau", :value 126464}
-            {:period "2015-08", :slug "mau", :value 136464}
-            {:period "2015-09", :slug "mau", :value 146464}
-            {:period "2015-10", :slug "mau", :value 156464}
-            {:period "2015-11", :slug "mau", :value 166464}
-            {:period "2015-12", :slug "mau", :value 176464}
-            {:period "2016-01", :slug "mau", :value 186464}
-            {:period "2016-02", :slug "mau", :value 196464}
-            {:period "2016-03", :slug "mau", :value 208667}
-            {:period "2016-04", :slug "mau", :value 211520}
-            {:period "2016-06", :slug "mau", :value 219744}
-            {:period "2016-07", :slug "mau", :value 233144}
-            {:period "2015-02", :slug "dau", :value 37229}
-            {:period "2015-03", :slug "dau", :value 39229}
-            {:period "2015-04", :slug "dau", :value 40229}
-            {:period "2015-05", :slug "dau", :value 39229}
-            {:period "2015-06", :slug "dau", :value 43229}
-            {:period "2015-07", :slug "dau", :value 41229}
-            {:period "2015-08", :slug "dau", :value 42229}
-            {:period "2015-09", :slug "dau", :value 43229}
-            {:period "2015-10", :slug "dau", :value 43229}
-            {:period "2015-11", :slug "dau", :value 48229}
-            {:period "2015-12", :slug "dau", :value 45229}
-            {:period "2016-01", :slug "dau", :value 49229}
-            {:period "2016-02", :slug "dau", :value 52229}
-            {:period "2016-03", :slug "dau", :value 51491}
-            {:period "2016-04", :slug "dau", :value 50489}
-            {:period "2016-05", :slug "dau", :value 54357}
-            {:period "2016-07", :slug "dau", :value 58345}
-            {:period "2015-03", :slug "arr", :value 5410000}
-            {:period "2015-04", :slug "arr", :value 5510000}
-            {:period "2015-05", :slug "arr", :value 5610000}
-            {:period "2015-06", :slug "arr", :value 5710000}
-            {:period "2015-07", :slug "arr", :value 5810000}
-            {:period "2015-08", :slug "arr", :value 5910000}
-            {:period "2015-09", :slug "arr", :value 6010000}
-            {:period "2015-10", :slug "arr", :value 6110000}
-            {:period "2015-11", :slug "arr", :value 6210000}
-            {:period "2015-12", :slug "arr", :value 6310000}
-            {:period "2016-01", :slug "arr", :value 6410000}
-            {:period "2016-02", :slug "arr", :value 6510000}
-            {:period "2016-03", :slug "arr", :value 6610000}
-            {:period "2016-04", :slug "arr", :value 6860000}
-            {:period "2016-05", :slug "arr", :value 7490000}
-            {:period "2016-06", :slug "arr", :value 7730000}
-            {:period "2016-07", :slug "arr", :value 7924000}],
+     :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&format=interactive"
      :description "Key metrics and performance indicators",
      :headline "",
      :id "0856c213-5bab-438c-9c5f-2a144c68f759",
-     :intervals ["weekly" "monthly" "quarterly"],
-     :metrics
-       [{:interval "monthly",
-         :name "Total users",
-         :slug "total-registered-users",
-         :target "increase",
-         :unit "number"}
-        {:interval "monthly",
-         :name "MAU",
-         :slug "mau",
-         :target "increase",
-         :unit "number"}
-        {:interval "monthly",
-         :name "Avg DAU",
-         :slug "dau",
-         :target "increase",
-         :unit "number"}
-        {:interval "monthly",
-         :name "ARR",
-         :slug "arr",
-         :target "increase",
-         :unit "currency"}],
-     :prompt
-       "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
      :section-name "growth",
      :title "Key metrics",
-     :units [{:name "Currency", :unit "currency"}
-             {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
      :updated-at "2015-11-01T21:12:43.000Z"}],
  :updates []}

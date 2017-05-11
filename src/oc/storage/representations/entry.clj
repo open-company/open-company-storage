@@ -10,8 +10,6 @@
 (def representation-props [:topic-slug :title :headline :body :body-placeholder :image-url :image-height :image-width
                            :chart-url :attachments :author :created-at :updated-at])
 
-(def data-props [:prompt :data :metrics :intervals :units])
-
 (defun url
   
   ([org-slug board-slug topic-slug :guard string?]
@@ -79,21 +77,11 @@
                       links)]
     (assoc entry :links full-links)))
 
-(defun- select-data-props
-  ([entry data []] entry) ; all done
-
-  ([entry data data-props]
-  (let [data-prop (first data-props)
-        data-value (data-prop data)
-        updated-entry (if data-value (assoc entry data-prop data-value) entry)]
-    (select-data-props updated-entry data (vec (rest data-props)))))) ; recurse
-
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the REST API"
   [org-slug board-slug entry entry-count access-level]
   (-> entry
     (select-keys representation-props)
-    (select-data-props entry data-props)
     (entry-collection-links entry-count board-slug org-slug access-level)))
 
 (defn render-entry
@@ -102,7 +90,6 @@
   (json/generate-string
     (-> entry
       (select-keys representation-props)
-      (select-data-props entry data-props)
       (entry-links board-slug org-slug access-level))
     {:pretty config/pretty?}))
 

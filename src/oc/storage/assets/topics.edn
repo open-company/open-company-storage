@@ -118,7 +118,6 @@
       :headline ""
       :body-placeholder "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart."
       :body ""
-      :data []
     }
 
     :fundraising {
@@ -140,28 +139,6 @@
       :headline ""
       :body-placeholder "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart."
       :body ""
-      :prompt "Enter the most important metric for the stakeholders of your organization. You'll be able
-      to add more later."
-      :metrics []
-      :intervals [
-        "weekly"
-        "monthly"
-        "quarterly"
-      ]
-      :units [
-        {
-          :unit "currency"
-          :name "Currency"
-        }
-        {
-          :unit "number"
-          :name "Number"
-        }
-        {
-          :unit "%"
-          :name "Percent"
-        }
-      ]
     }
 
     :help {

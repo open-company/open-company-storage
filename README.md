@@ -281,64 +281,11 @@ Then enter these commands one-by-one, noting the output:
 (entry/create-entry! conn
   (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:body "Hiring ClojureScript talent."} author))
 
-
-
-
-(section/put-section conn "blank" :finances {:data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}]} author)
-
-;; add additional entries to the section
-(section/put-section conn "blank" :finances {:body "we got our first customer! revenue ftw!"
-                                                 :data [{:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]} author)
-(section/put-section conn "blank" :finances {:data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
-                                                        {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}]} author)
-;; update existing entry
-(section/patch-revision conn "blank" :finances {:body "we got our second customer! more revenue ftw!"
-                                                 :data [{:period "2015-08" :cash 75000 :revenue 0 :costs 6778}
-                                                        {:period "2015-09" :cash 66981 :revenue 0 :costs 8019}
-                                                        {:period "2015-10" :cash 58987 :revenue 25 :costs 7867}
-                                                        {:period "2015-11" :cash 51125 :revenue 50 :costs 7912}]} author)
-(aprint (company/get-company conn "blank-inc"))
-
-;; 3 entries, not 4, the last entry has been edited once
-(count (section/list-revisions conn "blank" :finances))
-
-;; create a section
-(section/put-section conn "buffer" :update {:headline "it's all meh."} author)
-(aprint (company/get-company conn "buffer"))
-
-;; get a section
-(aprint (section/get-section conn "blank" :finances))
-(aprint (section/get-section conn "buffer" :update))
-(aprint (section/get-section conn "buffer" :finances))
-
-;; list revisions
-(aprint (section/list-revisions conn "blank" :finances))
-(aprint (section/list-revisions conn "buffer" :update))
-(aprint (section/list-revisions conn "buffer" :finances))
-
-;; get revisions
-(aprint (section/get-revisions conn "blank" :finances))
-(aprint (section/get-revisions conn "buffer" :update))
-(aprint (section/get-revisions conn "buffer" :finances))
-
-;; create a stakeholder update
-(su/create-stakeholder-update!
-  conn
-  (su/->stakeholder-update
-    conn
-    (company/get-company conn "open")
-    {:title "OpenCompany Update"
-     :medium :link
-     :sections ["finances"]}
-    author))
-
-;; delete a company
-(company/delete-company! conn "blank")
+;; delete an org
+(org/delete-org! conn "blank")
 
 ;; cleanup
-(company/delete-all-companies! conn)
+(org/delete-all-orgs! conn)
 ```
 
 

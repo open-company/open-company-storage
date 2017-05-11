@@ -32,13 +32,7 @@
        :body-placeholder
          "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
        :created-at "2016-12-03T16:23:11.560Z",
-       :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
-              {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}
-              {:cash 1800000, :costs 100000, :period "2016-10", :revenue ""}
-              {:cash "", :costs 85000, :period "2016-08", :revenue nil}
-              {:cash 2175000, :costs 200000, :period "2016-11", :revenue nil}
-              {:cash "", :costs 100000, :period "2016-09", :revenue nil}
-              {:cash "", :costs 75000, :period "2016-07", :revenue nil}],
+       :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1315570007&format=interactive"
        :description "Cash on hand, burn and runway",
        :headline "",
        :title "Finances",
@@ -73,23 +67,10 @@
        :body-placeholder
          "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
        :created-at "2016-12-06T19:22:09.015Z",
-       :data [{:period "2016-09", :slug "slack-apps-3c2b", :value 5}
-              {:period "2016-10", :slug "slack-apps-3c2b", :value 45}
-              {:period "2016-11", :slug "slack-apps-3c2b", :value 155}],
+       :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&format=interactive"
        :description "Key metrics and performance indicators",
        :headline "",
-       :intervals ["weekly" "monthly" "quarterly"],
-       :metrics
-         [{:description "Apps translated",
-           :interval "monthly",
-           :name "Apps",
-           :slug "slack-apps-3c2b",
-           :unit "number"}],
-       :prompt
-         "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
        :title "Key Metrics",
-       :units [{:name "Currency", :unit "currency"}
-               {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
        :updated-at "2016-12-06T19:22:09.015Z"},
     :help
       {:author
@@ -333,25 +314,12 @@
        "Discuss recent performance. How are you doing against your targets? Click on the icon below to add a chart.",
      :company-slug "spark-labs",
      :created-at "2016-12-06T19:22:09.015Z",
-     :data [{:period "2016-09", :slug "slack-apps-3c2b", :value 5}
-            {:period "2016-10", :slug "slack-apps-3c2b", :value 45}
-            {:period "2016-11", :slug "slack-apps-3c2b", :value 155}],
+     :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&format=interactive"
      :description "Key metrics and performance indicators",
      :headline "",
      :id "81a09ce3-f922-45be-a69a-73826c46db49",
-     :intervals ["weekly" "monthly" "quarterly"],
-     :metrics
-       [{:description "Apps translated",
-         :interval "monthly",
-         :name "Apps",
-         :slug "slack-apps-3c2b",
-         :unit "number"}],
-     :prompt
-       "Enter the most important metric for the stakeholders of your organization. You'll be able\n      to add more later.",
      :section-name "growth",
      :title "Key Metrics",
-     :units [{:name "Currency", :unit "currency"}
-             {:name "Number", :unit "number"} {:name "Percent", :unit "%"}],
      :updated-at "2016-12-06T19:22:09.015Z"}
     {:author
        [{:image
@@ -365,12 +333,7 @@
        "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
      :company-slug "spark-labs",
      :created-at "2016-10-15T16:23:11.560Z",
-     :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
-            {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}
-            {:cash 1800000, :costs 100000, :period "2016-10", :revenue ""}
-            {:cash "", :costs 85000, :period "2016-08", :revenue nil}
-            {:cash "", :costs 100000, :period "2016-09", :revenue nil}
-            {:cash "", :costs 75000, :period "2016-07", :revenue nil}],
+     :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&format=interactive"
      :description "Cash on hand, burn and runway",
      :headline "",
      :id "27a59072-d22e-42c8-b2ee-c10047733139",
@@ -389,13 +352,7 @@
        "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
      :company-slug "spark-labs",
      :created-at "2016-12-03T16:23:11.560Z",
-     :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
-            {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}
-            {:cash 1800000, :costs 100000, :period "2016-10", :revenue ""}
-            {:cash "", :costs 85000, :period "2016-08", :revenue nil}
-            {:cash 2175000, :costs 200000, :period "2016-11", :revenue nil}
-            {:cash "", :costs 100000, :period "2016-09", :revenue nil}
-            {:cash "", :costs 75000, :period "2016-07", :revenue nil}],
+     :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1315570007&format=interactive"
      :description "Cash on hand, burn and runway",
      :headline "",
      :id "9ce4462a-aa4b-4795-b6cd-b0ba57637664",
@@ -434,8 +391,7 @@
        "Discuss the financial health of the business, and what's changed since the last update. Click on the icon below to add a chart.",
      :company-slug "spark-labs",
      :created-at "2016-07-02T16:23:11.560Z",
-     :data [{:cash "", :costs 60000, :period "2016-05", :revenue nil}
-            {:cash 2130000, :costs 64000, :period "2016-06", :revenue nil}],
+     :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1315570007&format=interactive"
      :description "Cash on hand, burn and runway",
      :headline "",
      :id "8cddc028-90b4-485e-b4d2-590dff1dbf69",
