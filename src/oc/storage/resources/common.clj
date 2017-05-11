@@ -62,7 +62,7 @@
   (merge Author {:updated-at lib-schema/ISO8601}))
 
 (def UpdateEntry {
-  (schema/optional-key :id) lib-schema/UUIDStr
+  :uuid lib-schema/UniqueID
   :topic-slug TopicSlug
   :title lib-schema/NonBlankStr
   :headline schema/Str

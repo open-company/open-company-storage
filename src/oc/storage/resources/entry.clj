@@ -10,7 +10,7 @@
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
-(def primary-key :id)
+(def primary-key :uuid)
 
 ;; ----- Metadata -----
 
@@ -50,6 +50,7 @@
     (-> (merge template-props (-> entry-props
                                   keywordize-keys
                                   clean))
+        (assoc :uuid (db-common/unique-id))
         (dissoc :description :slug)
         (assoc :topic-slug topic-slug)
         (update :title #(or % (:title template-props)))
