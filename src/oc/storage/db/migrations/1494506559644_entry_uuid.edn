@@ -25,10 +25,19 @@
               (r/fn [row] [(r/get-field row "uuid") (r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
   (println (m/create-compound-index conn entry/table-name "uuid-topic-slug-org-uuid"
               (r/fn [row] [(r/get-field row "uuid") (r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "uuid-topic-slug-board-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "uuid")
+                           (r/get-field row "topic-slug")
+                           (r/get-field row "board-uuid")
+                           (r/get-field row "org-uuid")])))
   (println (m/create-compound-index conn entry/table-name "created-at-topic-slug-board-uuid"
-              (r/fn [row] [(r/get-field row "created-at") (r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
+              (r/fn [row] [(r/get-field row "created-at")
+                           (r/get-field row "topic-slug")
+                           (r/get-field row "board-uuid")])))
   (println (m/create-compound-index conn entry/table-name "created-at-topic-slug-org-uuid"
-              (r/fn [row] [(r/get-field row "created-at") (r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
+              (r/fn [row] [(r/get-field row "created-at")
+                           (r/get-field row "topic-slug")
+                           (r/get-field row "org-uuid")])))
 
   ;; Move all the entries from the old table to the new one, replacing :id primary key with a new UUID
   (let [old-entries (db-common/read-resources conn "entries_old")]

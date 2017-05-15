@@ -94,17 +94,17 @@
   retrieve the entry, or return nil if it doesn't exist. In this case a keyword, `:org` or `:board`
   needs to be provided to indicate what type of UUID is being used.
   "
-  ([conn id :- lib-schema/UUIDStr]
+  ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resource conn table-name id))
+  (db-common/read-resource conn table-name uuid))
+
+  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :uuid-topic-slug-board-uuid-org-uuid [[uuid topic-slug board-uuid org-uuid]])))
   
-  ([conn uuid-type :- (schema/enum :board :org) uuid :- lib-schema/UniqueID
-    topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
+  ([conn org-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
-  (let [index-name (if (= uuid-type :board)
-                      :created-at-topic-slug-board-uuid
-                      :created-at-topic-slug-org-uuid)]
-    (first (db-common/read-resources conn table-name index-name [[created-at topic-slug uuid]])))))
+  (first (db-common/read-resources conn table-name :created-at-topic-slug-org-uuid [[created-at topic-slug org-uuid]]))))
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
@@ -114,11 +114,10 @@
   Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
   to the common/Entry schema.
   "
-  [conn id entry user :- common/User]
-  {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UUIDStr id)
+  [conn uuid :- lib-schema/UniqueID entry user :- common/User]
+  {:pre [(db-common/conn? conn)         
          (map? entry)]}
-  (if-let [original-entry (get-entry conn id)]
+  (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           merged-entry (merge original-entry (clean entry))
           ts (db-common/current-timestamp)
