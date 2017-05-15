@@ -1,5 +1,6 @@
 (ns open-company.unit.resources.section.section-revision
   (:require [midje.sweet :refer :all]
+            [oc.lib.schema :as lib-schema]
             [open-company.lib.check :as check]
             [open-company.lib.resources :as r]
             [open-company.lib.db :as db]
@@ -61,7 +62,7 @@
           (s/put-section conn r/slug :update r/text-section-1 r/coyote)
           (let [section (s/get-section conn r/slug :update)
                 updated-at (:updated-at section)]
-            (first (:author section)) => (contains (common/author-for-user r/coyote))
+            (first (:author section)) => (contains (lib-schema/author-for-user r/coyote))
             (count (:author section)) => 1
             (:body section) => (:body r/text-section-1)
             (:title section) => (:title r/text-section-1)
@@ -88,7 +89,7 @@
           (let [section (s/get-section conn r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => (contains (common/author-for-user r/camus))
+            (:author section) => (contains (lib-schema/author-for-user r/camus))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (check/timestamp? updated-at) => true
@@ -102,7 +103,7 @@
           (let [section (s/get-section conn r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => (contains (common/author-for-user r/coyote))
+            (:author section) => (contains (lib-schema/author-for-user r/coyote))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (check/timestamp? updated-at) => true
@@ -116,7 +117,7 @@
           (let [section (s/get-section conn r/slug :finances)
                 updated-at (:updated-at section)
                 created-at (:created-at section)]
-            (:author section) => (contains (common/author-for-user r/coyote))
+            (:author section) => (contains (lib-schema/author-for-user r/coyote))
             (:data section) => (:data r/finances-section-2)
             (:title section) => (:title r/finances-section-2)
             (check/timestamp? updated-at) => true

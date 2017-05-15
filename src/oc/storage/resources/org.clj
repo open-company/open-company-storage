@@ -76,7 +76,7 @@
   ([org-props user]
   (->org (or (:slug org-props) (slug/slugify (:name org-props))) org-props user))
 
-  ([slug org-props user :- common/User]
+  ([slug org-props user :- lib-schema/User]
   {:pre [(slug/valid-slug? slug)
          (map? org-props)]}
   (let [ts (db-common/current-timestamp)]
@@ -90,7 +90,7 @@
         (update :promoted #(or % default-promoted))
         (update :logo-width #(or % 0))
         (update :logo-height #(or % 0))
-        (assoc :author (common/author-for-user user))
+        (assoc :author (lib-schema/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
 
@@ -149,7 +149,7 @@
   NOTE: doesn't update authors, see: `add-author`, `remove-author`
   NOTE: doesn't handle case of slug change.
   "
-  [conn slug org user :- common/User]
+  [conn slug org user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)
          (map? org)]}

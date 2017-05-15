@@ -72,7 +72,7 @@
   Take an org slug, a minimal map containing a ShareRequest, and a user as the update author
   and 'fill the blanks' with any missing properties.
   "
-  [conn org-slug update-props :- common/ShareRequest user :- common/User]
+  [conn org-slug update-props :- common/ShareRequest user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? org-slug)]}
   (if-let* [org (org-res/get-org conn org-slug)
@@ -90,7 +90,7 @@
         (assoc :logo-width (or (:logo-width org) 0))
         (assoc :logo-height (or (:logo-height org) 0))
         (assoc :entries entries)
-        (assoc :author (common/author-for-user user))
+        (assoc :author (lib-schema/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts))
     (throw (ex-info "Invalid org slug." {:slug org-slug}))))

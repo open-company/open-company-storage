@@ -39,7 +39,7 @@
   Take an org UUID, a board UUID, a topic slug, a minimal map describing a Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
   "
-  [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- common/User]
+  [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
   (when-let* [topic-slug (keyword slug)
@@ -59,7 +59,7 @@
         (update :attachments #(timestamp-attachments % ts))
         (assoc :org-uuid (:org-uuid board))
         (assoc :board-uuid board-uuid)
-        (assoc :author [(assoc (common/author-for-user user) :updated-at ts)])
+        (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
         (assoc :created-at ts)
         (assoc :updated-at ts))))
 
@@ -114,14 +114,14 @@
   Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
   to the common/Entry schema.
   "
-  [conn uuid :- lib-schema/UniqueID entry user :- common/User]
+  [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)         
          (map? entry)]}
   (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           merged-entry (merge original-entry (clean entry))
           ts (db-common/current-timestamp)
-          updated-authors (conj authors (assoc (common/author-for-user user) :updated-at ts))
+          updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
           updated-author (assoc merged-entry :author updated-authors)
           attachments (:attachments merged-entry)
           updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
