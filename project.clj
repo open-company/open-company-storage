@@ -13,7 +13,6 @@
 
   ;; All profile dependencies
   :dependencies [
-    ;; Don't upgrade to aplha16 until zprint fixes this issue: https://github.com/kkinnear/zprint/issues/26
     [org.clojure/clojure "1.9.0-alpha16"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [ring/ring-devel "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
