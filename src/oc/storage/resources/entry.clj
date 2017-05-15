@@ -66,7 +66,7 @@
 (schema/defn ^:always-validate create-entry!
   "Create an entry in the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
 
-  Updates the `topics` of the board if neccessary.
+  Updates the `topics` of the board if necessary.
 
   Returns the newly created entry, or false if the board specified in the entry can't be found."
   [conn entry :- common/Entry]
@@ -90,7 +90,7 @@
   "
   Given the ID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org or board, a topic slug, and the created-at timestampt,
+  Or given the UUID of the org or board, a topic slug, and the created-at timestamp,
   retrieve the entry, or return nil if it doesn't exist. In this case a keyword, `:org` or `:board`
   needs to be provided to indicate what type of UUID is being used.
   "
