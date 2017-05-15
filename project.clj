@@ -13,11 +13,10 @@
 
   ;; All profile dependencies
   :dependencies [
-    ;; Don't upgrade to aplha16 until zprint fixes this issue: https://github.com/kkinnear/zprint/issues/26
     [org.clojure/clojure "1.9.0-alpha16"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
-    [ring/ring-devel "1.6.0"] ; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-core "1.6.0"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-devel "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
+    [ring/ring-core "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [ring-logger-timbre "0.7.5"] ; Ring logging https://github.com/nberger/ring-logger-timbre
     [compojure "1.6.0"] ; Web routing https://github.com/weavejester/compojure
@@ -25,7 +24,7 @@
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.4.0"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.9.4-8954046"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.10.3-577ca7f"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; httpkit - Web server http://http-kit.org/
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -45,7 +44,7 @@
 
   ;; All profile plugins
   :plugins [
-    [lein-ring "0.11.0"] ; Common ring tasks https://github.com/weavejester/lein-ring
+    [lein-ring "0.12.0"] ; Common ring tasks https://github.com/weavejester/lein-ring
     [lein-environ "1.1.0"] ; Get environment settings from different sources https://github.com/weavejester/environ
   ]
 

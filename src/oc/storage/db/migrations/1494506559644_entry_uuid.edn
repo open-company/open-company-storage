@@ -1,0 +1,56 @@
+(ns oc.storage.db.migrations.entry-uuid
+  "Migration to use UUID as primary key for entry rather than RethinkDB's id."
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.lib.db.common :as db-common]
+            [oc.storage.config :as c]
+            [oc.storage.resources.entry :as entry]))
+
+(defn up [conn]
+
+  (println "Renaming entries to entries_old")
+  (println (m/rename-table conn c/db-name "entries" "entries_old"))
+
+  ;; Primary key is now UUID
+  (println "Creating table: " entry/table-name)
+  (println (m/create-table conn c/db-name entry/table-name entry/primary-key))
+  (println (m/create-index conn entry/table-name "topic-slug"))
+  (println (m/create-index conn entry/table-name "board-uuid"))
+  (println (m/create-index conn entry/table-name "org-uuid"))
+  (println (m/create-compound-index conn entry/table-name "topic-slug-board-uuid"
+              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "topic-slug-org-uuid"
+              (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "uuid-topic-slug-board-uuid"
+              (r/fn [row] [(r/get-field row "uuid") (r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "uuid-topic-slug-org-uuid"
+              (r/fn [row] [(r/get-field row "uuid") (r/get-field row "topic-slug") (r/get-field row "org-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "uuid-topic-slug-board-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "uuid")
+                           (r/get-field row "topic-slug")
+                           (r/get-field row "board-uuid")
+                           (r/get-field row "org-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "created-at-topic-slug-board-uuid"
+              (r/fn [row] [(r/get-field row "created-at")
+                           (r/get-field row "topic-slug")
+                           (r/get-field row "board-uuid")])))
+  (println (m/create-compound-index conn entry/table-name "created-at-topic-slug-org-uuid"
+              (r/fn [row] [(r/get-field row "created-at")
+                           (r/get-field row "topic-slug")
+                           (r/get-field row "org-uuid")])))
+
+  ;; Move all the entries from the old table to the new one, replacing :id primary key with a new UUID
+  (let [old-entries (db-common/read-resources conn "entries_old")]
+    (println "Moving" (count old-entries) "entries.")
+    (doseq [old-entry old-entries]
+      (let [new-entry (-> old-entry
+                        (dissoc :id)
+                        (assoc :uuid (db-common/unique-id)))]
+        (println (-> (r/table entry/table-name)
+                     (r/insert new-entry)
+                     (r/run conn))))))
+
+  (println "Remove entries_old table")
+  (println (m/delete-table conn "entries_old"))
+
+  true) ; return true on success

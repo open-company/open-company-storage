@@ -27,7 +27,7 @@
 (def custom-topic-slug "Regex that matches properly named custom topics" #"^custom-.{4}$")
 
 (defn topic-slug? 
-  "Return true if the argument is a valid named or custem topic slug."
+  "Return true if the argument is a valid named or custom topic slug."
   [topic-slug]
   (and
     (or (string? topic-slug) (keyword? topic-slug))
@@ -62,7 +62,7 @@
   (merge Author {:updated-at lib-schema/ISO8601}))
 
 (def UpdateEntry {
-  (schema/optional-key :id) lib-schema/UUIDStr
+  :uuid lib-schema/UniqueID
   :topic-slug TopicSlug
   :title lib-schema/NonBlankStr
   :headline schema/Str

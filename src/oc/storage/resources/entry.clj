@@ -10,7 +10,7 @@
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
-(def primary-key :id)
+(def primary-key :uuid)
 
 ;; ----- Metadata -----
 
@@ -50,6 +50,7 @@
     (-> (merge template-props (-> entry-props
                                   keywordize-keys
                                   clean))
+        (assoc :uuid (db-common/unique-id))
         (dissoc :description :slug)
         (assoc :topic-slug topic-slug)
         (update :title #(or % (:title template-props)))
@@ -65,7 +66,7 @@
 (schema/defn ^:always-validate create-entry!
   "Create an entry in the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
 
-  Updates the `topics` of the board if neccessary.
+  Updates the `topics` of the board if necessary.
 
   Returns the newly created entry, or false if the board specified in the entry can't be found."
   [conn entry :- common/Entry]
@@ -87,23 +88,25 @@
 
 (schema/defn ^:always-validate get-entry
   "
-  Given the ID of the entry, retrieve the entry, or return nil if it doesn't exist.
+  Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org or board, a topic slug, and the created-at timestampt,
-  retrieve the entry, or return nil if it doesn't exist. In this case a keyword, `:org` or `:board`
-  needs to be provided to indicate what type of UUID is being used.
+  Or given the UUID of the org and board, a topic slug, and the UUID of the entry,
+  retrieve the entry, or return nil if it doesn't exist.
+
+  Or given the UUID of the org, a topic slug, and the `created-at` timestamp of the entry,
+  retrieve the entry, or return nil if it doesn't exist.
   "
-  ([conn id :- lib-schema/UUIDStr]
+  ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resource conn table-name id))
+  (db-common/read-resource conn table-name uuid))
+
+  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :uuid-topic-slug-board-uuid-org-uuid [[uuid topic-slug board-uuid org-uuid]])))
   
-  ([conn uuid-type :- (schema/enum :board :org) uuid :- lib-schema/UniqueID
-    topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
+  ([conn org-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
-  (let [index-name (if (= uuid-type :board)
-                      :created-at-topic-slug-board-uuid
-                      :created-at-topic-slug-org-uuid)]
-    (first (db-common/read-resources conn table-name index-name [[created-at topic-slug uuid]])))))
+  (first (db-common/read-resources conn table-name :created-at-topic-slug-org-uuid [[created-at topic-slug org-uuid]]))))
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
@@ -113,11 +116,10 @@
   Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
   to the common/Entry schema.
   "
-  [conn id entry user :- common/User]
-  {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UUIDStr id)
+  [conn uuid :- lib-schema/UniqueID entry user :- common/User]
+  {:pre [(db-common/conn? conn)         
          (map? entry)]}
-  (if-let [original-entry (get-entry conn id)]
+  (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           merged-entry (merge original-entry (clean entry))
           ts (db-common/current-timestamp)

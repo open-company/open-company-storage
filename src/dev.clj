@@ -1,9 +1,9 @@
 (ns dev
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :as ctnrepl]
+            [oc.lib.db.pool :as pool]
             [oc.storage.config :as c]
             [oc.storage.app :as app]
-            [oc.lib.db.pool :as pool]
             [oc.storage.components :as components]))
 
 (def system nil)
