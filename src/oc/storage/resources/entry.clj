@@ -88,11 +88,13 @@
 
 (schema/defn ^:always-validate get-entry
   "
-  Given the ID of the entry, retrieve the entry, or return nil if it doesn't exist.
+  Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org or board, a topic slug, and the created-at timestamp,
-  retrieve the entry, or return nil if it doesn't exist. In this case a keyword, `:org` or `:board`
-  needs to be provided to indicate what type of UUID is being used.
+  Or given the UUID of the org and board, a topic slug, and the UUID of the entry,
+  retrieve the entry, or return nil if it doesn't exist.
+
+  Or given the UUID of the org, a topic slug, and the `created-at` timestamp of the entry,
+  retrieve the entry, or return nil if it doesn't exist.
   "
   ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
