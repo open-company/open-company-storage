@@ -1,5 +1,5 @@
 (ns oc.storage.app
-  "Namespace for the web application which serves the REST API."
+  "Namespace for the HTTP application which serves the REST API."
   (:gen-class)
   (:require
     [raven-clj.core :as sentry]
