@@ -165,19 +165,23 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
-      ;; Updates
+      ;; Delete updates
       (try
         (db-common/delete-resource conn common/update-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException e)) ; it's OK if there are no updates to delete
-      ;; Entries
+      ;; Delete interactions
+      (try
+        (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+      ;; Delete entries
       (try
         (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
-      ;; Boards
+      ;; Delete boards
       (try
         (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException e)) ; it's OK if there are no boards to delete
-      ;; The org itself
+      ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
     
     false)) ; it's OK if there is no org to delete
@@ -273,8 +277,9 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, entries, boards and orgs
+  ;; Delete all udpates, interactions, entries, boards and orgs
   (db-common/delete-all-resources! conn common/update-table-name)
+  (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
   (db-common/delete-all-resources! conn table-name))

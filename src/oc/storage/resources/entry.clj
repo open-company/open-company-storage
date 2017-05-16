@@ -136,21 +136,26 @@
   Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
   and return `true` on success.
   "
-  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:topic-slug entry) (:created-at entry)))
+  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:topic-slug entry) (:uuid entry)))
 
-  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
+  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (if-let [board (board-res/get-board conn board-uuid)]
-    (let [topics (:topics board) ; topics currently on the board
-          has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
-          entry-result (db-common/delete-resource conn table-name
-                          :created-at-topic-slug-board-uuid [created-at topic-slug board-uuid])]
-      (when (and entry-result
-                 has-topic?
-                 (empty? (get-entries-by-topic conn board-uuid topic-slug)))
-          ;; Remove the topic from the board
-          (board-res/update-board! conn board-uuid {:topics (filterv #(not= % (name topic-slug)) topics)}))
-      entry-result)
+    (do
+      ;; Delete interactions
+      (try
+        (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+      
+      (let [topics (:topics board) ; topics currently on the board
+            has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
+            entry-result (db-common/delete-resource conn table-name uuid)]
+        (when (and entry-result
+                   has-topic?
+                   (empty? (get-entries-by-topic conn board-uuid topic-slug)))
+            ;; Remove the topic from the board
+            (board-res/update-board! conn board-uuid {:topics (filterv #(not= % (name topic-slug)) topics)}))
+        entry-result))
     ;; No board
     false)))
 
@@ -181,5 +186,6 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, entries, boards and orgs
+  ;; Delete all interactions and entries
+  (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn table-name))

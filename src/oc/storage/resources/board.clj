@@ -155,6 +155,10 @@
     (delete-board! conn uuid)))
 
   ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %)]
+  ;; Delete interactions
+  (try
+    (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
   ;; Delete entries
   (try
     (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
@@ -291,7 +295,7 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, entries, boards and orgs
-  (db-common/delete-all-resources! conn common/update-table-name)
+  ;; Delete all interactions, entries, and boards
+  (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn table-name))

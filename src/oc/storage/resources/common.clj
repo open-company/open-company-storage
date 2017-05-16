@@ -11,6 +11,7 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def update-table-name "updates")
+(def interaction-table-name "interactions")
 
 ;; ----- Properties common to all resources -----
 
