@@ -7,7 +7,7 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]))
 
-(def representation-props [:topic-slug :title :headline :body :body-placeholder :image-url :image-height :image-width
+(def representation-props [:uuid :topic-slug :title :headline :body :body-placeholder :image-url :image-height :image-width
                            :chart-url :attachments :author :created-at :updated-at])
 
 (defun url
