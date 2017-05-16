@@ -49,6 +49,11 @@
 (defn- up-link [org-slug board-slug topic-slug] (hateoas/up-link 
                                         (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
+(defn- comment-link [org-uuid board-uuid topic-slug entry-uuid]
+  (let [comment-url (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments/")]
+    (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
+                                                          :accept mt/comment-media-type})))
+
 (defn- entry-collection-links
   [entry entry-count entry-uuid board-slug org-slug access-level]
   (let [topic-slug (name (:topic-slug entry))
@@ -65,15 +70,23 @@
 (defn- entry-links
   [entry entry-uuid board-slug org-slug access-level]
   (let [topic-slug (name (:topic-slug entry))
+        org-uuid (:org-uuid entry)
+        board-uuid (:board-uuid entry)
         links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
                (up-link org-slug board-slug topic-slug)]
-        full-links (if (= access-level :author)
-                      (concat links [(partial-update-link org-slug board-slug entry entry-uuid)
-                                     (delete-link org-slug board-slug entry entry-uuid)
-                                     (create-link org-slug board-slug topic-slug)
-                                     (archive-link org-slug board-slug topic-slug)])
-                      links)]
-    (assoc entry :links full-links)))
+        full-links (cond 
+                    (= access-level :author)
+                    (concat links [(partial-update-link org-slug board-slug entry entry-uuid)
+                                   (delete-link org-slug board-slug entry entry-uuid)
+                                   (create-link org-slug board-slug topic-slug)
+                                   (archive-link org-slug board-slug topic-slug)
+                                   (comment-link org-uuid board-uuid topic-slug entry-uuid)])
+
+                    (= access-level :viewer)
+                    (conj links (comment-link org-slug board-slug topic-slug entry-uuid))
+
+                    :else links)]
+    (assoc (select-keys entry representation-props) :links full-links)))
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the REST API"
@@ -88,9 +101,7 @@
   [org-slug board-slug entry access-level]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (-> entry
-        (select-keys representation-props)
-        (entry-links entry-uuid board-slug org-slug access-level))
+      (entry-links entry entry-uuid board-slug org-slug access-level)
       {:pretty config/pretty?})))
 
 (defn render-entry-list
@@ -110,5 +121,5 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-links (select-keys % representation-props) (:uuid %) board-slug org-slug access-level) entries)}}
+                    :items (map #(entry-links % (:uuid %) board-slug org-slug access-level) entries)}}
       {:pretty config/pretty?})))

@@ -41,6 +41,10 @@
 (defonce hot-reload (bool (or (env :hot-reload) false)))
 (defonce storage-server-port (Integer/parseInt (or (env :port) "3000")))
 
+;; ----- URLs -----
+
+(defonce interaction-server-url (or (env :interaction-server-url) "http://localhost:3002"))
+
 ;; ----- Liberator -----
 
 ;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
