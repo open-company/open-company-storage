@@ -54,6 +54,11 @@
     (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
                                                           :accept mt/comment-media-type})))
 
+(defn- comments-link [org-uuid board-uuid topic-slug entry-uuid]
+  (let [comment-url (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments")]
+    (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
+                                                          {:count 5}))) ; TODO comment count
+
 (defn- entry-collection-links
   [entry entry-count entry-uuid board-slug org-slug access-level]
   (let [topic-slug (name (:topic-slug entry))
@@ -80,10 +85,12 @@
                                    (delete-link org-slug board-slug entry entry-uuid)
                                    (create-link org-slug board-slug topic-slug)
                                    (archive-link org-slug board-slug topic-slug)
-                                   (comment-link org-uuid board-uuid topic-slug entry-uuid)])
+                                   (comment-link org-uuid board-uuid topic-slug entry-uuid)
+                                   (comments-link org-uuid board-uuid topic-slug entry-uuid)])
 
                     (= access-level :viewer)
-                    (conj links (comment-link org-slug board-slug topic-slug entry-uuid))
+                    (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
+                                   (comments-link org-uuid board-uuid topic-slug entry-uuid)])
 
                     :else links)]
     (assoc (select-keys entry representation-props) :links full-links)))
