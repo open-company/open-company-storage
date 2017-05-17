@@ -159,6 +159,18 @@
     ;; No board
     false)))
 
+(schema/defn ^:always-validate get-comments-for-entry
+  "Given the UUID of the entry, return a list of the comments for the entry."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (filter :body (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :body])))
+
+(schema/defn ^:always-validate get-reactions-for-entry
+  "Given the UUID of the entry, return a list of the reactions for the entry."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (filter :reaction (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :reaction])))
+
 ;; ----- Collection of entries -----
 
 (schema/defn ^:always-validate get-entries-by-board
@@ -179,6 +191,18 @@
   {:pre [(db-common/conn? conn)]}
   (vec (sort-by :created-at
     (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
+
+(schema/defn ^:always-validate get-comments-by-topic
+  "
+  Given the UUID of the board, and a topic slug, return all the comments for entries of the topic slug,
+  grouped by `entry-uuid`.
+  "
+  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-in-group conn
+    common/interaction-table-name
+    :topic-slug-board-uuid-org-uuid
+    [topic-slug board-uuid org-uuid] "entry-uuid"))
 
 ;; ----- Armageddon -----
 

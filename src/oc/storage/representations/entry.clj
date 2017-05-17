@@ -54,10 +54,10 @@
     (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
                                                           :accept mt/comment-media-type})))
 
-(defn- comments-link [org-uuid board-uuid topic-slug entry-uuid]
+(defn- comments-link [org-uuid board-uuid topic-slug entry-uuid comment-count]
   (let [comment-url (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments")]
     (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
-                                                          {:count 5}))) ; TODO comment count
+                                                          {:count comment-count})))
 
 (defn- entry-collection-links
   [entry entry-count entry-uuid board-slug org-slug access-level]
@@ -73,7 +73,7 @@
     (assoc entry :links full-links)))
 
 (defn- entry-links
-  [entry entry-uuid board-slug org-slug access-level]
+  [entry entry-uuid board-slug org-slug comment-count access-level]
   (let [topic-slug (name (:topic-slug entry))
         org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
@@ -86,7 +86,7 @@
                                    (create-link org-slug board-slug topic-slug)
                                    (archive-link org-slug board-slug topic-slug)
                                    (comment-link org-uuid board-uuid topic-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid topic-slug entry-uuid)])
+                                   (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
 
                     (= access-level :viewer)
                     (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
@@ -105,10 +105,10 @@
 
 (defn render-entry
   "Create a JSON representation of the entry for the REST API"
-  [org-slug board-slug entry access-level]
+  [org-slug board-slug entry comment-count access-level]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (entry-links entry entry-uuid board-slug org-slug access-level)
+      (entry-links entry entry-uuid board-slug org-slug comment-count access-level)
       {:pretty config/pretty?})))
 
 (defn render-entry-list
@@ -116,7 +116,7 @@
   Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
   entries for the REST API.
   "
-  [org-slug board-slug topic-slug entries access-level]
+  [org-slug board-slug topic-slug entries comments access-level]
   (let [collection-url (url org-slug board-slug topic-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type})]
@@ -128,5 +128,6 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-links % (:uuid %) board-slug org-slug access-level) entries)}}
+                    :items (map #(entry-links % (:uuid %) board-slug org-slug
+                              (count (or (get comments (:uuid %)) [])) access-level) entries)}}
       {:pretty config/pretty?})))
