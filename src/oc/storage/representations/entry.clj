@@ -18,7 +18,7 @@
   ([org-slug board-slug entry :guard map?] (url org-slug board-slug (name (:topic-slug entry))))
 
   ([org-slug board-slug topic-slug :guard string? entry-uuid]
-  (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (name topic-slug) "/entry/" entry-uuid))
+  (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (name topic-slug) "/entries/" entry-uuid))
 
   ([org-slug board-slug entry :guard map? entry-uuid] (url org-slug board-slug (name (:topic-slug entry)) entry-uuid)))
 
