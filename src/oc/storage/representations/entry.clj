@@ -90,7 +90,7 @@
 
                     (= access-level :viewer)
                     (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid topic-slug entry-uuid)])
+                                   (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
 
                     :else links)]
     (assoc (select-keys entry representation-props) :links full-links)))
