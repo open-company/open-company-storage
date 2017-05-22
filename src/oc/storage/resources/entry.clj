@@ -192,7 +192,7 @@
   (vec (sort-by :created-at
     (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
 
-(schema/defn ^:always-validate get-comments-by-topic
+(schema/defn ^:always-validate get-interactions-by-topic
   "
   Given the UUID of the board, and a topic slug, return all the comments for entries of the topic slug,
   grouped by `entry-uuid`.
