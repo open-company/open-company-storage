@@ -11,6 +11,7 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def update-table-name "updates")
+(def interaction-table-name "interactions")
 
 ;; ----- Properties common to all resources -----
 
@@ -46,11 +47,6 @@
     (every? topic-slug? %) ; everything in it is a topic name
     (= (count (set %)) (count %))))) ; there are no duplicates
 
-(def Author {
-  :name lib-schema/NonBlankStr
-  :user-id lib-schema/UniqueID
-  :avatar-url (schema/maybe schema/Str)})
-
 (def Attachment {
   :file-name lib-schema/NonBlankStr
   :file-type lib-schema/NonBlankStr
@@ -59,7 +55,7 @@
   :created-at lib-schema/ISO8601})
 
 (def EntryAuthor
-  (merge Author {:updated-at lib-schema/ISO8601}))
+  (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
 (def UpdateEntry {
   :uuid lib-schema/UniqueID
@@ -97,7 +93,7 @@
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
   :topics TopicOrder
-  :author Author
+  :author lib-schema/Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
@@ -112,7 +108,7 @@
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
   :authors [lib-schema/UniqueID]
-  :author Author
+  :author lib-schema/Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
@@ -141,18 +137,9 @@
     (schema/optional-key :logo-width) schema/Int
     (schema/optional-key :logo-height) schema/Int          
     :entries [UpdateEntry]
-    :author Author ; user that created the update
+    :author lib-schema/Author ; user that created the update
     :created-at lib-schema/ISO8601
     :updated-at lib-schema/ISO8601}))
-
-(def User 
-  "The portion of JWT properties that we care about for authorship attribution"
-  {
-    :user-id lib-schema/UniqueID
-    :name lib-schema/NonBlankStr
-    :avatar-url (schema/maybe schema/Str)
-    schema/Keyword schema/Any ; and whatever else is in the JWT map
-  })
 
 ;; ----- Utility functions -----
 
@@ -160,8 +147,3 @@
   "Remove any reserved properties from the resource."
   [resource]
   (apply dissoc resource reserved-properties))
-
-(defn author-for-user
-  "Extract the :name, :user-id, and :avatar-url from the JWToken claims."
-  [user]
-  (select-keys user [:name, :user-id, :avatar-url]))

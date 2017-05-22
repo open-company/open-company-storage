@@ -16,6 +16,12 @@
 (def entry-media-type "application/vnd.open-company.entry.v1+json")
 (def entry-collection-media-type "application/vnd.collection+vnd.open-company.entry+json;version=1")
 
+;; Interaction media types
+(def comment-media-type "application/vnd.open-company.comment.v1+json")
+(def comment-collection-media-type "application/vnd.collection+vnd.open-company.comment+json;version=1")
+(def reaction-media-type "application/vnd.open-company.reaction.v1+json")
+(def reaction-collection-media-type "application/vnd.collection+vnd.open-company.reaction+json;version=1")
+
 ;; Update media types
 (def update-media-type "application/vnd.open-company.update.v1+json")
 (def update-collection-media-type "application/vnd.collection+vnd.open-company.update+json;version=1")

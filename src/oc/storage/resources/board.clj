@@ -66,7 +66,7 @@
   {:pre [(schema/validate lib-schema/NonBlankStr (:name board-props))]}
   (->board org-uuid (or (:slug board-props) (slug/slugify (:name board-props))) board-props user))
 
-  ([org-uuid slug board-props user :- common/User]
+  ([org-uuid slug board-props user :- lib-schema/User]
   {:pre [(schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)
          (map? board-props)]}
@@ -81,7 +81,7 @@
         (assoc :authors [(:user-id user)])
         (assoc :viewers [])
         (update :topics distinct)
-        (assoc :author (common/author-for-user user))
+        (assoc :author (lib-schema/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
 
@@ -155,6 +155,10 @@
     (delete-board! conn uuid)))
 
   ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %)]
+  ;; Delete interactions
+  (try
+    (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
+    (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
   ;; Delete entries
   (try
     (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
@@ -291,7 +295,7 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, entries, boards and orgs
-  (db-common/delete-all-resources! conn common/update-table-name)
+  ;; Delete all interactions, entries, and boards
+  (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn table-name))

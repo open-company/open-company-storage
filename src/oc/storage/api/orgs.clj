@@ -1,5 +1,5 @@
 (ns oc.storage.api.orgs
-  "Liberator API for team resources."
+  "Liberator API for org resources."
   (:require [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
@@ -240,6 +240,7 @@
                                 mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]

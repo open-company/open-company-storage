@@ -73,7 +73,7 @@
   (timbre/info "Deleting entry:" entry-for)
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
-            _delete-result (entry-res/delete-entry! conn (:uuid board) (:topic-slug entry) (:created-at entry))]
+            _delete-result (entry-res/delete-entry! conn (:uuid board) (:topic-slug entry) (:uuid entry))]
     (do (timbre/info "Deleted entry:" entry-for) true)
     (do (timbre/info "Failed deleting entry:" entry-for) false)))
 
@@ -121,8 +121,10 @@
                                board (or (:existing-board ctx)
                                          (board-res/get-board conn org-uuid board-slug))
                                entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn org-uuid (:uuid board) topic-slug entry-uuid))]
-                        {:existing-org org :existing-board board :existing-entry entry}
+                                         (entry-res/get-entry conn org-uuid (:uuid board) topic-slug entry-uuid))
+                               comments (or (:existing-comments ctx)
+                                            (entry-res/get-comments-for-entry conn (:uuid entry)))]
+                        {:existing-org org :existing-board board :existing-entry entry :existing-comments comments}
                         false))
   
   ;; Actions
@@ -131,8 +133,14 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug (:existing-entry ctx) (:access-level ctx)))
-    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug (:updated-entry ctx) (:access-level ctx)))})
+    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
+                      (:existing-entry ctx)
+                      (count (:existing-comments ctx))
+                      (:access-level ctx)))
+    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
+                        (:updated-entry ctx)
+                        (count (:existing-comments ctx))
+                        (:access-level ctx)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
@@ -175,8 +183,10 @@
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
                                _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
                                board-uuid (board-res/uuid-for conn org-slug board-slug)
-                               entries (entry-res/get-entries-by-topic conn board-uuid topic-slug)]
-                        {:existing-entries entries}
+                               entries (entry-res/get-entries-by-topic conn board-uuid topic-slug)
+                               org-uuid (org-res/uuid-for conn org-slug)
+                               comments (entry-res/get-comments-by-topic conn org-uuid board-uuid topic-slug)]
+                        {:existing-entries entries :existing-comments comments}
                         false))
 
   ;; Actions
@@ -184,11 +194,11 @@
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug
-                          (:existing-entries ctx) (:access-level ctx)))
+                          (:existing-entries ctx) (:existing-comments ctx) (:access-level ctx)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry :author)
+                                (entry-rep/render-entry org-slug board-slug new-entry 0 :author)
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

@@ -39,7 +39,7 @@
   Take an org UUID, a board UUID, a topic slug, a minimal map describing a Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
   "
-  [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- common/User]
+  [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
   (when-let* [topic-slug (keyword slug)
@@ -59,7 +59,7 @@
         (update :attachments #(timestamp-attachments % ts))
         (assoc :org-uuid (:org-uuid board))
         (assoc :board-uuid board-uuid)
-        (assoc :author [(assoc (common/author-for-user user) :updated-at ts)])
+        (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
         (assoc :created-at ts)
         (assoc :updated-at ts))))
 
@@ -116,14 +116,14 @@
   Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
   to the common/Entry schema.
   "
-  [conn uuid :- lib-schema/UniqueID entry user :- common/User]
+  [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)         
          (map? entry)]}
   (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           merged-entry (merge original-entry (clean entry))
           ts (db-common/current-timestamp)
-          updated-authors (conj authors (assoc (common/author-for-user user) :updated-at ts))
+          updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
           updated-author (assoc merged-entry :author updated-authors)
           attachments (:attachments merged-entry)
           updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
@@ -136,23 +136,40 @@
   Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
   and return `true` on success.
   "
-  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:topic-slug entry) (:created-at entry)))
+  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:topic-slug entry) (:uuid entry)))
 
-  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
+  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (if-let [board (board-res/get-board conn board-uuid)]
-    (let [topics (:topics board) ; topics currently on the board
-          has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
-          entry-result (db-common/delete-resource conn table-name
-                          :created-at-topic-slug-board-uuid [created-at topic-slug board-uuid])]
-      (when (and entry-result
-                 has-topic?
-                 (empty? (get-entries-by-topic conn board-uuid topic-slug)))
-          ;; Remove the topic from the board
-          (board-res/update-board! conn board-uuid {:topics (filterv #(not= % (name topic-slug)) topics)}))
-      entry-result)
+    (do
+      ;; Delete interactions
+      (try
+        (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+      
+      (let [topics (:topics board) ; topics currently on the board
+            has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
+            entry-result (db-common/delete-resource conn table-name uuid)]
+        (when (and entry-result
+                   has-topic?
+                   (empty? (get-entries-by-topic conn board-uuid topic-slug)))
+            ;; Remove the topic from the board
+            (board-res/update-board! conn board-uuid {:topics (filterv #(not= % (name topic-slug)) topics)}))
+        entry-result))
     ;; No board
     false)))
+
+(schema/defn ^:always-validate get-comments-for-entry
+  "Given the UUID of the entry, return a list of the comments for the entry."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (filter :body (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :body])))
+
+(schema/defn ^:always-validate get-reactions-for-entry
+  "Given the UUID of the entry, return a list of the reactions for the entry."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (filter :reaction (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :reaction])))
 
 ;; ----- Collection of entries -----
 
@@ -175,11 +192,24 @@
   (vec (sort-by :created-at
     (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
 
+(schema/defn ^:always-validate get-comments-by-topic
+  "
+  Given the UUID of the board, and a topic slug, return all the comments for entries of the topic slug,
+  grouped by `entry-uuid`.
+  "
+  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-in-group conn
+    common/interaction-table-name
+    :topic-slug-board-uuid-org-uuid
+    [topic-slug board-uuid org-uuid] "entry-uuid"))
+
 ;; ----- Armageddon -----
 
 (defn delete-all-entries!
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, entries, boards and orgs
+  ;; Delete all interactions and entries
+  (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn table-name))
