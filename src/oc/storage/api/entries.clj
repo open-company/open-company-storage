@@ -123,8 +123,11 @@
                                entry (or (:existing-entry ctx)
                                          (entry-res/get-entry conn org-uuid (:uuid board) topic-slug entry-uuid))
                                comments (or (:existing-comments ctx)
-                                            (entry-res/get-comments-for-entry conn (:uuid entry)))]
-                        {:existing-org org :existing-board board :existing-entry entry :existing-comments comments}
+                                            (entry-res/get-comments-for-entry conn (:uuid entry)))
+                               reactions (or (:existing-reactions ctx)
+                                            (entry-res/get-reactions-for-entry conn (:uuid entry)))]
+                        {:existing-org org :existing-board board :existing-entry entry
+                         :existing-comments comments :existing-reactions reactions}
                         false))
   
   ;; Actions
@@ -136,11 +139,15 @@
     :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
                       (:existing-entry ctx)
                       (count (:existing-comments ctx))
-                      (:access-level ctx)))
+                      (:existing-reactions ctx)
+                      (:access-level ctx)
+                      (-> ctx :user :user-id)))
     :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
                         (:updated-entry ctx)
                         (count (:existing-comments ctx))
-                        (:access-level ctx)))})
+                        (:existing-reactions ctx)
+                        (:access-level ctx)
+                        (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
@@ -185,8 +192,8 @@
                                board-uuid (board-res/uuid-for conn org-slug board-slug)
                                entries (entry-res/get-entries-by-topic conn board-uuid topic-slug)
                                org-uuid (org-res/uuid-for conn org-slug)
-                               comments (entry-res/get-comments-by-topic conn org-uuid board-uuid topic-slug)]
-                        {:existing-entries entries :existing-comments comments}
+                               interactions (entry-res/get-interactions-by-topic conn org-uuid board-uuid topic-slug)]
+                        {:existing-entries entries :existing-interactions interactions}
                         false))
 
   ;; Actions
@@ -194,11 +201,13 @@
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug
-                          (:existing-entries ctx) (:existing-comments ctx) (:access-level ctx)))
+                          (:existing-entries ctx) (:existing-interactions ctx)
+                          (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry 0 :author)
+                                (entry-rep/render-entry org-slug board-slug new-entry 0 []
+                                  :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

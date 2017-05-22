@@ -156,13 +156,9 @@
 
   ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %)]
   ;; Delete interactions
-  (try
-    (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
-    (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+  (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
   ;; Delete entries
-  (try
-    (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
-    (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
+  (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
   ;; Delete the board itself
   (db-common/delete-resource conn table-name uuid)))
 

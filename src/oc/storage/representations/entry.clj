@@ -22,6 +22,14 @@
 
   ([org-slug board-slug entry :guard map? entry-uuid] (url org-slug board-slug (name (:topic-slug entry)) entry-uuid)))
 
+(defun interaction-url
+
+  ([org-uuid board-uuid topic-slug entry-uuid]
+  (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments"))
+
+  ([org-uuid board-uuid topic-slug entry-uuid reaction]
+  (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/reactions/" reaction "/on")))
+
 (defn- self-link [org-slug board-slug entry entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry entry-uuid) {:accept mt/entry-media-type}))
 
@@ -50,16 +58,25 @@
                                         (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
 
 (defn- comment-link [org-uuid board-uuid topic-slug entry-uuid]
-  (let [comment-url (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments/")]
+  (let [comment-url (str (interaction-url org-uuid board-uuid topic-slug entry-uuid) "/")]
     (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
                                                           :accept mt/comment-media-type})))
 
 (defn- comments-link [org-uuid board-uuid topic-slug entry-uuid comment-count]
-  (let [comment-url (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments")]
+  (let [comment-url (interaction-url org-uuid board-uuid topic-slug entry-uuid)]
     (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
                                                           {:count comment-count})))
 
+(defn- react-link [org-uuid board-uuid topic-slug entry-uuid reaction]
+  (let [react-url (interaction-url org-uuid board-uuid topic-slug entry-uuid reaction)]
+    (hateoas/link-map "react" hateoas/PUT react-url {})))
+
+(defn- unreact-link [org-uuid board-uuid topic-slug entry-uuid reaction]
+  (let [react-url (interaction-url org-uuid board-uuid topic-slug entry-uuid reaction)]
+    (hateoas/link-map "react" hateoas/DELETE react-url {})))
+
 (defn- entry-collection-links
+  ""
   [entry entry-count entry-uuid board-slug org-slug access-level]
   (let [topic-slug (name (:topic-slug entry))
         links [(collection-link org-slug board-slug entry entry-count)
@@ -72,11 +89,41 @@
                       links)]
     (assoc entry :links full-links)))
 
-(defn- entry-links
-  [entry entry-uuid board-slug org-slug comment-count access-level]
+(defn- map-kv
+  "Utility function to do an operation on the value of every key in a map."
+  [f coll]
+  (reduce-kv (fn [m k v] (assoc m k (f v))) (empty coll) coll))
+
+(defn- reaction-and-link
+  ""
+  [org-uuid board-uuid topic-slug entry-uuid reaction reaction-count user?]
+  {:reaction reaction
+   :reacted (if user? true false)
+   :count reaction-count
+   :links [(if user?
+              (unreact-link org-uuid board-uuid topic-slug entry-uuid reaction)
+              (react-link org-uuid board-uuid topic-slug entry-uuid reaction))]})
+
+(defn- reactions-and-links
+  "Given the parts of a reaction URL "
+  [org-uuid board-uuid topic-slug entry-uuid reactions user-id]
+  (let [grouped-reactions (merge (apply hash-map (interleave config/default-reactions (repeat []))) ; defaults
+                                 (group-by :reaction reactions)) ; reactions grouped by unicode character
+        counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
+        counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
+        top-three-reactions (take 3 (reverse (sort-by last counted-reactions)))] ; top 3 unicode characters by how many
+    (map #(reaction-and-link org-uuid board-uuid topic-slug entry-uuid (first %) (last %)
+            (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; did the user leave one of this reaction?
+              (get grouped-reactions (first %)))) 
+      top-three-reactions)))
+
+(defn- entry-and-links
+  ""
+  [entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
   (let [topic-slug (name (:topic-slug entry))
         org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
+        reactions (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id)
         links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
                (up-link org-slug board-slug topic-slug)]
         full-links (cond 
@@ -93,7 +140,9 @@
                                    (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
 
                     :else links)]
-    (assoc (select-keys entry representation-props) :links full-links)))
+    (-> (select-keys entry representation-props)
+      (assoc :reactions reactions)
+      (assoc :links full-links))))
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the REST API"
@@ -105,10 +154,10 @@
 
 (defn render-entry
   "Create a JSON representation of the entry for the REST API"
-  [org-slug board-slug entry comment-count access-level]
+  [org-slug board-slug entry comment-count reactions access-level user-id]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (entry-links entry entry-uuid board-slug org-slug comment-count access-level)
+      (entry-and-links entry entry-uuid board-slug org-slug comment-count reactions access-level user-id)
       {:pretty config/pretty?})))
 
 (defn render-entry-list
@@ -116,7 +165,7 @@
   Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
   entries for the REST API.
   "
-  [org-slug board-slug topic-slug entries comments access-level]
+  [org-slug board-slug topic-slug entries interactions access-level user-id]
   (let [collection-url (url org-slug board-slug topic-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type})]
@@ -128,6 +177,9 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-links % (:uuid %) board-slug org-slug
-                              (count (or (get comments (:uuid %)) [])) access-level) entries)}}
+                    :items (map #(entry-and-links % (:uuid %) board-slug org-slug
+                                    (count (or (filter :body (get interactions (:uuid %))) []))  ; comments only
+                                    (or (filter :reaction (get interactions (:uuid %))) []) ; reactions only
+                                    access-level user-id)
+                             entries)}}
       {:pretty config/pretty?})))

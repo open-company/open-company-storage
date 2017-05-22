@@ -166,21 +166,13 @@
     
     (do
       ;; Delete updates
-      (try
-        (db-common/delete-resource conn common/update-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no updates to delete
+      (db-common/delete-resource conn common/update-table-name :org-uuid uuid)
       ;; Delete interactions
-      (try
-        (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+      (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
       ;; Delete entries
-      (try
-        (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no entries to delete
+      (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
       ;; Delete boards
-      (try
-        (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no boards to delete
+      (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
       ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
     

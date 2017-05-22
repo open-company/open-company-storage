@@ -143,9 +143,7 @@
   (if-let [board (board-res/get-board conn board-uuid)]
     (do
       ;; Delete interactions
-      (try
-        (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+      (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
       
       (let [topics (:topics board) ; topics currently on the board
             has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
@@ -192,7 +190,7 @@
   (vec (sort-by :created-at
     (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
 
-(schema/defn ^:always-validate get-comments-by-topic
+(schema/defn ^:always-validate get-interactions-by-topic
   "
   Given the UUID of the board, and a topic slug, return all the comments for entries of the topic slug,
   grouped by `entry-uuid`.
