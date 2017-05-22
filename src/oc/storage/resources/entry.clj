@@ -143,9 +143,7 @@
   (if-let [board (board-res/get-board conn board-uuid)]
     (do
       ;; Delete interactions
-      (try
-        (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; it's OK if there are no interactions to delete
+      (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
       
       (let [topics (:topics board) ; topics currently on the board
             has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
