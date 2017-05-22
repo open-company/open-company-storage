@@ -70,3 +70,5 @@
                     slurp
                     read-string
                     keywordize-keys))
+
+(defonce default-reactions ["👌" "👀" "🇫🇰"])

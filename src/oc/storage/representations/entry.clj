@@ -107,7 +107,8 @@
 (defn- reactions-and-links
   "Given the parts of a reaction URL "
   [org-uuid board-uuid topic-slug entry-uuid reactions user-id]
-  (let [grouped-reactions (group-by :reaction reactions) ; reactions grouped by unicode character
+  (let [grouped-reactions (merge (apply hash-map (interleave config/default-reactions (repeat []))) ; defaults
+                                 (group-by :reaction reactions)) ; reactions grouped by unicode character
         counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
         counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
         top-three-reactions (take 3 (reverse (sort-by last counted-reactions)))] ; top 3 unicode characters by how many
