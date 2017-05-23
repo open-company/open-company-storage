@@ -18,13 +18,13 @@
     [ring/ring-devel "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
-    [ring-logger-timbre "0.7.5"] ; Ring logging https://github.com/nberger/ring-logger-timbre
+    [ring-logger-timbre "0.7.5" :exclusions [com.taoensso/encore]] ; Ring logging https://github.com/nberger/ring-logger-timbre
     [compojure "1.6.0"] ; Web routing https://github.com/weavejester/compojure
     [clj-http "3.5.0"] ; HTTP client https://github.com/dakrone/clj-http
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.4.1"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.10.6-9fe4799"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.10.7-d128484"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; httpkit - Web server http://http-kit.org/
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -39,7 +39,7 @@
     ; Cheshire - JSON encoding / decoding https://github.com/dakrone/cheshire
     ; clj-jwt - A Clojure library for JSON Web Token(JWT) https://github.com/liquidz/clj-jwt
     ; clj-time - Date and time lib https://github.com/clj-time/clj-time
-    ; environ - Get environment settings from different sources https://github.com/weavejester/environ
+    ; Environ - Get environment settings from different sources https://github.com/weavejester/environ
   ]
 
   ;; All profile plugins

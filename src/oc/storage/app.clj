@@ -73,10 +73,10 @@
        :appenders {:sentry (sa/sentry-appender c/dsn)}})
     (timbre/merge-config! {:level (keyword c/log-level)}))
 
-    ;; Start the system
-    (-> {:handler-fn app :port port}
-      components/storage-system
-      component/start)
+  ;; Start the system
+  (-> {:handler-fn app :port port}
+    components/storage-system
+    component/start)
 
   ;; Echo config information
   (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
