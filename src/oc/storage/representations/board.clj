@@ -38,6 +38,10 @@
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
+(defn- interaction-link [board-uuid]
+  (hateoas/link-map "interactions" "GET"
+    (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
+
 (defn- select-topics
   "Get all the keys that represent topics in the board and merge the resulting map into the result."
   [result board]
@@ -46,15 +50,22 @@
 (defn- board-collection-links [board org-slug] (assoc board :links [(item-link org-slug (:slug board))]))
 
 (defn- board-links
-  [board org-slug access-level]
+  [board org-slug board-uuid access-level]
   (let [slug (:slug board)
+        ;; Everyone gets these
         links [(self-link org-slug slug) (up-link org-slug)]
+        ;; Viewers and authors get a WebSocket link to listen for new interactions
+        interaction-links (if (or (= access-level :author)
+                                  (= access-level :viewer))
+                            (conj links (interaction-link board-uuid))
+                            links)
+        ;; Authors get board management links
         full-links (if (= access-level :author)
-                    (concat links [(topic-rep/list-link (url org-slug slug))
+                    (concat interaction-links [(topic-rep/list-link (url org-slug slug))
                                    (partial-update-link org-slug slug)
                                    (add-author-link org-slug slug)
                                    (add-viewer-link org-slug slug)])
-                    links)]
+                    interaction-links)]
     (assoc board :links full-links)))
 
 (defn render-author-for-collection
@@ -83,5 +94,5 @@
     (-> board
       (select-keys representation-props)
       (select-topics board)
-      (board-links org-slug access-level))
+      (board-links org-slug (:uuid board) access-level))
     {:pretty config/pretty?}))
