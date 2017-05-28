@@ -6,25 +6,25 @@
     :url "http://www.mozilla.org/MPL/2.0/"
   }
 
-  :min-lein-version "2.5.1" ; highest version supported by Travis-CI as of 1/28/2016
+  :min-lein-version "2.7.1"
 
   ;; JVM memory
   :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha16"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha17"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [ring/ring-devel "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.1"] ; Web application library https://github.com/ring-clojure/ring
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [ring-logger-timbre "0.7.5" :exclusions [com.taoensso/encore]] ; Ring logging https://github.com/nberger/ring-logger-timbre
     [compojure "1.6.0"] ; Web routing https://github.com/weavejester/compojure
-    [clj-http "3.5.0"] ; HTTP client https://github.com/dakrone/clj-http
+    [clj-http "3.6.0"] ; HTTP client https://github.com/dakrone/clj-http
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.4.1"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.10.7-d128484"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.10.9-2151229"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; httpkit - Web server http://http-kit.org/
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
