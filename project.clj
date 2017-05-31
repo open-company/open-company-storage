@@ -153,7 +153,7 @@
     "start" ["do" "migrate-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "start"] ; start a server in production
     "autotest" ["with-profile" "qa" "do" "migrate-db," "midje" ":autotest"] ; watch for code changes and run affected tests
-    "test!" ["with-profile" "qa" "do" "clean," "build," "migrate-db," "midje"] ; build, init the DB and run all tests
+    "test!" ["with-profile" "qa" "do" "build," "migrate-db," "midje"] ; build, init the DB and run all tests
     "repl" ["with-profile" "+repl-config" "repl"]
     "spell!" ["spell" "-n"] ; check spelling in docs and docstrings
     "bikeshed!" ["bikeshed" "-v" "-m" "120"] ; code check with max line length warning of 120 characters
