@@ -76,7 +76,7 @@
     (hateoas/link-map "react" hateoas/DELETE react-url {})))
 
 (defn- entry-collection-links
-  ""
+  "Given an entry, return the entry with the appropriate `:links` added for the specified access level."
   [entry entry-count entry-uuid board-slug org-slug access-level]
   (let [topic-slug (name (:topic-slug entry))
         links [(collection-link org-slug board-slug entry entry-count)
@@ -95,7 +95,7 @@
   (reduce-kv (fn [m k v] (assoc m k (f v))) (empty coll) coll))
 
 (defn- reaction-and-link
-  ""
+  "Given the parts of a reaction URL, return a map representation of the reaction for use in the API."
   [org-uuid board-uuid topic-slug entry-uuid reaction reaction-count user?]
   {:reaction reaction
    :reacted (if user? true false)
@@ -105,7 +105,10 @@
               (react-link org-uuid board-uuid topic-slug entry-uuid reaction))]})
 
 (defn- reactions-and-links
-  "Given the parts of a reaction URL "
+  "
+  Given a sequence of reactions and the parts of a reaction URL, return a representation of the reactions
+  for use in the API.
+  "
   [org-uuid board-uuid topic-slug entry-uuid reactions user-id]
   (let [grouped-reactions (merge (apply hash-map (interleave config/default-reactions (repeat []))) ; defaults
                                  (group-by :reaction reactions)) ; reactions grouped by unicode character
@@ -118,12 +121,17 @@
       top-three-reactions)))
 
 (defn- entry-and-links
-  ""
+  "
+  Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
+  for use in an API response.
+  "
   [entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
   (let [topic-slug (name (:topic-slug entry))
         org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
-        reactions (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id)
+        reactions (if (= access-level :public)
+                    []
+                    (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id))
         links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
                (up-link org-slug board-slug topic-slug)]
         full-links (cond 
@@ -145,7 +153,7 @@
       (assoc :links full-links))))
 
 (defn render-entry-for-collection
-  "Create a map of the entry for use in a collection in the REST API"
+  "Create a map of the entry for use in a collection in the API"
   [org-slug board-slug entry entry-count access-level]
   (let [entry-uuid (:uuid entry)]
     (-> entry
@@ -153,7 +161,7 @@
       (entry-collection-links entry-count entry-uuid board-slug org-slug access-level))))
 
 (defn render-entry
-  "Create a JSON representation of the entry for the REST API"
+  "Create a JSON representation of the entry for the API"
   [org-slug board-slug entry comment-count reactions access-level user-id]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
@@ -163,7 +171,7 @@
 (defn render-entry-list
   "
   Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
-  entries for the REST API.
+  entries for the API.
   "
   [org-slug board-slug topic-slug entries interactions access-level user-id]
   (let [collection-url (url org-slug board-slug topic-slug)

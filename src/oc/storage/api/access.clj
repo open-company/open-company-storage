@@ -36,6 +36,7 @@
   Or, given an org (or slug), board (or slug) and user map, return the authorization level for the user on the board:
     :author
     :viewer
+    :public
     false
   "
   
@@ -73,7 +74,7 @@
       
       ;; public access to orgs w/ at least 1 public board
       (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
-        {:access-level :viewer}
+        {:access-level :public}
       
       ;; no access
       :else false)))
@@ -127,7 +128,7 @@
       (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
       
       ;; anyone else on a public board
-      (= board-access :public) {:access-level :viewer}
+      (= board-access :public) {:access-level :public}
       
       ;; no access
       :else false))))
