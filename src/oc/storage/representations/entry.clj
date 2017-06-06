@@ -120,45 +120,71 @@
               (get grouped-reactions (first %)))) 
       top-three-reactions)))
 
-(defn- entry-and-links
+(defn entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
   for use in an API response.
   "
-  [entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
-  (let [topic-slug (name (:topic-slug entry))
-        org-uuid (:org-uuid entry)
-        board-uuid (:board-uuid entry)
-        reactions (if (= access-level :public)
-                    []
-                    (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id))
-        links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
-               (up-link org-slug board-slug topic-slug)]
-        full-links (cond 
-                    (= access-level :author)
-                    (concat links [(partial-update-link org-slug board-slug entry entry-uuid)
-                                   (delete-link org-slug board-slug entry entry-uuid)
-                                   (create-link org-slug board-slug topic-slug)
-                                   (archive-link org-slug board-slug topic-slug)
-                                   (comment-link org-uuid board-uuid topic-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
+  ([entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
+    (let [topic-slug (name (:topic-slug entry))
+          org-uuid (:org-uuid entry)
+          board-uuid (:board-uuid entry)
+          reactions (if (= access-level :public)
+                      []
+                      (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id))
+          links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
+                 (up-link org-slug board-slug topic-slug)]
+          full-links (cond
+                      (= access-level :author)
+                      (concat links [(partial-update-link org-slug board-slug entry entry-uuid)
+                                     (delete-link org-slug board-slug entry entry-uuid)
+                                     (create-link org-slug board-slug topic-slug)
+                                     (archive-link org-slug board-slug topic-slug)
+                                     (comment-link org-uuid board-uuid topic-slug entry-uuid)
+                                     (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
 
-                    (= access-level :viewer)
-                    (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
+                      (= access-level :viewer)
+                      (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
+                                     (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
 
-                    :else links)]
-    (-> (select-keys entry representation-props)
-      (assoc :reactions reactions)
-      (assoc :links full-links))))
+                      :else links)]
+      (-> (select-keys entry representation-props)
+        (assoc :reactions reactions)
+        (assoc :links full-links))))
+
+  ([entry entry-uuid board-slug org-slug entry-count comment-count reactions access-level user-id]
+    (let [topic-slug (name (:topic-slug entry))
+          org-uuid (:org-uuid entry)
+          board-uuid (:board-uuid entry)
+          reactions (if (= access-level :public)
+                      []
+                      (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id))
+          links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
+                 (up-link org-slug board-slug topic-slug)]
+          full-links (cond
+                      (= access-level :author)
+                      (concat links [(collection-link org-slug board-slug entry entry-count)
+                                     (partial-update-link org-slug board-slug entry entry-uuid)
+                                     (delete-link org-slug board-slug entry entry-uuid)
+                                     (create-link org-slug board-slug topic-slug)
+                                     (archive-link org-slug board-slug topic-slug)
+                                     (comment-link org-uuid board-uuid topic-slug entry-uuid)
+                                     (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
+
+                      (= access-level :viewer)
+                      (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
+                                     (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
+
+                      :else links)]
+      (-> (select-keys entry representation-props)
+        (assoc :reactions reactions)
+        (assoc :links full-links)))))
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
-  [org-slug board-slug entry entry-count access-level]
-  (let [entry-uuid (:uuid entry)]
-    (-> entry
-      (select-keys representation-props)
-      (entry-collection-links entry-count entry-uuid board-slug org-slug access-level))))
+  [org-slug board-slug entry entry-count comment-count reactions access-level user-id]
+    (let [entry-uuid (:uuid entry)]
+      (entry-and-links entry entry-uuid board-slug org-slug entry-count comment-count reactions access-level user-id)))
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
