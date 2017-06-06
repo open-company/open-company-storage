@@ -80,7 +80,8 @@
   (merge UpdateEntry {
     :org-uuid lib-schema/UniqueID
     :board-uuid lib-schema/UniqueID
-    :body-placeholder lib-schema/NonBlankStr}))
+    :body-placeholder lib-schema/NonBlankStr
+    (schema/optional-key :slack-thread) lib-schema/SlackThread}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
@@ -93,6 +94,7 @@
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
   :topics TopicOrder
+  (schema/optional-key :slack-mirror) lib-schema/SlackMirror
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
@@ -107,6 +109,7 @@
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
+  (schema/optional-key :slack-mirror) lib-schema/SlackMirror
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
