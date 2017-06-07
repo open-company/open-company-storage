@@ -199,7 +199,7 @@ The storage service is composed of 6 main responsibilites:
 - Notifying the Slack bot and Email service of new invites via SQS
 - Notifying the Email service of password reset and email validation requests via SQS
 
-The storage service provides a REST API:
+The storage service provides a HATEOAS REST API:
 
 ![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-api/phase3/docs/Storage-REST-API.svg)
 
