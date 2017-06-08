@@ -25,11 +25,18 @@
   (alter-var-root #'system (fn [s] (when s (component/stop s)))))
 
 (defn go
+  
   ([] (go c/storage-server-port))
+  
   ([port]
   (init port)
   (start)
-  (bind-conn!)))
+  (bind-conn!)
+  (app/echo-config port)
+  (println (str "Now serving storage from the REPL.\n"
+                "A DB connection is available with: conn\n"
+                "When you're ready to stop the system, just type: (stop)\n"))
+  port))
 
 (defn reset []
   (stop)

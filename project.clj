@@ -24,7 +24,7 @@
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.4.1"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.11.6"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.11.7"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; httpkit - Web server http://http-kit.org/
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -141,7 +141,6 @@
   :repl-options {
     :welcome (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
                       "OpenCompany Storage REPL\n"
-                      "Database: " oc.storage.config/db-name "\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) as your first command.\n"))
     :init-ns dev
   }

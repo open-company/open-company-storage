@@ -52,6 +52,18 @@
 
 ;; ----- System Startup -----
 
+(defn echo-config [port]
+  (println (str "\n"
+    "Running on port: " port "\n"
+    "Database: " c/db-name "\n"
+    "Database pool: " c/db-pool-size "\n"
+    "AWS SQS bot queue: " c/aws-sqs-bot-queue "\n"
+    "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
+    "Hot-reload: " c/hot-reload "\n"
+    "Trace: " c/liberator-trace "\n"
+    "Sentry: " c/dsn "\n\n"
+    (when c/intro? "Ready to serve...\n"))))
+
 ;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
@@ -79,17 +91,10 @@
     component/start)
 
   ;; Echo config information
-  (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
-    "OpenCompany Storage Service\n\n"
-    "Running on port: " port "\n"
-    "Database: " c/db-name "\n"
-    "Database pool: " c/db-pool-size "\n"
-    "AWS SQS bot queue: " c/aws-sqs-bot-queue "\n"
-    "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
-    "Hot-reload: " c/hot-reload "\n"
-    "Trace: " c/liberator-trace "\n"
-    "Sentry: " c/dsn "\n\n"
-    "Ready to serve...\n")))
-
+  (println (str "\n"
+    (when c/intro? (str (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"))
+    "OpenCompany Storage Service\n"))
+  (echo-config port))
+  
 (defn -main []
   (start c/storage-server-port))
