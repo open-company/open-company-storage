@@ -1,4 +1,4 @@
-# OpenCompany Storage Service Diagrams
+# Storage Service Diagrams
 
 ### Viewing Diagrams
 

@@ -44,7 +44,7 @@
   (let [topic-slug (:topic-slug entry)
         timestamp (:created-at entry)]
     (if-let [entry (entry-res/get-entry conn org-uuid topic-slug timestamp)]
-      (dissoc entry :org-uuid :board-uuid :body-placeholder)
+      (dissoc entry :org-uuid :board-uuid :body-placeholder :slack-thread)
       (throw (ex-info "Invalid entry." {:org-uuid org-uuid :topic-slug topic-slug :created-at timestamp})))))
 
 ;; ----- Update Slug -----

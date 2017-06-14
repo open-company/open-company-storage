@@ -188,6 +188,25 @@ You can also override these settings with environmental variables in the form of
 `AWS_ACCESS_KEY_ID`, etc. Use environmental variables to provide production secrets when running in production.
 
 
+## Technical Design
+
+The storage service is composed of 6 main responsibilites:
+
+- CRUD of orgs, boards, stories and entries
+- Access control to orgs, boards, stories and entries
+- Notifying the Slack bot of new org signups via SQS
+- Notifying the Slack bot and Email service of share requests via SQS
+- Notifying the Slack bot and Email service of new invites via SQS
+- Notifying the Email service of password reset and email validation requests via SQS
+
+The storage service provides a HATEOAS REST API:
+
+![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-api/phase3/docs/Storage-REST-API.svg)
+
+The Interaction Service shares a RethinkDB database instance with the [Interaction Service](https://github.com/open-company/open-company-interaction).
+
+![Storage Schema Diagram](https://cdn.rawgit.com/open-company/open-company-api/phase3/docs/Storage-Schema.svg)
+
 ## Usage
 
 You can verify all is well with your RethinkDB instance and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:

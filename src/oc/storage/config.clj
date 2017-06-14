@@ -14,6 +14,7 @@
 (defonce core-async-limit (+ 42 (* 2 processors)))
 
 (defonce prod? (= "production" (env :env)))
+(defonce intro? (not prod?))
 
 ;; ----- Sentry -----
 

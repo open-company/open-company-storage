@@ -102,9 +102,8 @@
   Given the uuid of the board, or the uuid of the org and slug of the board, retrieve the board,
   or return nil if it doesn't exist.
   "
-  ([conn uuid]
-  {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID uuid)]}
+  ([conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
   (db-common/read-resource conn table-name uuid))
 
   ([conn org-uuid :- lib-schema/UniqueID slug]
