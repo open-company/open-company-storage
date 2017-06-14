@@ -201,11 +201,11 @@ The storage service is composed of 6 main responsibilites:
 
 The storage service provides a HATEOAS REST API:
 
-![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-api/phase3/docs/Storage-REST-API.svg)
+![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-api/mainline/docs/Storage-REST-API.svg)
 
 The Interaction Service shares a RethinkDB database instance with the [Interaction Service](https://github.com/open-company/open-company-interaction).
 
-![Storage Schema Diagram](https://cdn.rawgit.com/open-company/open-company-api/phase3/docs/Storage-Schema.svg)
+![Storage Schema Diagram](https://cdn.rawgit.com/open-company/open-company-api/mainline/docs/Storage-Schema.svg)
 
 ## Usage
 
