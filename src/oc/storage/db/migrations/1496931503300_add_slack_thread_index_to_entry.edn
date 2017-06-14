@@ -1,0 +1,13 @@
+(ns oc.storage.db.migrations.add-slack-thread-index-to-entry
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.entry :as entry]))
+
+(def index-name "slack-thread-channel-id-thread")
+
+(defn up [conn]
+  (println "Creating index:" index-name "on:" entry/table-name)
+  (println (m/create-compound-index conn entry/table-name index-name
+              (r/fn [row] [(r/get-field row ["slack-thread" "channel-id"]) (r/get-field row ["slack-thread" "thread"])])))
+  true) ; return true on success
