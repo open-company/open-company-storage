@@ -26,10 +26,12 @@
         topic-slugs (map name (:topics board)) ; slug for each active topic
         entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
         entry-counts (entry-res/count-entries-by-board conn (:uuid board)) ; count of all entries for each topic
+        entry-comments (zipmap entries (map #(entry-res/get-comments-for-entry conn (:uuid (second %))) entries))
+        entry-reactions (zipmap entries (map #(entry-res/get-reactions-for-entry conn (:uuid (second %))) entries))
         selected-entries (select-keys entries topic-slugs) ; active entries
         selected-entry-reps (zipmap topic-slugs
                               (map #(entry-rep/render-entry-for-collection org-slug slug
-                                      (get selected-entries %) (get entry-counts %) (:access-level ctx))
+                                      (get selected-entries %) (get entry-counts %) (count (get entry-comments %)) (get entry-reactions %) (:access-level ctx) (:user-id (:user ctx)))
                                 topic-slugs))
                                 archived-entries (clojure.set/difference (set (keys entries)) (set topic-slugs))
                                 archived (map #(identity {:slug % :title (:title (get entries %))}) archived-entries)
