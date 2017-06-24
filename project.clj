@@ -22,9 +22,9 @@
     [compojure "1.6.0"] ; Web routing https://github.com/weavejester/compojure
     [clj-http "3.6.1"] ; HTTP client https://github.com/dakrone/clj-http
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
-    [zprint "0.4.1"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
+    [zprint "0.4.2"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.11.13"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.11.14"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; httpkit - Web server http://http-kit.org/
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -90,7 +90,7 @@
         [lein-spell "0.1.0"] ; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-deps-tree "0.1.2"] ; Print a tree of project dependencies https://github.com/the-kenny/lein-deps-tree
         [venantius/yagni "0.1.4"] ; Dead code finder https://github.com/venantius/yagni
-        [lein-zprint "0.3.1"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
+        [lein-zprint "0.3.2"] ; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
       ]  
     }]
     :repl-config [:dev {
