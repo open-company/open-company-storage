@@ -109,7 +109,6 @@
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
-  (schema/optional-key :slack-mirror) lib-schema/SlackMirror
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
