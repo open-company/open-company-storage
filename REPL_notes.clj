@@ -43,7 +43,7 @@
 (map #(schema/check common/Section %) sections*)
 
 ;; RethinkDB usage
-(def conn2 [:host "127.0.0.1" :port 28015 :db "open_company"])
+(def conn2 [:host "127.0.0.1" :port 28015 :db "open_company_storage"])
 
 ;; Get an org
 (aprint (with-open [c (apply r/connect conn2)]

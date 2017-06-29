@@ -476,13 +476,13 @@ lein run -m open-company.util.import -- -d ./opt/samples/
 To add sample data on a production environment, specify the production database name:
 
 ```console
-DB_NAME="open_company" lein run -m open-company.util.import -- -d ./opt/samples/buff.edn
+DB_NAME="open_company_storage" lein run -m open-company.util.import -- -d ./opt/samples/buff.edn
 ```
 
 or
 
 ```console
-DB_NAME="open_company" lein run -m open-company.util.import -- -d ./opt/samples/
+DB_NAME="open_company_storage" lein run -m open-company.util.import -- -d ./opt/samples/
 ```
 
 
