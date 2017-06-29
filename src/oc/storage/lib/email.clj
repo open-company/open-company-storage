@@ -7,7 +7,7 @@
             [oc.storage.resources.common :as common-res]))
 
 (def EmailTrigger
-  {:type (schema/enum "update")
+  {:type (schema/enum "story")
    :to [schema/Str]
    :subject schema/Str
    :note schema/Str
@@ -18,23 +18,23 @@
    :logo-url (schema/maybe schema/Str)
    :origin-url schema/Str
    :currency schema/Str
-   :entries [common-res/UpdateEntry]
+   :entries [common-res/StoryEntry]
    :created-at lib-schema/ISO8601})
 
-(defn ->trigger [org-slug update origin-url user]
-  {:type "update"
-   :to (vec (:to update))
-   :subject (:subject update)
-   :note (:note update)
+(defn ->trigger [org-slug story origin-url user]
+  {:type "story"
+   :to (vec (:to story))
+   :subject (:subject story)
+   :note (:note story)
    :reply-to (:email user)
-   :slug (:slug update)
+   :slug (:slug story)
    :org-slug org-slug
    :origin-url origin-url
-   :org-name (:org-name update)
-   :logo-url (:logo-url update)
-   :currency (:currency update)
-   :entries (:entries update)
-   :created-at (:created-at update)})
+   :org-name (:org-name story)
+   :logo-url (:logo-url story)
+   :currency (:currency story)
+   :entries (:entries story)
+   :created-at (:created-at story)})
 
 (defn send-trigger! [trigger]
   (timbre/info "Email request to:" config/aws-sqs-email-queue "\n" (dissoc trigger :entries))
