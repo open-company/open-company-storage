@@ -40,7 +40,7 @@
 ;; ----- HTTP server -----
 
 (defonce hot-reload (bool (or (env :hot-reload) false)))
-(defonce storage-server-port (Integer/parseInt (or (env :port) "3000")))
+(defonce storage-server-port (Integer/parseInt (or (env :port) "3001")))
 
 ;; ----- URLs -----
 
@@ -49,7 +49,7 @@
 
 ;; ----- Liberator -----
 
-;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
+;; see header response, or http://localhost:3001/x-liberator/requests/ for trace results
 (defonce liberator-trace (bool (or (env :liberator-trace) false)))
 (defonce pretty? (not prod?)) ; JSON response as pretty?
 

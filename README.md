@@ -345,7 +345,7 @@ curl -i -X POST \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/
+http://localhost:3001/companies/
 ```
 
 List the companies with cURL:
@@ -354,7 +354,7 @@ List the companies with cURL:
 curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies
+http://localhost:3001/companies
 ```
 
 Request the company with cURL:
@@ -364,7 +364,7 @@ curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 Update a company with cURL:
@@ -376,7 +376,7 @@ curl -i -X PATCH \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 Create a new section entry with cURL:
@@ -388,7 +388,7 @@ curl -i -X PUT \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.section.v1+json" \
-http://localhost:3000/companies/hotel-procrastination/update
+http://localhost:3001/companies/hotel-procrastination/update
 ```
 
 Reorder a company's sections with cURL:
@@ -400,7 +400,7 @@ curl -i -X PATCH \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 Archive a section from a company with cURL:
@@ -412,7 +412,7 @@ curl -i -X PATCH \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 Add an archived section back to the company with cURL:
@@ -424,7 +424,7 @@ curl -i -X PATCH \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
 --header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 Delete the company with cURL:
@@ -432,7 +432,7 @@ Delete the company with cURL:
 ```console
 curl -i -X DELETE \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 Then, try (and fail) to get a section and the company with cURL:
@@ -442,13 +442,13 @@ curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.section.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/hotel-procrastination/update
+http://localhost:3001/companies/hotel-procrastination/update
 
 curl -i -X GET \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
-http://localhost:3000/companies/hotel-procrastination
+http://localhost:3001/companies/hotel-procrastination
 ```
 
 #### Import sample data
