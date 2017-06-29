@@ -1,7 +1,7 @@
 # [OpenCompany](https://opencompany.com/) Storage Service
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
-[![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
+[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
 [![Dependency Status](https://www.versioneye.com/user/projects/55e5a34c8c0f62001b0003f3/badge.svg?style=flat)](https://www.versioneye.com/user/projects/55e5a34c8c0f62001b0003f3)
 [![Roadmap on Trello](http://img.shields.io/badge/roadmap-trello-blue.svg?style=flat)](https://trello.com/b/3naVWHgZ/open-company-development)
 
@@ -22,7 +22,7 @@ To maintain transparency, OpenCompany information is always accessible and easy 
 
 Transparency expectations are changing. Startups need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful startups with information that is open, interactive, and always accessible. The OpenCompany platform turns transparency into a competitive advantage.
 
-Like the open companies we promote and support, the [OpenCompany](https://opencompany.com/) platform is completely transparent. The company supporting this effort, OpenCompany, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [Storage Service API](https://github.com/open-company/open-company-api).
+Like the open companies we promote and support, the [OpenCompany](https://opencompany.com/) platform is completely transparent. The company supporting this effort, OpenCompany, LLC, is an open company. The [platform](https://github.com/open-company/open-company-web) is open source software, and open company data is [open data](https://en.wikipedia.org/wiki/Open_data) accessible through the [Storage Service](https://github.com/open-company/open-company-storage).
 
 To get started, head to: [OpenCompany](https://opencompany.com/)
 
@@ -64,8 +64,8 @@ Leiningen is easy to install:
 Then let Leiningen install the rest of the dependencies:
 
 ```console
-git clone https://github.com/open-company/open-company-api.git
-cd open-company-api
+git clone https://github.com/open-company/open-company-storage.git
+cd open-company-storage
 lein deps
 ```
 
@@ -201,11 +201,11 @@ The storage service is composed of 6 main responsibilites:
 
 The storage service provides a HATEOAS REST API:
 
-![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-api/mainline/docs/Storage-REST-API.svg)
+![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-storage/mainline/docs/Storage-REST-API.svg)
 
 The Interaction Service shares a RethinkDB database instance with the [Interaction Service](https://github.com/open-company/open-company-interaction).
 
-![Storage Schema Diagram](https://cdn.rawgit.com/open-company/open-company-api/mainline/docs/Storage-Schema.svg)
+![Storage Schema Diagram](https://cdn.rawgit.com/open-company/open-company-storage/mainline/docs/Storage-Schema.svg)
 
 ## Usage
 
@@ -488,9 +488,9 @@ DB_NAME="open_company_storage" lein run -m open-company.util.import -- -d ./opt/
 
 ## Testing
 
-Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.org/open-company/open-company-api):
+Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.org/open-company/open-company-storage):
 
-[![Build Status](http://img.shields.io/travis/open-company/open-company-api.svg?style=flat)](https://travis-ci.org/open-company/open-company-api)
+[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
 
 To run the tests locally:
 
@@ -501,7 +501,7 @@ lein test!
 
 ## Participation
 
-Please note that this project is released with a [Contributor Code of Conduct](https://github.com/open-company/open-company-api/blob/mainline/CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/open-company/open-company-storage/blob/mainline/CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 
 ## License

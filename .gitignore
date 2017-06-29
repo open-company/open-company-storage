@@ -15,7 +15,6 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 .idea/
-open-company-api.iml
 
 .ruby-gemset
 .ruby-version
