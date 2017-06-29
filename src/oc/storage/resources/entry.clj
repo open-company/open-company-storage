@@ -90,23 +90,16 @@
   "
   Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org and board, a topic slug, and the UUID of the entry,
-  retrieve the entry, or return nil if it doesn't exist.
-
-  Or given the UUID of the org, a topic slug, and the `created-at` timestamp of the entry,
+  Or given the UUID of the org and board, and the UUID of the entry,
   retrieve the entry, or return nil if it doesn't exist.
   "
   ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resource conn table-name uuid))
 
-  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug uuid :- lib-schema/UniqueID]
+  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (first (db-common/read-resources conn table-name :uuid-topic-slug-board-uuid-org-uuid [[uuid topic-slug board-uuid org-uuid]])))
-  
-  ([conn org-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug created-at :- lib-schema/ISO8601]
-  {:pre [(db-common/conn? conn)]}
-  (first (db-common/read-resources conn table-name :created-at-topic-slug-org-uuid [[created-at topic-slug org-uuid]]))))
+  (first (db-common/read-resources conn table-name :uuid-board-uuid-org-uuid [[uuid board-uuid org-uuid]]))))
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
