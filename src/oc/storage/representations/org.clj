@@ -38,12 +38,12 @@
                       (concat links [(board-create-link org)
                                      (partial-update-link org)
                                      (add-author-link org)
-                                     (hateoas/collection-link (str (url org) "/updates")
-                                        {:accept mt/update-collection-media-type}
-                                        {:count (:update-count org)})
-                                     (hateoas/create-link (str (url org) "/updates/")
+                                     (hateoas/collection-link (str (url org) "/stories")
+                                        {:accept mt/story-collection-media-type}
+                                        {:count (:story-count org)})
+                                     (hateoas/create-link (str (url org) "/stories/")
                                         {:content-type mt/share-request-media-type
-                                         :accept mt/update-media-type})])
+                                         :accept mt/story-media-type})])
                       links)]
     (assoc org :links full-links)))
 

@@ -1,4 +1,4 @@
-(defproject open-company-api "0.2.0-SNAPSHOT"
+(defproject open-company-storage "0.3.0-SNAPSHOT"
   :description "OpenCompany Storage Service"
   :url "https://opencompany.com/"
   :license {
@@ -61,7 +61,7 @@
       :dependencies [
         [midje "1.9.0-alpha6"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [philoskim/debux "0.2.1"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
+        [philoskim/debux "0.3.1"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
@@ -119,7 +119,6 @@
                  '[oc.storage.resources.org :as org]
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
-                 '[oc.storage.resources.update :as update]
                  '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]

@@ -158,7 +158,6 @@
     :sections ["update" "growth" "customers" "team" "finances" "fundraising"
                "product" "marketing" "press" "help"],
     :slug "spark-labs",
-    :stakeholder-update {:sections ["update" "fundraising"], :title ""},
     :team
       {:author
          [{:image

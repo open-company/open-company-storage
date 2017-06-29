@@ -22,7 +22,7 @@
 (def reaction-media-type "application/vnd.open-company.reaction.v1+json")
 (def reaction-collection-media-type "application/vnd.collection+vnd.open-company.reaction+json;version=1")
 
-;; Update media types
-(def update-media-type "application/vnd.open-company.update.v1+json")
-(def update-collection-media-type "application/vnd.collection+vnd.open-company.update+json;version=1")
+;; Story media types
+(def story-media-type "application/vnd.open-company.story.v1+json")
+(def story-collection-media-type "application/vnd.collection+vnd.open-company.story+json;version=1")
 (def share-request-media-type "application/vnd.open-company.share-request.v1+json")

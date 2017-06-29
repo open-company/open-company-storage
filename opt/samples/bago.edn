@@ -59,8 +59,6 @@
     :public false,
     :sections ["growth" "finances" "custom-a1b2"],
     :slug "bago",
-    :stakeholder-update {:sections ["growth" "finances"],
-                         :title "Bago's Updates"},
     :updated-at "2016-12-28T13:23:48.733Z",
     :uuid "3a4a7007-81ee-45e4-a78c-8e7e8f522f85"},
  :sections

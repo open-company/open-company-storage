@@ -86,9 +86,6 @@
     :public true,
     :sections ["update" "challenges" "team" "custom-89de" "help" "highlights"],
     :slug "read-only",
-    :stakeholder-update {:sections ["update" "highlights" "challenges" "team"
-                                    "custom-89de" "help"],
-                         :title ""},
     :team
       {:author
          [{:image

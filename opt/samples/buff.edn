@@ -235,9 +235,6 @@
     :sections ["update" "product" "growth" "team" "marketing" "customers"
                "finances" "help" "diversity" "values" "mission"],
     :slug "buff",
-    :stakeholder-update {:sections ["update" "help" "product" "growth"
-                                    "marketing" "finances" "team" "customers"],
-                         :title ""},
     :team
       {:author
          [{:image

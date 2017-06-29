@@ -1,5 +1,5 @@
 (ns oc.storage.resources.common
-  "Resources are any thing stored in the open company platform: orgs, boards, topics, updates"
+  "Resources are any thing stored in the open company platform: orgs, boards, topics, stories"
   (:require [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
@@ -10,7 +10,7 @@
 (def org-table-name "orgs")
 (def board-table-name "boards")
 (def entry-table-name "entries")
-(def update-table-name "updates")
+(def story-table-name "stories")
 (def interaction-table-name "interactions")
 
 ;; ----- Properties common to all resources -----
@@ -57,7 +57,7 @@
 (def EntryAuthor
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
-(def UpdateEntry {
+(def StoryEntry {
   :uuid lib-schema/UniqueID
   :topic-slug TopicSlug
   :title lib-schema/NonBlankStr
@@ -77,7 +77,7 @@
   :updated-at lib-schema/ISO8601})
 
 (def Entry
-  (merge UpdateEntry {
+  (merge StoryEntry {
     :org-uuid lib-schema/UniqueID
     :board-uuid lib-schema/UniqueID
     :body-placeholder lib-schema/NonBlankStr
@@ -114,34 +114,34 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
-(def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
+; (def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
 
-(def ShareRequest {
-  :title (schema/maybe schema/Str)
-  :medium ShareMedium
-  :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
-  ;; Email medium
-  (schema/optional-key :to) [lib-schema/EmailAddress]
-  (schema/optional-key :subject) (schema/maybe schema/Str)
-  (schema/optional-key :note) (schema/maybe schema/Str)
-  ;; Slack medium
-  (schema/optional-key :channel) lib-schema/NonBlankStr
-  (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
+; (def ShareRequest {
+;   :title (schema/maybe schema/Str)
+;   :medium ShareMedium
+;   :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
+;   ;; Email medium
+;   (schema/optional-key :to) [lib-schema/EmailAddress]
+;   (schema/optional-key :subject) (schema/maybe schema/Str)
+;   (schema/optional-key :note) (schema/maybe schema/Str)
+;   ;; Slack medium
+;   (schema/optional-key :channel) lib-schema/NonBlankStr
+;   (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
 
-(def Update 
-  (merge ShareRequest {
-    (schema/optional-key :id) lib-schema/UUIDStr
-    :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
-    :org-uuid lib-schema/UniqueID
-    :org-name lib-schema/NonBlankStr
-    :currency schema/Str
-    (schema/optional-key :logo-url) (schema/maybe schema/Str)
-    (schema/optional-key :logo-width) schema/Int
-    (schema/optional-key :logo-height) schema/Int          
-    :entries [UpdateEntry]
-    :author lib-schema/Author ; user that created the update
-    :created-at lib-schema/ISO8601
-    :updated-at lib-schema/ISO8601}))
+; (def Story 
+;   (merge ShareRequest {
+;     (schema/optional-key :id) lib-schema/UUIDStr
+;     :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
+;     :org-uuid lib-schema/UniqueID
+;     :org-name lib-schema/NonBlankStr
+;     :currency schema/Str
+;     (schema/optional-key :logo-url) (schema/maybe schema/Str)
+;     (schema/optional-key :logo-width) schema/Int
+;     (schema/optional-key :logo-height) schema/Int          
+;     :entries [UpdateEntry]
+;     :author lib-schema/Author ; user that created the update
+;     :created-at lib-schema/ISO8601
+;     :updated-at lib-schema/ISO8601}))
 
 ;; ----- Utility functions -----
 

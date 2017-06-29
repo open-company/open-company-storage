@@ -9,7 +9,7 @@
 (require '[oc.storage.resources.org :as org] :reload)
 (require '[oc.storage.resources.board :as board] :reload)
 (require '[oc.storage.resources.entry :as entry] :reload)
-(require '[oc.storage.resources.update :as update] :reload)
+(require '[oc.storage.resources.story :as story] :reload)
 
 ;; productive set of development namespaces (REST API)
 (require '[cheshire.core :as json])
@@ -23,13 +23,13 @@
 (require '[oc.storage.api.boards :as boards-api] :reload)
 (require '[oc.storage.api.topics :as topics-api] :reload)
 (require '[oc.storage.api.entries :as entries-api] :reload)
-(require '[oc.storage.api.updates :as updates-api] :reload)
+(require '[oc.storage.api.story :as stories-api] :reload)
 (require '[oc.storage.representations.media-types :as mt] :reload)
 (require '[oc.storage.representations.org :as org-rep] :reload)
 (require '[oc.storage.representations.board :as board-rep] :reload)
 (require '[oc.storage.representations.topic :as topic-rep] :reload)
 (require '[oc.storage.representations.entry :as entry-rep] :reload)
-(require '[oc.storage.representations.update :as update-rep] :reload)
+(require '[oc.storage.representations.story :as story-rep] :reload)
 
 ;; make a (fake) REST API request
 (api-request :get "/companies/buffer" {:headers {:Accept (company-rep/media-type)}})
@@ -57,9 +57,9 @@
       (r/get-all ["51ab-4c86-a477"] {:index :team-id})
       (r/run c))))
 
-;; Get updates by org ID and author ID
+;; Get stories by org ID and author ID
 (aprint (with-open [c (apply r/connect conn2)]
-  (-> (r/table "updates")
+  (-> (r/table "stories")
       (r/get-all [["ac53-4d41-8894" "af94-4f56-aa88"]] {:index :author-user-id-org-uuid})
       (r/run c))))
 
@@ -75,147 +75,20 @@
       (r/get-all ["51ab-4c86-a474" "51ab-4c86-a477"] {:index :team-id})
       (r/run c))))
 
-;; Update the sections in a company
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "open")
-      (r/update {:sections ["progress" "company"]})
-      (r/run c)))
-
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "open")
-      (r/replace (r/fn [company]
-        (r/without company [:mission])))
-      (r/run c)))
-
-;; Empty out the stakeholder update template
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "open")
-      (r/update {:stakeholder-update (r/literal {:title "" :sections []})})
-      (r/run c)))
-
-;; Mark a company as public/private
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "startup-city")
-      (r/update {:public true})
-      (r/run c)))
-
-;; Remove a sub-property of a topic from a company
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "startup-city")
-      (r/replace (r/fn [company]
-        (r/without company [{:competition {:icon true}}])))
-      (r/run c)))
-
-;; Update a sub-property of a section for a company
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "open")
-      (r/update {:finances {:body "<p>It's time to learn. That's it, really. Put it in the hands of people we admire and trust, and <b>LEARN FAST</b>.</p><p><img src=\"https://cdn.filestackcontent.com/ge9NSlJTP2AXfwl0nGvk\" data-height=\"370\" data-width=\"555\"><br></p><p><br></p>"}})
-      (r/run c)))
-
-;; Get all the topic revisions of a specific topic
-(aprint (with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/filter (r/fn [section] {:section-name "business-development"}))
-    (r/run c))))
-
-(map :title (with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/filter (r/fn [section] {:section-name "custom-aaaa"}))
-    (r/run c))))
-
-;; Update the topic name of topic revisions of a specific topic
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/filter (r/fn [section] {:section-name "customer-service"}))
-    (r/update {:section-name "customers"})
-    (r/run c)))
-
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/filter (r/fn [section] {:section-name "business-development"}))
-    (r/update {:section-name "custom-aaaa"})
-    (r/run c)))
-
-;; Update the topic topic name of a topic in a company
-(def bus (:business-development (company/get-company conn "buff")))
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-    (r/get "buff")
-    (r/update (r/fn [company] {:custom-aaaa bus}))
-    (r/run c)))
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/get "buff")
-      (r/replace (r/fn [company]
-        (r/without company [:business-development])))
-      (r/run c)))
-
-;; Get all the topic revisions for a company
+;; Get all the entries for a company
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "entries")
     (r/get-all ["buffer"] {:index "company-slug"})
     (r/run c))))
 
-;; Get all the topic revisions of a specific type for a company
-(aprint (with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/get-all [["open" "finances"]] {:index "company-slug-section-name"})
-    (r/run c))))
-
-;; Remove all the topic revisions of a specific type for a company
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/get-all [["open" "finances"]] {:index "company-slug-section-name"})
-    (r/delete)
-    (r/run c)))
-
-;; Get a topic revisions by ID
-(aprint (with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/get-all ["21c9ddd4-6d1c-47a5-b6c1-1308fed08523"] {:index "id"})
-    (r/run c))))
-
-;; Delete a topic revision by ID
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/get-all ["c4b035a9-f33a-40a3-9c5f-49632e5f32d8"] {:index "id"})
-    (r/delete)
-    (r/run c)))
-
-;; Update a property of a topic revision by ID
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-    (r/get-all ["5ee22ac8-91ba-408f-9afb-e7546512ce90"] {:index "id"})
-    (r/update {:created-at "2016-12-03T16:23:11.560Z" :updated-at "2016-12-03T16:23:11.560Z"})
-    (r/run c)))
-
-;; Remove a property from all topic revisions
+;; Remove a property from all entries
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "entries")
     (r/replace (r/fn [section]
       (r/without section [:data :intervals :metrics :units :prompt])))
     (r/run c)))
 
-;; Get all the stakeholder updates for a company
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "stakeholder_updates")
-    (r/get-all ["message-io"] {:index "company-slug"})
-    (r/run c)))
-
-;; Update the property of a stakeholder update by update slug
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "stakeholder_updates")
-    (r/get-all [["open" "investor-update-december-2016-819e6"]] {:index "company-slug-slug"})
-    (r/update {:marketing {:headline ""}})
-    (r/run c)))
-
-;; Provide a new slug for a company
+;; Provide a new slug for an org
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "orgs")
       (r/insert (assoc (company/get-company conn "old-slug") :slug "new-slug"))
@@ -225,7 +98,7 @@
       (r/get-all ["old-slug"] {:index "company-slug"})
       (r/update {:slug "new-slug"})
       (r/run c)))
-(company/delete-company! conn "old-slug")
+(org/delete-org! conn "old-slug")
 
 ;; for more RethinkDB help, see:
 ;; https://github.com/apa512/clj-rethinkdb

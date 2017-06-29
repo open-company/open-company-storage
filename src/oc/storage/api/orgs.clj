@@ -16,8 +16,7 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
-            [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.update :as update-res]))
+            [oc.storage.resources.board :as board-res]))
 
 ;; ----- Actions -----
 
@@ -141,7 +140,7 @@
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org %) authors)
                              update-count (if user
-                                            (count (update-res/list-updates-by-author conn org-id user-id))
+                                            0 ;(count (update-res/list-updates-by-author conn org-id user-id))
                                             0)]
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
