@@ -21,27 +21,23 @@
 
 ;; ----- Utility functions -----
 
-(defn- assemble-board [conn org-slug slug ctx]
+(defn- assemble-board
+  "Assemble the entry, topic, author, and viewer data needed for a board response."
+  [conn org-slug slug ctx]
   (let [board (or (:updated-board ctx) (:existing-board ctx))
-        topic-slugs (map name (:topics board)) ; slug for each active topic
-        entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
-        entry-counts (entry-res/count-entries-by-board conn (:uuid board)) ; count of all entries for each topic
-        selected-entries (select-keys entries topic-slugs) ; active entries
-        selected-entry-reps (zipmap topic-slugs
-                              (map #(entry-rep/render-entry-for-collection org-slug slug
-                                      (get selected-entries %) (get entry-counts %) (:access-level ctx))
-                                topic-slugs))
-                                archived-entries (clojure.set/difference (set (keys entries)) (set topic-slugs))
-                                archived (map #(identity {:slug % :title (:title (get entries %))}) archived-entries)
+        entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
+        topics (set (map #(select-keys % [:topic-slug :topic-name]) entries)) ; distinct topics for the board
+        entry-reps (map #(entry-rep/render-entry org-slug slug % 0 [] (:access-level ctx))
+                      entries)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
         viewers (:viewers board)
         viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug %) viewers)]
-    (merge (-> board 
-              (assoc :archived archived)
-              (assoc :authors author-reps)
-              (assoc :viewers viewer-reps))
-      selected-entry-reps)))
+    (-> board 
+      (assoc :authors author-reps)
+      (assoc :viewers viewer-reps)
+      (assoc :entries entry-reps)
+      (assoc :topics topics))))
 
 ;; ----- Validations -----
 

@@ -9,7 +9,7 @@
             [oc.storage.representations.topic :as topic-rep]
             [oc.storage.resources.common :as common]))
 
-(def representation-props [:slug :name :access :promoted :topics :archived :author :authors :viewers
+(def representation-props [:slug :name :access :promoted :topics :entries :author :authors :viewers
                            :created-at :updated-at])
 
 (defun url
@@ -19,6 +19,10 @@
 (defn- self-link [org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type}))
 
 (defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/board-media-type}))
+
+(defn- create-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/new")
+                                              {:content-type mt/entry-media-type
+                                               :accept mt/entry-media-type}))
 
 (defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (url org-slug slug)
                                               {:content-type mt/board-media-type
@@ -61,7 +65,8 @@
                             links)
         ;; Authors get board management links
         full-links (if (= access-level :author)
-                    (concat interaction-links [(topic-rep/list-link (url org-slug slug))
+                    (concat interaction-links [
+                                   (create-link org-slug slug)
                                    (partial-update-link org-slug slug)
                                    (add-author-link org-slug slug)
                                    (add-viewer-link org-slug slug)])

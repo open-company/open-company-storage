@@ -59,8 +59,8 @@
 
 (def StoryEntry {
   :uuid lib-schema/UniqueID
-  :topic-slug TopicSlug
-  :title lib-schema/NonBlankStr
+  :topic-name lib-schema/NonBlankStr
+  :topic-slug Slug
   :headline schema/Str
   :body schema/Str
   (schema/optional-key :image-url) (schema/maybe schema/Str)
