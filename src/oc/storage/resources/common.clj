@@ -19,33 +19,9 @@
   "Properties of a resource that can't be specified during a create and are ignored during an update."
   #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at})
 
-;; ----- Topic definitions -----
-
-(def topic-slugs "All topic slugs as a set of keywords" (:topics config/topics))
-
-(def topics-by-slug "All topic templates as a map from their name" (:templates config/topics))
-
-(def custom-topic-slug "Regex that matches properly named custom topics" #"^custom-.{4}$")
-
-(defn topic-slug? 
-  "Return true if the argument is a valid named or custom topic slug."
-  [topic-slug]
-  (and
-    (or (string? topic-slug) (keyword? topic-slug))
-    (or (topic-slugs (keyword topic-slug))
-        (re-matches custom-topic-slug (name topic-slug)))))
-
 ;; ----- Data Schemas -----
 
-(def TopicSlug "Known topic slugs and custom topics." (schema/pred topic-slug?))
-
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
-
-(def TopicOrder "A sequence of topic slugs."
-  (schema/pred #(and
-    (sequential? %) ; it is sequential
-    (every? topic-slug? %) ; everything in it is a topic name
-    (= (count (set %)) (count %))))) ; there are no duplicates
 
 (def Attachment {
   :file-name lib-schema/NonBlankStr
@@ -59,13 +35,10 @@
 
 (def StoryEntry {
   :uuid lib-schema/UniqueID
-  :topic-name lib-schema/NonBlankStr
-  :topic-slug Slug
+  :topic-name (schema/maybe lib-schema/NonBlankStr)
+  :topic-slug (schema/maybe Slug)
   :headline schema/Str
   :body schema/Str
-  (schema/optional-key :image-url) (schema/maybe schema/Str)
-  (schema/optional-key :image-height) schema/Num
-  (schema/optional-key :image-width) schema/Num
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
@@ -80,7 +53,6 @@
   (merge StoryEntry {
     :org-uuid lib-schema/UniqueID
     :board-uuid lib-schema/UniqueID
-    :body-placeholder lib-schema/NonBlankStr
     (schema/optional-key :slack-thread) lib-schema/SlackThread}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
@@ -93,7 +65,6 @@
   :access AccessLevel
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
-  :topics TopicOrder
   (schema/optional-key :slack-mirror) lib-schema/SlackMirror
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
@@ -119,7 +90,7 @@
 ; (def ShareRequest {
 ;   :title (schema/maybe schema/Str)
 ;   :medium ShareMedium
-;   :entries [{:topic-slug TopicSlug :created-at lib-schema/ISO8601}]
+;   :entries [{:topic-slug Slug :created-at lib-schema/ISO8601}]
 ;   ;; Email medium
 ;   (schema/optional-key :to) [lib-schema/EmailAddress]
 ;   (schema/optional-key :subject) (schema/maybe schema/Str)

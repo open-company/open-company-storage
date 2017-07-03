@@ -10,7 +10,6 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]
-            [oc.storage.api.topics :as topics-api]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]            
             [oc.storage.representations.media-types :as mt]
@@ -28,7 +27,7 @@
       ;; Create the new entry from the URL and data provided
       (let [entry-map (:data ctx)
             author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) topic-slug entry-map author)]
+            new-entry (entry-res/->entry conn (:uuid board) entry-map author)]
         {:new-entry new-entry :existing-board board})
 
       (catch clojure.lang.ExceptionInfo e
@@ -73,7 +72,7 @@
   (timbre/info "Deleting entry:" entry-for)
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
-            _delete-result (entry-res/delete-entry! conn (:uuid board) (:topic-slug entry) (:uuid entry))]
+            _delete-result (entry-res/delete-entry! conn (:uuid board) (:uuid entry))]
     (do (timbre/info "Deleted entry:" entry-for) true)
     (do (timbre/info "Failed deleting entry:" entry-for) false)))
 
@@ -113,8 +112,9 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
-                               _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug)
+                                            (slugify/valid-slug? topic-slug))
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
@@ -187,8 +187,9 @@
                          (valid-new-entry? conn org-slug board-slug topic-slug ctx)))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
-                               _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug)
+                                            (slugify/valid-slug? topic-slug))
                                board-uuid (board-res/uuid-for conn org-slug board-slug)
                                entries (entry-res/get-entries-by-topic conn board-uuid topic-slug)
                                org-uuid (org-res/uuid-for conn org-slug)
@@ -217,7 +218,7 @@
 (defn- dispatch [db-pool org-slug board-slug topic-slug rm]
   (pool/with-pool [conn db-pool] 
     (if (= rm :delete)
-      (topics-api/topic conn org-slug board-slug topic-slug)
+      ;(topics-api/topic conn org-slug board-slug topic-slug)
       (entry-list conn org-slug board-slug topic-slug))))
 
 (defn routes [sys]

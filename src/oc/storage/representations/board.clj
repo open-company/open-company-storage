@@ -6,7 +6,6 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
-            [oc.storage.representations.topic :as topic-rep]
             [oc.storage.resources.common :as common]))
 
 (def representation-props [:slug :name :access :promoted :topics :entries :author :authors :viewers
@@ -45,11 +44,6 @@
 (defn- interaction-link [board-uuid]
   (hateoas/link-map "interactions" "GET"
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
-
-(defn- select-topics
-  "Get all the keys that represent topics in the board and merge the resulting map into the result."
-  [result board]
-  (merge result (select-keys board (filter common/topic-slug? (keys board)))))
 
 (defn- board-collection-links [board org-slug] (assoc board :links [(item-link org-slug (:slug board))]))
 
@@ -98,6 +92,5 @@
   (json/generate-string
     (-> board
       (select-keys representation-props)
-      (select-topics board)
       (board-links org-slug (:uuid board) access-level))
     {:pretty config/pretty?}))

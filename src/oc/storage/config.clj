@@ -67,10 +67,8 @@
 
 ;; ----- OpenCompany -----
 
-(defonce topics (-> "oc/storage/assets/topics.edn"
-                    clojure.java.io/resource
-                    slurp
-                    read-string
-                    keywordize-keys))
+(defonce topics ["CEO Update" "Mission" "Values" "Highlights" "Key Metrics" "Key Challenges" "Lessons Learned"
+                 "Team and Hiring" "Diversity" "Products" "Press" "Customers" "Sales" "Marketing" "Competition"
+                 "How You Can Help" "Kudos" "Cash Flow" "Fundraising"])
 
 (defonce default-reactions ["👌" "👀" "🇫🇰"])

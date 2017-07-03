@@ -289,16 +289,16 @@ Then enter these commands one-by-one, noting the output:
 
 ;; create some entries
 (entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "blank" "sales") :team {:headline "Now hiring blank people."} author))
+  (entry/->entry conn (board/uuid-for conn "blank" "sales") {:topic-name "Team" :headline "Now hiring blank people."} author))
 
 (entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "open" "engineering") :update {:headline "It's all good."} author))
+  (entry/->entry conn (board/uuid-for conn "open" "engineering") {:topic-name "CEO Update" :headline "It's all good."} author))
 
 (entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:body "Hiring Clojure talent."} author))
+  (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:topic-name "Team" :headline "Hiring" :body "Hiring Clojure talent."} author))
 
 (entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:body "Hiring ClojureScript talent."} author))
+  (entry/->entry conn (board/uuid-for conn "open" "engineering") {:topic-name "Team" :body "Hiring ClojureScript talent."} author))
 
 ;; delete an org
 (org/delete-org! conn "blank")

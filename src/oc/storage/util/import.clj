@@ -44,7 +44,7 @@
         slug (:topic-slug entry)
         entry-authors (or (:author entry) [(assoc (dissoc author :teams) :updated-at timestamp)])
         authors (map #(assoc % :teams [(:team-id org)]) entry-authors)
-        entry (entry/->entry conn board-uuid slug entry (first authors))
+        entry (entry/->entry conn board-uuid entry (first authors))
         fixed-entry (assoc entry :author entry-authors)]
     (println (str "Creating entry for " slug " topic at " timestamp " on board '" (:name board) "'"))
     (db-common/create-resource conn entry/table-name fixed-entry timestamp)))

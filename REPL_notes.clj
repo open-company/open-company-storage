@@ -21,13 +21,11 @@
 (require '[oc.storage.api.entry-point :as entry-point-api] :reload)
 (require '[oc.storage.api.orgs :as orgs-api] :reload)
 (require '[oc.storage.api.boards :as boards-api] :reload)
-(require '[oc.storage.api.topics :as topics-api] :reload)
 (require '[oc.storage.api.entries :as entries-api] :reload)
 (require '[oc.storage.api.story :as stories-api] :reload)
 (require '[oc.storage.representations.media-types :as mt] :reload)
 (require '[oc.storage.representations.org :as org-rep] :reload)
 (require '[oc.storage.representations.board :as board-rep] :reload)
-(require '[oc.storage.representations.topic :as topic-rep] :reload)
 (require '[oc.storage.representations.entry :as entry-rep] :reload)
 (require '[oc.storage.representations.story :as story-rep] :reload)
 

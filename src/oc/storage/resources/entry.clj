@@ -4,6 +4,7 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
+            [oc.lib.slugify :as slugify]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -36,24 +37,21 @@
 
 (schema/defn ^:always-validate ->entry :- common/Entry
   "
-  Take an org UUID, a board UUID, a topic slug, a minimal map describing a Entry, and a user (as the author) and
+  Take an org UUID, a board UUID, a minimal map describing a Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
   "
-  [conn board-uuid :- lib-schema/UniqueID slug :- common/TopicSlug entry-props user :- lib-schema/User]
+  [conn board-uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (when-let* [topic-slug (keyword slug)
-              template-props (or (topic-slug common/topics-by-slug)
-                               (:custom common/topics-by-slug))
-              board (board-res/get-board conn board-uuid)
-              ts (db-common/current-timestamp)]
-    (-> (merge template-props (-> entry-props
-                                  keywordize-keys
-                                  clean))
+  (if-let [board (board-res/get-board conn board-uuid)]
+    (let [topic-name (:topic-name entry-props)
+          topic-slug (slugify/slugify topic-name)
+          ts (db-common/current-timestamp)]
+      (-> entry-props
+        keywordize-keys
+        clean
         (assoc :uuid (db-common/unique-id))
-        (dissoc :description :slug)
         (assoc :topic-slug topic-slug)
-        (update :title #(or % (:title template-props)))
         (update :headline #(or % ""))
         (update :body #(or % ""))
         (update :attachments #(timestamp-attachments % ts))
@@ -61,28 +59,20 @@
         (assoc :board-uuid board-uuid)
         (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
         (assoc :created-at ts)
-        (assoc :updated-at ts))))
+        (assoc :updated-at ts)))
+    false)) ; no board
 
 (schema/defn ^:always-validate create-entry!
-  "Create an entry in the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
-
-  Updates the `topics` of the board if necessary.
+  "Create an entry for the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
 
   Returns the newly created entry, or false if the board specified in the entry can't be found."
   [conn entry :- common/Entry]
   {:pre [(db-common/conn? conn)]}
   (if-let* [board-uuid (:board-uuid entry)
             board (board-res/get-board conn board-uuid)]
-    (let [topic-slug (:topic-slug entry)
-          topics (:topics board) ; topics currently on the board
-          add-topic? (not ((set topics) (name topic-slug))) ; need to add the topic for this entry to the board?
-          ts (db-common/current-timestamp)
-          author (assoc (first (:author entry)) :updated-at ts) ; update initial author timestamp
-          entry-result (db-common/create-resource conn table-name (assoc entry :author [author]) ts)] ; create the entry
-      (when (and entry-result add-topic?)
-        ;; Add the topic to the board
-        (board-res/update-board! conn board-uuid {:topics (conj topics topic-slug)}))
-      entry-result)
+    (let [ts (db-common/current-timestamp)
+          author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
+      (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
     ;; No board
     false))
 
@@ -123,30 +113,20 @@
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
-(declare get-entries-by-topic)
 (schema/defn ^:always-validate delete-entry!
   "
   Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
   and return `true` on success.
   "
-  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:topic-slug entry) (:uuid entry)))
+  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:uuid entry)))
 
-  ([conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug uuid :- lib-schema/UniqueID]
+  ([conn board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (if-let [board (board-res/get-board conn board-uuid)]
     (do
       ;; Delete interactions
       (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
-      
-      (let [topics (:topics board) ; topics currently on the board
-            has-topic? ((set topics) (name topic-slug)) ; topic is in the board? (could be archived)
-            entry-result (db-common/delete-resource conn table-name uuid)]
-        (when (and entry-result
-                   has-topic?
-                   (empty? (get-entries-by-topic conn board-uuid topic-slug)))
-            ;; Remove the topic from the board
-            (board-res/update-board! conn board-uuid {:topics (filterv #(not= % (name topic-slug)) topics)}))
-        entry-result))
+      (db-common/delete-resource conn table-name uuid))
     ;; No board
     false)))
 
@@ -178,7 +158,7 @@
 
 (schema/defn ^:always-validate get-entries-by-topic
   "Given the UUID of the board, and a topic slug, return all the entries for the topic slug, ordered by `created-at`."
-  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug]
+  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/Slug]
   {:pre [(db-common/conn? conn)]}
   (vec (sort-by :created-at
     (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
@@ -188,7 +168,7 @@
   Given the UUID of the board, and a topic slug, return all the comments for entries of the topic slug,
   grouped by `entry-uuid`.
   "
-  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/TopicSlug]
+  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/Slug]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-in-group conn
     common/interaction-table-name
