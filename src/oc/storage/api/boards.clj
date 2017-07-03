@@ -26,8 +26,11 @@
   [conn org-slug slug ctx]
   (let [board (or (:updated-board ctx) (:existing-board ctx))
         entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
-        topics (set (map #(select-keys % [:topic-slug :topic-name]) entries)) ; distinct topics for the board
-        entry-reps (map #(entry-rep/render-entry org-slug slug % 0 [] (:access-level ctx))
+        topics (->> entries
+                (map #(select-keys % [:topic-slug :topic-name]))
+                (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
+                set) ; distinct topics for the board
+        entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug % 0 [] (:access-level ctx) (-> ctx :user :user-id))
                       entries)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)

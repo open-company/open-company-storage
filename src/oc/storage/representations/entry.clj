@@ -7,8 +7,7 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]))
 
-(def representation-props [:uuid :topic-slug :title :headline :body :body-placeholder :image-url :image-height :image-width
-                           :chart-url :attachments :author :created-at :updated-at])
+(def representation-props [:uuid :topic-slug :headline :body :chart-url :attachments :author :created-at :updated-at])
 
 (defun url
   
@@ -75,20 +74,6 @@
   (let [react-url (interaction-url org-uuid board-uuid topic-slug entry-uuid reaction)]
     (hateoas/link-map "react" hateoas/DELETE react-url {})))
 
-(defn- entry-collection-links
-  "Given an entry, return the entry with the appropriate `:links` added for the specified access level."
-  [entry entry-count entry-uuid board-slug org-slug access-level]
-  (let [topic-slug (name (:topic-slug entry))
-        links [(collection-link org-slug board-slug entry entry-count)
-               (item-link org-slug board-slug entry entry-uuid)]
-        full-links (if (= access-level :author)
-                      (concat links [(partial-update-link org-slug board-slug topic-slug entry-uuid)
-                                     (delete-link org-slug board-slug topic-slug entry-uuid)
-                                     (create-link org-slug board-slug topic-slug)
-                                     (archive-link org-slug board-slug topic-slug)])
-                      links)]
-    (assoc entry :links full-links)))
-
 (defn- map-kv
   "Utility function to do an operation on the value of every key in a map."
   [f coll]
@@ -126,6 +111,7 @@
   for use in an API response.
   "
   [entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
+  (println entry)
   (let [topic-slug (name (:topic-slug entry))
         org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
@@ -138,8 +124,6 @@
                     (= access-level :author)
                     (concat links [(partial-update-link org-slug board-slug entry entry-uuid)
                                    (delete-link org-slug board-slug entry entry-uuid)
-                                   (create-link org-slug board-slug topic-slug)
-                                   (archive-link org-slug board-slug topic-slug)
                                    (comment-link org-uuid board-uuid topic-slug entry-uuid)
                                    (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
 
@@ -154,18 +138,16 @@
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
-  [org-slug board-slug entry entry-count access-level]
+  [org-slug board-slug entry comment-count reactions access-level user-id]
   (let [entry-uuid (:uuid entry)]
-    (-> entry
-      (select-keys representation-props)
-      (entry-collection-links entry-count entry-uuid board-slug org-slug access-level))))
+    (entry-and-links entry entry-uuid board-slug org-slug comment-count reactions access-level user-id)))
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
   [org-slug board-slug entry comment-count reactions access-level user-id]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (entry-and-links entry entry-uuid board-slug org-slug comment-count reactions access-level user-id)
+      (render-entry-for-collection org-slug board-slug entry comment-count reactions access-level user-id)      
       {:pretty config/pretty?})))
 
 (defn render-entry-list

@@ -145,10 +145,10 @@
 ;; ----- Collection of entries -----
 
 (schema/defn ^:always-validate get-entries-by-board
-  "Given the UUID of the board, return the latest entry (by :created-at) for each topic."
+  "Given the UUID of the board, return the entries for the board."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-in-group conn table-name :board-uuid board-uuid :topic-slug :created-at))
+  (db-common/read-resources conn table-name :board-uuid board-uuid))
 
 (schema/defn ^:always-validate count-entries-by-board
   "Given the UUID of the board, return a count of the entries for each topic."
