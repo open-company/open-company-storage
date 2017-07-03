@@ -111,7 +111,6 @@
   for use in an API response.
   "
   [entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
-  (println entry)
   (let [topic-slug (name (:topic-slug entry))
         org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
