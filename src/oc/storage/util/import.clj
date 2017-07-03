@@ -41,12 +41,11 @@
 (defn- import-entry [conn org board entry author]
   (let [board-uuid (:uuid board)
         timestamp (:created-at entry)
-        slug (:topic-slug entry)
         entry-authors (or (:author entry) [(assoc (dissoc author :teams) :updated-at timestamp)])
         authors (map #(assoc % :teams [(:team-id org)]) entry-authors)
         entry (entry/->entry conn board-uuid entry (first authors))
         fixed-entry (assoc entry :author entry-authors)]
-    (println (str "Creating entry for " slug " topic at " timestamp " on board '" (:name board) "'"))
+    (println (str "Creating entry at " timestamp " on board '" (:name board) "'"))
     (db-common/create-resource conn entry/table-name fixed-entry timestamp)))
 
 (defn- import-board [conn org board author]
