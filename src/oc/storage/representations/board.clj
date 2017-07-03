@@ -5,8 +5,7 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]
-            [oc.storage.resources.common :as common]))
+            [oc.storage.representations.org :as org-rep]))
 
 (def representation-props [:slug :name :access :promoted :topics :entries :author :authors :viewers
                            :created-at :updated-at])
@@ -19,7 +18,7 @@
 
 (defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/board-media-type}))
 
-(defn- create-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/new")
+(defn- create-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/")
                                               {:content-type mt/entry-media-type
                                                :accept mt/entry-media-type}))
 

@@ -11,67 +11,52 @@
 
 (defun url
   
-  ([org-slug board-slug topic-slug :guard string?]
-  (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (name topic-slug)))
-  
-  ([org-slug board-slug entry :guard map?] (url org-slug board-slug (name (:topic-slug entry))))
+  ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
 
-  ([org-slug board-slug topic-slug :guard string? entry-uuid]
-  (str "/orgs/" org-slug "/boards/" board-slug "/topics/" (name topic-slug) "/entries/" entry-uuid))
+  ([org-slug board-slug entry-uuid]
+  (str "/orgs/" org-slug "/boards/" board-slug "/entries/" entry-uuid)))
 
-  ([org-slug board-slug entry :guard map? entry-uuid] (url org-slug board-slug (name (:topic-slug entry)) entry-uuid)))
+(defun- interaction-url
 
-(defun interaction-url
+  ([org-uuid board-uuid entry-uuid]
+  (str config/interaction-server-url (url org-uuid board-uuid entry-uuid) "/comments"))
 
-  ([org-uuid board-uuid topic-slug entry-uuid]
-  (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/comments"))
+  ([org-uuid board-uuid entry-uuid reaction]
+  (str config/interaction-server-url (url org-uuid board-uuid entry-uuid) "/reactions/" reaction "/on")))
 
-  ([org-uuid board-uuid topic-slug entry-uuid reaction]
-  (str config/interaction-server-url (url org-uuid board-uuid topic-slug entry-uuid) "/reactions/" reaction "/on")))
+(defn- self-link [org-slug board-slug entry-uuid]
+  (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
 
-(defn- self-link [org-slug board-slug entry entry-uuid]
-  (hateoas/self-link (url org-slug board-slug entry entry-uuid) {:accept mt/entry-media-type}))
+(defn- create-link [org-slug board-slug]
+  (hateoas/create-link (str (board-rep/url org-slug board-slug) "/entries/") {:content-type mt/entry-media-type
+                                                                              :accept mt/entry-media-type}))
 
-(defn- item-link [org-slug board-slug entry entry-uuid]
-  (hateoas/item-link (url org-slug board-slug entry entry-uuid) {:accept mt/entry-media-type}))
+(defn- partial-update-link [org-slug board-slug entry-uuid]
+  (hateoas/partial-update-link (url org-slug board-slug entry-uuid) {:content-type mt/entry-media-type
+                                                                     :accept mt/entry-media-type}))
 
-(defn- create-link [org-slug board-slug topic-slug]
-  (hateoas/create-link (str (url org-slug board-slug topic-slug) "/") {:content-type mt/entry-media-type
-                                                                       :accept mt/entry-media-type}))
+(defn- delete-link [org-slug board-slug entry-uuid]
+  (hateoas/delete-link (url org-slug board-slug entry-uuid)))
 
-(defn- partial-update-link [org-slug board-slug topic-slug entry-uuid]
-  (hateoas/partial-update-link (url org-slug board-slug topic-slug entry-uuid) {:content-type mt/entry-media-type
-                                                                                :accept mt/entry-media-type}))
+(defn- up-link [org-slug board-slug]
+  (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
 
-(defn- delete-link [org-slug board-slug topic-slug entry-uuid]
-  (hateoas/delete-link (url org-slug board-slug topic-slug entry-uuid)))
-
-(defn- archive-link [org-slug board-slug topic-slug]
-  (hateoas/archive-link (url org-slug board-slug topic-slug)))
-
-(defn- collection-link [org-slug board-slug topic-slug entry-count]
-  (hateoas/collection-link (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}
-                                                                {:count (or entry-count 1)}))
-
-(defn- up-link [org-slug board-slug topic-slug] (hateoas/up-link 
-                                        (url org-slug board-slug topic-slug) {:accept mt/entry-collection-media-type}))
-
-(defn- comment-link [org-uuid board-uuid topic-slug entry-uuid]
-  (let [comment-url (str (interaction-url org-uuid board-uuid topic-slug entry-uuid) "/")]
+(defn- comment-link [org-uuid board-uuid entry-uuid]
+  (let [comment-url (str (interaction-url org-uuid board-uuid entry-uuid) "/")]
     (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
                                                           :accept mt/comment-media-type})))
 
-(defn- comments-link [org-uuid board-uuid topic-slug entry-uuid comment-count]
-  (let [comment-url (interaction-url org-uuid board-uuid topic-slug entry-uuid)]
+(defn- comments-link [org-uuid board-uuid entry-uuid comment-count]
+  (let [comment-url (interaction-url org-uuid board-uuid entry-uuid)]
     (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
                                                           {:count comment-count})))
 
-(defn- react-link [org-uuid board-uuid topic-slug entry-uuid reaction]
-  (let [react-url (interaction-url org-uuid board-uuid topic-slug entry-uuid reaction)]
+(defn- react-link [org-uuid board-uuid entry-uuid reaction]
+  (let [react-url (interaction-url org-uuid board-uuid entry-uuid reaction)]
     (hateoas/link-map "react" hateoas/PUT react-url {})))
 
-(defn- unreact-link [org-uuid board-uuid topic-slug entry-uuid reaction]
-  (let [react-url (interaction-url org-uuid board-uuid topic-slug entry-uuid reaction)]
+(defn- unreact-link [org-uuid board-uuid entry-uuid reaction]
+  (let [react-url (interaction-url org-uuid board-uuid entry-uuid reaction)]
     (hateoas/link-map "react" hateoas/DELETE react-url {})))
 
 (defn- map-kv
@@ -86,8 +71,8 @@
    :reacted (if user? true false)
    :count reaction-count
    :links [(if user?
-              (unreact-link org-uuid board-uuid topic-slug entry-uuid reaction)
-              (react-link org-uuid board-uuid topic-slug entry-uuid reaction))]})
+              (unreact-link org-uuid board-uuid entry-uuid reaction)
+              (react-link org-uuid board-uuid entry-uuid reaction))]})
 
 (defn- reactions-and-links
   "
@@ -117,18 +102,18 @@
         reactions (if (= access-level :public)
                     []
                     (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id))
-        links [(self-link org-slug board-slug (name topic-slug) entry-uuid)
-               (up-link org-slug board-slug topic-slug)]
+        links [(self-link org-slug board-slug entry-uuid)
+               (up-link org-slug board-slug)]
         full-links (cond 
                     (= access-level :author)
-                    (concat links [(partial-update-link org-slug board-slug entry entry-uuid)
-                                   (delete-link org-slug board-slug entry entry-uuid)
-                                   (comment-link org-uuid board-uuid topic-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
+                    (concat links [(partial-update-link org-slug board-slug entry-uuid)
+                                   (delete-link org-slug board-slug entry-uuid)
+                                   (comment-link org-uuid board-uuid entry-uuid)
+                                   (comments-link org-uuid board-uuid entry-uuid comment-count)])
 
                     (= access-level :viewer)
-                    (concat links [(comment-link org-slug board-slug topic-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid topic-slug entry-uuid comment-count)])
+                    (concat links [(comment-link org-slug board-slug entry-uuid)
+                                   (comments-link org-uuid board-uuid entry-uuid comment-count)])
 
                     :else links)]
     (-> (select-keys entry representation-props)
@@ -159,8 +144,7 @@
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type})]
         full-links (if (= access-level :author)
-                      (concat links [(create-link org-slug board-slug topic-slug)
-                                     (archive-link org-slug board-slug topic-slug)])
+                      (concat links [(create-link org-slug board-slug)])
                       links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version

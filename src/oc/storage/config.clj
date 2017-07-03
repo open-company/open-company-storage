@@ -1,7 +1,6 @@
 (ns oc.storage.config
   "Namespace for the configuration parameters."
-  (:require [clojure.walk :refer (keywordize-keys)]
-            [environ.core :refer (env)]))
+  (:require [environ.core :refer (env)]))
 
 (defn- bool
   "Handle the fact that we may have true/false strings, when we want booleans."
