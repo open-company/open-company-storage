@@ -163,17 +163,17 @@
   (vec (sort-by :created-at
     (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
 
-(schema/defn ^:always-validate get-interactions-by-topic
+(schema/defn ^:always-validate get-interactions-by-board
   "
-  Given the UUID of the board, and a topic slug, return all the comments for entries of the topic slug,
+  Given the UUID of the board, return all the comments for entries of the board,
   grouped by `entry-uuid`.
   "
-  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID topic-slug :- common/Slug]
+  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-in-group conn
     common/interaction-table-name
-    :topic-slug-board-uuid-org-uuid
-    [topic-slug board-uuid org-uuid] "entry-uuid"))
+    :board-uuid-org-uuid
+    [board-uuid org-uuid] "entry-uuid"))
 
 ;; ----- Armageddon -----
 

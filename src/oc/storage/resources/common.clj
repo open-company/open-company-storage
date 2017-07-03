@@ -2,8 +2,7 @@
   "Resources are any thing stored in the open company platform: orgs, boards, topics, stories"
   (:require [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
-            [oc.lib.slugify :as slug]
-            [oc.storage.config :as config]))
+            [oc.lib.slugify :as slug]))
 
 ;; ----- RethinkDB metadata -----
 
