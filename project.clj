@@ -129,7 +129,7 @@
     ;; Production environment
     :prod {
       :env {
-        :db-name "open_company"
+        :db-name "open_company_storage"
         :env "production"
         :liberator-trace "false"
         :hot-reload "false"
