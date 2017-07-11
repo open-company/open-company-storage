@@ -215,6 +215,8 @@ The Interaction Service shares a RethinkDB database instance with the [Interacti
 
 ## Usage
 
+Prospective users of [Carrot](https://carrot.io/) should get started by going to [Carrot.io](https://carrot.io/). The following usage is **for developers** wanting to work on the OpenCompany Storage Service.
+
 You can verify all is well with your RethinkDB instance and get familiar with RethinkDB [ReQL query language](http://rethinkdb.com/docs/introduction-to-reql/) by using the Data Explorer:
 
 ```console
