@@ -1,4 +1,4 @@
-# [OpenCompany](https://opencompany.com/) Storage Service
+# [OpenCompany](https://github.com/open-company) Storage Service
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
