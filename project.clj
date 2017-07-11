@@ -59,9 +59,9 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.9.0-alpha6"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.9.0-alpha8"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [philoskim/debux "0.3.4"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
+        [philoskim/debux "0.3.6"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
