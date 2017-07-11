@@ -14,7 +14,7 @@
 
 Companies struggle to keep everyone on the same page. People are hyper-connected in the moment but still don’t know what’s happening across the company. Employees and investors, co-founders and execs, customers and community, they all want more transparency. The solution is surprisingly simple and effective - great company updates that build transparency and alignment.
 
-With that in mind we designed the Carrot application, and the OpenCompany platform, based on three principles:
+With that in mind we designed the [Carrot](https://carrot.io/) application, and the [OpenCompany platform](https://github.com/open-company), based on three principles:
 
 1. It has to be easy or no one will play.
 2. The "big picture" should always be visible.
