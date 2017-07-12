@@ -190,9 +190,8 @@
                                             (slugify/valid-slug? board-slug))
                                board-uuid (board-res/uuid-for conn org-slug board-slug)
                                entries (entry-res/get-entries-by-board conn board-uuid)
-                               org-uuid (org-res/uuid-for conn org-slug)
-                               interactions (entry-res/get-interactions-by-board conn org-uuid board-uuid)]
-                        {:existing-entries entries :existing-interactions interactions}
+                               org-uuid (org-res/uuid-for conn org-slug)]
+                        {:existing-entries entries}
                         false))
 
   ;; Actions
@@ -200,8 +199,7 @@
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug
-                          (:existing-entries ctx) (:existing-interactions ctx)
-                          (:access-level ctx) (-> ctx :user :user-id)))
+                          (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug (:created-at new-entry))

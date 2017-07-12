@@ -139,7 +139,7 @@
   Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
   entries for the API.
   "
-  [org-slug board-slug topic-slug entries interactions access-level user-id]
+  [org-slug board-slug topic-slug entries access-level user-id]
   (let [collection-url (url org-slug board-slug topic-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type})]
@@ -151,8 +151,8 @@
                     :href collection-url
                     :links full-links
                     :items (map #(entry-and-links % (:uuid %) board-slug org-slug
-                                    (count (or (filter :body (get interactions (:uuid %))) []))  ; comments only
-                                    (or (filter :reaction (get interactions (:uuid %))) []) ; reactions only
+                                    (count (or (filter :body (:interactions %)) []))  ; comments only
+                                    (or (filter :reaction (:interactions %)) []) ; reactions only
                                     access-level user-id)
                              entries)}}
       {:pretty config/pretty?})))

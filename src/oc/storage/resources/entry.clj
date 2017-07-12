@@ -145,23 +145,12 @@
 ;; ----- Collection of entries -----
 
 (schema/defn ^:always-validate get-entries-by-board
-  "Given the UUID of the board, return the entries for the board."
+  "Given the UUID of the board, return the entries for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources conn table-name :board-uuid board-uuid))
-
-(schema/defn ^:always-validate count-entries-by-board
-  "Given the UUID of the board, return a count of the entries for each topic."
-  [conn board-uuid :- lib-schema/UniqueID]
-  {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-in-group conn table-name :board-uuid board-uuid :topic-slug :count))
-
-(schema/defn ^:always-validate get-entries-by-topic
-  "Given the UUID of the board, and a topic slug, return all the entries for the topic slug, ordered by `created-at`."
-  [conn board-uuid :- lib-schema/UniqueID topic-slug :- common/Slug]
-  {:pre [(db-common/conn? conn)]}
-  (vec (sort-by :created-at
-    (db-common/read-resources conn table-name :topic-slug-board-uuid [[topic-slug board-uuid]]))))
+  (db-common/read-resources-and-relations conn table-name :board-uuid board-uuid
+                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
 (schema/defn ^:always-validate get-interactions-by-board
   "

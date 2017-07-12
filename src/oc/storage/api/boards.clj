@@ -21,6 +21,16 @@
 
 ;; ----- Utility functions -----
 
+(defn- comment-count
+  "Count the comments in an entry."
+  [{interactions :interactions}]
+  (count (filter :body interactions)))
+
+(defn- reactions
+  "Return a sequence of just the reactions for an entry."
+  [{interactions :interactions}]
+  (filter :reaction interactions))
+
 (defn- assemble-board
   "Assemble the entry, topic, author, and viewer data needed for a board response."
   [conn org-slug slug ctx]
@@ -30,7 +40,8 @@
                 (map #(select-keys % [:topic-slug :topic-name]))
                 (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
                 set) ; distinct topics for the board
-        entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug % 0 [] (:access-level ctx) (-> ctx :user :user-id))
+        entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug % (comment-count %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
                       entries)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
