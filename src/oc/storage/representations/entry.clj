@@ -126,7 +126,7 @@
                                    (comments-link org-uuid board-uuid entry-uuid comments)])
 
                     (= access-level :viewer)
-                    (concat links [(comment-link org-slug board-slug entry-uuid)
+                    (concat links [(comment-link org-uuid board-uuid entry-uuid)
                                    (comments-link org-uuid board-uuid entry-uuid comments)])
 
                     :else links)]
