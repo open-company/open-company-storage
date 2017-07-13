@@ -10,11 +10,14 @@
 (def representation-props [:uuid :topic-slug :headline :body :chart-url :attachments :author :created-at :updated-at])
 
 (defun url
+
+  ([org-slug board-slug]
+  (str "/orgs/" org-slug "/boards/" board-slug "/entries"))
   
   ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
 
   ([org-slug board-slug entry-uuid]
-  (str "/orgs/" org-slug "/boards/" board-slug "/entries/" entry-uuid)))
+  (str (url org-slug board-slug) "/" entry-uuid)))
 
 (defun- interaction-url
 
@@ -46,10 +49,21 @@
     (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
                                                           :accept mt/comment-media-type})))
 
-(defn- comments-link [org-uuid board-uuid entry-uuid comment-count]
+(defn- comment-authors
+  "Return the latest, up to four, distinct authors."
+  [comments]
+  (let [authors (map #(assoc (:author %) :created-at (:created-at %)) comments) ; only authors from the comments
+        grouped-authors (group-by :user-id authors) ; grouped by each author
+        ; select newest comment for each author
+        newest-authors (map #(last (sort-by :created-at (get grouped-authors %))) (keys grouped-authors))
+        sorted-authors (reverse (sort-by :created-at newest-authors))] ; sort authors
+    (take 4 sorted-authors))) ; last 4
+
+(defn- comments-link [org-uuid board-uuid entry-uuid comments]
   (let [comment-url (interaction-url org-uuid board-uuid entry-uuid)]
     (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
-                                                          {:count comment-count})))
+                                                          {:count (count comments)
+                                                           :authors (comment-authors comments)})))
 
 (defn- react-link [org-uuid board-uuid entry-uuid reaction]
   (let [react-url (interaction-url org-uuid board-uuid entry-uuid reaction)]
@@ -95,7 +109,7 @@
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
   for use in an API response.
   "
-  [entry entry-uuid board-slug org-slug comment-count reactions access-level user-id]
+  [entry entry-uuid board-slug org-slug comments reactions access-level user-id]
   (let [topic-slug (name (:topic-slug entry))
         org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
@@ -109,11 +123,11 @@
                     (concat links [(partial-update-link org-slug board-slug entry-uuid)
                                    (delete-link org-slug board-slug entry-uuid)
                                    (comment-link org-uuid board-uuid entry-uuid)
-                                   (comments-link org-uuid board-uuid entry-uuid comment-count)])
+                                   (comments-link org-uuid board-uuid entry-uuid comments)])
 
                     (= access-level :viewer)
                     (concat links [(comment-link org-slug board-slug entry-uuid)
-                                   (comments-link org-uuid board-uuid entry-uuid comment-count)])
+                                   (comments-link org-uuid board-uuid entry-uuid comments)])
 
                     :else links)]
     (-> (select-keys entry representation-props)
@@ -122,9 +136,9 @@
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
-  [org-slug board-slug entry comment-count reactions access-level user-id]
+  [org-slug board-slug entry comments reactions access-level user-id]
   (let [entry-uuid (:uuid entry)]
-    (entry-and-links entry entry-uuid board-slug org-slug comment-count reactions access-level user-id)))
+    (entry-and-links entry entry-uuid board-slug org-slug comments reactions access-level user-id)))
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
@@ -139,8 +153,8 @@
   Given a org and board slug and a sequence of entry maps, create a JSON representation of a list of
   entries for the API.
   "
-  [org-slug board-slug topic-slug entries access-level user-id]
-  (let [collection-url (url org-slug board-slug topic-slug)
+  [org-slug board-slug entries access-level user-id]
+  (let [collection-url (url org-slug board-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type})]
         full-links (if (= access-level :author)
@@ -151,7 +165,7 @@
                     :href collection-url
                     :links full-links
                     :items (map #(entry-and-links % (:uuid %) board-slug org-slug
-                                    (count (or (filter :body (:interactions %)) []))  ; comments only
+                                    (or (filter :body (:interactions %)) [])  ; comments only
                                     (or (filter :reaction (:interactions %)) []) ; reactions only
                                     access-level user-id)
                              entries)}}
