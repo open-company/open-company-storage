@@ -142,10 +142,10 @@
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
-  [org-slug board-slug entry comment-count reactions access-level user-id]
+  [org-slug board-slug entry comments reactions access-level user-id]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (render-entry-for-collection org-slug board-slug entry comment-count reactions access-level user-id)      
+      (render-entry-for-collection org-slug board-slug entry comments reactions access-level user-id)      
       {:pretty config/pretty?})))
 
 (defn render-entry-list

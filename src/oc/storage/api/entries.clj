@@ -137,13 +137,13 @@
   :handle-ok (by-method {
     :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
                       (:existing-entry ctx)
-                      (count (:existing-comments ctx))
+                      (:existing-comments ctx)
                       (:existing-reactions ctx)
                       (:access-level ctx)
                       (-> ctx :user :user-id)))
     :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
                         (:updated-entry ctx)
-                        (count (:existing-comments ctx))
+                        (:existing-comments ctx)
                         (:existing-reactions ctx)
                         (:access-level ctx)
                         (-> ctx :user :user-id)))})
@@ -203,7 +203,7 @@
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug (:created-at new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry 0 []
+                                (entry-rep/render-entry org-slug board-slug new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
