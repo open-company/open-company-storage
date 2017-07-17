@@ -1,305 +1,55 @@
-{:company
-   {:challenges
-      {:author
-         [{:image
-             "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-           :name "Richard Richardson",
-           :updated-at "2016-07-28T17:55:36.642Z",
-           :user-id "78901"}],
-       :body
-         "<p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>",
-       :body-placeholder
-         "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?",
-       :created-at "2016-07-28T17:55:36.642Z",
-       :description "Challenges facing the company",
-       :headline "Recruiting; maintaining growth are focus areas",
-       :image-height 348,
-       :image-url "https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN",
-       :image-width 462,
-       :title "Key Challenges",
-       :updated-at "2016-07-28T17:55:36.642Z"},
-    :created-at "2016-12-28T13:23:53.884Z",
-    :currency "USD",
-    :custom-89de
-      {:author
-         [{:image
-             "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-           :name "Richard Richardson",
-           :updated-at "2016-07-28T18:05:09.308Z",
-           :user-id "78901"}],
-       :body
-         "<ul><li>Total Revenue $83K<br></li><li>MRR: $79K</li><li>MRR Bookings $12.5K (goal $12K)</li><li>Revenue Churn: 4.2% (goal 3%)</li></ul>",
-       :body-placeholder "What would you like to say about this?",
-       :created-at "2016-07-28T18:05:09.308Z",
-       :description "Custom topic",
-       :headline "July 2016",
-       :image-height 0,
-       :image-url nil,
-       :image-width 0,
-       :title "KPI's",
-       :updated-at "2016-07-28T18:05:09.308Z"},
-    :description "All our data belong to us.",
-    :help
-      {:author
-         [{:image
-             "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-           :name "Richard Richardson",
-           :updated-at "2016-07-28T18:07:42.845Z",
-           :user-id "78901"}],
-       :body
-         "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>",
-       :body-placeholder
-         "Where do you need the most help from your team and investors?",
-       :created-at "2016-07-28T18:07:42.845Z",
-       :description "Ask your company stakeholders for help and ideas",
-       :headline "New Office Space, Key Hires",
-       :image-height 0,
-       :image-url nil,
-       :image-width 0,
-       :title "How You Can Help",
-       :updated-at "2016-07-28T18:07:42.845Z"},
-    :highlights
-      {:author
-         [{:image
-             "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-           :name "Richard Richardson",
-           :updated-at "2016-07-28T18:14:24.985Z",
-           :user-id "78901"}],
-       :body
-         "<p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>",
-       :body-placeholder
-         "What new milestones or accomplishments are you most proud of?",
-       :created-at "2016-07-28T18:14:24.985Z",
-       :description "Company milestones and accomplishments",
-       :headline "GreenLabs featured in Slate!",
-       :image-height 842,
-       :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r",
-       :image-width 1180,
-       :title "Highlights",
-       :updated-at "2016-07-28T18:14:24.985Z"},
-    :logo "https://open-company-assets.s3.amazonaws.com/read-only.png",
-    :logo-height 129,
-    :logo-width 95,
-    :name "ReadOnly",
-    :org-id "slack-not-your-org",
-    :promoted false,
-    :public true,
-    :sections ["update" "challenges" "team" "custom-89de" "help" "highlights"],
-    :slug "read-only",
-    :team
-      {:author
-         [{:image
-             "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-           :name "Richard Richardson",
-           :updated-at "2016-07-28T18:02:07.397Z",
-           :user-id "78901"}],
-       :body
-         "\n          <p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>\n          <p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>",
-       :body-placeholder
-         "Welcome new hires, discuss open positions, and let everyone know about other team changes.",
-       :created-at "2016-07-28T18:02:07.397Z",
-       :description "Team and hiring update",
-       :headline "Welcome!",
-       :image-height 0,
-       :image-url nil,
-       :image-width 0,
-       :title "Team and Hiring",
-       :updated-at "2016-07-28T18:02:07.397Z"},
-    :update
-      {:author
-         [{:image
-             "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-           :name "Richard Richardson",
-           :updated-at "2016-07-28T18:25:03.085Z",
-           :user-id "78901"}],
-       :body
-         "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>",
-       :body-placeholder
-         "A quick take on what's happened since the last update.",
-       :created-at "2016-07-28T18:25:03.085Z",
-       :description "Company update",
-       :headline "Passing $1M in ARR ↗ 💸",
-       :image-height 0,
-       :image-url nil,
-       :image-width 0,
-       :title "CEO Update",
-       :updated-at "2016-07-28T18:25:03.085Z"},
-    :updated-at "2016-12-28T13:23:54.568Z",
-    :uuid "eb8f3d98-888a-40fc-aa24-3140f6a45f46"},
- :sections
-   [{:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-07-28T18:25:03.085Z",
-               :user-id "78901"}],
-     :body
-       "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>",
-     :body-placeholder "A quick take on what's happened since the last update.",
-     :company-slug "read-only",
-     :created-at "2016-07-28T18:25:03.085Z",
-     :description "Company update",
-     :headline "Passing $1M in ARR ↗ 💸",
-     :id "747560ab-0f89-40e2-b513-f35ce9036cc6",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "update",
-     :title "CEO Update",
-     :updated-at "2016-07-28T18:25:03.085Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-07-28T18:02:07.397Z",
-               :user-id "78901"}],
-     :body
-       "\n          <p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>\n          <p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>",
-     :body-placeholder
-       "Welcome new hires, discuss open positions, and let everyone know about other team changes.",
-     :company-slug "read-only",
-     :created-at "2016-07-28T18:02:07.397Z",
-     :description "Team and hiring update",
-     :headline "Welcome!",
-     :id "0b864cbf-6dc0-4cd2-8886-4a66bce0fd86",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "team",
-     :title "Team and Hiring",
-     :updated-at "2016-07-28T18:02:07.397Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-07-28T18:14:24.985Z",
-               :user-id "78901"}],
-     :body
-       "<p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>",
-     :body-placeholder
-       "What new milestones or accomplishments are you most proud of?",
-     :company-slug "read-only",
-     :created-at "2016-07-28T18:14:24.985Z",
-     :description "Company milestones and accomplishments",
-     :headline "GreenLabs featured in Slate!",
-     :id "61592cda-2003-4b01-ab36-d2a27162550e",
-     :image-height 842,
-     :image-url "https://cdn.filestackcontent.com/vfQT7YICTgaS1xfEfJ6r",
-     :image-width 1180,
-     :section-name "highlights",
-     :title "Highlights",
-     :updated-at "2016-07-28T18:14:24.985Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-06-28T18:25:03.085Z",
-               :user-id "78901"}],
-     :body
-       "\n          <p>We're looking for 5 new hires in engineering, a senior dev-ops engineer and 4 junior developers for dev and QA roles.</p>\n          <p>To help fill these roles, we've annouced a $5k referral bonus, payable 90 days after the new hires start date. If you\n          know people we should be recruiting, let Jennifer know immediately!</p>",
-     :body-placeholder "A quick take on what's happened since the last update.",
-     :company-slug "read-only",
-     :created-at "2016-06-28T18:25:03.085Z",
-     :description "Company update",
-     :headline "Big Hiring Push",
-     :id "4fdb591a-5cac-4f07-ba50-0c291f5d4731",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "update",
-     :title "CEO Update",
-     :updated-at "2016-06-28T18:25:03.085Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-06-29T18:05:09.308Z",
-               :user-id "78901"}],
-     :body
-       "<ul><li>Total Revenue $75K<br></li><li>MRR: $74K</li><li>MRR Bookings $10.5K (goal $12K)</li><li>Revenue Churn: 4.1% (goal 3%)</li></ul>",
-     :body-placeholder "What would you like to say about this?",
-     :company-slug "read-only",
-     :created-at "2016-06-29T18:05:09.308Z",
-     :description "Custom topic",
-     :headline "June is Done",
-     :id "c3622110-6513-4411-a1a7-5bf01ec30606",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "custom-89de",
-     :title "KPI's",
-     :updated-at "2016-06-29T18:05:09.308Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-07-28T18:05:09.308Z",
-               :user-id "78901"}],
-     :body
-       "<ul><li>Total Revenue $83K<br></li><li>MRR: $79K</li><li>MRR Bookings $12.5K (goal $12K)</li><li>Revenue Churn: 4.2% (goal 3%)</li></ul>",
-     :body-placeholder "What would you like to say about this?",
-     :company-slug "read-only",
-     :created-at "2016-07-28T18:05:09.308Z",
-     :description "Custom topic",
-     :headline "July 2016",
-     :id "f2dd3f9e-7aab-441a-a25f-31f6c121aa2e",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "custom-89de",
-     :title "KPI's",
-     :updated-at "2016-07-28T18:05:09.308Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-07-28T18:07:42.845Z",
-               :user-id "78901"}],
-     :body
-       "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>",
-     :body-placeholder
-       "Where do you need the most help from your team and investors?",
-     :company-slug "read-only",
-     :created-at "2016-07-28T18:07:42.845Z",
-     :description "Ask your company stakeholders for help and ideas",
-     :headline "New Office Space, Key Hires",
-     :id "35ac9f6b-5dd3-496f-8727-89bb04819379",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "help",
-     :title "How You Can Help",
-     :updated-at "2016-07-28T18:07:42.845Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-07-28T17:55:36.642Z",
-               :user-id "78901"}],
-     :body
-       "<p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>",
-     :body-placeholder
-       "What are you most disappointed about, and what’s the plan to fix it? What threats should everyone be focused on?",
-     :company-slug "read-only",
-     :created-at "2016-07-28T17:55:36.642Z",
-     :description "Challenges facing the company",
-     :headline "Recruiting; maintaining growth are focus areas",
-     :id "cb7b12e9-7f7f-41a1-95e4-f8c0f3e25f55",
-     :image-height 348,
-     :image-url "https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN",
-     :image-width 462,
-     :section-name "challenges",
-     :title "Key Challenges",
-     :updated-at "2016-07-28T17:55:36.642Z"}
-    {:author [{:image
-                 "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg",
-               :name "Richard Richardson",
-               :updated-at "2016-06-17T18:25:03.085Z",
-               :user-id "78901"}],
-     :body
-       "\n          <p>Super excited to be trying out OpenCompany for our team and investor updates.</p>\n          <p>Ping me on Slack and let me know what kind of things we should be providing more information about.</p>",
-     :body-placeholder "A quick take on what's happened since the last update.",
-     :company-slug "read-only",
-     :created-at "2016-06-17T18:25:03.085Z",
-     :description "Company update",
-     :headline "Transparency FTW! 🔎",
-     :id "405238a8-24b5-4182-b117-654e43ee3950",
-     :image-height 0,
-     :image-url nil,
-     :image-width 0,
-     :section-name "update",
-     :title "CEO Update",
-     :updated-at "2016-06-17T18:25:03.085Z"}],
- :updates []}
+{
+  :slug "read-only"
+  :name "ReadOnly"
+  :team-id "1234-abcd-1234",
+  :logo-url "https://open-company-assets.s3.amazonaws.com/read-only.png"
+  :logo-height 129
+  :logo-width 95
+
+  :author {
+    :avatar-url "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg"
+    :name "Richard Richardson"
+    :user-id "1234-5678-1234"
+  }
+  
+  :boards [
+
+    {
+      :name "Don't Touch"
+      :access :public
+      
+      :entries [
+
+        {
+          :topic-name "Key Challenges"
+          :headline "Recruiting; maintaining growth are focus areas"
+          :body "<img src='https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN'><p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>"
+          :author [
+            {
+              :avatar-url "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg"
+              :name "Richard Richardson"
+              :updated-at "2017-06-28T17:55:36.642Z"
+              :user-id "1234-5678-1234"
+            }
+          ]
+          :created-at "2017-06-28T17:55:36.642Z"
+        }
+
+        {
+          :topic-name "How You Can Help"
+          :headline "New Office Space, Key Hires"
+          :body "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>"        
+          :author [
+            {
+              :name "Richard Richardson",
+              :avatar-url "https://static.sched.org/a8/2669428/avatar.jpg.320x320px.jpg"
+              :updated-at "2017-06-27T17:55:36.642Z"
+              :user-id "1234-5678-1234"
+            }
+          ]
+          :created-at "2017-06-27T17:55:36.642Z"
+        }
+      ]
+    }
+  ]
+}
