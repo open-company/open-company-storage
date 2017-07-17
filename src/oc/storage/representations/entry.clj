@@ -80,7 +80,7 @@
 
 (defn- reaction-and-link
   "Given the parts of a reaction URL, return a map representation of the reaction for use in the API."
-  [org-uuid board-uuid topic-slug entry-uuid reaction reaction-count user?]
+  [org-uuid board-uuid entry-uuid reaction reaction-count user?]
   {:reaction reaction
    :reacted (if user? true false)
    :count reaction-count
@@ -93,13 +93,13 @@
   Given a sequence of reactions and the parts of a reaction URL, return a representation of the reactions
   for use in the API.
   "
-  [org-uuid board-uuid topic-slug entry-uuid reactions user-id]
+  [org-uuid board-uuid entry-uuid reactions user-id]
   (let [grouped-reactions (merge (apply hash-map (interleave config/default-reactions (repeat []))) ; defaults
                                  (group-by :reaction reactions)) ; reactions grouped by unicode character
         counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
         counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
         top-three-reactions (take 3 (reverse (sort-by last counted-reactions)))] ; top 3 unicode characters by how many
-    (map #(reaction-and-link org-uuid board-uuid topic-slug entry-uuid (first %) (last %)
+    (map #(reaction-and-link org-uuid board-uuid entry-uuid (first %) (last %)
             (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; did the user leave one of this reaction?
               (get grouped-reactions (first %)))) 
       top-three-reactions)))
@@ -110,12 +110,11 @@
   for use in an API response.
   "
   [entry entry-uuid board-slug org-slug comments reactions access-level user-id]
-  (let [topic-slug (name (:topic-slug entry))
-        org-uuid (:org-uuid entry)
+  (let [org-uuid (:org-uuid entry)
         board-uuid (:board-uuid entry)
         reactions (if (= access-level :public)
                     []
-                    (reactions-and-links org-uuid board-uuid topic-slug entry-uuid reactions user-id))
+                    (reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
         links [(self-link org-slug board-slug entry-uuid)
                (up-link org-slug board-slug)]
         full-links (cond 

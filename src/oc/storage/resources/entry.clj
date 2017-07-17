@@ -45,13 +45,14 @@
          (map? entry-props)]}
   (if-let [board (board-res/get-board conn board-uuid)]
     (let [topic-name (:topic-name entry-props)
-          topic-slug (slugify/slugify topic-name)
+          topic-slug (when topic-name (slugify/slugify topic-name))
           ts (db-common/current-timestamp)]
       (-> entry-props
         keywordize-keys
         clean
         (assoc :uuid (db-common/unique-id))
         (assoc :topic-slug topic-slug)
+        (update :topic-name #(or % nil))
         (update :headline #(or % ""))
         (update :body #(or % ""))
         (update :attachments #(timestamp-attachments % ts))
