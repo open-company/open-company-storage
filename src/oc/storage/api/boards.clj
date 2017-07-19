@@ -38,6 +38,7 @@
         entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
         topics (->> entries
                 (map #(select-keys % [:topic-slug :topic-name]))
+                (filter :topic-slug) ; remove entries w/ no topic
                 (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
                 set) ; distinct topics for the board
         entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug %

@@ -49,6 +49,17 @@
     (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
                                                           :accept mt/comment-media-type})))
 
+(defun- clean-blank-topic
+  "Remove a blank topic slug/name from an entry representation."
+
+  ([entry :guard #(and (contains? % :topic-slug) (clojure.string/blank? (:topic-slug %)))]
+    (clean-blank-topic (dissoc entry :topic-slug)))
+
+  ([entry :guard #(and (contains? % :topic-name) (clojure.string/blank? (:topic-name %)))]
+    (clean-blank-topic (dissoc entry :topic-name)))
+
+  ([entry] entry))
+
 (defn- comment-authors
   "Return the latest, up to four, distinct authors."
   [comments]
@@ -130,6 +141,7 @@
 
                     :else links)]
     (-> (select-keys entry representation-props)
+      (clean-blank-topic)
       (assoc :reactions reactions)
       (assoc :links full-links))))
 
