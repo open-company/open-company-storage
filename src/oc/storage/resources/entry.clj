@@ -105,10 +105,15 @@
          (map? entry)]}
   (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
+          new-topic-name (:topic-name entry)
+          topic-name (when-not (clojure.string/blank? new-topic-name) new-topic-name)
+          topic-slug (when topic-name (slugify/slugify topic-name))
           merged-entry (merge original-entry (clean entry))
+          topic-named-entry (assoc merged-entry :topic-name topic-name)
+          slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
           updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
-          updated-author (assoc merged-entry :author updated-authors)
+          updated-author (assoc slugged-entry :author updated-authors)
           attachments (:attachments merged-entry)
           updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
       (schema/validate common/Entry updated-entry)
