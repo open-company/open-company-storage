@@ -66,8 +66,16 @@
 
 ;; ----- OpenCompany -----
 
-(defonce topics ["CEO Update" "Mission" "Values" "Highlights" "Key Metrics" "Key Challenges" "Lessons Learned"
-                 "Team and Hiring" "Diversity" "Products" "Press" "Customers" "Sales" "Marketing" "Competition"
-                 "How You Can Help" "Kudos" "Cash Flow" "Fundraising"])
+(defonce topics #{
+  "CEO Update"
+  "Competition"
+  "Customers"
+  "Finances"
+  "Key Challenges"
+  "Key Metrics"
+  "Lessons Learned"
+  "Team and Hiring"
+  "Press"
+  "Sales"})
 
 (defonce default-reactions ["👌" "👀" "🇫🇰"])

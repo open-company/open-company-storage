@@ -21,6 +21,9 @@
 
 ;; ----- Utility functions -----
 
+(defn- topic-for-name [topic-name]
+  {:name topic-name :slug (slugify/slugify topic-name)})
+
 (defn- comments
   "Return a sequence of just the comments for an entry."
   [{interactions :interactions}]
@@ -36,11 +39,15 @@
   [conn org-slug slug ctx]
   (let [board (or (:updated-board ctx) (:existing-board ctx))
         entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
-        topics (->> entries
-                (map #(select-keys % [:topic-slug :topic-name]))
-                (filter :topic-slug) ; remove entries w/ no topic
-                (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
-                set) ; distinct topics for the board
+        board-topics (->> entries
+                        (map #(select-keys % [:topic-slug :topic-name]))
+                        (filter :topic-slug) ; remove entries w/ no topic
+                        (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
+                        set) ; distinct topics for the board
+        all-topics (clojure.set/union board-topics (map topic-for-name config/topics)) ; board's topics and default
+        topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
+                    board-topics ; just the board's topics
+                    all-topics) ; board's and default
         entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
@@ -53,7 +60,7 @@
       (assoc :authors author-reps)
       (assoc :viewers viewer-reps)
       (assoc :entries entry-reps)
-      (assoc :topics topics))))
+      (assoc :topics (sort-by :name topics)))))
 
 ;; ----- Validations -----
 
