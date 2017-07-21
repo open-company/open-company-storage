@@ -99,6 +99,18 @@
               (unreact-link org-uuid board-uuid entry-uuid reaction)
               (react-link org-uuid board-uuid entry-uuid reaction))]})
 
+(defn- reaction-sort
+  "
+  Keep the reaction order stable by sorting on the order they are provided, and if they are legacy
+  reactions, by the order of how many reactions they have (which while not definitively stable, will
+  effectively be fairly stable for legacy reactions).
+  "
+  [reaction]
+  (let [index-of (.indexOf config/default-reactions (first reaction))] ; order in the defaults
+    (if (= index-of -1) ; is it in the defaults, or legacy?
+      (* (last reaction) -1) ; it's legacy, so by reaction count (more reactions, lower # so higher sort)
+      index-of))) ; by order in the defaults
+
 (defn- reactions-and-links
   "
   Given a sequence of reactions and the parts of a reaction URL, return a representation of the reactions
@@ -109,11 +121,12 @@
                                  (group-by :reaction reactions)) ; reactions grouped by unicode character
         counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
         counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
-        top-three-reactions (take 3 (reverse (sort-by last counted-reactions)))] ; top 3 unicode characters by how many
+        top-three-reactions (take 3 (reverse (sort-by last counted-reactions))) ; top 3 unicode characters by how many
+        sorted-reactions (sort-by reaction-sort top-three-reactions)]
     (map #(reaction-and-link org-uuid board-uuid entry-uuid (first %) (last %)
             (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; did the user leave one of this reaction?
               (get grouped-reactions (first %)))) 
-      top-three-reactions)))
+      sorted-reactions)))
 
 (defn- entry-and-links
   "
