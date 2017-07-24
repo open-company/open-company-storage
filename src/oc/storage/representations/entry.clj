@@ -102,7 +102,7 @@
 (defn- reaction-selection-sort
   [reaction]
   (let [index-of (inc (.indexOf config/default-reactions (first reaction)))] ; order in the defaults
-    (if (= index-of 0) ; is it in the defaults, or legacy?
+    (if (zero? index-of) ; is it in the defaults, or legacy?
       ;; it's legacy, so by reaction count
       (* (last reaction) -1) ; more reactions gives a lower (negative) #, so it has a higher sort
       ;; it's in the defaults, so by reaction count, but with a little extra for tie breaking with other reactions
