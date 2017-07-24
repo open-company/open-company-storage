@@ -111,7 +111,7 @@
 "second" 15 "none" 10 "first" 5 "third" 20 "none" 20 [1 0 0 2 3]
 "third" 5 "first" 10 "second" 25 "none" 20 "none" 20 [0 0 1 3 2]
 "first" 10 "second" 0 "third" 0 "none" 5 "none" 0 [1 2 0 3 0]
-"third" 15 "second" 0 "none" 0 "none" 25 "none" 0 [2 0 0 3 0] ; funky case, no first configured and no 3 others
+; "third" 15 "second" 0 "none" 0 "none" 25 "none" 0 [2 0 0 3 0] ; funky case, no first configured and only 2 w/ reactions
 "second" 25 "first" 15 "none" 0 "none" 0 "third" 0 [2 1 0 0 3]
 
 )
