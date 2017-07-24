@@ -78,4 +78,4 @@
   "Press"
   "Sales"})
 
-(defonce default-reactions ["👌" "👀" "🇫🇰"])
+(def default-reactions ["👌" "👀" "🇫🇰"])

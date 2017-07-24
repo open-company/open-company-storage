@@ -99,7 +99,17 @@
               (unreact-link org-uuid board-uuid entry-uuid reaction)
               (react-link org-uuid board-uuid entry-uuid reaction))]})
 
-(defn- reaction-sort
+(defn- reaction-selection-sort
+  [reaction]
+  (let [index-of (inc (.indexOf config/default-reactions (first reaction)))] ; order in the defaults
+    (if (= index-of 0) ; is it in the defaults, or legacy?
+      ;; it's legacy, so by reaction count
+      (* (last reaction) -1) ; more reactions gives a lower (negative) #, so it has a higher sort
+      ;; it's in the defaults, so by reaction count, but with a little extra for tie breaking with other reactions
+      (- (* (last reaction) -1) (- 1 (* index-of 0.25)))))) ; the earlier it is in the defaults the bigger the tie breaker
+
+(defn- reaction-order-sort
+  [reaction]
   "
   Keep the reaction order stable by sorting on the order they are provided, and if they are legacy
   reactions, by the order of how many reactions they have (which while not definitively stable, will
@@ -108,8 +118,8 @@
   [reaction]
   (let [index-of (.indexOf config/default-reactions (first reaction))] ; order in the defaults
     (if (= index-of -1) ; is it in the defaults, or legacy?
-      (* (last reaction) -1) ; it's legacy, so by reaction count (more reactions, lower # so higher sort)
-      index-of))) ; by order in the defaults
+      (* (last reaction) 10) ; it's legacy, so by reaction count
+      (* index-of)))) ; by order in the defaults
 
 (defn- reactions-and-links
   "
@@ -121,10 +131,10 @@
                                  (group-by :reaction reactions)) ; reactions grouped by unicode character
         counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
         counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
-        top-three-reactions (take 3 (reverse (sort-by last counted-reactions))) ; top 3 unicode characters by how many
-        sorted-reactions (sort-by reaction-sort top-three-reactions)]
+        top-three-reactions (take 3 (sort-by reaction-selection-sort counted-reactions)) ; top 3 reactions
+        sorted-reactions (sort-by reaction-order-sort top-three-reactions)] ; top 3 sorted
     (map #(reaction-and-link org-uuid board-uuid entry-uuid (first %) (last %)
-            (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; did the user leave one of this reaction?
+            (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; the user left one of these reactions?
               (get grouped-reactions (first %)))) 
       sorted-reactions)))
 
