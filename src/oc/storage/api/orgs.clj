@@ -231,7 +231,7 @@
                                   slug (:slug new-org)]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org (assoc new-org) :author)
+                                (org-rep/render-org new-org :author)
                                 mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
