@@ -1,7 +1,6 @@
 (ns oc.storage.config
   "Namespace for the configuration parameters."
-  (:require [clojure.walk :refer (keywordize-keys)]
-            [environ.core :refer (env)]))
+  (:require [environ.core :refer (env)]))
 
 (defn- bool
   "Handle the fact that we may have true/false strings, when we want booleans."
@@ -31,7 +30,7 @@
 
 (defonce db-host (or (env :db-host) "localhost"))
 (defonce db-port (or (env :db-port) 28015))
-(defonce db-name (or (env :db-name) "open_company"))
+(defonce db-name (or (env :db-name) "open_company_storage"))
 (defonce db-pool-size (or (env :db-pool-size) (- core-async-limit 21))) ; conservative with the core.async limit
 
 (defonce db-map {:host db-host :port db-port :db db-name})
@@ -40,7 +39,7 @@
 ;; ----- HTTP server -----
 
 (defonce hot-reload (bool (or (env :hot-reload) false)))
-(defonce storage-server-port (Integer/parseInt (or (env :port) "3000")))
+(defonce storage-server-port (Integer/parseInt (or (env :port) "3001")))
 
 ;; ----- URLs -----
 
@@ -49,7 +48,7 @@
 
 ;; ----- Liberator -----
 
-;; see header response, or http://localhost:3000/x-liberator/requests/ for trace results
+;; see header response, or http://localhost:3001/x-liberator/requests/ for trace results
 (defonce liberator-trace (bool (or (env :liberator-trace) false)))
 (defonce pretty? (not prod?)) ; JSON response as pretty?
 
@@ -67,10 +66,16 @@
 
 ;; ----- OpenCompany -----
 
-(defonce topics (-> "oc/storage/assets/topics.edn"
-                    clojure.java.io/resource
-                    slurp
-                    read-string
-                    keywordize-keys))
+(defonce topics #{
+  "CEO Update"
+  "Competition"
+  "Customers"
+  "Finances"
+  "Key Challenges"
+  "Key Metrics"
+  "Lessons Learned"
+  "Team and Hiring"
+  "Press"
+  "Sales"})
 
-(defonce default-reactions ["👌" "👀" "🇫🇰"])
+(def default-reactions ["👌" "👀" "🇫🇰"])

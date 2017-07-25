@@ -21,27 +21,46 @@
 
 ;; ----- Utility functions -----
 
-(defn- assemble-board [conn org-slug slug ctx]
+(defn- topic-for-name [topic-name]
+  {:name topic-name :slug (slugify/slugify topic-name)})
+
+(defn- comments
+  "Return a sequence of just the comments for an entry."
+  [{interactions :interactions}]
+  (filter :body interactions))
+
+(defn- reactions
+  "Return a sequence of just the reactions for an entry."
+  [{interactions :interactions}]
+  (filter :reaction interactions))
+
+(defn- assemble-board
+  "Assemble the entry, topic, author, and viewer data needed for a board response."
+  [conn org-slug slug ctx]
   (let [board (or (:updated-board ctx) (:existing-board ctx))
-        topic-slugs (map name (:topics board)) ; slug for each active topic
-        entries (entry-res/get-entries-by-board conn (:uuid board)) ; latest entry for each topic
-        entry-counts (entry-res/count-entries-by-board conn (:uuid board)) ; count of all entries for each topic
-        selected-entries (select-keys entries topic-slugs) ; active entries
-        selected-entry-reps (zipmap topic-slugs
-                              (map #(entry-rep/render-entry-for-collection org-slug slug
-                                      (get selected-entries %) (get entry-counts %) (:access-level ctx))
-                                topic-slugs))
-                                archived-entries (clojure.set/difference (set (keys entries)) (set topic-slugs))
-                                archived (map #(identity {:slug % :title (:title (get entries %))}) archived-entries)
+        entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
+        board-topics (->> entries
+                        (map #(select-keys % [:topic-slug :topic-name]))
+                        (filter :topic-slug) ; remove entries w/ no topic
+                        (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
+                        set) ; distinct topics for the board
+        all-topics (clojure.set/union board-topics (map topic-for-name config/topics)) ; board's topics and default
+        topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
+                    board-topics ; just the board's topics
+                    all-topics) ; board's and default
+        entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug %
+                            (comments %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      entries)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
         viewers (:viewers board)
         viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug %) viewers)]
-    (merge (-> board 
-              (assoc :archived archived)
-              (assoc :authors author-reps)
-              (assoc :viewers viewer-reps))
-      selected-entry-reps)))
+    (-> board 
+      (assoc :authors author-reps)
+      (assoc :viewers viewer-reps)
+      (assoc :entries entry-reps)
+      (assoc :topics (sort-by :name topics)))))
 
 ;; ----- Validations -----
 

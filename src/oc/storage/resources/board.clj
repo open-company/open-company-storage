@@ -80,7 +80,6 @@
         (update :access #(or % default-access))
         (assoc :authors [(:user-id user)])
         (assoc :viewers [])
-        (update :topics distinct)
         (assoc :author (lib-schema/author-for-user user))
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
@@ -135,11 +134,9 @@
   {:pre [(db-common/conn? conn)
          (map? board)]}
   (when-let [original-board (get-board conn uuid)]
-    (let [updated-board (merge original-board (clean board))
-          topics (:topics updated-board)]
+    (let [updated-board (merge original-board (clean board))]
       (schema/validate common/Board updated-board)
-      (db-common/update-resource conn table-name primary-key original-board
-        (update updated-board :topics distinct)))))
+      (db-common/update-resource conn table-name primary-key original-board updated-board))))
 
 (defun delete-board!
   "
@@ -266,7 +263,6 @@
   :slug
   :authors
   :viewers
-  :topics
 
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.

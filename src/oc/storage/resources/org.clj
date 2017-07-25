@@ -41,15 +41,15 @@
 ;; ----- Organization Slug -----
 
 ;; Excluded slugs due to existing and potential URL routing conflicts
-;; the person names are excluded because right now we're sending update emails as from: "slug@opencompany.com"
+;; the person names are excluded because right now we're sending update emails as from: "slug@carrot.io"
 (def reserved-slugs #{"about" "android" "api" "app" "careers" "companies"
                       "company" "contact" "create-company" "crowd" "developer"
-                      "developers" "download" "email-confirmation" "faq" "forum" "forums" 
-                      "founder" "founders" "help" "home"
+                      "developers" "download" "entry" "entries" "email-confirmation"
+                      "faq" "features" "forum" "forums" "founder" "founders" "help" "home"
                       "investor" "investors" "invite" "ios" "jobs" "login" "logout"
-                      "news" "newsletter" "press" "privacy" "profile" "register" "reset"
-                      "section" "sections" "signin" "signout" "signup" "stakeholder"
-                      "stakeholder-update" "subscription-completed" "terms" "topic" "topics"
+                      "news" "newsletter" "press" "pricing" "privacy" "profile" "register" "reset"
+                      "section" "sections" "signin" "signout" "signup" "story" "stories"
+                      "subscription-completed" "team" "terms" "topic" "topics"
                       "update" "updates" "stuart" "sean" "iacopo"})
 
 (declare list-orgs)
@@ -165,8 +165,8 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
-      ;; Delete updates
-      (db-common/delete-resource conn common/update-table-name :org-uuid uuid)
+      ;; Delete stories
+      ;;(db-common/delete-resource conn common/story-table-name :org-uuid uuid)
       ;; Delete interactions
       (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
       ;; Delete entries
@@ -269,8 +269,8 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all udpates, interactions, entries, boards and orgs
-  (db-common/delete-all-resources! conn common/update-table-name)
+  ;; Delete all stories, interactions, entries, boards and orgs
+  ;;(db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)

@@ -459,34 +459,34 @@ http://localhost:3001/companies/hotel-procrastination
 
 To import company sample data from an edn file run:
 ```console
-lein run -m open-company.util.import -- ./opt/samples/buff.edn
+lein run -m oc.storage.util.import -- ./opt/samples/buff.edn
 ```
 
 use `-d` to erase the company while importing like this:
 ```console
-lein run -m open-company.util.import -- -d ./opt/samples/buff.edn
+lein run -m oc.storage.util.import -- -d ./opt/samples/buff.edn
 ```
 
 To add all the company sample data in a directory (each file with a `.edn` extension), run:
 ```console
-lein run -m open-company.util.import -- ./opt/samples/
+lein run -m oc.storage.util.import -- ./opt/samples/
 ```
 
 use `-d` to erase companies while importing like this:
 ```console
-lein run -m open-company.util.import -- -d ./opt/samples/
+lein run -m oc.storage.util.import -- -d ./opt/samples/
 ```
 
 To add sample data on a production environment, specify the production database name:
 
 ```console
-DB_NAME="open_company_storage" lein run -m open-company.util.import -- -d ./opt/samples/buff.edn
+DB_NAME="open_company_storage" lein run -m oc.storage.util.import -- -d ./opt/samples/18F.edn
 ```
 
 or
 
 ```console
-DB_NAME="open_company_storage" lein run -m open-company.util.import -- -d ./opt/samples/
+DB_NAME="open_company_storage" lein run -m oc.storage.util.import -- -d ./opt/samples/
 ```
 
 

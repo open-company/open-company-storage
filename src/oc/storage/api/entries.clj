@@ -3,14 +3,13 @@
   (:require [clojure.string :as s]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY)]
+            [compojure.core :as compojure :refer (OPTIONS GET POST ANY)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]
-            [oc.storage.api.topics :as topics-api]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]            
             [oc.storage.representations.media-types :as mt]
@@ -22,13 +21,13 @@
 
 ;; ----- Validations -----
 
-(defn- valid-new-entry? [conn org-slug board-slug topic-slug ctx]
+(defn- valid-new-entry? [conn org-slug board-slug ctx]
   (if-let [board (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug)]
     (try
       ;; Create the new entry from the URL and data provided
       (let [entry-map (:data ctx)
             author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) topic-slug entry-map author)]
+            new-entry (entry-res/->entry conn (:uuid board) entry-map author)]
         {:new-entry new-entry :existing-board board})
 
       (catch clojure.lang.ExceptionInfo e
@@ -73,14 +72,14 @@
   (timbre/info "Deleting entry:" entry-for)
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
-            _delete-result (entry-res/delete-entry! conn (:uuid board) (:topic-slug entry) (:uuid entry))]
+            _delete-result (entry-res/delete-entry! conn (:uuid board) (:uuid entry))]
     (do (timbre/info "Deleted entry:" entry-for) true)
     (do (timbre/info "Failed deleting entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ; A resource for operations on a particular entry
-(defresource entry [conn org-slug board-slug topic-slug entry-uuid]
+(defresource entry [conn org-slug board-slug entry-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch :delete]
@@ -113,15 +112,15 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
-                               _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
                                          (board-res/get-board conn org-uuid board-slug))
                                entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn org-uuid (:uuid board) topic-slug entry-uuid))
+                                         (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
                                comments (or (:existing-comments ctx)
                                             (entry-res/get-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
@@ -131,31 +130,31 @@
                         false))
   
   ;; Actions
-  :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug topic-slug entry-uuid])))
-  :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug topic-slug entry-uuid])))
+  :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+  :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
 
   ;; Responses
   :handle-ok (by-method {
     :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
                       (:existing-entry ctx)
-                      (count (:existing-comments ctx))
+                      (:existing-comments ctx)
                       (:existing-reactions ctx)
                       (:access-level ctx)
                       (-> ctx :user :user-id)))
     :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
                         (:updated-entry ctx)
-                        (count (:existing-comments ctx))
+                        (:existing-comments ctx)
                         (:existing-reactions ctx)
                         (:access-level ctx)
                         (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
-; A resource for operations on all entries of a particular topic
-(defresource entry-list [conn org-slug board-slug topic-slug]
+; A resource for operations on all entries of a particular board
+(defresource entry-list [conn org-slug board-slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
-  :allowed-methods [:options :get :post :delete] ; :delete is handled by the topic resource
+  :allowed-methods [:options :get :post]
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -184,29 +183,27 @@
     :get true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
                          (slugify/valid-slug? board-slug)
-                         (valid-new-entry? conn org-slug board-slug topic-slug ctx)))})
+                         (valid-new-entry? conn org-slug board-slug ctx)))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? board-slug))
-                               _valid-slug (nil? (schema/check common-res/TopicSlug topic-slug))
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
                                board-uuid (board-res/uuid-for conn org-slug board-slug)
-                               entries (entry-res/get-entries-by-topic conn board-uuid topic-slug)
-                               org-uuid (org-res/uuid-for conn org-slug)
-                               interactions (entry-res/get-interactions-by-topic conn org-uuid board-uuid topic-slug)]
-                        {:existing-entries entries :existing-interactions interactions}
+                               entries (entry-res/get-entries-by-board conn board-uuid)
+                               org-uuid (org-res/uuid-for conn org-slug)]
+                        {:existing-entries entries}
                         false))
 
   ;; Actions
-  :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug board-slug topic-slug])))
+  :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug board-slug])))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug topic-slug
-                          (:existing-entries ctx) (:existing-interactions ctx)
-                          (:access-level ctx) (-> ctx :user :user-id)))
+  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug
+                          (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
-                                (entry-rep/url org-slug board-slug topic-slug (:created-at new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry 0 []
+                                (entry-rep/url org-slug board-slug (:created-at new-entry))
+                                (entry-rep/render-entry org-slug board-slug new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
@@ -214,28 +211,52 @@
 
 ;; ----- Routes -----
 
-(defn- dispatch [db-pool org-slug board-slug topic-slug rm]
-  (pool/with-pool [conn db-pool] 
-    (if (= rm :delete)
-      (topics-api/topic conn org-slug board-slug topic-slug)
-      (entry-list conn org-slug board-slug topic-slug))))
-
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
-      ;; Entry list, and Topic operations (dispatched)
-      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug"
-        [org-slug board-slug topic-slug :as {rm :request-method}]
-        (dispatch db-pool org-slug board-slug topic-slug rm))
-      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/"
-        [org-slug board-slug topic-slug :as {rm :request-method}]
-        (dispatch db-pool org-slug board-slug topic-slug rm))
-      ;; Entry operations
-      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/entry/:entry-uuid"
-        [org-slug board-slug topic-slug entry-uuid]
+      ;; Entry list operations
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries"
+        [org-slug board-slug]
         (pool/with-pool [conn db-pool] 
-          (entry conn org-slug board-slug topic-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/topics/:topic-slug/entry/:entry-uuid/"
-        [org-slug board-slug topic-slug entry-uuid]
+          (entry-list conn org-slug board-slug)))
+      (GET "/orgs/:org-slug/boards/:board-slug/entries"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries/"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (GET "/orgs/:org-slug/boards/:board-slug/entries/"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries/new"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (POST "/orgs/:org-slug/boards/:board-slug/entries/new"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries/new/"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (POST "/orgs/:org-slug/boards/:board-slug/entries/new/"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/"
+        [org-slug board-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug board-slug)))
+      ;; Entry operations
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool] 
+          (entry conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/"
+        [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
-          (entry conn org-slug board-slug topic-slug entry-uuid))))))
+          (entry conn org-slug board-slug entry-uuid))))))

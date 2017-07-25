@@ -15,8 +15,7 @@
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.org :as org]
             [oc.storage.resources.board :as board]
-            [oc.storage.resources.entry :as entry]
-            [oc.storage.resources.update :as update]            
+            [oc.storage.resources.entry :as entry]  
             [oc.storage.config :as c])
   (:gen-class))
 
@@ -26,28 +25,27 @@
 
 ;; ----- Resource import -----
 
-(defn import-update [conn org update author]
-  (let [org-slug (:slug org)
-        update-slug (:slug update)
-        title (:title update)
-        update-author (or (:author update) author)
-        timestamp (or (:created-at update) (db-common/current-timestamp))]
-    (println (str "Creating update '" title "' for org '" org-slug "'."))
-    (update/create-update! conn 
-      (clojure.core/update (update/->update conn org-slug (dissoc update :slug :author :created-at) update-author)
-        :slug #(or update-slug %))
-      timestamp)
-    (println (str "Created update '" title "' for org '" org-slug "'."))))
+; (defn import-update [conn org update author]
+;   (let [org-slug (:slug org)
+;         update-slug (:slug update)
+;         title (:title update)
+;         update-author (or (:author update) author)
+;         timestamp (or (:created-at update) (db-common/current-timestamp))]
+;     (println (str "Creating update '" title "' for org '" org-slug "'."))
+;     (update/create-update! conn 
+;       (clojure.core/update (update/->update conn org-slug (dissoc update :slug :author :created-at) update-author)
+;         :slug #(or update-slug %))
+;       timestamp)
+;     (println (str "Created update '" title "' for org '" org-slug "'."))))
 
 (defn- import-entry [conn org board entry author]
   (let [board-uuid (:uuid board)
         timestamp (:created-at entry)
-        slug (:topic-slug entry)
         entry-authors (or (:author entry) [(assoc (dissoc author :teams) :updated-at timestamp)])
         authors (map #(assoc % :teams [(:team-id org)]) entry-authors)
-        entry (entry/->entry conn board-uuid slug entry (first authors))
+        entry (entry/->entry conn board-uuid entry (first authors))
         fixed-entry (assoc entry :author entry-authors)]
-    (println (str "Creating entry for " slug " topic at " timestamp " on board '" (:name board) "'"))
+    (println (str "Creating entry at " timestamp " on board '" (:name board) "'"))
     (db-common/create-resource conn entry/table-name fixed-entry timestamp)))
 
 (defn- import-board [conn org board author]
@@ -66,9 +64,9 @@
 
 (defn- import-org [conn options data]
   (let [delete (:delete options)
-        org (dissoc data :boards :updates)
+        org (dissoc data :boards :stories)
         boards (:boards data)
-        updates (:updates data)
+        updates (:stories data)
         org-slug (:slug org)
         author (assoc (:author org) :teams [(:team-id org)])
         prior-org (org/get-org conn org-slug)]
@@ -90,11 +88,11 @@
         ;; Create the boards
         (println (str "Creating " (count boards) " boards."))
         (doseq [board boards]
-          (import-board conn new-org board author))
+          (import-board conn new-org board author)))
         ;; Create the updates
-        (println (str "Creating " (count updates) " updates."))
-        (doseq [update updates]
-          (import-update conn new-org update author)))
+        ; (println (str "Creating " (count updates) " updates."))
+        ; (doseq [update updates]
+        ;   (import-update conn new-org update author)))
 
       (do
         (println "\nFailed to create the org!")
@@ -119,7 +117,7 @@
       "Options:"
       options-summary
       ""
-      "Org data: an EDN file with an org, consisting of board(s) with topic entries and updates."
+      "Org data: an EDN file with an org, consisting of board(s) with topic entries and stories."
       "Directory: a directory of org data EDN files"
       ""
       "Please refer to ./opt/samples for more information on the file format."

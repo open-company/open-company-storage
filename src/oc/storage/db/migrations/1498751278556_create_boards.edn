@@ -16,6 +16,5 @@
               (r/fn [row] [(r/get-field row "org-uuid") (r/get-field row "access")])))
   (println (m/create-index conn board/table-name "authors" {:multi true}))
   (println (m/create-index conn board/table-name "viewers" {:multi true}))
-  (println (m/create-index conn board/table-name "topics" {:multi true}))
 
   true) ; return true on success

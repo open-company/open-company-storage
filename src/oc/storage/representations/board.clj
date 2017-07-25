@@ -5,11 +5,9 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]
-            [oc.storage.representations.topic :as topic-rep]
-            [oc.storage.resources.common :as common]))
+            [oc.storage.representations.org :as org-rep]))
 
-(def representation-props [:slug :name :access :promoted :topics :archived :author :authors :viewers
+(def representation-props [:slug :name :access :promoted :topics :entries :author :authors :viewers
                            :created-at :updated-at])
 
 (defun url
@@ -19,6 +17,10 @@
 (defn- self-link [org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type}))
 
 (defn- item-link [org-slug slug] (hateoas/item-link (url org-slug slug) {:accept mt/board-media-type}))
+
+(defn- create-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/")
+                                              {:content-type mt/entry-media-type
+                                               :accept mt/entry-media-type}))
 
 (defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (url org-slug slug)
                                               {:content-type mt/board-media-type
@@ -42,11 +44,6 @@
   (hateoas/link-map "interactions" "GET"
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
 
-(defn- select-topics
-  "Get all the keys that represent topics in the board and merge the resulting map into the result."
-  [result board]
-  (merge result (select-keys board (filter common/topic-slug? (keys board)))))
-
 (defn- board-collection-links [board org-slug] (assoc board :links [(item-link org-slug (:slug board))]))
 
 (defn- board-links
@@ -61,7 +58,8 @@
                             links)
         ;; Authors get board management links
         full-links (if (= access-level :author)
-                    (concat interaction-links [(topic-rep/list-link (url org-slug slug))
+                    (concat interaction-links [
+                                   (create-link org-slug slug)
                                    (partial-update-link org-slug slug)
                                    (add-author-link org-slug slug)
                                    (add-viewer-link org-slug slug)])
@@ -93,6 +91,5 @@
   (json/generate-string
     (-> board
       (select-keys representation-props)
-      (select-topics board)
       (board-links org-slug (:uuid board) access-level))
     {:pretty config/pretty?}))

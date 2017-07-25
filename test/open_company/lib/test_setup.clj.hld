@@ -6,7 +6,7 @@
 (def test-system (atom nil))
 
 (defn setup-system! []
-  (let [sys (components/storage-system {:handler-fn app/app :port 3000})]
+  (let [sys (components/storage-system {:handler-fn app/app :port 3001})]
     ;; We don't need the server since we're mocking the requests
     (reset! test-system (component/start (dissoc sys :server)))))
 
