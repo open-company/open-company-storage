@@ -100,6 +100,10 @@
               (react-link org-uuid board-uuid entry-uuid reaction))]})
 
 (defn- reaction-selection-sort
+  "
+  Sort order to select the most used reactions, with a tie breaker for default reactions in their default reaction
+  order.
+  "
   [reaction]
   (let [index-of (inc (.indexOf config/default-reactions (first reaction)))] ; order in the defaults
     (if (zero? index-of) ; is it in the defaults, or legacy?
@@ -109,7 +113,6 @@
       (- (* (last reaction) -1) (- 1 (* index-of 0.25)))))) ; the earlier it is in the defaults the bigger the tie breaker
 
 (defn- reaction-order-sort
-  [reaction]
   "
   Keep the reaction order stable by sorting on the order they are provided, and if they are legacy
   reactions, by the order of how many reactions they have (which while not definitively stable, will
@@ -119,7 +122,7 @@
   (let [index-of (.indexOf config/default-reactions (first reaction))] ; order in the defaults
     (if (= index-of -1) ; is it in the defaults, or legacy?
       (* (last reaction) 10) ; it's legacy, so by reaction count
-      (* index-of)))) ; by order in the defaults
+      index-of))) ; by order in the defaults
 
 (defn- reactions-and-links
   "
