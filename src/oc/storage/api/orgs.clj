@@ -138,14 +138,10 @@
                              allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-reps (map #(board-rep/render-board-for-collection slug %) allowed-boards)
                              authors (:authors org)
-                             author-reps (map #(org-rep/render-author-for-collection org %) authors)
-                             update-count (if user
-                                            0 ;(count (update-res/list-updates-by-author conn org-id user-id))
-                                            0)]
+                             author-reps (map #(org-rep/render-author-for-collection org %) authors)]
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
-                                                (assoc :authors author-reps)
-                                                (assoc :update-count update-count))
+                                                (assoc :authors author-reps))
                                               (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
@@ -235,7 +231,7 @@
                                   slug (:slug new-org)]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org (assoc new-org :update-count 0) :author)
+                                (org-rep/render-org (assoc new-org) :author)
                                 mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
