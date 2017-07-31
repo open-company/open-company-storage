@@ -1,0 +1,16 @@
+{
+  ; Entries
+  :chance-of-entries-per-day 0.5 ; fraction of days that have updates
+  :max-entries-per-day 5 ; on a day with updates, up to how many
+
+  ; Reactions
+  :chance-of-reaction 0.1 ; fraction of reactions (3 per entry) that are used per update
+  :max-reactions 15 ; for a used reaction, up to how many
+
+  ; Comments
+  :chance-of-comment 0.2 ; fraction of entries that have comments
+  :max-comments 10 ; for an entry with comments, up to how many
+
+  ; Authors
+  :author-pool 12 ; how many different entry and comment authors
+}
