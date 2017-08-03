@@ -9,8 +9,12 @@
 
   lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-06-31
   "
-  (:require [clojure.tools.cli :refer (parse-opts)]
+  (:require [clojure.string :as s]
+            [clojure.walk :refer (keywordize-keys)]
+            [clojure.tools.cli :refer (parse-opts)]
             [defun.core :refer (defun-)]
+            [clj-http.client :as http]
+            [cheshire.core :as json]
             [clj-time.core :as t]
             [clj-time.format :as f]
             [oc.lib.db.pool :as db]
@@ -23,16 +27,81 @@
 
 (def date-parser (f/formatter "YYYY-MM-dd"))
 
-;; ----- Data Generation -----
+(def image-types ["animals" "business" "city" "people" "nature" "sports" "technics" "transport"])
 
-(defn- generate-update [conn org config-data authors this-date]
-  (println "here")
-  (let [update-count (int (inc (Math/floor (rand (:max-entries config-data)))))]
-    (println (str (f/unparse date-parser this-date) ": Generating " update-count " updates."))
-    ))
+(def charts [
+  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&format=interactive"
+  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1315570007&format=interactive"
+  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&format=interactive"
+  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&format=interactive"
+  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1138076795&format=interactive"
+  ])
 
-(defn- author-pool [size]
-  [])
+;; ----- Author Generation -----
+
+(defn- author-data []
+  (-> "https://randomuser.me/api/"
+    (http/get {:accept :json})
+    :body
+    json/parse-string
+    keywordize-keys
+    :results
+    first))
+
+(defn- author []
+  (let [data (author-data)]
+    {:name (str (s/capitalize (-> data :name :first)) " " (s/capitalize (-> data :name :last)))
+     :avatar-url (-> data :picture :large)
+     :user-id (db-common/unique-id)}))
+
+(defn- author-pool [size] (for [x (range 0 size)] (author)))
+
+;; ----- Update Generation -----
+
+(defn- image-tag []
+  (str "<p><img class='carrot-no-preview' data-media-type='image' src='http://lorempixel.com/640/480/"
+    (rand-nth image-types) "/' width='640' height='480'></p>"))
+
+(defn- body-text [size]
+  (:body (http/get (str "http://skateipsum.com/get/" (inc (int (* (rand) size))) "/0/text"))))
+
+(defn- headline-text [size]
+  (->> (-> "http://loripsum.net/api/plaintext/1/verylong"
+          (http/get)
+          :body
+          (s/replace #"(~|`|!|@|#|$|%|^|&|\*|\(|\)|\{|\}|\[|\]|;|:|\"|'|<|,|\.|>|\?|\/|\\|\||-|_|\+|=)" "") ; punctuation
+          (s/split #" "))
+    (drop 8) ; first 8 don't change
+    (take (inc (int (* (rand) size))))
+    (s/join " ")))
+
+(defn- create-update [conn boards config-data author timestamp]
+  (let [board (rand-nth boards)
+        topic? (<= (rand) (:chance-of-topic config-data))
+        topic (when topic? (rand-nth (vec c/topics)))
+        headline? (<= (rand) (:chance-of-headline config-data))
+        headline (if headline? (headline-text (:max-words config-data)) "")
+        body? (or (not headline?) (<= (rand) (:chance-of-body config-data)))
+        part1 (if body? (body-text (:max-paragraphs config-data)) "")
+        image? (<= (rand) (:chance-of-image config-data))
+        part2 (if image? (str part1 (image-tag)) part1)
+        chart? (<= (rand) (:chance-of-chart config-data))
+        part3 (if chart? part2 part2) ; TODO charts
+        video? (<= (rand) (:chance-of-video config-data))
+        body (if video? part3 part3) ; TODO videos
+        entry-props {:headline headline :body body}
+        entry (if topic? (assoc entry-props :topic-name topic) entry-props)]
+    (entry-res/create-entry! conn (entry-res/->entry conn board entry author) timestamp)))
+
+(defn- generate-updates [conn org config-data authors this-date]
+  (let [update-count (int (inc (Math/floor (rand (:max-entries config-data)))))
+        boards (map :uuid (board-res/list-boards-by-org conn (:uuid org)))]
+    (println (str (f/unparse date-parser this-date) ": Generating " update-count " updates..."))
+    (dotimes [x update-count]
+      (let [hour-offset (t/plus this-date (t/hours (rem x 24)))
+            min-offset (t/plus hour-offset (t/minutes (int (* (rand) 60))))
+            timestamp (f/unparse db-common/timestamp-format min-offset)]
+        (create-update conn boards config-data (rand-nth authors) timestamp)))))
 
 (defn- complete? [date-range] (t/after? (first date-range) (last date-range)))
 
@@ -41,6 +110,7 @@
   ;; Initiate w/ a pool of authors
   ([conn org config-data date-range]
     (println "\nGenerating!")
+    (println "Creating" (:author-pool config-data) "authors...")
     (let [authors (author-pool (:author-pool config-data))]
       (generate conn org config-data authors date-range))) ; recurse
 
@@ -49,12 +119,10 @@
 
   ;; Generate updates for this date
   ([conn org config-data authors date-range]
-    (println "A")
     (let [this-date (first date-range)]
-      (println "B")
       (if (<= (rand) (:chance-of-entry config-data)) ; is there an update today?
-        (do (println "C") (generate-update conn org config-data authors this-date))
-        (do (println "D") (println (str (f/unparse date-parser this-date) ": Skipped"))))
+        (generate-updates conn org config-data authors this-date)
+        (println (str (f/unparse date-parser this-date) ": Skipped")))
       (recur conn org config-data authors [(t/plus this-date (t/days 1)) (last date-range)])))) ; recurse
 
 ;; ----- CLI -----

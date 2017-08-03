@@ -67,15 +67,16 @@
   "Create an entry for the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
 
   Returns the newly created entry, or false if the board specified in the entry can't be found."
-  [conn entry :- common/Entry]
+  ([conn entry :- common/Entry] (create-entry! conn entry (db-common/current-timestamp)))
+
+  ([conn entry :- common/Entry ts :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
   (if-let* [board-uuid (:board-uuid entry)
             board (board-res/get-board conn board-uuid)]
-    (let [ts (db-common/current-timestamp)
-          author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
+    (let [author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
       (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
     ;; No board
-    false))
+    false)))
 
 (schema/defn ^:always-validate get-entry
   "
