@@ -5,6 +5,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.slugify :as slugify]
+            [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -150,6 +151,15 @@
   (filter :reaction (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :reaction])))
 
 ;; ----- Collection of entries -----
+
+(schema/defn ^:always-validate get-entries-by-org
+  "Given the UUID of the org, return the entries for the org with any interactions."
+  [conn org-uuid :- lib-schema/UniqueID start :- lib-schema/ISO8601 direction]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
+                                          config/default-limit "created-at" start direction
+                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
 (schema/defn ^:always-validate get-entries-by-board
   "Given the UUID of the board, return the entries for the board with any interactions."
