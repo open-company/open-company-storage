@@ -29,7 +29,7 @@
         next-url (when activity? (url org {:start last-activity :direction :before}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))
         prior-url (when (and start? activity?) (url org {:start first-activity :direction :after}))
-        prior-link (when prior-url (hateoas/link-map "prior" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
+        prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))
 
 (defn render-activity-list
