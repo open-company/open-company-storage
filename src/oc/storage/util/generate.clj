@@ -71,7 +71,7 @@
           :body
           (s/replace #"(~|`|!|@|#|$|%|^|&|\*|\(|\)|\{|\}|\[|\]|;|:|\"|'|<|,|\.|>|\?|\/|\\|\||-|_|\+|=)" "") ; punctuation
           (s/split #" "))
-    (drop 8) ; first 8 don't change
+    (drop 8) ; first 8 words don't change so we don't want them
     (take (inc (int (* (rand) size))))
     (s/join " ")))
 
