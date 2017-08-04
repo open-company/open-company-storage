@@ -153,11 +153,14 @@
 ;; ----- Collection of entries -----
 
 (schema/defn ^:always-validate get-entries-by-org
-  "Given the UUID of the org, return the entries for the org with any interactions."
-  [conn org-uuid :- lib-schema/UniqueID start :- lib-schema/ISO8601 direction]
-  {:pre [(db-common/conn? conn)]}
+  "Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  and a direction, one of `:before` or `:after`, return the entries for the org with any interactions."
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+  {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)]}
   (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
-                                          config/default-limit "created-at" start direction
+                                          "created-at" order start direction config/default-limit
                                           :interactions common/interaction-table-name :uuid :entry-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
