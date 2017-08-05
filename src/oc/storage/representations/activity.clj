@@ -46,7 +46,7 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-rep/render-entry-for-collection (:slug org) "board" %
+                    :items (map #(entry-rep/render-entry-for-collection (:slug org) (:board-slug %) %
                               (comments %) (reactions %)
                               access-level user-id) activity)}}
       {:pretty config/pretty?})))

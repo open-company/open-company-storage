@@ -22,18 +22,20 @@
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction} org]
-  (let [order (if (= :after direction) :asc :desc)]
-    (cond
+  [conn {start :start direction :direction} org board-slugs-by-uuid]
+  (let [order (if (= :after direction) :asc :desc)
+        entries (cond
 
-      (= direction :around)
-      (concat
-        (reverse (entry-res/get-entries-by-org conn (:uuid org) :asc start :after))
-        (entry-res/get-entries-by-org conn (:uuid org) :desc start :before))
-      
-      (= order :asc) (reverse (entry-res/get-entries-by-org conn (:uuid org) order start direction))
+                  (= direction :around)
+                  (concat
+                    (reverse (entry-res/get-entries-by-org conn (:uuid org) :asc start :after))
+                    (entry-res/get-entries-by-org conn (:uuid org) :desc start :before))
+                  
+                  (= order :asc) (reverse (entry-res/get-entries-by-org conn (:uuid org) order start direction))
 
-      :else (entry-res/get-entries-by-org conn (:uuid org) order start direction))))
+                  :else (entry-res/get-entries-by-org conn (:uuid org) order start direction))]
+    ;; Give each entry its board name
+    (map #(assoc % :board-slug (board-slugs-by-uuid (:board-uuid %))) entries)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -62,6 +64,7 @@
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (:existing-org ctx)
+                             org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
@@ -69,9 +72,12 @@
                              ;; around is only valid with a specified start
                              allowed-direction (if (and (not start?) (= direction :around)) :before direction) 
                              params (merge start-params {:direction allowed-direction :start? start?})
-                             ;boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
-                             activity (assemble-activity conn params org)]
+                             board-uuids (map :uuid boards)
+                             board-slugs (map :slug boards)
+                             board-slugs-by-uuid (zipmap board-uuids board-slugs)
+                             activity (assemble-activity conn params org board-slugs-by-uuid)]
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
 ;; ----- Routes -----
