@@ -32,11 +32,14 @@
 (defn- org-collection-links [org]
   (assoc org :links [(item-link org)]))
 
-(defn activity-link [org]
+(defn- activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
 
+(defn- calendar-link [org]
+  (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
+
 (defn- org-links [org access-level]
-  (let [links [(self-link org) (activity-link org)]
+  (let [links [(self-link org) (activity-link org) (calendar-link org)]
         full-links (if (= access-level :author) 
                       (concat links [(board-create-link org)
                                      (partial-update-link org)

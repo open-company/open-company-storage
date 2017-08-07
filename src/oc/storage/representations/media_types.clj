@@ -7,6 +7,7 @@
 
 ;; Activity media types
 (def activity-collection-media-type "application/vnd.collection+vnd.open-company.activity+json;version=1")
+(def activity-calendar-media-type "application/vnd.collection+vnd.open-company.activity-calendar+json;version=1")
 
 ;; Board media types
 (def board-media-type "application/vnd.open-company.board.v1+json")

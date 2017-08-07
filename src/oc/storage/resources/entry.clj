@@ -153,8 +153,10 @@
 ;; ----- Collection of entries -----
 
 (schema/defn ^:always-validate get-entries-by-org
-  "Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
-  and a direction, one of `:before` or `:after`, return the entries for the org with any interactions."
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  and a direction, one of `:before` or `:after`, return the entries for the org with any interactions.
+  "
   [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
@@ -183,6 +185,22 @@
     common/interaction-table-name
     :board-uuid-org-uuid
     [board-uuid org-uuid] "entry-uuid"))
+
+;; ----- Data about entries -----
+
+(schema/defn ^:always-validate entry-months-by-org
+  "
+  Given the UUID of the org, return an ordered sequence of all the months that have at least one entry.
+
+  Response:
+
+  [['2017' '06'] ['2017' '01'] [2016 '05']]
+
+  Sequence is ordered, newest to oldest.
+  "
+  [conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/months-with-resource conn table-name :org-uuid org-uuid :created-at))
 
 ;; ----- Armageddon -----
 

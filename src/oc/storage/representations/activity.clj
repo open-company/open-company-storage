@@ -1,7 +1,10 @@
 (ns oc.storage.representations.activity
   "Resource representations for OpenCompany activity."
   (:require [cheshire.core :as json]
+            [clj-time.format :as format]
+            [clj-time.core :as t]
             [oc.lib.hateoas :as hateoas]
+            [oc.lib.db.common :as db-common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
@@ -32,6 +35,23 @@
         prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))
 
+(defn- calendar-link [start org]
+  (hateoas/self-link (url org {:start start :direction :around}) {:accept mt/activity-collection-media-type}))
+
+(defn- calendar-month [year month org]
+  (let [iso-month (format/unparse db-common/timestamp-format (t/date-time year month))]
+    {:month month :year year :links [(calendar-link iso-month org)]}))
+
+(defn- calendar-year
+  "Create a map for each year in the calendar with an activity feed link for the year, a sequence of months, and
+  an activity feed link for each month."
+  [year-data org]
+  (let [year (Integer. (first year-data))
+        iso-year (format/unparse db-common/timestamp-format (t/date-time year))
+        month-data (map #(Integer. (last %)) (last year-data))
+        months (map #(calendar-month year % org) month-data)]
+    {:year year :links [(calendar-link iso-year org)] :months months}))
+
 (defn render-activity-list
   "
   Given an org and a sequence of entry and story maps, create a JSON representation of a list of
@@ -50,3 +70,8 @@
                               (comments %) (reactions %)
                               access-level user-id) activity)}}
       {:pretty config/pretty?})))
+
+(defn render-activity-calendar
+  "Render a JSON map of activity calendar links for the API."
+  [org calendar-data access-level user-id]
+  (json/generate-string (map #(calendar-year % org) calendar-data)))
