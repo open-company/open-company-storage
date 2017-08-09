@@ -24,19 +24,32 @@
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction} org board-by-uuid]
   (let [order (if (= :after direction) :asc :desc)
-        entries (cond
+        activity (cond
 
                   (= direction :around)
-                  (concat
-                    (reverse (entry-res/get-entries-by-org conn (:uuid org) :asc start :after))
-                    (entry-res/get-entries-by-org conn (:uuid org) :desc start :before))
+                  (let [previous-entries (entry-res/get-entries-by-org conn (:uuid org) :asc start :after)
+                        next-entries (entry-res/get-entries-by-org conn (:uuid org) :desc start :before)]
+                    {:direction :around
+                     :previous-count (count previous-entries)
+                     :next-count (count next-entries)
+                     :entries (concat (reverse previous-entries) next-entries)})
                   
-                  (= order :asc) (reverse (entry-res/get-entries-by-org conn (:uuid org) order start direction))
+                  (= order :asc)
+                  (let [previous-entries (entry-res/get-entries-by-org conn (:uuid org) order start direction)]
+                    {:direction :previous
+                     :previous-count (count previous-entries)
+                     :entries (reverse previous-entries)})
 
-                  :else (entry-res/get-entries-by-org conn (:uuid org) order start direction))]
+
+                  :else
+                  (let [next-entries (entry-res/get-entries-by-org conn (:uuid org) order start direction)]
+                    {:direction :next
+                     :next-count (count next-entries)
+                     :entries next-entries}))]
     ;; Give each entry its board name
-    (map #(merge % {:board-slug (:slug (board-by-uuid (:board-uuid %)))
-                    :board-name (:name (board-by-uuid (:board-uuid %)))}) entries)))
+    (update activity :entries #(map (fn [entry] (merge entry {:board-slug (:slug (board-by-uuid (:board-uuid entry)))
+                                                             :board-name (:name (board-by-uuid (:board-uuid entry)))}))
+                                  %))))
 
 (defn- assemble-calendar
   "

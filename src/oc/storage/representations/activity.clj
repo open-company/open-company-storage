@@ -26,12 +26,18 @@
 (defn- pagination-links
   "Add `next` and/or `prior` links for pagination as needed."
   [org {:keys [start start? direction]} activity]
-  (let [activity? (not-empty activity)
-        last-activity (when activity? (:created-at (last activity)))
-        first-activity (when activity? (:created-at (first activity)))
-        next-url (when activity? (url org {:start last-activity :direction :before}))
+  (let [entries (:entries activity)
+        activity? (not-empty entries)
+        last-activity (when activity? (:created-at (last entries)))
+        first-activity (when activity? (:created-at (first entries)))
+        next? (or (= (:direction activity) :previous)
+                  (= (:next-count activity) config/default-limit))
+        next-url (when next? (url org {:start last-activity :direction :before}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))
-        prior-url (when (and start? activity?) (url org {:start first-activity :direction :after}))
+        prior? (and start?
+                    (or (= (:direction activity) :next)
+                        (= (:previous-count activity) config/default-limit)))
+        prior-url (when prior? (url org {:start first-activity :direction :after}))
         prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))
 
@@ -71,7 +77,7 @@
                     :links full-links
                     :items (map #(entry-rep/render-entry-for-collection (:slug org) (:board-slug %) %
                               (comments %) (reactions %)
-                              access-level user-id) activity)}}
+                              access-level user-id) (:entries activity))}}
       {:pretty config/pretty?})))
 
 (defn render-activity-calendar
