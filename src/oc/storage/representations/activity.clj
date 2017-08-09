@@ -38,8 +38,11 @@
 (defn- calendar-link [start org]
   (hateoas/self-link (url org {:start start :direction :around}) {:accept mt/activity-collection-media-type}))
 
+(defn- last-minute [year month]
+  (t/plus (t/last-day-of-the-month year month) (t/hours 23) (t/minutes 59) (t/seconds 59)))
+
 (defn- calendar-month [year month org]
-  (let [iso-month (format/unparse db-common/timestamp-format (t/date-time year month))]
+  (let [iso-month (format/unparse db-common/timestamp-format (last-minute year month))]
     {:month month :year year :links [(calendar-link iso-month org)]}))
 
 (defn- calendar-year
@@ -47,7 +50,7 @@
   an activity feed link for each month."
   [year-data org]
   (let [year (Integer. (first year-data))
-        iso-year (format/unparse db-common/timestamp-format (t/date-time year))
+        iso-year (format/unparse db-common/timestamp-format (last-minute year 12))
         month-data (map #(Integer. (last %)) (last year-data))
         months (map #(calendar-month year % org) month-data)]
     {:year year :links [(calendar-link iso-year org)] :months months}))
