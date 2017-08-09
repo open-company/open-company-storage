@@ -80,4 +80,4 @@
 
 (def default-reactions ["👌" "👀" "🇫🇰"])
 
-(def default-limit 50)
+(def default-limit 20)
