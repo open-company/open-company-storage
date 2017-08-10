@@ -53,6 +53,8 @@
                       links)]
     (assoc org :links full-links)))
 
+(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
+
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"
   [org user-id]
@@ -72,7 +74,7 @@
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
   [orgs authed?]
-  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})]
+  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type}) auth-link]
         full-links (if authed?
                       (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
                                                                  :accept mt/org-media-type}))
