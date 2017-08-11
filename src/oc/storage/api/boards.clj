@@ -38,7 +38,7 @@
   "Assemble the entry, topic, author, and viewer data needed for a board response."
   [conn org-slug slug ctx]
   (let [board (or (:updated-board ctx) (:existing-board ctx))
-        entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
+        entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
                         (filter :topic-slug) ; remove entries w/ no topic

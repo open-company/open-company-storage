@@ -29,7 +29,7 @@
   ;; TODO: promoted orgs w/ public boards
   (let [authed-orgs (if user
                 ;; Auth'd user
-                (org-res/get-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
+                (org-res/list-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
                 ;; Not auth'd
                 [])
         org-slugs (set (map :slug authed-orgs)) ; set of the org slugs for this user

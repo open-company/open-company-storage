@@ -119,9 +119,11 @@
                  '[oc.storage.resources.org :as org]
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
+                 '[oc.storage.resources.story :as story]
                  '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
+                 '[oc.storage.representations.story :as story-rep]
                  )
       ]
     }]

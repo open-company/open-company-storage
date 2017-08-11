@@ -31,11 +31,18 @@
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
       {:created-org (assoc org-result :boards
-                     (map
-                        #(board-res/create-board! conn
-                          (board-res/->board uuid {:name %} author))
-                        board-res/default-boards))})
-    
+                        (concat
+                          ;; Create default boards
+                          (map
+                            #(board-res/create-board! conn
+                              (board-res/->board uuid {:name %} author))
+                            board-res/default-boards)
+                          ;; Create default storyboards
+                          (map
+                            #(board-res/create-board! conn
+                              (board-res/->storyboard uuid {:name %} author))
+                            board-res/default-storyboards)))})
+  
     (do (timbre/error "Failed creating org.") false)))
 
 (defn- update-org [conn ctx slug]

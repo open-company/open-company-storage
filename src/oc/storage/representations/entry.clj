@@ -23,10 +23,11 @@
 (defun- interaction-url
 
   ([org-uuid board-uuid entry-uuid]
-  (str config/interaction-server-url (url org-uuid board-uuid entry-uuid) "/comments"))
+  (str config/interaction-server-url "/orgs/" org-uuid "/boards/" board-uuid "/resources/" entry-uuid "/comments"))
 
   ([org-uuid board-uuid entry-uuid reaction]
-  (str config/interaction-server-url (url org-uuid board-uuid entry-uuid) "/reactions/" reaction "/on")))
+  (str config/interaction-server-url
+       "/orgs/" org-uuid "/boards/" board-uuid "/resources/" entry-uuid "/reactions/" reaction "/on")))
 
 (defn- self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
@@ -47,8 +48,8 @@
 
 (defn- comment-link [org-uuid board-uuid entry-uuid]
   (let [comment-url (str (interaction-url org-uuid board-uuid entry-uuid) "/")]
-    (hateoas/link-map "comment" hateoas/POST comment-url {:content-type mt/comment-media-type
-                                                          :accept mt/comment-media-type})))
+    (hateoas/create-link comment-url {:content-type mt/comment-media-type
+                                      :accept mt/comment-media-type})))
 
 (defun- clean-blank-topic
   "Remove a blank topic slug/name from an entry representation."

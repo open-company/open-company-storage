@@ -27,22 +27,22 @@
         activity (cond
 
                   (= direction :around)
-                  (let [previous-entries (entry-res/get-entries-by-org conn (:uuid org) :asc start :after)
-                        next-entries (entry-res/get-entries-by-org conn (:uuid org) :desc start :before)]
+                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after)
+                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before)]
                     {:direction :around
                      :previous-count (count previous-entries)
                      :next-count (count next-entries)
                      :entries (concat (reverse previous-entries) next-entries)})
                   
                   (= order :asc)
-                  (let [previous-entries (entry-res/get-entries-by-org conn (:uuid org) order start direction)]
+                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)]
                     {:direction :previous
                      :previous-count (count previous-entries)
                      :entries (reverse previous-entries)})
 
 
                   :else
-                  (let [next-entries (entry-res/get-entries-by-org conn (:uuid org) order start direction)]
+                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)]
                     {:direction :next
                      :next-count (count next-entries)
                      :entries next-entries}))]

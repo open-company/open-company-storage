@@ -1,38 +1,31 @@
-; (ns oc.storage.resources.story
-;   (:require [clojure.string :as s]
-;             [clojure.walk :refer (keywordize-keys)]
-;             [if-let.core :refer (if-let*)]
-;             [schema.core :as schema]
-;             [oc.lib.schema :as lib-schema]
-;             [oc.lib.slugify :as slug]
-;             [oc.lib.db.common :as db-common]
-;             [oc.storage.resources.common :as common]
-;             [oc.storage.resources.org :as org-res]
-;             [oc.storage.resources.entry :as entry-res]))
+(ns oc.storage.resources.story
+  (:require [clojure.walk :refer (keywordize-keys)]
+            [if-let.core :refer (if-let*)]
+            [schema.core :as schema]
+            [oc.lib.schema :as lib-schema]
+            [oc.lib.db.common :as db-common]
+            [oc.lib.slugify :as slugify]
+            [oc.storage.config :as config]
+            [oc.storage.resources.common :as common]
+            [oc.storage.resources.board :as board-res]))
 
-; ;; ----- RethinkDB metadata -----
+;; ----- RethinkDB metadata -----
 
-; (def table-name common/update-table-name)
-; (def primary-key :id)
+(def table-name common/story-table-name)
+(def primary-key :uuid)
 
 ; ;; ----- Metadata -----
 
-; (def reserved-properties
-;   "Properties of a resource that can't be specified during a create and are ignored during an update."
-;   #{})
+(def reserved-properties
+  "Properties of a resource that can't be specified during a create and are ignored during an update."
+  #{})
 
 ; ;; ----- Utility functions -----
 
-; (defn- clean
-;   "Remove any reserved properties from the org."
-;   [update]
-;   (apply dissoc (common/clean update) reserved-properties))
-
-; (defn- slug-for
-;   "Create a slug for the update from the slugified title and a short UUID."
-;   [title]
-;   (let [non-blank-title (if (s/blank? title) "update" title)]
-;     (str (slug/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 5))))
+(defn- clean
+  "Remove any reserved properties from the org."
+  [update]
+  (apply dissoc (common/clean update) reserved-properties))
 
 ; (schema/defn ^:always-validate entry-for :- common/UpdateEntry
 ;   "
@@ -47,34 +40,40 @@
 ;       (dissoc entry :org-uuid :board-uuid :body-placeholder :slack-thread)
 ;       (throw (ex-info "Invalid entry." {:org-uuid org-uuid :topic-slug topic-slug :created-at timestamp})))))
 
-; ;; ----- Update Slug -----
+;; ----- Slug -----
 
-; (declare list-updates-by-org)
-; (defn taken-slugs
-;   "Return all update slugs which are in use as a set."
-;   [conn org-uuid]
-;   {:pre [(db-common/conn? conn)
-;          (schema/validate lib-schema/UniqueID org-uuid)]}
-;   (map :slug (list-updates-by-org conn org-uuid)))
+(defn- slug-for
+  "Create a slug for the update from the slugified title and a short UUID."
+  [title]
+  (let [non-blank-title (if (clojure.string/blank? title) "update" title)]
+    (str (slugify/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 5))))
 
-; (defn slug-available?
-;   "Return true if the slug is not used by any update in the org."
-;   [conn org-uuid slug]
-;   {:pre [(db-common/conn? conn)
-;          (schema/validate lib-schema/UniqueID org-uuid)
-;          (slug/valid-slug? slug)]}
-;   (not (contains? (taken-slugs conn) slug)))
+(declare list-stories-by-org)
+(defn taken-slugs
+  "Return all update slugs which are in use as a set."
+  [conn org-uuid]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UniqueID org-uuid)]}
+  (map :slug (list-stories-by-org conn org-uuid)))
 
-; ;; ----- Update CRUD -----
+(defn slug-available?
+  "Return true if the slug is not used by any update in the org."
+  [conn org-uuid slug]
+  {:pre [(db-common/conn? conn)
+         (schema/validate lib-schema/UniqueID org-uuid)
+         (slugify/valid-slug? slug)]}
+  (not (contains? (taken-slugs conn) slug)))
 
-; (schema/defn ^:always-validate ->update :- common/Update
+; ;; ----- Story CRUD -----
+
+; (schema/defn ^:always-validate ->story :- common/Story
 ;   "
 ;   Take an org slug, a minimal map containing a ShareRequest, and a user as the update author
 ;   and 'fill the blanks' with any missing properties.
 ;   "
 ;   [conn org-slug update-props :- common/ShareRequest user :- lib-schema/User]
 ;   {:pre [(db-common/conn? conn)
-;          (slug/valid-slug? org-slug)]}
+;          (slugify/valid-slug? org-slug)]}
 ;   (if-let* [org (org-res/get-org conn org-slug)
 ;             org-uuid (:uuid org)
 ;             ts (db-common/current-timestamp)
@@ -110,10 +109,10 @@
 ;   "
 ;   [conn org-uuid :- lib-schema/UniqueID slug]
 ;   {:pre [(db-common/conn? conn)
-;          (slug/valid-slug? slug)]}
+;          (slugify/valid-slug? slug)]}
 ;   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
 
-; ;; ----- Collection of updates -----
+; ;; ----- Collection of stories -----
 
 ; (defn list-updates
 ;   "
@@ -151,29 +150,27 @@
 ;     (sort-by :created-at)
 ;     vec)))
 
-; (schema/defn ^:always-validate list-updates-by-author
-;   "
-;   Return a sequence of maps with slugs, titles, medium, and created-at, sorted by created-at.
-  
-;   Note: if additional-keys are supplied, they will be included in the map, and only boards
-;   containing those keys will be returned.
-;   "
-;   ([conn org-uuid user-id] (list-updates-by-author conn org-uuid user-id []))
+;; ----- Data about stories -----
 
-;   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID additional-keys]
-;   {:pre [(db-common/conn? conn)
-;          (sequential? additional-keys)
-;          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-;   (->> (into [primary-key :slug :title :medium :created-at] additional-keys)
-;     (db-common/read-resources conn table-name :author-user-id-org-uuid [[user-id org-uuid]])
-;     (sort-by :created-at)
-;     vec)))
+(schema/defn ^:always-validate story-months-by-org
+  "
+  Given the UUID of the org, return an ordered sequence of all the months that have at least one story.
 
-; ;; ----- Armageddon -----
+  Response:
 
-; (defn delete-all-updates!
-;   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-;   [conn]
-;   {:pre [(db-common/conn? conn)]}
-;   ;; Delete all udpates
-;   (db-common/delete-all-resources! conn table-name))
+  [['2017' '06'] ['2017' '01'] [2016 '05']]
+
+  Sequence is ordered, newest to oldest.
+  "
+  [conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/months-with-resource conn table-name :org-uuid org-uuid :created-at))
+
+;; ----- Armageddon -----
+
+(defn delete-all-stories!
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
+  [conn]
+  {:pre [(db-common/conn? conn)]}
+  ;; Delete all stories
+  (db-common/delete-all-resources! conn table-name))

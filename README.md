@@ -248,16 +248,14 @@ Then enter these commands one-by-one, noting the output:
 })
 
 (org/create-org! conn
-  (org/->org {:name "Blank"
-              :currency "GBP"}
+  (org/->org {:name "Blank"}
               author))
 
-(org/put-org! conn "open" {
+(org/create-org! conn "open" {
     :name "OpenCompany"
     :logo-url "https://open-company-assets.s3.amazonaws.com/open-company.png"
     :logo-width 142
-    :logo-height 142
-    :currency "FKP"}
+    :logo-height 142}
     author)
 
 (org/create-org! conn
@@ -265,8 +263,7 @@ Then enter these commands one-by-one, noting the output:
               :slug (slug/find-available-slug "Buffer" (org/taken-slugs conn))
               :logo-url "https://open-company-assets.s3.amazonaws.com/buffer.png"
               :logo-width 313
-              :logo-height 319
-              :currency "USD"}
+              :logo-height 319}
               author))
 
 ;; list orgs
@@ -286,6 +283,9 @@ Then enter these commands one-by-one, noting the output:
 
 (board/create-board! conn
   (board/->board (org/uuid-for conn "open") {:name "Engineering"} author))
+
+(board/create-board! conn
+  (board/->storyboard (org/uuid-for conn "open") {:name "Customer Update"} author))
 
 ;; list boards
 (board/list-boards-by-org conn (org/uuid-for conn "blank"))

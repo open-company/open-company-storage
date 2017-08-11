@@ -32,7 +32,9 @@
 (def EntryAuthor
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
-(def StoryEntry {
+(def StoryEntry 
+  "An entry embedded in a story."
+  {
   :uuid lib-schema/UniqueID
   :topic-name (schema/maybe lib-schema/NonBlankStr)
   :topic-slug (schema/maybe Slug)
@@ -41,14 +43,13 @@
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
-  ;; Charts
-  (schema/optional-key :chart-url) (schema/maybe schema/Str)
   
   :author [EntryAuthor]
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
 (def Entry
+  "An entry on a board."
   (merge StoryEntry {
     :org-uuid lib-schema/UniqueID
     :board-uuid lib-schema/UniqueID
@@ -56,8 +57,11 @@
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
-(def Board {
+(def Board
+  "An entry or story container."
+  {
   :uuid lib-schema/UniqueID
+  :type (schema/pred #((set [:entry :story]) (keyword %)))
   :slug Slug
   :name lib-schema/NonBlankStr
   :org-uuid lib-schema/UniqueID

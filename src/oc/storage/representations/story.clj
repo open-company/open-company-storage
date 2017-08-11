@@ -1,14 +1,14 @@
-; (ns oc.storage.representations.story
-;   "Resource representations for OpenCompany stories."
-;   (:require [defun.core :refer (defun)]
-;             [cheshire.core :as json]
-;             [oc.lib.hateoas :as hateoas]
-;             [oc.storage.config :as config]
-;             [oc.storage.representations.media-types :as mt]
-;             [oc.storage.representations.org :as org-rep]))
+(ns oc.storage.representations.story
+  "Resource representations for OpenCompany stories."
+  (:require [defun.core :refer (defun)]
+            [cheshire.core :as json]
+            [oc.lib.hateoas :as hateoas]
+            [oc.storage.config :as config]
+            [oc.storage.representations.media-types :as mt]
+            [oc.storage.representations.board :as board-rep]))
 
-; (def representation-props [:slug :org-name :currency :logo-url :logo-width :logo-height
-;                            :title :note :entries :medium :author :created-at])
+(def representation-props [:slug :org-name :org-logo-url :org-logo-width :org-logo-height
+                           :title :body :author :created-at])
 
 ; (def list-props [:slug :title :medium :created-at])
 
@@ -18,7 +18,8 @@
 
 ; (defn- self-link [org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/story-media-type}))
 
-; (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
+(defn- up-link [org-slug board-slug]
+  (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
 
 ; (defn- create-link [org-slug] (hateoas/create-link (str (org-rep/url org-slug) "/stories/")
 ;                                 {:content-type mt/share-request-media-type

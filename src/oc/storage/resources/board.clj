@@ -22,22 +22,32 @@
   "Properties of a resource that can't be specified during a create and are ignored during an update."
   #{:authors :viewers})
 
+(def ignored-properties
+  "Properties of a resource that are ignored during an update."
+  (merge reserved-properties #{:type}))
+
 ;; ----- Data Defaults -----
 
-(def default-boards ["Who-We-Are" "All-Hands"])
+(def default-boards ["Who-We-Are" "Welcome"])
+(def default-storyboards ["All-Hands" "Investor Update"])
 
 (def default-access :team)
 
 ;; ----- Utility functions -----
 
 (defn clean
-  "Remove any reserved properties from the org."
-  [org]
-  (apply dissoc (common/clean org) reserved-properties))
+  "Remove any reserved properties from the board."
+  [board]
+  (apply dissoc (common/clean board) reserved-properties))
+
+(defn ignore-props
+  "Remove any ignored properties from the board."
+  [board]
+  (apply dissoc board ignored-properties))
 
 ;; ----- Board Slug -----
 
-(def reserved-slugs #{"create-board" "settings" "boards" "updates"})
+(def reserved-slugs #{"create-board" "settings" "boards" "stories" "activity"})
 
 (declare list-boards-by-org)
 (defn taken-slugs
@@ -75,6 +85,7 @@
         keywordize-keys
         clean
         (assoc :uuid (db-common/unique-id))
+        (update :type #(or % :entry))
         (assoc :slug slug)
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
@@ -84,6 +95,17 @@
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
 
+(schema/defn ^:always-validate ->storyboard :- common/Board
+  "
+  Take an org UUID, a minimal map describing a storyboard, a user and an optional slug and 'fill the blanks' with
+  any missing properties.
+  "
+  ([org-uuid board-props user]
+  (assoc (->board org-uuid board-props user) :type :story))
+
+  ([org-uuid slug board-props user :- lib-schema/User]
+  (assoc (->board org-uuid slug board-props user) :type :story)))
+  
 (schema/defn ^:always-validate create-board!
   "
   Create a board in the system. Throws a runtime exception if the board doesn't conform to the common/Board schema.
@@ -134,7 +156,7 @@
   {:pre [(db-common/conn? conn)
          (map? board)]}
   (when-let [original-board (get-board conn uuid)]
-    (let [updated-board (merge original-board (clean board))]
+    (let [updated-board (merge original-board (ignore-props board))]
       (schema/validate common/Board updated-board)
       (db-common/update-resource conn table-name primary-key original-board updated-board))))
 
@@ -229,7 +251,7 @@
   {:pre [(db-common/conn? conn)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name :org-uuid] additional-keys)
+  (->> (into [primary-key :slug :name :org-uuid :type] additional-keys)
     (db-common/read-resources conn table-name)
     (sort-by :slug)
     vec)))
@@ -248,7 +270,7 @@
          (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name] additional-keys)
+  (->> (into [primary-key :slug :name :type] additional-keys)
     (db-common/read-resources conn table-name :org-uuid org-uuid)
     (sort-by :slug)
     vec)))
@@ -275,7 +297,7 @@
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
 
-  (->> (into [primary-key :slug :name] additional-keys)
+  (->> (into [primary-key :slug :name :type] additional-keys)
     (db-common/read-resources conn table-name index-key index-value)
     (sort-by :slug)
     vec)))

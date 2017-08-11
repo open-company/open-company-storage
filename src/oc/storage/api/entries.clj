@@ -122,9 +122,9 @@
                                entry (or (:existing-entry ctx)
                                          (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
                                comments (or (:existing-comments ctx)
-                                            (entry-res/get-comments-for-entry conn (:uuid entry)))
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
-                                            (entry-res/get-reactions-for-entry conn (:uuid entry)))]
+                                            (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org org :existing-board board :existing-entry entry
                          :existing-comments comments :existing-reactions reactions}
                         false))
@@ -189,7 +189,7 @@
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
                                             (slugify/valid-slug? board-slug))
                                board-uuid (board-res/uuid-for conn org-slug board-slug)
-                               entries (entry-res/get-entries-by-board conn board-uuid)
+                               entries (entry-res/list-entries-by-board conn board-uuid)
                                org-uuid (org-res/uuid-for conn org-slug)]
                         {:existing-entries entries}
                         false))

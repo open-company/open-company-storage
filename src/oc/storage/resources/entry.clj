@@ -23,7 +23,7 @@
 ;; ----- Utility functions -----
 
 (defn clean
-  "Remove any reserved properties from the org."
+  "Remove any reserved properties from the entry."
   [entry]
   (apply dissoc (common/clean entry) reserved-properties))
 
@@ -133,26 +133,26 @@
   (if-let [board (board-res/get-board conn board-uuid)]
     (do
       ;; Delete interactions
-      (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
+      (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
       (db-common/delete-resource conn table-name uuid))
     ;; No board
     false)))
 
-(schema/defn ^:always-validate get-comments-for-entry
+(schema/defn ^:always-validate list-comments-for-entry
   "Given the UUID of the entry, return a list of the comments for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :body (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :body])))
+  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :body])))
 
-(schema/defn ^:always-validate get-reactions-for-entry
+(schema/defn ^:always-validate list-reactions-for-entry
   "Given the UUID of the entry, return a list of the reactions for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :reaction (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :reaction])))
+  (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction])))
 
 ;; ----- Collection of entries -----
 
-(schema/defn ^:always-validate get-entries-by-org
+(schema/defn ^:always-validate list-entries-by-org
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, return the entries for the org with any interactions.
@@ -163,28 +163,16 @@
           (#{:before :after} direction)]}
   (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
                                           "created-at" order start direction config/default-limit
-                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
-(schema/defn ^:always-validate get-entries-by-board
+(schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the entries for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :board-uuid board-uuid
-                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
-
-(schema/defn ^:always-validate get-interactions-by-board
-  "
-  Given the UUID of the board, return all the comments for entries of the board,
-  grouped by `entry-uuid`.
-  "
-  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID]
-  {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-in-group conn
-    common/interaction-table-name
-    :board-uuid-org-uuid
-    [board-uuid org-uuid] "entry-uuid"))
 
 ;; ----- Data about entries -----
 
