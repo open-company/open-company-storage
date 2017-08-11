@@ -99,7 +99,7 @@
                              ;; around is only valid with a specified start
                              allowed-direction (if (and (not start?) (= direction :around)) :before direction) 
                              params (merge start-params {:direction allowed-direction :start? start?})
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
@@ -133,7 +133,7 @@
                              user-id (:user-id user)
                              org (:existing-org ctx)
                              org-id (:uuid org)
-                             ;boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             ;boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              ;board-uuids (map :uuid boards)
                              months (entry-res/entry-months-by-org conn org-id)

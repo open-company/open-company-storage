@@ -37,6 +37,22 @@
   "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1138076795&format=interactive"
   ])
 
+(def videos [
+  {:id "ZSiuK4Mt9gs" :provider :youtube}
+  {:id "OcCRZkeqFY8" :provider :youtube}
+  {:id "7IXi_ANNMC8" :provider :youtube}
+  {:id "exIDp2vlkmw" :provider :youtube}
+  {:id "FSvNhxKJJyU" :provider :youtube}
+  {:id "c1nMpeLEEj8" :provider :youtube}
+  {:id "BDlBT6g6OYM" :provider :youtube}
+  {:id "224826916" :provider :vimeo}
+  {:id "1398177" :provider :vimeo}
+  {:id "93726126" :provider :vimeo}
+  {:id "38774690" :provider :vimeo}
+  {:id "45445244" :provider :vimeo}
+  {:id "20396704" :provider :vimeo}
+  ])
+
 ;; ----- Author Generation -----
 
 (defn- author-data []
@@ -61,6 +77,22 @@
 (defn- image-tag []
   (str "<p><img class='carrot-no-preview' data-media-type='image' src='http://lorempixel.com/640/480/"
     (rand-nth image-types) "/' width='640' height='480'></p>"))
+
+(defn- video-tag []
+  (let [video (rand-nth videos)
+        id (:id video)
+        provider (:provider video)
+        thumbnail (if (= provider :youtube)
+                    (str "https://img.youtube.com/vi/" id "/0.jpg")
+                    (str "https://i.vimeocdn.com/video/" id "224826916_100x75.webp"))]
+    (str "<p><iframe "
+            "data-thumbnail='" thumbnail "' "
+            "data-media-type='video' "
+            "data-video-type='" (name provider) "' "
+            "data-video-id='" id "' "
+            "class='carrot-no-preview' width='560' height='315' frameborder='0' "
+            "webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''>
+          </iframe></p>")))
 
 (defn- body-text [size]
   (:body (http/get (str "http://skateipsum.com/get/" (inc (int (* (rand) size))) "/0/text"))))
@@ -88,7 +120,7 @@
         chart? (<= (rand) (:chance-of-chart config-data))
         part3 (if chart? part2 part2) ; TODO charts
         video? (<= (rand) (:chance-of-video config-data))
-        body (if video? part3 part3) ; TODO videos
+        body (if video? (str part3 (video-tag)) part3)
         entry-props {:headline headline :body body}
         entry (if topic? (assoc entry-props :topic-name topic) entry-props)]
     (entry-res/create-entry! conn (entry-res/->entry conn board entry author) timestamp)))

@@ -141,7 +141,7 @@
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-reps (map #(board-rep/render-board-for-collection slug %) allowed-boards)
                              authors (:authors org)

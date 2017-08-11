@@ -289,7 +289,7 @@ Then enter these commands one-by-one, noting the output:
 
 ;; list boards
 (board/list-boards-by-org conn (org/uuid-for conn "blank"))
-(board/list-boards-by-org conn (org/uuid-for conn "open"))
+(board/list-storyboards-by-org conn (org/uuid-for conn "open"))
 
 ;; create some entries
 (entry/create-entry! conn

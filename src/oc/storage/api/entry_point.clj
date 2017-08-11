@@ -19,7 +19,7 @@
   [conn org-slug]
   (when-let* [org (org-res/get-org conn org-slug)
               org-uuid (:uuid org)
-              boards (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])]
+              boards (board-res/list-all-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])]
     (if (empty? boards) false org)))
 
 ;; ----- Responses -----

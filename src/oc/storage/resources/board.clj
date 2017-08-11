@@ -49,13 +49,13 @@
 
 (def reserved-slugs #{"create-board" "settings" "boards" "stories" "activity"})
 
-(declare list-boards-by-org)
+(declare list-all-boards-by-org)
 (defn taken-slugs
   "Return all board slugs which are in use as a set."
   [conn org-uuid]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)]}
-  (into reserved-slugs (map :slug (list-boards-by-org conn org-uuid))))
+  (into reserved-slugs (map :slug (list-all-boards-by-org conn org-uuid))))
 
 (defn slug-available?
   "Return true if the slug is not used by any board in the org."
@@ -238,14 +238,14 @@
 
 ;; ----- Collection of boards -----
 
-(defn list-boards
+(defn list-all-boards
   "
-  Return a sequence of maps with slugs, UUIDs, names and org-uuid, sorted by slug.
+  Return a sequence of boards and storyboards with slugs, UUIDs, names, type, and org-uuid, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn] (list-boards conn []))
+  ([conn] (list-all-boards conn []))
 
   ([conn additional-keys]
   {:pre [(db-common/conn? conn)
@@ -256,14 +256,14 @@
     (sort-by :slug)
     vec)))
 
-(defn list-boards-by-org
+(defn list-all-boards-by-org
   "
-  Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
+  Return a sequence of boards and storyboards with slugs, UUIDs, type and names, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn org-uuid] (list-boards-by-org conn org-uuid []))
+  ([conn org-uuid] (list-all-boards-by-org conn org-uuid []))
 
   ([conn org-uuid additional-keys]
   {:pre [(db-common/conn? conn)
@@ -272,6 +272,57 @@
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
   (->> (into [primary-key :slug :name :type] additional-keys)
     (db-common/read-resources conn table-name :org-uuid org-uuid)
+    (sort-by :slug)
+    vec)))
+
+(defn list-boards-by-org
+  "
+  Return a sequence of boards with slugs, UUIDs, type and names, sorted by slug.
+  
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
+  "
+  ([conn org-uuid] (list-boards-by-org conn org-uuid []))
+
+  ([conn org-uuid additional-keys]
+  (filter #(= (keyword (:type %)) :entry) (list-all-boards-by-org conn org-uuid additional-keys))))
+
+(defn list-storyboards-by-org
+  "
+  Return a sequence of boards with slugs, UUIDs, type and names, sorted by slug.
+  
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
+  "
+  ([conn org-uuid] (list-storyboards-by-org conn org-uuid []))
+
+  ([conn org-uuid additional-keys]
+  (filter #(= (keyword (:type %)) :story) (list-all-boards-by-org conn org-uuid additional-keys))))
+
+(defn list-all-boards-by-index
+  "
+  Given the name of a secondary index and a value, retrieve all matching boards and storyboards
+  as a sequence of maps with slugs, UUIDs and names, sorted by slug.
+  
+  Secondary indexes:
+  :uuid
+  :slug
+  :authors
+  :viewers
+
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
+  "
+  ([conn index-key index-value] (list-all-boards-by-index conn index-key index-value []))
+
+  ([conn index-key index-value additional-keys]
+  {:pre [(db-common/conn? conn)
+         (or (keyword? index-key) (string? index-key))
+         (sequential? additional-keys)
+         (every? #(or (string? %) (keyword? %)) additional-keys)]}
+
+  (->> (into [primary-key :slug :name :type] additional-keys)
+    (db-common/read-resources conn table-name index-key index-value)
     (sort-by :slug)
     vec)))
 
@@ -292,15 +343,26 @@
   ([conn index-key index-value] (list-boards-by-index conn index-key index-value []))
 
   ([conn index-key index-value additional-keys]
-  {:pre [(db-common/conn? conn)
-         (or (keyword? index-key) (string? index-key))
-         (sequential? additional-keys)
-         (every? #(or (string? %) (keyword? %)) additional-keys)]}
+  (filter #(= (keyword (:type %)) :entry) (list-all-boards-by-index conn index-key index-value additional-keys))))
 
-  (->> (into [primary-key :slug :name :type] additional-keys)
-    (db-common/read-resources conn table-name index-key index-value)
-    (sort-by :slug)
-    vec)))
+(defn list-storyboards-by-index
+  "
+  Given the name of a secondary index and a value, retrieve all matching storyboards
+  as a sequence of maps with slugs, UUIDs and names, sorted by slug.
+  
+  Secondary indexes:
+  :uuid
+  :slug
+  :authors
+  :viewers
+
+  Note: if additional-keys are supplied, they will be included in the map, and only boards
+  containing those keys will be returned.
+  "
+  ([conn index-key index-value] (list-storyboards-by-index conn index-key index-value []))
+
+  ([conn index-key index-value additional-keys]
+  (filter #(= (keyword (:type %)) :story) (list-all-boards-by-index conn index-key index-value additional-keys))))
 
 ;; ----- Armageddon -----
 
