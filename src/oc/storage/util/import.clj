@@ -50,17 +50,21 @@
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
-  (if-let [new-board (board/create-board! conn (board/->board (:uuid org)
-                        (dissoc board :entries) author))]
-    (do
-      ;; Create the entries
-      (println (str "Creating " (count (:entries board)) " entries."))
-      (doseq [entry (:entries board)]
-        (import-entry conn org new-board entry author)))
-    
-    (do
-      (println "\nFailed to create the board!")
-      (exit 1 "Board creation failed."))))
+  (let [storyboard? (:type board)
+        empty-board (dissoc board :entries :stories)
+        board-props (if storyboard?
+                      (board/->storyboard (:uuid org) empty-board author)
+                      (board/->board (:uuid org) empty-board author))]
+    (if-let [new-board (board/create-board! conn board-props)]
+      (do
+        ;; Create the entries
+        (println (str "Creating " (count (:entries board)) " entries."))
+        (doseq [entry (:entries board)]
+          (import-entry conn org new-board entry author)))
+      
+      (do
+        (println "\nFailed to create the board!")
+        (exit 1 "Board creation failed.")))))
 
 (defn- import-org [conn options data]
   (let [delete (:delete options)
@@ -154,3 +158,23 @@
       (catch Exception e
         (println e)
         (exit 1 "Exception importing.")))))
+
+(comment
+
+(defn iframe-tag
+  [data-thumbnail data-type id-attribute id-value attribs]
+  (str "<p><iframe "
+            "data-thumbnail='" data-thumbnail "' "
+            "data-media-type='" data-type "' "
+            id-attribute "='" id-value "' "
+            attribs " "
+            "class='carrot-no-preview' width='560' height='315' frameborder='0' "
+            "webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''>"
+          "</iframe></p>"))
+
+(defn chart-tag [sheet-id oid]
+  (let [thumbnail (str "https://docs.google.com/spreadsheets/d/" sheet-id "/embed/oimg?id=" sheet-id "&amp;oid=" oid "&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p")
+        source (str "/_/sheets-proxy/spreadsheets/d/" sheet-id "/pubchart?oid=" oid "&amp;format=interactive")]
+    (iframe-tag thumbnail "chart" "data-chart-id" sheet-id source)))
+
+)

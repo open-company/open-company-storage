@@ -32,28 +32,27 @@
 (def EntryAuthor
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
-(def StoryEntry 
-  "An entry embedded in a story."
+(def Entry 
+  "An entry on a board."
   {
   :uuid lib-schema/UniqueID
-  :topic-name (schema/maybe lib-schema/NonBlankStr)
+  :org-uuid lib-schema/UniqueID
+  :board-uuid lib-schema/UniqueID
   :topic-slug (schema/maybe Slug)
+  :topic-name (schema/maybe lib-schema/NonBlankStr)
+  
   :headline schema/Str
   :body schema/Str
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
   
+  ;; Comment sync
+  (schema/optional-key :slack-thread) lib-schema/SlackThread
+
   :author [EntryAuthor]
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
-
-(def Entry
-  "An entry on a board."
-  (merge StoryEntry {
-    :org-uuid lib-schema/UniqueID
-    :board-uuid lib-schema/UniqueID
-    (schema/optional-key :slack-thread) lib-schema/SlackThread}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
@@ -102,20 +101,31 @@
 ;   (schema/optional-key :channel) lib-schema/NonBlankStr
 ;   (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
 
-; (def Story 
-;   (merge ShareRequest {
-;     (schema/optional-key :id) lib-schema/UUIDStr
-;     :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
-;     :org-uuid lib-schema/UniqueID
-;     :org-name lib-schema/NonBlankStr
-;     :currency schema/Str
-;     (schema/optional-key :logo-url) (schema/maybe schema/Str)
-;     (schema/optional-key :logo-width) schema/Int
-;     (schema/optional-key :logo-height) schema/Int          
-;     :entries [UpdateEntry]
-;     :author lib-schema/Author ; user that created the update
-;     :created-at lib-schema/ISO8601
-;     :updated-at lib-schema/ISO8601}))
+(def State (schema/pred #(#{:draft :published} (keyword %))))
+
+(def Story
+  "A story on a board."
+  {
+    :uuid lib-schema/UniqueID
+    :org-uuid lib-schema/UniqueID
+
+    :state State
+
+    :title schema/Str
+    :slug Slug ; slug of the story, made from the slugified title and a short UUID fragment
+    
+    (schema/optional-key :banner-url) (schema/maybe schema/Str)
+    (schema/optional-key :banner-width) schema/Int
+    (schema/optional-key :banner-height) schema/Int          
+
+    :body schema/Str
+
+    ;; Comment sync
+    (schema/optional-key :slack-thread) lib-schema/SlackThread
+
+    :author lib-schema/Author ; user that created the update
+    :created-at lib-schema/ISO8601
+    :updated-at lib-schema/ISO8601})
 
 ;; ----- Utility functions -----
 

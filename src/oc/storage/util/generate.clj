@@ -30,11 +30,11 @@
 (def image-types ["animals" "business" "city" "people" "nature" "sports" "technics" "transport"])
 
 (def charts [
-  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&format=interactive"
-  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1315570007&format=interactive"
-  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&format=interactive"
-  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&format=interactive"
-  "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1138076795&format=interactive"
+  {:sheet-id "1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc" :oid "1033950253"}
+  {:sheet-id "1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc" :oid "1315570007"}
+  {:sheet-id "1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc" :oid "1022324161"}
+  {:sheet-id "1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc" :oid "1340351038"}
+  {:sheet-id "1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc" :oid "1138076795"}
   ])
 
 (def videos [
@@ -45,12 +45,6 @@
   {:id "FSvNhxKJJyU" :provider :youtube}
   {:id "c1nMpeLEEj8" :provider :youtube}
   {:id "BDlBT6g6OYM" :provider :youtube}
-  {:id "224826916" :provider :vimeo}
-  {:id "1398177" :provider :vimeo}
-  {:id "93726126" :provider :vimeo}
-  {:id "38774690" :provider :vimeo}
-  {:id "45445244" :provider :vimeo}
-  {:id "20396704" :provider :vimeo}
   ])
 
 ;; ----- Author Generation -----
@@ -74,9 +68,16 @@
 
 ;; ----- Update Generation -----
 
-(defn- image-tag []
-  (str "<p><img class='carrot-no-preview' data-media-type='image' src='http://lorempixel.com/640/480/"
-    (rand-nth image-types) "/' width='640' height='480'></p>"))
+(defn- iframe-tag
+  [data-thumbnail data-type id-attribute id-value attribs]
+  (str "<p><iframe "
+            "data-thumbnail='" data-thumbnail "' "
+            "data-media-type='" data-type "' "
+            id-attribute "='" id-value "' "
+            attribs " "
+            "class='carrot-no-preview' width='560' height='315' frameborder='0' "
+            "webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''>"
+          "</iframe></p>"))
 
 (defn- video-tag []
   (let [video (rand-nth videos)
@@ -84,15 +85,20 @@
         provider (:provider video)
         thumbnail (if (= provider :youtube)
                     (str "https://img.youtube.com/vi/" id "/0.jpg")
-                    (str "https://i.vimeocdn.com/video/" id "224826916_100x75.webp"))]
-    (str "<p><iframe "
-            "data-thumbnail='" thumbnail "' "
-            "data-media-type='video' "
-            "data-video-type='" (name provider) "' "
-            "data-video-id='" id "' "
-            "class='carrot-no-preview' width='560' height='315' frameborder='0' "
-            "webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''>
-          </iframe></p>")))
+                    (str "https://i.vimeocdn.com/video/" id "_100x75.jpg"))]
+    (iframe-tag thumbnail "video" "data-video-id" id (str "data-video-type=" (name provider)))))
+
+(defn chart-tag []
+  (let [chart (rand-nth charts)
+        sheet-id (:sheet-id chart)
+        oid (:oid chart)
+        thumbnail (str "https://docs.google.com/spreadsheets/d/" sheet-id "/embed/oimg?id=" sheet-id "&amp;oid=" oid "&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p")
+        source (str "/_/sheets-proxy/spreadsheets/d/" sheet-id "/pubchart?oid=" oid "&amp;format=interactive")]
+    (iframe-tag thumbnail "chart" "data-chart-id" sheet-id source)))
+
+(defn- image-tag []
+  (str "<p><img class='carrot-no-preview' data-media-type='image' src='http://lorempixel.com/640/480/"
+    (rand-nth image-types) "/' width='640' height='480'></p>"))
 
 (defn- body-text [size]
   (:body (http/get (str "http://skateipsum.com/get/" (inc (int (* (rand) size))) "/0/text"))))
@@ -118,7 +124,7 @@
         image? (<= (rand) (:chance-of-image config-data))
         part2 (if image? (str part1 (image-tag)) part1)
         chart? (<= (rand) (:chance-of-chart config-data))
-        part3 (if chart? part2 part2) ; TODO charts
+        part3 (if chart? (str part2 (chart-tag)) part2)
         video? (<= (rand) (:chance-of-video config-data))
         body (if video? (str part3 (video-tag)) part3)
         entry-props {:headline headline :body body}
