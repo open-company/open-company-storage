@@ -70,7 +70,7 @@
         story-reps (map #(story-rep/render-story-for-collection org-slug slug %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
-                      entries)
+                      stories)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
         viewers (:viewers board)
