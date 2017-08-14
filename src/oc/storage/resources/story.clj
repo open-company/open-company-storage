@@ -118,43 +118,29 @@
 ;          (slugify/valid-slug? slug)]}
 ;   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
 
-; ;; ----- Collection of stories -----
+;; ----- Collection of stories -----
 
-; (defn list-updates
-;   "
-;   Return a sequence of maps with slugs, titles, medium, created-at and org-uuid, sorted by slug.
-  
-;   Note: if additional-keys are supplied, they will be included in the map, and only updates
-;   containing those keys will be returned.
-;   "
-;   ([conn] (list-updates conn []))
+(schema/defn ^:always-validate list-stories-by-org
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  and a direction, one of `:before` or `:after`, return the stories for the org with any interactions.
+  "
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+  {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)]}
+  (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
+                                          "created-at" order start direction config/default-limit
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
+                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
-;   ([conn additional-keys]
-;   {:pre [(db-common/conn? conn)
-;          (sequential? additional-keys)
-;          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-;   (->> (into [primary-key :slug :title :org-uuid :medium :created-at] additional-keys)
-;     (db-common/read-resources conn table-name)
-;     (sort-by :slug)
-;     vec)))
-
-; (schema/defn ^:always-validate list-updates-by-org
-;   "
-;   Return a sequence of maps with slugs, titles, medium, and created-at, sorted by created-at.
-  
-;   Note: if additional-keys are supplied, they will be included in the map, and only boards
-;   containing those keys will be returned.
-;   "
-;   ([conn org-uuid] (list-updates-by-org conn org-uuid []))
-
-;   ([conn org-uuid :- lib-schema/UniqueID additional-keys]
-;   {:pre [(db-common/conn? conn)
-;          (sequential? additional-keys)
-;          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-;   (->> (into [primary-key :slug :title :medium :created-at] additional-keys)
-;     (db-common/read-resources conn table-name :org-uuid org-uuid)
-;     (sort-by :created-at)
-;     vec)))
+(schema/defn ^:always-validate list-stories-by-board
+  "Given the UUID of the board, return the stories for the board with any interactions."
+  [conn board-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-and-relations conn table-name :board-uuid board-uuid
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
+                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
 ;; ----- Data about stories -----
 

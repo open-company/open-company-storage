@@ -14,10 +14,12 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.representations.story :as story-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.story :as story-res]))
 
 ;; ----- Utility functions -----
 
@@ -36,9 +38,8 @@
 
 (defn- assemble-board
   "Assemble the entry, topic, author, and viewer data needed for a board response."
-  [conn org-slug slug ctx]
-  (let [board (or (:updated-board ctx) (:existing-board ctx))
-        entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
+  [conn org-slug slug board ctx]
+  (let [entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
                         (filter :topic-slug) ; remove entries w/ no topic
@@ -61,6 +62,23 @@
       (assoc :viewers viewer-reps)
       (assoc :entries entry-reps)
       (assoc :topics (sort-by :name topics)))))
+
+(defn- assemble-storyboard
+  "Assemble the story, author, and viewer data needed for a board response."
+  [conn org-slug slug board ctx]
+  (let [stories (story-res/list-stories-by-board conn (:uuid board)) ; all stories for the board
+        story-reps (map #(story-rep/render-story-for-collection org-slug slug %
+                            (comments %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      entries)
+        authors (:authors board)
+        author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
+        viewers (:viewers board)
+        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug %) viewers)]
+    (-> board 
+      (assoc :authors author-reps)
+      (assoc :viewers viewer-reps)
+      (assoc :stories story-reps))))
 
 ;; ----- Validations -----
 
@@ -184,8 +202,11 @@
   :patch! (fn [ctx] (update-board conn ctx org-slug slug))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [board (assemble-board conn org-slug slug ctx)]
-                          (board-rep/render-board org-slug board (:access-level ctx))))
+  :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
+                             full-board (if (= (keyword (:type board)) :story)
+                                          (assemble-storyboard conn org-slug slug board ctx)
+                                          (assemble-board conn org-slug slug board ctx))]
+                          (board-rep/render-board org-slug full-board (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
 
