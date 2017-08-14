@@ -17,8 +17,6 @@
    :org-name schema/Str
    :logo-url (schema/maybe schema/Str)
    :origin-url schema/Str
-   :currency schema/Str
-   :entries [common-res/StoryEntry]
    :created-at lib-schema/ISO8601})
 
 (defn ->trigger [org-slug story origin-url user]

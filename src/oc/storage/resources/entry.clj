@@ -38,8 +38,10 @@
 
 (schema/defn ^:always-validate ->entry :- common/Entry
   "
-  Take an org UUID, a board UUID, a minimal map describing a Entry, and a user (as the author) and
+  Take a board UUID, a minimal map describing an Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
+
+  Throws an exception if the board specified in the entry can't be found.
   "
   [conn board-uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
@@ -49,25 +51,28 @@
           topic-slug (when topic-name (slugify/slugify topic-name))
           ts (db-common/current-timestamp)]
       (-> entry-props
-        keywordize-keys
-        clean
-        (assoc :uuid (db-common/unique-id))
-        (assoc :topic-slug topic-slug)
-        (update :topic-name #(or % nil))
-        (update :headline #(or % ""))
-        (update :body #(or % ""))
-        (update :attachments #(timestamp-attachments % ts))
-        (assoc :org-uuid (:org-uuid board))
-        (assoc :board-uuid board-uuid)
-        (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-        (assoc :created-at ts)
-        (assoc :updated-at ts)))
-    false)) ; no board
+          keywordize-keys
+          clean
+          (assoc :uuid (db-common/unique-id))
+          (assoc :topic-slug topic-slug)
+          (update :topic-name #(or % nil))
+          (update :headline #(or % ""))
+          (update :body #(or % ""))
+          (update :attachments #(timestamp-attachments % ts))
+          (assoc :org-uuid (:org-uuid board))
+          (assoc :board-uuid board-uuid)
+          (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
+          (assoc :created-at ts)
+          (assoc :updated-at ts)))
+    (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
 (schema/defn ^:always-validate create-entry!
-  "Create an entry for the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
+  "
+  Create an entry for the board. Returns the newly created entry.
 
-  Returns the newly created entry, or false if the board specified in the entry can't be found."
+  Throws a runtime exception if the provided entry doesn't conform to the
+  common/Entry schema. Throws an exception if the board specified in the entry can't be found.
+  "
   ([conn entry :- common/Entry] (create-entry! conn entry (db-common/current-timestamp)))
 
   ([conn entry :- common/Entry ts :- lib-schema/ISO8601]
@@ -76,8 +81,7 @@
             board (board-res/get-board conn board-uuid)]
     (let [author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
       (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
-    ;; No board
-    false)))
+    (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid entry)}))))) ; no board
 
 (schema/defn ^:always-validate get-entry
   "

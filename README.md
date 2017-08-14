@@ -304,6 +304,10 @@ Then enter these commands one-by-one, noting the output:
 (entry/create-entry! conn
   (entry/->entry conn (board/uuid-for conn "open" "engineering") {:topic-name "Team" :body "Hiring ClojureScript talent."} author))
 
+;; create some stories
+(story/create-story! conn
+  (story/->story conn (board/uuid-for conn "open" "customer-update") {:title "News Update" :body "All is well!"} author))
+
 ;; delete an org
 (org/delete-org! conn "blank")
 

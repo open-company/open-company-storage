@@ -66,41 +66,47 @@
 
 ; ;; ----- Story CRUD -----
 
-; (schema/defn ^:always-validate ->story :- common/Story
-;   "
-;   Take an org slug, a minimal map containing a ShareRequest, and a user as the update author
-;   and 'fill the blanks' with any missing properties.
-;   "
-;   [conn org-slug update-props :- common/ShareRequest user :- lib-schema/User]
-;   {:pre [(db-common/conn? conn)
-;          (slugify/valid-slug? org-slug)]}
-;   (if-let* [org (org-res/get-org conn org-slug)
-;             org-uuid (:uuid org)
-;             ts (db-common/current-timestamp)
-;             entries (map #(entry-for conn org-uuid %) (:entries update-props))]
-;     (-> update-props
-;         keywordize-keys
-;         clean
-;         (assoc :slug (slug-for (:title update-props)))
-;         (assoc :org-uuid org-uuid)
-;         (assoc :org-name (:name org))
-;         (assoc :currency (:currency org))
-;         (assoc :logo-url (:logo-url org))
-;         (assoc :logo-width (or (:logo-width org) 0))
-;         (assoc :logo-height (or (:logo-height org) 0))
-;         (assoc :entries entries)
-;         (assoc :author (lib-schema/author-for-user user))
-;         (assoc :created-at ts)
-;         (assoc :updated-at ts))
-;     (throw (ex-info "Invalid org slug." {:slug org-slug}))))
+(schema/defn ^:always-validate ->story :- common/Story
+  "
+  Take a board UUID, a minimal map describing a Story, and a user (as the author) and
+  'fill the blanks' with any missing properties.
 
-; (schema/defn ^:always-validate create-update!
-;   "Create an update in the system. Throws a runtime exception if the update doesn't conform to the common/Update schema."
-;   ([conn update] (create-update! conn update (db-common/current-timestamp)))
+  Throws an exception if the board specified in the story can't be found.
+  "
+  [conn board-uuid :- lib-schema/UniqueID story-props user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)
+          (map? story-props)]}
+  (if-let [board (board-res/get-board conn board-uuid)]
+    (let [ts (db-common/current-timestamp)]
+      (-> story-props
+          keywordize-keys
+          clean
+          (assoc :uuid (db-common/unique-id))
+          (assoc :slug (slug-for (:title story-props)))
+          (assoc :org-uuid (:org-uuid board))
+          (assoc :board-uuid board-uuid)
+          (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
+          (assoc :state :draft)
+          (assoc :created-at ts)
+          (assoc :updated-at ts)))
+    (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
+
+(schema/defn ^:always-validate create-story!
+  "
+  Create a story for the board. Returns the newly created story.
+
+  Throws a runtime exception if the provided story doesn't conform to the
+  common/Story schema. Throws an exception if the board specified in the story can't be found.
+  "
+  ([conn story] (create-story! conn story (db-common/current-timestamp)))
   
-;   ([conn update :- common/Update timestamp :- lib-schema/ISO8601]
-;   {:pre [(db-common/conn? conn)]}
-;   (db-common/create-resource conn table-name update timestamp)))
+  ([conn story :- common/Story ts :- lib-schema/ISO8601]
+  {:pre [(db-common/conn? conn)]}
+  (if-let* [board-uuid (:board-uuid story)
+            board (board-res/get-board conn board-uuid)]
+    (let [author (assoc (first (:author story)) :updated-at ts)] ; update initial author timestamp
+      (db-common/create-resource conn table-name (assoc story :author [author]) ts)) ; create the story
+    (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid story)}))))) ; no board
 
 ; (schema/defn ^:always-validate get-update :- (schema/maybe common/Update)
 ;   "

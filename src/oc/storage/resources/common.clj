@@ -29,7 +29,8 @@
   :file-url lib-schema/NonBlankStr
   :created-at lib-schema/ISO8601})
 
-(def EntryAuthor
+(def ContributingAuthor
+  "An author in a sequence of Authors involved in creating content."
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
 (def Entry 
@@ -50,7 +51,7 @@
   ;; Comment sync
   (schema/optional-key :slack-thread) lib-schema/SlackThread
 
-  :author [EntryAuthor]
+  :author [ContributingAuthor]
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
@@ -108,6 +109,7 @@
   {
     :uuid lib-schema/UniqueID
     :org-uuid lib-schema/UniqueID
+    :board-uuid lib-schema/UniqueID
 
     :state State
 
@@ -123,7 +125,8 @@
     ;; Comment sync
     (schema/optional-key :slack-thread) lib-schema/SlackThread
 
-    :author lib-schema/Author ; user that created the update
+    :author [ContributingAuthor]
+    (schema/optional-key :published-at) lib-schema/ISO8601
     :created-at lib-schema/ISO8601
     :updated-at lib-schema/ISO8601})
 
