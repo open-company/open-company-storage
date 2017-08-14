@@ -2,7 +2,6 @@
   "Liberator API for org resources."
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
-            [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.slugify :as slugify]
@@ -13,7 +12,6 @@
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.activity :as activity-rep]
-            [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]))
