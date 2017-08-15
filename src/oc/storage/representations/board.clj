@@ -24,6 +24,9 @@
                                               {:content-type mt/board-media-type
                                                :accept mt/board-media-type}))
 
+(defn- delete-link [org-slug slug]
+  (hateoas/delete-link (url org-slug slug)))
+
 (defn- add-author-link [org-slug slug] 
   (hateoas/add-link hateoas/POST (str (url org-slug slug ) "/authors/") {:content-type mt/board-author-media-type}))
 
@@ -59,6 +62,7 @@
                     (concat interaction-links [
                                    (create-link org-slug slug)
                                    (partial-update-link org-slug slug)
+                                   (delete-link org-slug slug)
                                    (add-author-link org-slug slug)
                                    (add-viewer-link org-slug slug)])
                     interaction-links)]

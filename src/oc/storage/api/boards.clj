@@ -159,13 +159,20 @@
 
     (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))
 
+(defn- delete-board [conn ctx org-slug slug]
+  (timbre/info "Deleting board:" slug "of org:" org-slug)
+  (if-let* [board (:existing-board ctx)
+            _delete-result (board-res/delete-board! conn (:uuid board))]
+    (do (timbre/info "Deleted board:" slug "of org:" org-slug) true)
+    (do (timbre/warn "Failed deleting board:" slug "of org:" org-slug) false)))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular board
 (defresource board [conn org-slug slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
-  :allowed-methods [:options :get :patch]
+  :allowed-methods [:options :get :patch :delete]
 
   ;; Media type client accepts
   :available-media-types [mt/board-media-type]
@@ -175,13 +182,15 @@
   :known-content-type? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))})
+    :patch (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))
+    :delete true})
   
   ;; Authorization
   :allowed? (by-method {
     :options true
     :get (fn [ctx] (access/access-level-for conn org-slug slug (:user ctx)))
-    :patch (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))})
+    :patch (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -189,7 +198,8 @@
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
                           (slugify/valid-slug? slug)
-                          (valid-board-update? conn org-slug slug (:data ctx))))})
+                          (valid-board-update? conn org-slug slug (:data ctx))))
+    :delete true})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug))
@@ -200,7 +210,8 @@
 
   ;; Actions
   :patch! (fn [ctx] (update-board conn ctx org-slug slug))
-
+  :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
+  
   ;; Responses
   :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
                              full-board (if (= (keyword (:type board)) :story)

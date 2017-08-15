@@ -74,7 +74,7 @@
             entry (:existing-entry ctx)
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do (timbre/info "Deleted entry:" entry-for) true)
-    (do (timbre/info "Failed deleting entry:" entry-for) false)))
+    (do (timbre/warn "Failed deleting entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
