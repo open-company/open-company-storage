@@ -165,7 +165,7 @@
   "
   [conn org-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/months-with-resource conn table-name :org-uuid org-uuid :created-at))
+  (db-common/months-with-resource conn table-name :status-org-uuid [[:published org-uuid]] :created-at))
 
 ;; ----- Armageddon -----
 
