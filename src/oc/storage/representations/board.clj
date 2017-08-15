@@ -7,8 +7,8 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]))
 
-(def representation-props [:slug :type :name :access :promoted :topics :entries :author :authors :viewers :slack-mirror
-                           :created-at :updated-at])
+(def representation-props [:slug :type :name :access :promoted :topics :entries :stories :author :authors :viewers
+                          :slack-mirror :created-at :updated-at])
 
 (defun url
   ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))

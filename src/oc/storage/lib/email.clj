@@ -3,8 +3,7 @@
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
-            [oc.storage.config :as config]
-            [oc.storage.resources.common :as common-res]))
+            [oc.storage.config :as config]))
 
 (def EmailTrigger
   {:type (schema/enum "story")

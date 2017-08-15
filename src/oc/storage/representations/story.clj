@@ -3,7 +3,6 @@
   (:require [defun.core :refer (defun)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
-            [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.content :as content]))
