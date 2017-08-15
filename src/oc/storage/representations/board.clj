@@ -7,7 +7,7 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]))
 
-(def representation-props [:type :slug :name :access :promoted :topics :entries :stories :author :authors :viewers
+(def representation-props [:slug :type :name :access :promoted :topics :entries :author :authors :viewers :slack-mirror
                            :created-at :updated-at])
 
 (defun url
