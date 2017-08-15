@@ -34,7 +34,7 @@
         story (story/->story conn board-uuid story-props (first authors))
         fixed-story (-> story
                       (assoc :author story-authors)
-                      (assoc :state :published)
+                      (assoc :status :published)
                       (assoc :published-at timestamp))]
     (println (str "Creating story '" (:title story) "' on board '" (:name board) "'."))
     (db-common/create-resource conn story/table-name fixed-story timestamp)))

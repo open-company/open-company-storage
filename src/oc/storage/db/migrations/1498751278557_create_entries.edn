@@ -14,10 +14,12 @@
 
   (println (m/create-compound-index conn entry/table-name "topic-slug-board-uuid"
               (r/fn [row] [(r/get-field row "topic-slug") (r/get-field row "board-uuid")])))
+  
   (println (m/create-compound-index conn entry/table-name "uuid-board-uuid-org-uuid"
               (r/fn [row] [(r/get-field row "uuid")
                            (r/get-field row "board-uuid")
                            (r/get-field row "org-uuid")])))
+  
   (println (m/create-compound-index conn entry/table-name "slack-thread-channel-id-thread"
               (r/fn [row] [(r/get-field row ["slack-thread" "channel-id"]) (r/get-field row ["slack-thread" "thread"])])))
 

@@ -102,7 +102,7 @@
 ;   (schema/optional-key :channel) lib-schema/NonBlankStr
 ;   (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
 
-(def State (schema/pred #(#{:draft :published} (keyword %))))
+(def Status (schema/pred #(#{:draft :published} (keyword %))))
 
 (def Story
   "A story on a board."
@@ -111,7 +111,7 @@
     :org-uuid lib-schema/UniqueID
     :board-uuid lib-schema/UniqueID
 
-    :state State
+    :status Status
 
     :title schema/Str
     :slug Slug ; slug of the story, made from the slugified title and a short UUID fragment

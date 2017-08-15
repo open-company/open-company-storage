@@ -70,7 +70,7 @@
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-          (assoc :state :draft)
+          (assoc :status :draft)
           (assoc :created-at ts)
           (assoc :updated-at ts)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
@@ -132,13 +132,13 @@
 (schema/defn ^:always-validate list-stories-by-org
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
-  and a direction, one of `:before` or `:after`, return the stories for the org with any interactions.
+  and a direction, one of `:before` or `:after`, return the published stories for the org with any interactions.
   "
   [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
+  (db-common/read-resources-and-relations conn table-name :status-org-uuid [[:published org-uuid]]
                                           "created-at" order start direction config/default-limit
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
@@ -147,7 +147,7 @@
   "Given the UUID of the board, return the stories for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :board-uuid board-uuid
+  (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
@@ -155,7 +155,7 @@
 
 (schema/defn ^:always-validate story-months-by-org
   "
-  Given the UUID of the org, return an ordered sequence of all the months that have at least one story.
+  Given the UUID of the org, return an ordered sequence of all the months that have at least one published story.
 
   Response:
 

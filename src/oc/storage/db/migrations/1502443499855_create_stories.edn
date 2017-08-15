@@ -12,15 +12,19 @@
   (println (m/create-index conn story/table-name "board-uuid"))
   (println (m/create-index conn story/table-name "org-uuid"))
 
-  (println (m/create-compound-index conn story/table-name "uuid-board-uuid-org-uuid"
-              (r/fn [row] [(r/get-field row "uuid")
-                           (r/get-field row "board-uuid")
+  (println (m/create-compound-index conn story/table-name "status-board-uuid"
+              (r/fn [row] [(r/get-field row "status")
+                           (r/get-field row "board-uuid")])))
+
+  (println (m/create-compound-index conn story/table-name "status-org-uuid"
+              (r/fn [row] [(r/get-field row "status")
                            (r/get-field row "org-uuid")])))
+
   (println (m/create-compound-index conn story/table-name "slug-board-uuid-org-uuid"
               (r/fn [row] [(r/get-field row "slug")
                            (r/get-field row "board-uuid")
                            (r/get-field row "org-uuid")])))
-  (println (m/create-index conn story/table-name "to" {:multi true}))
+
   (println (m/create-compound-index conn story/table-name "slack-thread-channel-id-thread"
               (r/fn [row] [(r/get-field row ["slack-thread" "channel-id"]) (r/get-field row ["slack-thread" "thread"])])))
 
