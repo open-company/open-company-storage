@@ -72,7 +72,7 @@
   (timbre/info "Deleting entry:" entry-for)
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
-            _delete-result (entry-res/delete-entry! conn (:uuid board) (:uuid entry))]
+            _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do (timbre/info "Deleted entry:" entry-for) true)
     (do (timbre/info "Failed deleting entry:" entry-for) false)))
 

@@ -66,7 +66,7 @@
           (assoc :updated-at ts)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
-(schema/defn ^:always-validate create-entry!
+(schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
   "
   Create an entry for the board. Returns the newly created entry.
 
@@ -83,12 +83,13 @@
       (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
     (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid entry)}))))) ; no board
 
-(schema/defn ^:always-validate get-entry
+(schema/defn ^:always-validate get-entry :- (schema/maybe common/Entry)
   "
   Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
   Or given the UUID of the org and board, and the UUID of the entry,
-  retrieve the entry, or return nil if it doesn't exist.
+  retrieve the entry, or return nil if it doesn't exist. This variant is used to confirm
+  that the entry belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
@@ -126,21 +127,11 @@
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
 (schema/defn ^:always-validate delete-entry!
-  "
-  Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
-  and return `true` on success.
-  "
-  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:uuid entry)))
-
-  ([conn board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
+  "Given the UUID of the entry, delete the entry and all its interactions. Return `true` on success."
+  [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (if-let [board (board-res/get-board conn board-uuid)]
-    (do
-      ;; Delete interactions
-      (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
-      (db-common/delete-resource conn table-name uuid))
-    ;; No board
-    false)))
+  (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+  (db-common/delete-resource conn table-name uuid))
 
 (schema/defn ^:always-validate list-comments-for-entry
   "Given the UUID of the entry, return a list of the comments for the entry."

@@ -18,7 +18,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{})
+  #{:published-at})
 
 ; ;; ----- Utility functions -----
 
@@ -48,23 +48,7 @@
   (let [non-blank-title (if (clojure.string/blank? title) "update" title)]
     (str (slugify/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 5))))
 
-(declare list-stories-by-org)
-(defn taken-slugs
-  "Return all update slugs which are in use as a set."
-  [conn org-uuid]
-  {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID org-uuid)]}
-  (map :slug (list-stories-by-org conn org-uuid)))
-
-(defn slug-available?
-  "Return true if the slug is not used by any update in the org."
-  [conn org-uuid slug]
-  {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID org-uuid)
-         (slugify/valid-slug? slug)]}
-  (not (contains? (taken-slugs conn) slug)))
-
-; ;; ----- Story CRUD -----
+;; ----- Story CRUD -----
 
 (schema/defn ^:always-validate ->story :- common/Story
   "
@@ -91,7 +75,7 @@
           (assoc :updated-at ts)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
-(schema/defn ^:always-validate create-story!
+(schema/defn ^:always-validate create-story! :- (schema/maybe common/Story)
   "
   Create a story for the board. Returns the newly created story.
 
@@ -108,15 +92,40 @@
       (db-common/create-resource conn table-name (assoc story :author [author]) ts)) ; create the story
     (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid story)}))))) ; no board
 
-; (schema/defn ^:always-validate get-update :- (schema/maybe common/Update)
-;   "
-;   Given the unique ID of the org, and slug of the update, retrieve the update,
-;   or return nil if it doesn't exist.
-;   "
-;   [conn org-uuid :- lib-schema/UniqueID slug]
-;   {:pre [(db-common/conn? conn)
-;          (slugify/valid-slug? slug)]}
-;   (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]])))
+(schema/defn ^:always-validate get-story :- (schema/maybe common/Story)
+  "
+  Given the UUID of the story, retrieve the story, or return nil if it doesn't exist.
+
+  Or given the UUID of the org and board, and the slug of the story,
+  retrieve the story, or return nil if it doesn't exist.
+  "
+  ([conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resource conn table-name uuid))
+
+  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID slug]
+  {:pre [(db-common/conn? conn)
+         (slugify/valid-slug? slug)]}
+  (first (db-common/read-resources conn table-name :slug-board-uuid-org-uuid [[slug board-uuid org-uuid]]))))
+
+(schema/defn ^:always-validate delete-story!
+  "Given the UUID of the story, delete the story and all its interactions. Return `true` on success."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+  (db-common/delete-resource conn table-name uuid))
+
+(schema/defn ^:always-validate list-comments-for-story
+  "Given the UUID of the story, return a list of the comments for the story."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :body])))
+
+(schema/defn ^:always-validate list-reactions-for-story
+  "Given the UUID of the story, return a list of the reactions for the story."
+  [conn uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction])))
 
 ;; ----- Collection of stories -----
 
