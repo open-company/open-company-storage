@@ -13,9 +13,8 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:slug 
+(def representation-props [:uuid :title :banner-url :banner-width :banner-height :body 
                            :org-name :org-logo-url :org-logo-width :org-logo-height
-                           :title :banner-url :banner-width :banner-height :body 
                            :author :created-at])
 
 (defun url
@@ -23,23 +22,23 @@
   ([org-slug board-slug]
   (str (board-rep/url org-slug board-slug) "/stories"))
 
-  ([org-slug board-slug story :guard map?] (url org-slug board-slug (:slug story)))
+  ([org-slug board-slug story :guard map?] (url org-slug board-slug (:uuid story)))
 
-  ([org-slug board-slug slug :guard string?] (str (url org-slug board-slug) "/" slug)))
+  ([org-slug board-slug story-uuid :guard string?] (str (url org-slug board-slug) "/" story-uuid)))
 
-(defn- self-link [org-slug board-slug slug] 
-  (hateoas/self-link (url org-slug board-slug slug) {:accept mt/story-media-type}))
+(defn- self-link [org-slug board-slug story-uuid]
+  (hateoas/self-link (url org-slug board-slug story-uuid) {:accept mt/story-media-type}))
 
 (defn- create-link [org-slug board-slug]
   (hateoas/create-link (str (url org-slug board-slug) "/") {:content-type mt/story-media-type
                                                             :accept mt/story-media-type}))
 
-(defn- partial-update-link [org-slug board-slug slug]
-  (hateoas/partial-update-link (url org-slug board-slug slug) {:content-type mt/story-media-type
-                                                               :accept mt/story-media-type}))
+(defn- partial-update-link [org-slug board-slug story-uuid]
+  (hateoas/partial-update-link (url org-slug board-slug story-uuid) {:content-type mt/story-media-type
+                                                                     :accept mt/story-media-type}))
 
-(defn- delete-link [org-slug board-slug slug]
-  (hateoas/delete-link (url org-slug board-slug slug)))
+(defn- delete-link [org-slug board-slug story-uuid]
+  (hateoas/delete-link (url org-slug board-slug story-uuid)))
 
 (defn- up-link [org-slug board-slug]
   (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
@@ -51,19 +50,18 @@
   "
   [story board-slug org comments reactions access-level user-id]
   (let [story-uuid (:uuid story)
-        slug (:slug story)
         org-slug (:slug org)
         org-uuid (:uuid org)
         board-uuid (:board-uuid story)
         reactions (if (= access-level :public)
                     []
                     (content/reactions-and-links org-uuid board-uuid story-uuid reactions user-id))
-        links [(self-link org-slug board-slug slug)
+        links [(self-link org-slug board-slug story-uuid)
                (up-link org-slug board-slug)]
         full-links (cond 
                     (= access-level :author)
-                    (concat links [(partial-update-link org-slug board-slug slug)
-                                   (delete-link org-slug board-slug slug)
+                    (concat links [(partial-update-link org-slug board-slug story-uuid)
+                                   (delete-link org-slug board-slug story-uuid)
                                    (content/comment-link org-uuid board-uuid story-uuid)
                                    (content/comments-link org-uuid board-uuid story-uuid comments)])
 

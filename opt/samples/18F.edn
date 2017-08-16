@@ -79,7 +79,7 @@
     }
 
     {
-      :name "Where We're Going"
+      :name "Company News"
 
       :entries [
         {
@@ -93,6 +93,14 @@
           :topic-name "Team and Hiring"
           :headline "12 Open Positions"
           :body "<p>We have 4 projects that have a critical shortage of<b> information security / cyber security</b> talent. Please send any recruiting leads, contacts or ideas for staffing these 6 positions to <a href=\"https://www.linkedin.com/in/lee-rogers-9a531062\">Lee Rogers</a>.</p><p><a href=\"https://pages.18f.gov/joining-18f/open-positions/\">Full list</a> of open roles.</p><p>Current <a href=\"https://pages.18f.gov/joining-18f/who-we-are-hiring/\">recruiting pipeline details</a>.</p>"
+          :author [
+            {
+              :name "David Zvenyach"
+              :avatar-url "https://static.sched.org/a10/3250480/avatar.jpg.320x320px.jpg?bc6"
+              :user-id "5678-1234-5678"
+              :update-at "2017-06-18T12:02:16.539Z"
+            }
+          ]
           :created-at "2017-06-18T12:02:16.539Z"
         }
 
@@ -127,7 +135,15 @@
         {
           :topic-name "Compliance"
           :headline "2016 Due Dates are Approaching!"
-          :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by <b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"        
+          :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by <b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"
+          :author [
+            {
+              :name "David Zvenyach"
+              :avatar-url "https://static.sched.org/a10/3250480/avatar.jpg.320x320px.jpg?bc6"
+              :user-id "5678-1234-5678"
+              :updated-at "2017-06-12T12:02:16.539Z"
+            }
+          ]
           :created-at "2017-06-12T12:02:16.539Z"
         }
       ]
@@ -162,7 +178,7 @@
     }
 
     {
-      :name "All Hands"
+      :name "All-hands Update"
       :type "story"
 
       :stories [
@@ -190,5 +206,11 @@
       ]
     }
 
+    {
+      :name "Investor Update"
+      :type "story"
+
+      :stories []
+    }
   ]
 }

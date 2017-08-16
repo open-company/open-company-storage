@@ -87,9 +87,8 @@
   "
   Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org and board, and the UUID of the entry,
-  retrieve the entry, or return nil if it doesn't exist. This variant is used to confirm
-  that the entry belongs to the specified org and board.
+  Or given the UUID of the org, board, entry, retrieve the entry, or return nil if it doesn't exist. This variant 
+  is used to confirm that the entry belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}

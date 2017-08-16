@@ -4,7 +4,6 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
@@ -27,27 +26,6 @@
   [update]
   (apply dissoc (common/clean update) reserved-properties))
 
-; (schema/defn ^:always-validate entry-for :- common/UpdateEntry
-;   "
-;   Given an entry spec from a share request, get the specified entry from the DB.
-
-;   Throws an exception if the entry isn't found.
-;   "
-;   [conn org-uuid entry]
-;   (let [topic-slug (:topic-slug entry)
-;         timestamp (:created-at entry)]
-;     (if-let [entry (entry-res/get-entry conn org-uuid topic-slug timestamp)]
-;       (dissoc entry :org-uuid :board-uuid :body-placeholder :slack-thread)
-;       (throw (ex-info "Invalid entry." {:org-uuid org-uuid :topic-slug topic-slug :created-at timestamp})))))
-
-;; ----- Slug -----
-
-(defn- slug-for
-  "Create a slug for the update from the slugified title and a short UUID."
-  [title]
-  (let [non-blank-title (if (clojure.string/blank? title) "update" title)]
-    (str (slugify/slugify non-blank-title) "-" (subs (str (java.util.UUID/randomUUID)) 0 5))))
-
 ;; ----- Story CRUD -----
 
 (schema/defn ^:always-validate ->story :- common/Story
@@ -66,7 +44,6 @@
           keywordize-keys
           clean
           (assoc :uuid (db-common/unique-id))
-          (assoc :slug (slug-for (:title story-props)))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
@@ -96,17 +73,16 @@
   "
   Given the UUID of the story, retrieve the story, or return nil if it doesn't exist.
 
-  Or given the UUID of the org and board, and the slug of the story,
-  retrieve the story, or return nil if it doesn't exist.
+  Or given the UUID of the org, board, story, retrieve the entry, or return nil if it doesn't exist. This variant 
+  is used to confirm that the story belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resource conn table-name uuid))
 
-  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID slug]
-  {:pre [(db-common/conn? conn)
-         (slugify/valid-slug? slug)]}
-  (first (db-common/read-resources conn table-name :slug-board-uuid-org-uuid [[slug board-uuid org-uuid]]))))
+  ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :uuid-board-uuid-org-uuid [[uuid board-uuid org-uuid]]))))
 
 (schema/defn ^:always-validate delete-story!
   "Given the UUID of the story, delete the story and all its interactions. Return `true` on success."

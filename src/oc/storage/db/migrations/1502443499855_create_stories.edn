@@ -8,7 +8,6 @@
   
   (println "Creating table: " story/table-name)
   (println (m/create-table conn c/db-name story/table-name story/primary-key))
-  (println (m/create-index conn story/table-name "slug"))
   (println (m/create-index conn story/table-name "board-uuid"))
   (println (m/create-index conn story/table-name "org-uuid"))
 
@@ -20,8 +19,8 @@
               (r/fn [row] [(r/get-field row "status")
                            (r/get-field row "org-uuid")])))
 
-  (println (m/create-compound-index conn story/table-name "slug-board-uuid-org-uuid"
-              (r/fn [row] [(r/get-field row "slug")
+  (println (m/create-compound-index conn story/table-name "uuid-board-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "uuid")
                            (r/get-field row "board-uuid")
                            (r/get-field row "org-uuid")])))
 

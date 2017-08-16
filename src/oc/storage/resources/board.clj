@@ -28,8 +28,8 @@
 
 ;; ----- Data Defaults -----
 
-(def default-boards ["Who We Are" "Welcome"])
-(def default-storyboards ["All-Hands" "Investor Update"])
+(def default-boards ["Who We Are" "Company News"])
+(def default-storyboards ["All-Hands Update" "Investor Update"])
 
 (def default-access :team)
 

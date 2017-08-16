@@ -205,7 +205,7 @@
                           (:existing-stories ctx) (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-story (:created-story ctx)]
                               (api-common/location-response
-                                (story-rep/url org-slug board-slug (:slug new-story))
+                                (story-rep/url org-slug board-slug (:uuid new-story))
                                 (story-rep/render-story (:existing-org ctx) board-slug new-story [] []
                                   :author (-> ctx :user :user-id))
                                 mt/story-media-type)))
@@ -227,12 +227,12 @@
         (pool/with-pool [conn db-pool] 
           (story-list conn org-slug board-slug)))
       ;; Story operations
-      ; (ANY "/orgs/:org-slug/boards/:board-slug/stories/:slug"
-      ;   [org-slug board-slug entry-uuid]
+      ; (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid"
+      ;   [org-slug board-slug story-uuid]
       ;   (pool/with-pool [conn db-pool] 
-      ;     (story conn org-slug board-slug slug)))
-      ; (ANY "/orgs/:org-slug/boards/:board-slug/entries/:slug/"
-      ;   [org-slug board-slug entry-uuid]
+      ;     (story conn org-slug board-slug story-uuid)))
+      ; (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/"
+      ;   [org-slug board-slug story-uuid]
       ;   (pool/with-pool [conn db-pool]
-      ;     (story conn org-slug board-slug slug)))
+      ;     (story conn org-slug board-slug story-uuid)))
       )))

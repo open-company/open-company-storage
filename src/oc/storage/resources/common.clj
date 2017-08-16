@@ -75,8 +75,8 @@
 
 (def Org {
   :uuid lib-schema/UniqueID
-  :slug Slug
   :name lib-schema/NonBlankStr
+  :slug Slug
   :team-id lib-schema/UniqueID
   :currency schema/Str
   (schema/optional-key :logo-url) (schema/maybe schema/Str)
@@ -113,13 +113,10 @@
 
     :status Status
 
-    :title schema/Str
-    :slug Slug ; slug of the story, made from the slugified title and a short UUID fragment
-    
+    :title schema/Str    
     (schema/optional-key :banner-url) (schema/maybe schema/Str)
     (schema/optional-key :banner-width) schema/Int
     (schema/optional-key :banner-height) schema/Int          
-
     :body schema/Str
 
     ;; Comment sync
