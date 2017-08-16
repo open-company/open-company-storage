@@ -65,9 +65,10 @@
 
 (defn- assemble-storyboard
   "Assemble the story, author, and viewer data needed for a board response."
-  [conn org-slug slug board ctx]
-  (let [stories (story-res/list-stories-by-board conn (:uuid board)) ; all stories for the board
-        story-reps (map #(story-rep/render-story-for-collection org-slug slug %
+  [conn org slug board ctx]
+  (let [org-slug (:slug org)
+        stories (story-res/list-stories-by-board conn (:uuid board)) ; all stories for the board
+        story-reps (map #(story-rep/render-story-for-collection org slug %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
                       stories)
@@ -215,7 +216,7 @@
   ;; Responses
   :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
                              full-board (if (= (keyword (:type board)) :story)
-                                          (assemble-storyboard conn org-slug slug board ctx)
+                                          (assemble-storyboard conn (:existing-org ctx) slug board ctx)
                                           (assemble-board conn org-slug slug board ctx))]
                           (board-rep/render-board org-slug full-board (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]

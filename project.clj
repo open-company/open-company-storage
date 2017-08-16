@@ -20,7 +20,7 @@
     [jumblerg/ring.middleware.cors "1.0.1"] ; CORS library https://github.com/jumblerg/ring.middleware.cors
     [ring-logger-timbre "0.7.5" :exclusions [com.taoensso/encore]] ; Ring logging https://github.com/nberger/ring-logger-timbre
     [compojure "1.6.0"] ; Web routing https://github.com/weavejester/compojure
-    [clj-http "3.6.1"] ; HTTP client https://github.com/dakrone/clj-http
+    [clj-http "3.7.0"] ; HTTP client https://github.com/dakrone/clj-http
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.4.2"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
@@ -61,7 +61,7 @@
       :dependencies [
         [midje "1.9.0-alpha8"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [philoskim/debux "0.3.9"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
+        [philoskim/debux "0.3.11"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje
