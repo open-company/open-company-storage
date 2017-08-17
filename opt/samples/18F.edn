@@ -98,7 +98,7 @@
               :name "David Zvenyach"
               :avatar-url "https://static.sched.org/a10/3250480/avatar.jpg.320x320px.jpg?bc6"
               :user-id "5678-1234-5678"
-              :update-at "2017-06-18T12:02:16.539Z"
+              :updated-at "2017-06-18T12:02:16.539Z"
             }
           ]
           :created-at "2017-06-18T12:02:16.539Z"
@@ -114,7 +114,7 @@
         {
           :topic-name "Growth"
           :headline "Starting to See Billable Hours Growth"
-          :body "<p>After a steady decline in the middle of the year, it's important to see that these numbers improving before the challenging ❄&nbsp;winter holiday season approaches . This has been a great job on all fronts 💥. Let's keep it up.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1022324161&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' /_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&amp;format=interactive class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
+          :body "<p>After a steady decline in the middle of the year, it's important to see that these numbers improving before the challenging ❄&nbsp;winter holiday season approaches . This has been a great job on all fronts 💥. Let's keep it up.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1022324161&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' src='/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&amp;format=interactive' class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
           :created-at "2017-06-15T12:02:16.539Z"
         }
 

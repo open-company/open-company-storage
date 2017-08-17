@@ -93,7 +93,7 @@
         sheet-id (:sheet-id chart)
         oid (:oid chart)
         thumbnail (str "https://docs.google.com/spreadsheets/d/" sheet-id "/embed/oimg?id=" sheet-id "&amp;oid=" oid "&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p")
-        source (str "/_/sheets-proxy/spreadsheets/d/" sheet-id "/pubchart?oid=" oid "&amp;format=interactive")]
+        source (str "src='/_/sheets-proxy/spreadsheets/d/" sheet-id "/pubchart?oid=" oid "&amp;format=interactive'")]
     (iframe-tag thumbnail "chart" "data-chart-id" sheet-id source)))
 
 (defn- image-tag []
