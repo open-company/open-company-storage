@@ -34,16 +34,15 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new story
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
-; (defn- valid-entry-update? [conn entry-uuid entry-props]
-;   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
-;     ;; Merge the existing entry with the new updates
-;     (let [merged-entry (merge existing-entry (entry-res/clean entry-props))
-;           updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
-;       (if (lib-schema/valid? common-res/Entry updated-entry)
-;         {:existing-entry existing-entry :updated-entry updated-entry}
-;         [false, {:updated-entry updated-entry}])) ; invalid update
+(defn- valid-story-update? [conn story-uuid story-props]
+  (if-let [existing-story (story-res/get-story conn story-uuid)]
+    ;; Merge the existing story with the new updates
+    (let [updated-story (merge existing-story (story-res/clean story-props))]
+      (if (lib-schema/valid? common-res/Story updated-story)
+        {:existing-story existing-story :updated-story updated-story}
+        [false, {:updated-story updated-story}])) ; invalid update
     
-;     true)) ; no existing entry, so this will fail existence check later
+    true)) ; no existing story, so this will fail existence check later
 
 ;; ----- Actions -----
 
@@ -58,99 +57,101 @@
 
     (do (timbre/error "Failed creating story:" story-for) false)))
 
-; (defn- update-entry [conn ctx entry-for]
-;   (timbre/info "Updating entry:" entry-for)
-;   (if-let* [updated-entry (:updated-entry ctx)
-;             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry (:user ctx))]
-;     (do 
-;       (timbre/info "Updated entry:" entry-for)
-;       {:updated-entry updated-result})
+(defn- update-story [conn ctx story-for]
+  (timbre/info "Updating story:" story-for)
+  (if-let* [updated-story (:updated-story ctx)
+            updated-result (story-res/update-story! conn (:uuid updated-story) updated-story (:user ctx))]
+    (do 
+      (timbre/info "Updated story:" story-for)
+      {:updated-story updated-result})
 
-;     (do (timbre/error "Failed updating entry:" entry-for) false)))
+    (do (timbre/error "Failed updating story:" story-for) false)))
 
-; (defn- delete-entry [conn ctx entry-for]
-;   (timbre/info "Deleting entry:" entry-for)
-;   (if-let* [board (:existing-board ctx)
-;             entry (:existing-entry ctx)
-;             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
-;     (do (timbre/info "Deleted entry:" entry-for) true)
-;     (do (timbre/info "Failed deleting entry:" entry-for) false)))
+(defn- delete-story [conn ctx story-for]
+  (timbre/info "Deleting story:" story-for)
+  (if-let* [board (:existing-board ctx)
+            story (:existing-story ctx)
+            _delete-result (story-res/delete-story! conn (:uuid story))]
+    (do (timbre/info "Deleted story:" story-for) true)
+    (do (timbre/error "Failed deleting story:" story-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-; A resource for operations on a particular entry
-; (defresource entry [conn org-slug board-slug entry-uuid]
-;   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
+;; A resource for operations on a particular story
+(defresource story [conn org-slug board-slug story-uuid]
+  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
-;   :allowed-methods [:options :get :patch :delete]
+  :allowed-methods [:options :get :patch :delete]
 
-;   ;; Media type client accepts
-;   :available-media-types [mt/entry-media-type]
-;   :handle-not-acceptable (api-common/only-accept 406 mt/entry-media-type)
+  ;; Media type client accepts
+  :available-media-types [mt/story-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/story-media-type)
   
-;   ;; Media type client sends
-;   :known-content-type? (by-method {
-;     :options true
-;     :get true
-;     :patch (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
-;     :delete true})
+  ;; Media type client sends
+  :known-content-type? (by-method {
+    :options true
+    :get true
+    :patch (fn [ctx] (api-common/known-content-type? ctx mt/story-media-type))
+    :delete true})
 
-;   ;; Authorization
-;   :allowed? (by-method {
-;     :options true
-;     :get (fn [ctx] (access/access-level-for conn org-slug board-slug (:user ctx)))
-;     :patch (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))
-;     :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (access/access-level-for conn org-slug board-slug (:user ctx)))
+    :patch (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
-;   ;; Validations
-;   :processable? (by-method {
-;     :options true
-;     :get true
-;     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
-;                           (slugify/valid-slug? board-slug)
-;                           (valid-entry-update? conn entry-uuid (:data ctx))))
-;     :delete true})
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :get true
+    :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
+                          (slugify/valid-slug? board-slug)
+                          (valid-story-update? conn story-uuid (:data ctx))))
+    :delete true})
 
-;   ;; Existentialism
-;   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-;                                             (slugify/valid-slug? board-slug))
-;                                org (or (:existing-org ctx)
-;                                        (org-res/get-org conn org-slug))
-;                                org-uuid (:uuid org)
-;                                board (or (:existing-board ctx)
-;                                          (board-res/get-board conn org-uuid board-slug))
-;                                entry (or (:existing-entry ctx)
-;                                          (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
-;                                comments (or (:existing-comments ctx)
-;                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
-;                                reactions (or (:existing-reactions ctx)
-;                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
-;                         {:existing-org org :existing-board board :existing-entry entry
-;                          :existing-comments comments :existing-reactions reactions}
-;                         false))
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               board (or (:existing-board ctx)
+                                         (board-res/get-board conn org-uuid board-slug))
+                               story (or (:existing-story ctx)
+                                         (story-res/get-story conn org-uuid (:uuid board) story-uuid))
+                               comments (or (:existing-comments ctx)
+                                            (story-res/list-comments-for-story conn (:uuid story)))
+                               reactions (or (:existing-reactions ctx)
+                                            (story-res/list-reactions-for-story conn (:uuid story)))]
+                        {:existing-org org :existing-board board :existing-story story
+                         :existing-comments comments :existing-reactions reactions}
+                        false))
   
-;   ;; Actions
-;   :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
-;   :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+  ;; Actions
+  :patch! (fn [ctx] (update-story conn ctx (s/join " " [org-slug board-slug story-uuid])))
+  :delete! (fn [ctx] (delete-story conn ctx (s/join " " [org-slug board-slug story-uuid])))
 
-;   ;; Responses
-;   :handle-ok (by-method {
-;     :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
-;                       (:existing-entry ctx)
-;                       (:existing-comments ctx)
-;                       (:existing-reactions ctx)
-;                       (:access-level ctx)
-;                       (-> ctx :user :user-id)))
-;     :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
-;                         (:updated-entry ctx)
-;                         (:existing-comments ctx)
-;                         (:existing-reactions ctx)
-;                         (:access-level ctx)
-;                         (-> ctx :user :user-id)))})
-;   :handle-unprocessable-entity (fn [ctx]
-;     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
+  ;; Responses
+  :handle-ok (by-method {
+    :get (fn [ctx] (story-rep/render-story (:existing-org ctx)
+                                           board-slug
+                                           (:existing-story ctx)
+                                           (:existing-comments ctx)
+                                           (:existing-reactions ctx)
+                                           (:access-level ctx)
+                                           (-> ctx :user :user-id)))
+    :patch (fn [ctx] (story-rep/render-story (:existing-org ctx)
+                                             board-slug
+                                             (:updated-story ctx)
+                                             (:existing-comments ctx)
+                                             (:existing-reactions ctx)
+                                             (:access-level ctx)
+                                             (-> ctx :user :user-id)))})
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (schema/check common-res/Story (:updated-story ctx)))))
 
-; A resource for operations on all entries of a particular board
+;; A resource for operations on all entries of a particular board
 (defresource story-list [conn org-slug board-slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
@@ -227,12 +228,11 @@
         (pool/with-pool [conn db-pool] 
           (story-list conn org-slug board-slug)))
       ;; Story operations
-      ; (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid"
-      ;   [org-slug board-slug story-uuid]
-      ;   (pool/with-pool [conn db-pool] 
-      ;     (story conn org-slug board-slug story-uuid)))
-      ; (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/"
-      ;   [org-slug board-slug story-uuid]
-      ;   (pool/with-pool [conn db-pool]
-      ;     (story conn org-slug board-slug story-uuid)))
-      )))
+      (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid"
+        [org-slug board-slug story-uuid]
+        (pool/with-pool [conn db-pool] 
+          (story conn org-slug board-slug story-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/"
+        [org-slug board-slug story-uuid]
+        (pool/with-pool [conn db-pool]
+          (story conn org-slug board-slug story-uuid))))))

@@ -48,7 +48,7 @@
   Given an story and all the metadata about it, render an access level appropriate rendition of the story
   for use in an API response.
   "
-  [story board-slug org comments reactions access-level user-id]
+  [org board-slug story comments reactions access-level user-id]
   (let [story-uuid (:uuid story)
         org-slug (:slug org)
         org-uuid (:uuid org)
@@ -79,14 +79,14 @@
 (defn render-story-for-collection
   "Create a map of the story for use in a collection in the API"
   [org board-slug story comments reactions access-level user-id]
-  (story-and-links story board-slug org comments reactions access-level user-id))
+  (story-and-links org board-slug story comments reactions access-level user-id))
 
 (defn render-story
  "Create a JSON representation of the story for the REST API"
   [org board-slug story comments reactions access-level user-id]
   (let [story-uuid (:uuid story)]
     (json/generate-string
-      (render-story-for-collection org board-slug story comments reactions access-level user-id)      
+      (render-story-for-collection story board-slug org comments reactions access-level user-id)      
       {:pretty config/pretty?})))
 
 (defn render-story-list
@@ -106,7 +106,7 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(story-and-links % board-slug org
+                    :items (map #(story-and-links org board-slug %
                                     (or (filter :body (:interactions %)) [])  ; comments only
                                     (or (filter :reaction (:interactions %)) []) ; reactions only
                                     access-level user-id)

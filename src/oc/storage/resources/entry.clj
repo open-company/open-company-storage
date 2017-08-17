@@ -100,7 +100,7 @@
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
-  Given the ID of the entry, an updated entry property map, and a user (as the author), update the entry and
+  Given the UUID of the entry, an updated entry property map, and a user (as the author), update the entry and
   return the updated entry on success.
 
   Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform

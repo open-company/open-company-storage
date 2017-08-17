@@ -21,7 +21,7 @@
 
 ; ;; ----- Utility functions -----
 
-(defn- clean
+(defn clean
   "Remove any reserved properties from the org."
   [update]
   (apply dissoc (common/clean update) reserved-properties))
@@ -73,7 +73,7 @@
   "
   Given the UUID of the story, retrieve the story, or return nil if it doesn't exist.
 
-  Or given the UUID of the org, board, story, retrieve the entry, or return nil if it doesn't exist. This variant 
+  Or given the UUID of the org, board, story, retrieve the story, or return nil if it doesn't exist. This variant 
   is used to confirm that the story belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
@@ -83,6 +83,26 @@
   ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :uuid-board-uuid-org-uuid [[uuid board-uuid org-uuid]]))))
+
+(schema/defn ^:always-validate update-story! :- (schema/maybe common/Story)
+  "
+  Given the UUID of the story, an updated story property map, and a user (as the author), update the story and
+  return the updated story on success.
+
+  Throws an exception if the merge of the prior story and the updated story property map doesn't conform
+  to the common/Story schema.
+  "
+  [conn uuid :- lib-schema/UniqueID story user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)         
+         (map? story)]}
+  (if-let [original-story (get-story conn uuid)]
+    (let [authors (:author original-story)
+          merged-story (merge original-story (clean story))
+          ts (db-common/current-timestamp)
+          updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
+          updated-story (assoc merged-story :author updated-authors)]
+      (schema/validate common/Story updated-story)
+      (db-common/update-resource conn table-name primary-key original-story updated-story ts))))
 
 (schema/defn ^:always-validate delete-story!
   "Given the UUID of the story, delete the story and all its interactions. Return `true` on success."

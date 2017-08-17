@@ -74,11 +74,11 @@
             entry (:existing-entry ctx)
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do (timbre/info "Deleted entry for:" entry-for) true)
-    (do (timbre/warn "Failed deleting entry for:" entry-for) false)))
+    (do (timbre/error "Failed deleting entry for:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-; A resource for operations on a particular entry
+;; A resource for operations on a particular entry
 (defresource entry [conn org-slug board-slug entry-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
@@ -150,7 +150,7 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
-; A resource for operations on all entries of a particular board
+;; A resource for operations on all entries of a particular board
 (defresource entry-list [conn org-slug board-slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
