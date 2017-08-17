@@ -68,7 +68,7 @@
   [conn org slug board ctx]
   (let [org-slug (:slug org)
         stories (story-res/list-stories-by-board conn (:uuid board)) ; all stories for the board
-        story-reps (map #(story-rep/render-story-for-collection org slug %
+        story-reps (map #(story-rep/render-story-for-collection org board %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
                       stories)

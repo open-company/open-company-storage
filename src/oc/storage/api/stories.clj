@@ -135,14 +135,14 @@
   ;; Responses
   :handle-ok (by-method {
     :get (fn [ctx] (story-rep/render-story (:existing-org ctx)
-                                           board-slug
+                                           (:existing-board ctx)
                                            (:existing-story ctx)
                                            (:existing-comments ctx)
                                            (:existing-reactions ctx)
                                            (:access-level ctx)
                                            (-> ctx :user :user-id)))
     :patch (fn [ctx] (story-rep/render-story (:existing-org ctx)
-                                             board-slug
+                                             (:existing-board ctx)
                                              (:updated-story ctx)
                                              (:existing-comments ctx)
                                              (:existing-reactions ctx)
@@ -207,7 +207,7 @@
   :handle-created (fn [ctx] (let [new-story (:created-story ctx)]
                               (api-common/location-response
                                 (story-rep/url org-slug board-slug (:uuid new-story))
-                                (story-rep/render-story (:existing-org ctx) board-slug new-story [] []
+                                (story-rep/render-story (:existing-org ctx) (:existing-board ctx) new-story [] []
                                   :author (-> ctx :user :user-id))
                                 mt/story-media-type)))
   :handle-unprocessable-entity (fn [ctx]
