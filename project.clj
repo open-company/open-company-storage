@@ -61,7 +61,7 @@
       :dependencies [
         [midje "1.9.0-alpha8"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
-        [philoskim/debux "0.3.11"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
+        [philoskim/debux "0.3.12"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
       :plugins [
         [lein-midje "3.2.1"] ; Example-based testing https://github.com/marick/lein-midje

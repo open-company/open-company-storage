@@ -8,6 +8,7 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
+            [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
@@ -18,6 +19,33 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.story :as story-res]))
+
+;; ----- Utility functions -----
+
+(defn- comments
+  "Return a sequence of just the comments for an entry."
+  [{interactions :interactions}]
+  (filter :body interactions))
+
+(defn- reactions
+  "Return a sequence of just the reactions for an entry."
+  [{interactions :interactions}]
+  (filter :reaction interactions))
+
+(defn- related-stories [conn org board story-uuid access user-id]
+  
+  (let [now (db-common/current-timestamp)
+        ;; Get the 3 latest stories for the board
+        latest-stories (db-common/read-resources-and-relations
+                          conn story-res/table-name :status-board-uuid [[:published (:uuid board)]]
+                          :published-at :desc now :before 3
+                          :interactions common-res/interaction-table-name :uuid :resource-uuid
+                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"])
+        ;; Eliminate the "current" story if it's one of the 3
+        related-stories (filter #(not= (:uuid %) story-uuid) latest-stories)]
+    ;; Return the 2 latest stories that remain as rendered stories
+    (map #(story-rep/render-story-for-collection org board % (comments %) (reactions %) access user-id)
+      (take 2 related-stories))))
 
 ;; ----- Validations -----
 
@@ -134,13 +162,16 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (story-rep/render-story (:existing-org ctx)
-                                           (:existing-board ctx)
-                                           (:existing-story ctx)
-                                           (:existing-comments ctx)
-                                           (:existing-reactions ctx)
-                                           (:access-level ctx)
-                                           (-> ctx :user :user-id)))
+    :get (fn [ctx] (let [org (:existing-org ctx)
+                         board (:existing-board ctx)
+                         story (:existing-story ctx)
+                         access (:access-level ctx)
+                         user-id (-> ctx :user :user-id)]
+                      (story-rep/render-story org board story
+                                              (:existing-comments ctx)
+                                              (:existing-reactions ctx)
+                                              (related-stories conn org board (:uuid story) access user-id)
+                                              access user-id)))
     :patch (fn [ctx] (story-rep/render-story (:existing-org ctx)
                                              (:existing-board ctx)
                                              (:updated-story ctx)
