@@ -85,8 +85,11 @@
         provider (:provider video)
         thumbnail (if (= provider :youtube)
                     (str "https://img.youtube.com/vi/" id "/0.jpg")
-                    (str "https://i.vimeocdn.com/video/" id "_100x75.jpg"))]
-    (iframe-tag thumbnail "video" "data-video-id" id (str "data-video-type=" (name provider)))))
+                    (str "https://i.vimeocdn.com/video/" id "_100x75.jpg"))
+        source (if (= provider :youtube)
+                  (str "https://www.youtube.com/embed/" id)
+                  (str "https://player.vimeo.com/video/" id))]
+    (iframe-tag thumbnail "video" "data-video-id" id (str "src='" source "' data-video-type='" (name provider) "'"))))
 
 (defn chart-tag []
   (let [chart (rand-nth charts)
