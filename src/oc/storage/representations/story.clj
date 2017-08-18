@@ -89,7 +89,7 @@
   [org board story comments reactions access-level user-id]
   (let [story-uuid (:uuid story)]
     (json/generate-string
-      (render-story-for-collection story board org comments reactions access-level user-id)      
+      (render-story-for-collection org board story comments reactions access-level user-id)      
       {:pretty config/pretty?})))
 
 (defn render-story-list
