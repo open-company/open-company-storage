@@ -29,7 +29,6 @@
    :origin-url origin-url
    :org-name (:org-name story)
    :logo-url (:logo-url story)
-   :currency (:currency story)
    :entries (:entries story)
    :created-at (:created-at story)})
 

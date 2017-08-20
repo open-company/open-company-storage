@@ -5,7 +5,8 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]))
+            [oc.storage.representations.org :as org-rep]
+            [oc.storage.resources.board :as board-res]))
 
 (def representation-props [:slug :type :name :access :promoted :topics :entries :stories :author :authors :viewers
                           :slack-mirror :created-at :updated-at])
@@ -14,7 +15,11 @@
   ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))
   ([org-slug board :guard map?] (url org-slug (:slug board))))
 
-(defn- self-link [org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type}))
+(defn- self-link 
+  ([org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type}))
+
+  ([org-slug slug options] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type} options)))
+
 
 (defn- create-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/")
                                               {:content-type mt/entry-media-type
@@ -45,7 +50,9 @@
   (hateoas/link-map "interactions" "GET"
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
 
-(defn- board-collection-links [board org-slug] (assoc board :links [(self-link org-slug (:slug board))]))
+(defn- board-collection-links [board org-slug draft-story-count]
+  (let [options (if (zero? draft-story-count) {} {:count draft-story-count})]      
+    (assoc board :links [(self-link org-slug (:slug board) options)])))
 
 (defn- board-links
   [board org-slug board-uuid access-level]
@@ -82,10 +89,13 @@
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
-  [org-slug board]
-  (-> board
-    (select-keys representation-props)
-    (board-collection-links org-slug)))
+  ([org-slug board] (render-board-for-collection org-slug board 0))
+
+  ([org-slug board draft-story-count]
+  (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-storyboard)) draft-story-count 0)]
+    (-> board
+      (select-keys representation-props)
+      (board-collection-links org-slug this-board-count)))))
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"

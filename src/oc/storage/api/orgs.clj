@@ -16,7 +16,8 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.story :as story-res]))
 
 ;; ----- Actions -----
 
@@ -143,8 +144,13 @@
                              org-id (:uuid org)
                              boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (filter #(access/access-level-for org % user) boards)
-                             full-boards (conj allowed-boards (board-res/drafts-storyboard org-id user))
-                             board-reps (map #(board-rep/render-board-for-collection slug %) full-boards)
+                             draft-stories (when user-id (story-res/list-stories-by-org-author conn org-id user-id :draft))
+                             draft-story-count (count draft-stories)
+                             full-boards (if (pos? draft-story-count)
+                                            (conj allowed-boards (board-res/drafts-storyboard org-id user))
+                                            allowed-boards)
+                             board-reps (map #(board-rep/render-board-for-collection slug % draft-story-count)
+                                          full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org %) authors)]
                           (org-rep/render-org (-> org

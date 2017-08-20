@@ -341,7 +341,7 @@ from the OpenCompany Authentication service if you are only making requests agai
 Create a company with cURL:
 
 ```console
-echo "{\"currency\": \"EUR\", \"name\": \"Hotel Procrastination\", \
+echo "{\"name\": \"Hotel Procrastination\", \
       \"diversity\": {\"headline\": \"We are all guilty.\", \"pin\": true}, \
       \"update\": {\"headline\": \"Our Food is Bad\", \"body\": \"Hotel guests rate it 1 of 10.\", \"pin\": true}, \
       \"mission\": {\"headline\": \"Better Food\", \"body\": \"That's the goal.\"}, \
@@ -379,7 +379,7 @@ Update a company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"currency": "FKP" }' \
+-d '{"name": "ACME" }' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \

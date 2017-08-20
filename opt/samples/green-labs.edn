@@ -2,7 +2,6 @@
   :slug "green-labs"
   :name "GreenLabs"
   :team-id "1234-abcd-1234"
-  :currency "USD"
   :logo-url "https://open-company-assets.s3.amazonaws.com/green-labs.png"
   :logo-width 160
   :logo-height 160

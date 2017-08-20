@@ -78,7 +78,6 @@
   :name lib-schema/NonBlankStr
   :slug Slug
   :team-id lib-schema/UniqueID
-  :currency schema/Str
   (schema/optional-key :logo-url) (schema/maybe schema/Str)
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int

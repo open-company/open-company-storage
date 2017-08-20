@@ -196,6 +196,8 @@
   (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
   ;; Delete entries
   (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
+  ;; Delete stories
+  (db-common/delete-resource conn common/story-table-name :board-uuid uuid)
   ;; Delete the board itself
   (db-common/delete-resource conn table-name uuid)))
 
@@ -389,7 +391,8 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions, entries, and boards
+  ;; Delete all interactions, entries, stories, and boards
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
+  (db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn table-name))

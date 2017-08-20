@@ -6,7 +6,7 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
-(def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height
+(def representation-props [:slug :name :team-id :logo-url :logo-width :logo-height
                            :boards :author :authors :created-at :updated-at])
 
 (defun url

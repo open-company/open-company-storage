@@ -86,7 +86,6 @@
         (assoc :slug slug)
         (assoc :uuid (db-common/unique-id))
         (assoc :authors [(:user-id user)])
-        (update :currency #(or % "USD"))
         (update :promoted #(or % default-promoted))
         (update :logo-width #(or % 0))
         (update :logo-height #(or % 0))
@@ -254,8 +253,8 @@
   [conn]
   {:pre [(db-common/conn? conn)]}
   ;; Delete all stories, interactions, entries, boards and orgs
-  ;;(db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn common/interaction-table-name)
+  (db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
   (db-common/delete-all-resources! conn table-name))
