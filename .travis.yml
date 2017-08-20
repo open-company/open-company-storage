@@ -12,6 +12,7 @@ before_script:
 - "export JAVA_OPTS=-Xmx512m"
 - "echo $JAVA_OPTS"
 - lein clean
+- ./test/script/merge-migrations.sh
 script:
 - lein test!
 - lein eastwood
