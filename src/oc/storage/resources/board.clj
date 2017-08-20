@@ -33,6 +33,14 @@
 
 (def default-access :team)
 
+(def default-drafts-storyboard {
+  :uuid "0000-0000-0000"
+  :name "Drafts"
+  :slug "drafts"
+  :type "story"
+  :viewers []
+  :access :private})
+
 ;; ----- Utility functions -----
 
 (defn clean
@@ -44,6 +52,17 @@
   "Remove any ignored properties from the board."
   [board]
   (apply dissoc board ignored-properties))
+
+(schema/defn ^:always-validate drafts-storyboard :- common/Board
+  "Return a storyboard for the specified org and author."
+  [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  (let [now (db-common/current-timestamp)]
+    (merge default-drafts-storyboard {
+      :org-uuid org-uuid
+      :author (lib-schema/author-for-user user)
+      :authors [(:user-id user)]
+      :created-at now
+      :updated-at now})))
 
 ;; ----- Board Slug -----
 

@@ -132,12 +132,28 @@
   "
   [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
   {:pre [(db-common/conn? conn)
-          (#{:desc :asc} order)
-          (#{:before :after} direction)]}
+         (#{:desc :asc} order)
+         (#{:before :after} direction)]}
   (db-common/read-resources-and-relations conn table-name :status-org-uuid [[:published org-uuid]]
                                           "created-at" order start direction config/default-limit
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
+
+(schema/defn ^:always-validate list-stories-by-org-author
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  and a direction, one of `:before` or `:after`, and an optional status of `:draft` or `:published` (the default)
+  return the stories by the author with any interactions.
+  "
+  ([conn org-uuid :- lib-schema/UniqueID user-id]
+    (list-stories-by-org-author conn org-uuid user-id :published))
+
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID status]
+  {:pre [(db-common/conn? conn)
+         (#{:published :draft} status)]}
+  (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[status org-uuid user-id]]
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
+                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"])))
 
 (schema/defn ^:always-validate list-stories-by-board
   "Given the UUID of the board, return the stories for the board with any interactions."

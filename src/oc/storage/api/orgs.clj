@@ -143,7 +143,8 @@
                              org-id (:uuid org)
                              boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-reps (map #(board-rep/render-board-for-collection slug %) allowed-boards)
+                             full-boards (conj allowed-boards (board-res/drafts-storyboard org-id user))
+                             board-reps (map #(board-rep/render-board-for-collection slug %) full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org %) authors)]
                           (org-rep/render-org (-> org
