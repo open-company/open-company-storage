@@ -123,6 +123,8 @@
 
     :author [ContributingAuthor]
     (schema/optional-key :published-at) lib-schema/ISO8601
+    (schema/optional-key :publisher) lib-schema/Author
+    
     :created-at lib-schema/ISO8601
     :updated-at lib-schema/ISO8601})
 

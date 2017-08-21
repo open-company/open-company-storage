@@ -3,7 +3,7 @@
   (:require [clojure.string :as s]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY)]
+            [compojure.core :as compojure :refer (ANY POST)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -103,6 +103,14 @@
     (do (timbre/info "Deleted story:" story-for) true)
     (do (timbre/error "Failed deleting story:" story-for) false)))
 
+(defn- publish-story [conn ctx story-for]
+  (timbre/info "Publishing story:" story-for)
+  (if-let* [board (:existing-board ctx)
+            story (:existing-story ctx)
+            _publish-result (story-res/publish-story! conn (:uuid story) (:user ctx))]
+    (do (timbre/info "Published story:" story-for) true)
+    (do (timbre/error "Failed publishing story:" story-for) false)))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular story
@@ -139,22 +147,25 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               board (or (:existing-board ctx)
-                                         (board-res/get-board conn org-uuid board-slug))
-                               story (or (:existing-story ctx)
-                                         (story-res/get-story conn org-uuid (:uuid board) story-uuid))
-                               comments (or (:existing-comments ctx)
-                                            (story-res/list-comments-for-story conn (:uuid story)))
-                               reactions (or (:existing-reactions ctx)
-                                            (story-res/list-reactions-for-story conn (:uuid story)))]
+  :exists? (fn [ctx] (let [draft? (and (:user ctx) (= board-slug (:slug board-res/default-drafts-storyboard)))]
+                        (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                               (slugify/valid-slug? board-slug))
+                                  org (or (:existing-org ctx)
+                                          (org-res/get-org conn org-slug))
+                                  org-uuid (:uuid org)
+                                  board (if draft?
+                                          (board-res/drafts-storyboard org-uuid (ctx :user :user-id))
+                                          (or (:existing-board ctx) (board-res/get-board conn org-uuid board-slug)))
+                                  storyboard? (= (keyword (:type board)) :story)
+                                  story (or (:existing-story ctx)
+                                            (story-res/get-story conn org-uuid (:uuid board) story-uuid))
+                                  comments (or (:existing-comments ctx)
+                                               (story-res/list-comments-for-story conn (:uuid story)))
+                                  reactions (or (:existing-reactions ctx)
+                                               (story-res/list-reactions-for-story conn (:uuid story)))]
                         {:existing-org org :existing-board board :existing-story story
                          :existing-comments comments :existing-reactions reactions}
-                        false))
+                        false)))
   
   ;; Actions
   :patch! (fn [ctx] (update-story conn ctx (s/join " " [org-slug board-slug story-uuid])))
@@ -182,7 +193,7 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Story (:updated-story ctx)))))
 
-;; A resource for operations on all entries of a particular board
+;; A resource for operations on all stories of a particular board
 (defresource story-list [conn org-slug board-slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
@@ -218,16 +229,22 @@
                          (valid-new-story? conn org-slug board-slug ctx)))})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (org-res/get-org conn org-slug)
-                               org-uuid (:uuid org)
-                               board (board-res/get-board conn org-uuid board-slug)
-                               board-uuid (:uuid board)
-                               storyboard? (= (keyword (:type board)) :story)
-                               stories (story-res/list-stories-by-board conn board-uuid)]
+  :exists? (fn [ctx] (let [user (:user ctx)
+                           draft? (and user (= board-slug (:slug board-res/default-drafts-storyboard)))]
+                        (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                               (slugify/valid-slug? board-slug))
+                                  org (org-res/get-org conn org-slug)
+                                  org-uuid (:uuid org)
+                                  board (if draft?
+                                          (board-res/drafts-storyboard org-uuid user)
+                                          (or (:existing-board ctx) (board-res/get-board conn org-uuid board-slug)))
+                                  board-uuid (:uuid board)
+                                  storyboard? (= (keyword (:type board)) :story)
+                                  stories (if draft?
+                                            (story-res/list-stories-by-org-author conn org-uuid (:user-id user))
+                                            (story-res/list-stories-by-board conn board-uuid))]
                         {:existing-stories stories :existing-board board :existing-org org}
-                        false))
+                        false)))
 
   ;; Actions
   :post! (fn [ctx] (create-story conn ctx (s/join " " [org-slug board-slug])))
@@ -243,6 +260,57 @@
                                 mt/story-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
+
+;; A resource for operations to publish a particular story
+(defresource publish [conn org-slug board-slug story-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/story-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/story-media-type)})
+
+  ;; No data to handle
+  :malformed? false
+  :processable? true
+  :new? false 
+  :respond-with-entity? true
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               _drafts? (= board-slug (:slug board-res/default-drafts-storyboard))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               board (board-res/drafts-storyboard org-uuid (:user ctx)) ; Drafts board for the user
+                               story (or (:existing-story ctx)
+                                         (story-res/get-story conn story-uuid))
+                               _matches? (and (= org-uuid (:org-uuid story))
+                                              (= :draft (keyword (:status story))))]
+                        {:existing-org org :existing-board board :existing-story story}
+                        false))
+  
+  ;; Actions
+  :post! (fn [ctx] (publish-story conn ctx (s/join " " [org-slug story-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (story-rep/render-story (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-story ctx)
+                                               [] ; no comments
+                                               [] ; no reactions
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id))))
 
 ;; ----- Routes -----
 
@@ -266,4 +334,8 @@
       (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/"
         [org-slug board-slug story-uuid]
         (pool/with-pool [conn db-pool]
-          (story conn org-slug board-slug story-uuid))))))
+          (story conn org-slug board-slug story-uuid)))
+      (POST "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish"
+        [org-slug board-slug story-uuid]
+        (pool/with-pool [conn db-pool]
+          (publish conn org-slug board-slug story-uuid))))))

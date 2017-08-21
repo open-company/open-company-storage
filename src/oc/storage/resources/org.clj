@@ -148,12 +148,12 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
-      ;; Delete stories
-      ;;(db-common/delete-resource conn common/story-table-name :org-uuid uuid)
       ;; Delete interactions
       (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
       ;; Delete entries
       (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
+      ;; Delete stories
+      (db-common/delete-resource conn common/story-table-name :org-uuid uuid)
       ;; Delete boards
       (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
       ;; Delete the org itself
@@ -252,9 +252,9 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all stories, interactions, entries, boards and orgs
+  ;; Delete all interactions, entries, stories, boards and orgs
   (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
+  (db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
   (db-common/delete-all-resources! conn table-name))

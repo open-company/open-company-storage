@@ -42,6 +42,10 @@
 (defn- delete-link [org-slug board-slug story-uuid]
   (hateoas/delete-link (url org-slug board-slug story-uuid)))
 
+(defn- publish-link [org-slug board-slug story-uuid]
+  (hateoas/link-map "publish" hateoas/GET (str (url org-slug board-slug story-uuid) "/publish")
+    {:accept mt/story-media-type}))
+
 (defn- up-link [org-slug board-slug]
   (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
 
@@ -56,13 +60,14 @@
         org-uuid (:uuid org)
         board-slug (:slug board)
         board-uuid (:uuid board)
-        reactions (if (or (= board-slug (:slug board-res/default-drafts-storyboard)) (= access-level :public))
+        draft? (= board-slug (:slug board-res/default-drafts-storyboard))
+        reactions (if (or draft? (= access-level :public))
                     []
                     (content/reactions-and-links org-uuid board-uuid story-uuid reactions user-id))
         links [(self-link org-slug board-slug story-uuid)
                (up-link org-slug board-slug)]
-        full-links (cond 
-                    (or (= board-slug (:slug board-res/default-drafts-storyboard)) (= access-level :author))
+        more-links (cond 
+                    (or draft? (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug story-uuid)
                                    (delete-link org-slug board-slug story-uuid)
                                    (content/comment-link org-uuid board-uuid story-uuid)
@@ -72,7 +77,8 @@
                     (concat links [(content/comment-link org-uuid board-uuid story-uuid)
                                    (content/comments-link org-uuid board-uuid story-uuid comments)])
 
-                    :else links)]
+                    :else links)
+        full-links (if draft? (conj more-links (publish-link org-slug board-slug story-uuid)) more-links)]
     (-> (merge org story)
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys  representation-props)
