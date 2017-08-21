@@ -16,7 +16,7 @@
 
 (def representation-props [:uuid :title :banner-url :banner-width :banner-height :body 
                            :org-name :org-logo-url :org-logo-width :org-logo-height
-                           :storyboard-name
+                           :storyboard-name :status
                            :author :created-at])
 
 (defun url
