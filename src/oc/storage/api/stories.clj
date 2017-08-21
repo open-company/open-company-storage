@@ -186,7 +186,7 @@
                       (if draft? ; drafts don't have related stories
                         (story-rep/render-story org board story
                                                 (:existing-comments ctx)
-                                                (:existing-reactions ctx)
+                                                [] ; no reactions
                                                 access user-id)
                         (story-rep/render-story org board story
                                                 (:existing-comments ctx)
@@ -262,11 +262,15 @@
   ;; Responses
   :handle-ok (fn [ctx] (story-rep/render-story-list (:existing-org ctx) board-slug
                           (:existing-stories ctx) (:access-level ctx) (-> ctx :user :user-id)))
-  :handle-created (fn [ctx] (let [new-story (:created-story ctx)]
+  :handle-created (fn [ctx] (let [new-story (:created-story ctx)
+                                  org (:existing-org ctx)
+                                  org-uuid (:uuid org)
+                                  user (:user ctx) 
+                                  draft-board (board-res/drafts-storyboard org-uuid user)]
                               (api-common/location-response
                                 (story-rep/url org-slug board-slug (:uuid new-story))
-                                (story-rep/render-story (:existing-org ctx) (:existing-board ctx) new-story [] []
-                                  :author (-> ctx :user :user-id))
+                                (story-rep/render-story org draft-board new-story [] []
+                                  :author (:uuid user))
                                 mt/story-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
