@@ -21,9 +21,13 @@
   ([org-slug slug options] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type} options)))
 
 
-(defn- create-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/")
-                                              {:content-type mt/entry-media-type
-                                               :accept mt/entry-media-type}))
+(defn- create-entry-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/")
+                                                {:content-type mt/entry-media-type
+                                                 :accept mt/entry-media-type}))
+
+(defn- create-story-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/stories/")
+                                                {:content-type mt/story-media-type
+                                                 :accept mt/story-media-type}))
 
 (defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (url org-slug slug)
                                               {:content-type mt/board-media-type
@@ -67,7 +71,9 @@
         ;; Authors get board management links
         full-links (if (= access-level :author)
                     (concat interaction-links [
-                                   (create-link org-slug slug)
+                                   (if (= (keyword (:type board)) :entry)
+                                      (create-entry-link org-slug slug)
+                                      (create-story-link org-slug slug))                                      
                                    (partial-update-link org-slug slug)
                                    (delete-link org-slug slug)
                                    (add-author-link org-slug slug)
