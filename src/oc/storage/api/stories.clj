@@ -157,12 +157,16 @@
                                           (board-res/drafts-storyboard org-uuid (ctx :user :user-id))
                                           (or (:existing-board ctx) (board-res/get-board conn org-uuid board-slug)))
                                   storyboard? (= (keyword (:type board)) :story)
-                                  story (or (:existing-story ctx)
-                                            (story-res/get-story conn org-uuid (:uuid board) story-uuid))
+                                  story (or (:existing-story ctx) 
+                                            (if draft?
+                                              (story-res/get-story conn story-uuid)
+                                              (story-res/get-story conn org-uuid (:uuid board) story-uuid)))
                                   comments (or (:existing-comments ctx)
                                                (story-res/list-comments-for-story conn (:uuid story)))
-                                  reactions (or (:existing-reactions ctx)
-                                               (story-res/list-reactions-for-story conn (:uuid story)))]
+                                  reactions (if draft? ; drafts don't have reactions
+                                              []
+                                              (or (:existing-reactions ctx)
+                                                  (story-res/list-reactions-for-story conn (:uuid story))))]
                         {:existing-org org :existing-board board :existing-story story
                          :existing-comments comments :existing-reactions reactions}
                         false)))
@@ -175,14 +179,20 @@
   :handle-ok (by-method {
     :get (fn [ctx] (let [org (:existing-org ctx)
                          board (:existing-board ctx)
+                         draft? (= board-slug (:slug board-res/default-drafts-storyboard))
                          story (:existing-story ctx)
                          access (:access-level ctx)
                          user-id (-> ctx :user :user-id)]
-                      (story-rep/render-story org board story
-                                              (:existing-comments ctx)
-                                              (:existing-reactions ctx)
-                                              (related-stories conn org board (:uuid story) access user-id)
-                                              access user-id)))
+                      (if draft? ; drafts don't have related stories
+                        (story-rep/render-story org board story
+                                                (:existing-comments ctx)
+                                                (:existing-reactions ctx)
+                                                access user-id)
+                        (story-rep/render-story org board story
+                                                (:existing-comments ctx)
+                                                (:existing-reactions ctx)
+                                                (related-stories conn org board (:uuid story) access user-id)
+                                                access user-id))))
     :patch (fn [ctx] (story-rep/render-story (:existing-org ctx)
                                              (:existing-board ctx)
                                              (:updated-story ctx)

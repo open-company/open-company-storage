@@ -30,12 +30,14 @@
 
 (schema/defn ^:always-validate ->story :- common/Story
   "
-  Take a board UUID, a minimal map describing a Story, and a user (as the author) and
+  Take a board UUID, an optional minimal map describing a Story, and a user (as the author) and
   'fill the blanks' with any missing properties.
 
   Throws an exception if the board specified in the story can't be found.
   "
-  [conn board-uuid :- lib-schema/UniqueID story-props user :- lib-schema/User]
+  ([conn board-uuid :- lib-schema/UniqueID user :- lib-schema/User] (->story conn board-uuid {} user))
+
+  ([conn board-uuid :- lib-schema/UniqueID story-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
           (map? story-props)]}
   (if-let [board (board-res/get-board conn board-uuid)]
@@ -46,11 +48,13 @@
           (assoc :uuid (db-common/unique-id))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
+          (update :title #(or % ""))
+          (update :body #(or % ""))          
           (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
           (assoc :status :draft)
           (assoc :created-at ts)
           (assoc :updated-at ts)))
-    (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
+    (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid}))))) ; no board
 
 (schema/defn ^:always-validate create-story! :- (schema/maybe common/Story)
   "
