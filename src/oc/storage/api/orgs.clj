@@ -152,7 +152,7 @@
                              board-reps (map #(board-rep/render-board-for-collection slug % draft-story-count)
                                           full-boards)
                              authors (:authors org)
-                             author-reps (map #(org-rep/render-author-for-collection org %) authors)]
+                             author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
                                                 (assoc :authors author-reps))

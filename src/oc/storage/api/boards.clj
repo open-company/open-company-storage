@@ -54,9 +54,9 @@
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)
         authors (:authors board)
-        author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
+        author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
         viewers (:viewers board)
-        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug %) viewers)]
+        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug % (:access-level ctx)) viewers)]
     (-> board 
       (assoc :authors author-reps)
       (assoc :viewers viewer-reps)
@@ -67,15 +67,19 @@
   "Assemble the story, author, and viewer data needed for a board response."
   [conn org slug board ctx]
   (let [org-slug (:slug org)
-        stories (story-res/list-stories-by-board conn (:uuid board)) ; all stories for the board
+        stories (if (= slug (:slug board-res/default-drafts-storyboard))
+                  ;; drafts by the user
+                  (story-res/list-stories-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft)
+                  ;; all stories for the board
+                  (story-res/list-stories-by-board conn (:uuid board)))
         story-reps (map #(story-rep/render-story-for-collection org board %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
                       stories)
         authors (:authors board)
-        author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
+        author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
         viewers (:viewers board)
-        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug %) viewers)]
+        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug % (:access-level ctx)) viewers)]
     (-> board 
       (assoc :authors author-reps)
       (assoc :viewers viewer-reps)
@@ -205,7 +209,11 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug))
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
-                               board (or (:existing-board ctx) (board-res/get-board conn (:uuid org) slug))]
+                               org-uuid (:uuid org)
+                               board (or (:existing-board ctx)
+                                         (when (= slug (:slug board-res/default-drafts-storyboard))
+                                            (board-res/drafts-storyboard org-uuid (:user ctx)))
+                                         (board-res/get-board conn org-uuid slug))]
                         {:existing-org org :existing-board board}
                         false))
 

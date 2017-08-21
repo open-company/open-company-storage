@@ -57,9 +57,9 @@
 
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"
-  [org user-id]
+  [org user-id access-level]
   {:user-id user-id
-   :links [(remove-author-link org user-id)]})
+   :links (if (= access-level :author) [(remove-author-link org user-id)] [])})
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."

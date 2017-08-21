@@ -77,15 +77,15 @@
 
 (defn render-author-for-collection
   "Create a map of the board author for use in a collection in the REST API"
-  [org-slug slug user-id]
+  [org-slug slug user-id access-level]
   {:user-id user-id
-   :links [(remove-author-link org-slug slug user-id)]})
+   :links (if (= access-level :author) [(remove-author-link org-slug slug user-id)] [])})
 
 (defn render-viewer-for-collection
   "Create a map of the board viewer for use in a collection in the REST API"
-  [org-slug slug user-id]
+  [org-slug slug user-id access-level]
   {:user-id user-id
-   :links [(remove-viewer-link org-slug slug user-id)]})
+   :links (if (= access-level :author) [(remove-viewer-link org-slug slug user-id)] [])})
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"

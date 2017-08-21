@@ -5,6 +5,7 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
+            [oc.storage.resources.board :as board-res]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.content :as content]))
 
@@ -55,13 +56,13 @@
         org-uuid (:uuid org)
         board-slug (:slug board)
         board-uuid (:uuid board)
-        reactions (if (= access-level :public)
+        reactions (if (or (= board-slug (:slug board-res/default-drafts-storyboard)) (= access-level :public))
                     []
                     (content/reactions-and-links org-uuid board-uuid story-uuid reactions user-id))
         links [(self-link org-slug board-slug story-uuid)
                (up-link org-slug board-slug)]
         full-links (cond 
-                    (= access-level :author)
+                    (or (= board-slug (:slug board-res/default-drafts-storyboard)) (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug story-uuid)
                                    (delete-link org-slug board-slug story-uuid)
                                    (content/comment-link org-uuid board-uuid story-uuid)
