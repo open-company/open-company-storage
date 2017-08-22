@@ -60,8 +60,8 @@
         org-uuid (:uuid org)
         board-slug (:slug board)
         board-uuid (:uuid board)
-        draft? (= board-slug (:slug board-res/default-drafts-storyboard))
-        reactions (if (or draft? (= access-level :public))
+        draft? (= :draft (keyword (:status story)))
+        reaction-rep (if (or draft? (= access-level :public))
                     []
                     (content/reactions-and-links org-uuid board-uuid story-uuid reactions user-id))
         links [(self-link org-slug board-slug story-uuid)
@@ -83,7 +83,7 @@
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys  representation-props)
       (assoc :storyboard-name (:name board))
-      (assoc :reactions reactions)
+      (assoc :reactions reaction-rep)
       (assoc :links full-links))))
 
 (defn render-story-for-collection
