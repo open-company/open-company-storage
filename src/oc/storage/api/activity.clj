@@ -14,40 +14,63 @@
             [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.story :as story-res]))
 
 ;; ----- Utility functions -----
+
+(defn activity-sort
+  "
+  Compare function to sort 2 entries and/or activity by their `created-at` or `published-at` order respectively,
+  in the order (:asc or :desc) provided.
+  "
+  [order x y]
+  (let [order-flip (if (= order :desc) -1 1)]
+    (* order-flip (compare (or (:published-at x) (:created-at x))
+                           (or (:published-at y) (:created-at y))))))
+
+(defn- merge-activity [entries stories order]
+  "Given a set of entries and stories and a sort order, return up to the default limit of them, intermixed and sorted."
+  (take config/default-limit (sort (partial activity-sort order) (concat entries stories))))
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction} org board-by-uuid]
   (let [order (if (= :after direction) :asc :desc)
-        activity (cond
+        activities (cond
 
                   (= direction :around)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after)
-                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before)]
+                        previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after)
+                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before)
+                        next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before)
+                        previous-activity (merge-activity previous-entries previous-stories :asc)
+                        next-activity (merge-activity next-entries next-stories :desc)]
                     {:direction :around
-                     :previous-count (count previous-entries)
-                     :next-count (count next-entries)
-                     :entries (concat (reverse previous-entries) next-entries)})
+                     :previous-count (count previous-activity)
+                     :next-count (count next-activity)
+                     :activity (concat (reverse previous-activity) next-activity)})
                   
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)]
+                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)
+                        previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction)
+                        previous-activity (merge-activity previous-entries previous-stories :asc)]
                     {:direction :previous
-                     :previous-count (count previous-entries)
-                     :entries (reverse previous-entries)})
-
+                     :previous-count (count previous-activity)
+                     :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)]
+                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)
+                        next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction)
+                        next-activity (merge-activity next-entries next-stories :desc)]
                     {:direction :next
-                     :next-count (count next-entries)
-                     :entries next-entries}))]
-    ;; Give each entry its board name
-    (update activity :entries #(map (fn [entry] (merge entry {:board-slug (:slug (board-by-uuid (:board-uuid entry)))
-                                                             :board-name (:name (board-by-uuid (:board-uuid entry)))}))
-                                  %))))
+                     :next-count (count next-activity)
+                     :activity next-activity}))]
+    ;; Give each activity its board name
+    (update activities :activity #(map (fn [activity] (merge activity {
+                                                        :board-slug (:slug (board-by-uuid (:board-uuid activity)))
+                                                        :board-name (:name (board-by-uuid (:board-uuid activity)))}))
+                                    %))))
 
 (defn- assemble-calendar
   "
@@ -134,7 +157,8 @@
                              ;boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              ;board-uuids (map :uuid boards)
-                             months (entry-res/entry-months-by-org conn org-id)
+                             months (distinct (concat (entry-res/entry-months-by-org conn org-id)
+                                                      (story-res/story-months-by-org conn org-id)))
                              calendar-data (assemble-calendar months)]
                           (activity-rep/render-activity-calendar org calendar-data (:access-level ctx) user-id))))
 

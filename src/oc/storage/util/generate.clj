@@ -121,7 +121,7 @@
         topic? (<= (rand) (:chance-of-topic config-data))
         topic (when topic? (rand-nth (vec c/topics)))
         headline? (<= (rand) (:chance-of-headline config-data))
-        headline (if headline? (headline-text (:max-words config-data)) "")
+        headline (if headline? (headline-text (:max-headline-words config-data)) "")
         body? (or (not headline?) (<= (rand) (:chance-of-body config-data)))
         part1 (if body? (body-text (:max-paragraphs config-data)) "")
         image? (<= (rand) (:chance-of-image config-data))
@@ -158,7 +158,7 @@
   ;; Complete
   ([conn org config-data authors date-range :guard complete?] (println "\nDone!"))
 
-  ;; Generate updates for this date
+  ;; Generate activity for this date
   ([conn org config-data authors date-range]
     (let [this-date (first date-range)]
       (if (<= (rand) (:chance-of-entry config-data)) ; is there an update today?
