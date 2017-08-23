@@ -107,8 +107,10 @@
   (timbre/info "Publishing story:" story-for)
   (if-let* [board (:existing-board ctx)
             story (:existing-story ctx)
-            _publish-result (story-res/publish-story! conn (:uuid story) (:user ctx))]
-    (do (timbre/info "Published story:" story-for) true)
+            publish-result (story-res/publish-story! conn (:uuid story) (:user ctx))]
+    (do 
+      (timbre/info "Published story:" story-for)
+      {:updated-story publish-result})
     (do (timbre/error "Failed publishing story:" story-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -153,14 +155,14 @@
                                   org (or (:existing-org ctx)
                                           (org-res/get-org conn org-slug))
                                   org-uuid (:uuid org)
-                                  board (if draft?
-                                          (board-res/drafts-storyboard org-uuid (ctx :user :user-id))
-                                          (or (:existing-board ctx) (board-res/get-board conn org-uuid board-slug)))
-                                  storyboard? (= (keyword (:type board)) :story)
-                                  story (or (:existing-story ctx) 
+                                  story (or (:existing-story ctx) (story-res/get-story conn story-uuid))
+                                  board (or (:existing-board ctx)
                                             (if draft?
-                                              (story-res/get-story conn story-uuid)
-                                              (story-res/get-story conn org-uuid (:uuid board) story-uuid)))
+                                              (board-res/get-board conn (:board-uuid story))
+                                              (board-res/get-board conn org-uuid board-slug)))
+                                  _matches? (and (= org-uuid (:org-uuid story))
+                                                 (= org-uuid (:org-uuid board)))
+                                  _storyboard? (= (keyword (:type board)) :story)
                                   comments (or (:existing-comments ctx)
                                                (story-res/list-comments-for-story conn (:uuid story)))
                                   reactions (if draft? ; drafts don't have reactions
@@ -186,7 +188,7 @@
                       (if draft? ; drafts don't have related stories
                         (story-rep/render-story org board story
                                                 (:existing-comments ctx)
-                                                [] ; no reactions
+                                                nil ; no reactions
                                                 access user-id)
                         (story-rep/render-story org board story
                                                 (:existing-comments ctx)
@@ -306,10 +308,11 @@
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
-                               board (board-res/drafts-storyboard org-uuid (:user ctx)) ; Drafts board for the user
                                story (or (:existing-story ctx)
                                          (story-res/get-story conn story-uuid))
+                               board (board-res/get-board conn (:board-uuid story))
                                _matches? (and (= org-uuid (:org-uuid story))
+                                              (= org-uuid (:org-uuid board))
                                               (= :draft (keyword (:status story))))]
                         {:existing-org org :existing-board board :existing-story story}
                         false))
