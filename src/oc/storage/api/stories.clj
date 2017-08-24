@@ -345,7 +345,7 @@
                             :get (api-common/only-accept 406 mt/story-media-type)})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slug? (and (slugify/valid-slug? org-slug))
+  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? org-slug)
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)

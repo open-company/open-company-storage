@@ -5,7 +5,6 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.resources.board :as board-res]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.content :as content]))
