@@ -5,7 +5,7 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.resources.board :as board-res]
+            [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.content :as content]))
 
@@ -28,8 +28,13 @@
 
   ([org-slug board-slug story-uuid :guard string?] (str (url org-slug board-slug) "/" story-uuid)))
 
+(defn- secure-url [org-slug secure-uuid] (str (org-rep/url org-slug) "/stories/" secure-uuid))
+
 (defn- self-link [org-slug board-slug story-uuid]
   (hateoas/self-link (url org-slug board-slug story-uuid) {:accept mt/story-media-type}))
+
+(defn- secure-self-link [org-slug story-uuid]
+  (hateoas/self-link (secure-url org-slug story-uuid) {:accept mt/story-media-type}))
 
 (defn- create-link [org-slug board-slug]
   (hateoas/create-link (str (url org-slug board-slug) "/") {:content-type mt/story-media-type
@@ -43,11 +48,21 @@
   (hateoas/delete-link (url org-slug board-slug story-uuid)))
 
 (defn- publish-link [org-slug board-slug story-uuid]
-  (hateoas/link-map "publish" hateoas/GET (str (url org-slug board-slug story-uuid) "/publish")
+  (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug story-uuid) "/publish")
     {:accept mt/story-media-type}))
+
+(defn- secure-link [org-slug secure-uuid]
+  (hateoas/link-map "secure" hateoas/GET (secure-url org-slug secure-uuid) {:accept mt/story-media-type}))
 
 (defn- up-link [org-slug board-slug]
   (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
+
+(defn include-secure-uuid
+  "Include secure UUID property for authors."
+  [story secure-uuid access-level]
+  (if (= access-level :author)
+    (assoc story :secure-uuid secure-uuid)
+    story))
 
 (defn- story-and-links
   "
@@ -56,6 +71,7 @@
   "
   [org board story comments reactions access-level user-id]
   (let [story-uuid (:uuid story)
+        secure-uuid (:secure-uuid story)
         org-slug (:slug org)
         org-uuid (:uuid org)
         board-slug (:slug board)
@@ -64,12 +80,17 @@
         reaction-rep (if (or draft? (= access-level :public))
                     []
                     (content/reactions-and-links org-uuid board-uuid story-uuid reactions user-id))
-        links [(self-link org-slug board-slug story-uuid)
-               (up-link org-slug board-slug)]
+        links (if (= user-id :secure)
+                ;; secure UUID access
+                [(secure-self-link org-slug secure-uuid)]
+                ;; normal access
+                [(self-link org-slug board-slug story-uuid)
+                 (up-link org-slug board-slug)])
         more-links (cond 
-                    (or draft? (= access-level :author))
+                    (or (and draft? (not= user-id :secure)) (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug story-uuid)
                                    (delete-link org-slug board-slug story-uuid)
+                                   (secure-link org-slug secure-uuid)
                                    (content/comment-link org-uuid board-uuid story-uuid)
                                    (content/comments-link org-uuid board-uuid story-uuid comments)])
 
@@ -82,6 +103,7 @@
     (-> (merge org story)
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys  representation-props)
+      (include-secure-uuid (:secure-uuid story) access-level)
       (assoc :storyboard-name (:name board))
       (assoc :reactions reaction-rep)
       (assoc :links full-links))))

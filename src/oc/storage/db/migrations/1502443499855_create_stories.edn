@@ -10,6 +10,7 @@
   (println (m/create-table conn c/db-name story/table-name story/primary-key))
   (println (m/create-index conn story/table-name "board-uuid"))
   (println (m/create-index conn story/table-name "org-uuid"))
+  (println (m/create-index conn story/table-name "secure-uuid"))
 
   (println (m/create-compound-index conn story/table-name "status-board-uuid"
               (r/fn [row] [(r/get-field row "status")
@@ -27,6 +28,10 @@
                                  (r/get-field row "org-uuid")
                                  (r/get-field author ["user-id"])]))))
               {:multi true}))
+
+  (println (m/create-compound-index conn story/table-name "secure-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "secure-uuid")
+                           (r/get-field row "org-uuid")])))
 
   (println (m/create-compound-index conn story/table-name "author-id"
               (r/fn [row] (r/distinct

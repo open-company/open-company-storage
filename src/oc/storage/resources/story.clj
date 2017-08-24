@@ -17,7 +17,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:published-at})
+  #{:published-at :publisher :secure-uuid})
 
 ; ;; ----- Utility functions -----
 
@@ -46,6 +46,7 @@
           keywordize-keys
           clean
           (assoc :uuid (db-common/unique-id))
+          (assoc :secure-uuid (db-common/unique-id))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (update :title #(or % ""))
@@ -77,7 +78,7 @@
   "
   Given the UUID of the story, retrieve the story, or return nil if it doesn't exist.
 
-  Or given the UUID of the org, board, story, retrieve the story, or return nil if it doesn't exist. This variant 
+  Or given the UUID of the org, board, and story, retrieve the story, or return nil if it doesn't exist. This variant 
   is used to confirm that the story belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
@@ -87,6 +88,21 @@
   ([conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :uuid-board-uuid-org-uuid [[uuid board-uuid org-uuid]]))))
+
+(schema/defn ^:always-validate get-story-by-secure :- (schema/maybe common/Story)
+  "
+  Given the secure UUID of the story, retrieve the story, or return nil if it doesn't exist.
+
+  Or given the UUID of the org, and story, retrieve the story, or return nil if it doesn't exist. This variant 
+  is used to confirm that the story belongs to the specified org.
+  "
+  ([conn secure-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :secure-uuid secure-uuid)))
+
+  ([conn org-uuid :- lib-schema/UniqueID secure-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :secure-uuid-org-uuid [[secure-uuid org-uuid]]))))
 
 (schema/defn ^:always-validate update-story! :- (schema/maybe common/Story)
   "
@@ -119,7 +135,10 @@
     (let [authors (:author original-story)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
-          merged-story (merge original-story {:status :published :published-at ts :publisher publisher})
+          merged-story (merge original-story {:status :published
+                                              :published-at ts
+                                              :publisher publisher
+                                              :secure-uuid (db-common/unique-id)})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           story-update (assoc merged-story :author updated-authors)
           updated-story (db-common/update-resource conn table-name primary-key original-story story-update ts)]
