@@ -329,11 +329,56 @@
                                                (:access-level ctx)
                                                (-> ctx :user :user-id))))
 
+;; A resource for access to a particular story by its secure UUID
+(defresource story-access [conn org-slug secure-uuid]
+  (api-common/anonymous-resource config/passphrase) ; verify validity of optional JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Authorization
+  :allowed? true
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :get [mt/story-media-type]})
+  :handle-not-acceptable (by-method {
+                            :get (api-common/only-accept 406 mt/story-media-type)})
+
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let* [_slug? (and (slugify/valid-slug? org-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               story (or (:existing-story ctx)
+                                         (story-res/get-story-by-secure conn org-uuid secure-uuid))
+                               board (board-res/get-board conn (:board-uuid story))
+                               _matches? (= org-uuid (:org-uuid board))] ; sanity check
+                        {:existing-org org :existing-board board :existing-story story}
+                        false))
+  
+  ;; Responses
+  :handle-ok (fn [ctx] (story-rep/render-story (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:existing-story ctx)
+                                               [] ; no comments
+                                               [] ; no reactions
+                                               :public
+                                               :secure)))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
+      ;; Secure Story access
+      (ANY "/orgs/:org-slug/stories/:secure-uuid"
+        [org-slug secure-uuid]
+        (pool/with-pool [conn db-pool] 
+          (story-access conn org-slug secure-uuid)))
+      (ANY "/orgs/:org-slug/stories/:secure-uuid/"
+        [org-slug secure-uuid]
+        (pool/with-pool [conn db-pool] 
+          (story-access conn org-slug secure-uuid)))
       ;; Story list operations
       (ANY "/orgs/:org-slug/boards/:board-slug/stories"
         [org-slug board-slug]
@@ -353,6 +398,10 @@
         (pool/with-pool [conn db-pool]
           (story conn org-slug board-slug story-uuid)))
       (POST "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish"
+        [org-slug board-slug story-uuid]
+        (pool/with-pool [conn db-pool]
+          (publish conn org-slug board-slug story-uuid)))
+      (POST "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish/"
         [org-slug board-slug story-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug story-uuid))))))

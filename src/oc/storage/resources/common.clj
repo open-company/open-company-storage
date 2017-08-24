@@ -107,6 +107,7 @@
   "A story on a board."
   {
     :uuid lib-schema/UniqueID
+    (schema/optional-key :secure-uuid) lib-schema/UniqueID
     :org-uuid lib-schema/UniqueID
     :board-uuid lib-schema/UniqueID
 

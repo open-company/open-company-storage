@@ -13,7 +13,7 @@
 
   ;; All profile dependencies
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha17"] ; Lisp on the JVM http://clojure.org/documentation
+    [org.clojure/clojure "1.9.0-alpha18"] ; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/tools.cli "0.3.5"] ; Command-line parsing https://github.com/clojure/tools.cli
     [ring/ring-devel "1.6.2"] ; Web application library https://github.com/ring-clojure/ring
     [ring/ring-core "1.6.2"] ; Web application library https://github.com/ring-clojure/ring
@@ -59,7 +59,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.9.0-alpha8"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.9.0-alpha9"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
         [philoskim/debux "0.3.12"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]
