@@ -29,8 +29,9 @@
     (* order-flip (compare (or (:published-at x) (:created-at x))
                            (or (:published-at y) (:created-at y))))))
 
-(defn- merge-activity [entries stories order]
+(defn- merge-activity
   "Given a set of entries and stories and a sort order, return up to the default limit of them, intermixed and sorted."
+  [entries stories order]
   (take config/default-limit (sort (partial activity-sort order) (concat entries stories))))
 
 (defn- assemble-activity
