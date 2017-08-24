@@ -12,7 +12,7 @@
 
 > -- Dalai Lama
 
-Companies struggle to keep everyone on the same page. People are hyper-connected in the moment but still don’t know what’s happening across the company. Employees and investors, co-founders and execs, customers and community, they all want more transparency. The solution is surprisingly simple and effective - great company updates that build transparency and alignment.
+Companies struggle to keep everyone on the same page. People are hyper-connected in the moment but still don't know what's happening across the company. Employees and investors, co-founders and execs, customers and community, they all want more transparency. The solution is surprisingly simple and effective - great company updates that build transparency and alignment.
 
 With that in mind we designed the [Carrot](https://carrot.io/) software-as-a-service application, powered by the open source [OpenCompany platform](https://github.com/open-company). The product design is based on three principles:
 
@@ -192,7 +192,7 @@ You can also override these settings with environmental variables in the form of
 
 ## Technical Design
 
-The storage service is composed of 6 main responsibilites:
+The storage service is composed of 6 main responsibilities:
 
 - CRUD of orgs, boards, stories and entries
 - Access control to orgs, boards, stories and entries

@@ -43,6 +43,7 @@
 
 ;; ----- URLs -----
 
+(defonce auth-server-url (or (env :auth-server-url) "http://localhost:3003"))
 (defonce interaction-server-url (or (env :interaction-server-url) "http://localhost:3002"))
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) "ws://localhost:3002"))
 
@@ -79,3 +80,5 @@
   "Sales"})
 
 (def default-reactions ["👌" "👀" "🇫🇰"])
+
+(def default-limit 20)

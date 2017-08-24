@@ -5,6 +5,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.slugify :as slugify]
+            [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -67,15 +68,16 @@
   "Create an entry for the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
 
   Returns the newly created entry, or false if the board specified in the entry can't be found."
-  [conn entry :- common/Entry]
+  ([conn entry :- common/Entry] (create-entry! conn entry (db-common/current-timestamp)))
+
+  ([conn entry :- common/Entry ts :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
   (if-let* [board-uuid (:board-uuid entry)
             board (board-res/get-board conn board-uuid)]
-    (let [ts (db-common/current-timestamp)
-          author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
+    (let [author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
       (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
     ;; No board
-    false))
+    false)))
 
 (schema/defn ^:always-validate get-entry
   "
@@ -150,6 +152,20 @@
 
 ;; ----- Collection of entries -----
 
+(schema/defn ^:always-validate get-entries-by-org
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  and a direction, one of `:before` or `:after`, return the entries for the org with any interactions.
+  "
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+  {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)]}
+  (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
+                                          "created-at" order start direction config/default-limit
+                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
+
 (schema/defn ^:always-validate get-entries-by-board
   "Given the UUID of the board, return the entries for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
@@ -169,6 +185,22 @@
     common/interaction-table-name
     :board-uuid-org-uuid
     [board-uuid org-uuid] "entry-uuid"))
+
+;; ----- Data about entries -----
+
+(schema/defn ^:always-validate entry-months-by-org
+  "
+  Given the UUID of the org, return an ordered sequence of all the months that have at least one entry.
+
+  Response:
+
+  [['2017' '06'] ['2017' '01'] [2016 '05']]
+
+  Sequence is ordered, newest to oldest.
+  "
+  [conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/months-with-resource conn table-name :org-uuid org-uuid :created-at))
 
 ;; ----- Armageddon -----
 

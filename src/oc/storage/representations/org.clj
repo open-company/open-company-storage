@@ -32,8 +32,14 @@
 (defn- org-collection-links [org]
   (assoc org :links [(item-link org)]))
 
+(defn- activity-link [org]
+  (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
+
+(defn- calendar-link [org]
+  (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
+
 (defn- org-links [org access-level]
-  (let [links [(self-link org)]
+  (let [links [(self-link org) (activity-link org) (calendar-link org)]
         full-links (if (= access-level :author) 
                       (concat links [(board-create-link org)
                                      (partial-update-link org)
@@ -46,6 +52,8 @@
                                          :accept mt/story-media-type})])
                       links)]
     (assoc org :links full-links)))
+
+(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
 
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"
@@ -66,7 +74,7 @@
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
   [orgs authed?]
-  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type})]
+  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type}) auth-link]
         full-links (if authed?
                       (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
                                                                  :accept mt/org-media-type}))

@@ -19,7 +19,8 @@
     [oc.storage.api.entry-point :as entry-point-api]
     [oc.storage.api.orgs :as orgs-api]
     [oc.storage.api.boards :as boards-api]
-    [oc.storage.api.entries :as entries-api]))
+    [oc.storage.api.entries :as entries-api]
+    [oc.storage.api.activity :as activity-api]))
 
 ;; ----- Unhandled Exceptions -----
 
@@ -44,7 +45,8 @@
     (entry-point-api/routes sys)
     (orgs-api/routes sys)
     (boards-api/routes sys)
-    (entries-api/routes sys)))
+    (entries-api/routes sys)
+    (activity-api/routes sys)))
 
 ;; ----- System Startup -----
 
