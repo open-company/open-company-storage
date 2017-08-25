@@ -55,8 +55,19 @@
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
 
 (defn- board-collection-links [board org-slug draft-story-count]
-  (let [options (if (zero? draft-story-count) {} {:count draft-story-count})]      
-    (assoc board :links [(self-link org-slug (:slug board) options)])))
+  (let [board-slug (:slug board)
+        story? (= :story (keyword (:type board)))
+        options (if (zero? draft-story-count) {} {:count draft-story-count})
+        links [(self-link org-slug board-slug options)]
+        full-links (if (or (= :author (:access-level board))
+                           (and (= board-slug "drafts") story?))
+          ;; Author gets create link
+          (conj links (if story?
+            (create-story-link org-slug board-slug)
+            (create-entry-link org-slug board-slug)))
+          ;; No create link
+          links)]
+    (assoc board :links full-links)))
 
 (defn- board-links
   [board org-slug board-uuid access-level]
@@ -100,8 +111,9 @@
   ([org-slug board draft-story-count]
   (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-storyboard)) draft-story-count 0)]
     (-> board
-      (select-keys representation-props)
-      (board-collection-links org-slug this-board-count)))))
+      (select-keys (conj representation-props :access-level))
+      (board-collection-links org-slug this-board-count)
+      (dissoc :access-level)))))
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"

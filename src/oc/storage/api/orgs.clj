@@ -19,6 +19,12 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.story :as story-res]))
 
+;; ----- Utility functions -----
+
+(defn- board-with-access-level [org board user]
+  (let [level (access/access-level-for org board user)]
+    (if level (merge board level) board)))
+
 ;; ----- Actions -----
 
 (defn create-org [conn ctx]
@@ -143,7 +149,8 @@
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
                              boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
+                             board-access (map #(board-with-access-level org % user) boards)
+                             allowed-boards (filter :access-level board-access)
                              draft-stories (when user-id (story-res/list-stories-by-org-author conn org-id user-id :draft))
                              draft-story-count (count draft-stories)
                              full-boards (if (pos? draft-story-count)
