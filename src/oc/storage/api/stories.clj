@@ -304,7 +304,6 @@
   :can-post-to-missing? false
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
                                             (slugify/valid-slug? board-slug))
-                               _drafts? (= board-slug (:slug board-res/default-drafts-storyboard))
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
@@ -313,7 +312,7 @@
                                board (board-res/get-board conn (:board-uuid story))
                                _matches? (and (= org-uuid (:org-uuid story))
                                               (= org-uuid (:org-uuid board))
-                                              (= :draft (keyword (:status story))))]
+                                              (= :draft (keyword (:status story))))] ; sanity check
                         {:existing-org org :existing-board board :existing-story story}
                         false))
   
