@@ -118,8 +118,12 @@
   (timbre/info "Publishing story:" story-for)
   (if-let* [board (:existing-board ctx)
             story (:existing-story ctx)
-            publish-result (story-res/publish-story! conn (:uuid story) (:user ctx))]
-    (do 
+            share-request (:share-request ctx)
+            shared (when share-request {:shared (concat (or (:shared story) []) share-request)})
+            publish-result (if shared
+                            (story-res/publish-story! conn (:uuid story) shared (:user ctx))
+                            (story-res/publish-story! conn (:uuid story) (:user ctx)))]
+    (do
       (timbre/info "Published story:" story-for)
       {:updated-story publish-result})
     (do (timbre/error "Failed publishing story:" story-for) false)))
@@ -317,9 +321,15 @@
   :handle-not-acceptable (by-method {
                             :post (api-common/only-accept 406 mt/story-media-type)})
 
-  ;; No data to handle
-  :malformed? false
-  :processable? true
+  ;; Possibly no data to handle
+  :malformed? (by-method {
+    :options false
+    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (let [share-props (:data ctx)]
+                      (or (nil? share-props) ; no share is fine
+                          (valid-share-request? conn story-uuid share-props))))})
   :new? false 
   :respond-with-entity? true
 
@@ -380,8 +390,7 @@
   ;; Validations
   :processable? (by-method {
     :options true
-    :post (fn [ctx] (valid-share-request? conn story-uuid (:data ctx)))
-    :delete true})
+    :post (fn [ctx] (valid-share-request? conn story-uuid (:data ctx)))})
 
   ;; Existentialism
   :can-post-to-missing? false

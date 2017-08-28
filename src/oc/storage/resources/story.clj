@@ -126,25 +126,29 @@
 
 (schema/defn ^:always-validate publish-story! :- (schema/maybe common/Story)
   "
-  Given the UUID of the story, and a user (as the publishing author), publish the story and
-  return the updated story on success.
+  Given the UUID of the story, an optional updated story map, and a user (as the publishing author),
+  publish the story and return the updated story on success.
   "
-  [conn uuid :- lib-schema/UniqueID user :- lib-schema/User]
-  {:pre [(db-common/conn? conn)]}
+  ([conn uuid :- lib-schema/UniqueID user :- lib-schema/User] (publish-story! conn uuid {} user))
+
+  ([conn uuid :- lib-schema/UniqueID story-props user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)
+         (map? story-props)]}
   (if-let [original-story (get-story conn uuid)]
     (let [authors (:author original-story)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
-          merged-story (merge original-story {:status :published
-                                              :published-at ts
-                                              :publisher publisher
-                                              :secure-uuid (db-common/unique-id)})
+          merged-story (merge original-story story-props {:status :published
+                                                          :published-at ts
+                                                          :publisher publisher
+                                                          :secure-uuid (db-common/unique-id)})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           story-update (assoc merged-story :author updated-authors)
           updated-story (db-common/update-resource conn table-name primary-key original-story story-update ts)]
+      (schema/validate common/Story updated-story)
       ;; Delete the story's draft interactions
       (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
-      updated-story)))
+      updated-story))))
 
 (schema/defn ^:always-validate delete-story!
   "Given the UUID of the story, delete the story and all its interactions. Return `true` on success."

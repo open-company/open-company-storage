@@ -49,7 +49,8 @@
 
 (defn- publish-link [org-slug board-slug story-uuid]
   (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug story-uuid) "/publish")
-    {:accept mt/story-media-type}))
+    {:content-type mt/share-request-media-type
+     :accept mt/story-media-type}))
 
 (defn- share-link [org-slug board-slug story-uuid]
   (hateoas/link-map "share" hateoas/POST (str (url org-slug board-slug story-uuid) "/share")
