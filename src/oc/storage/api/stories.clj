@@ -73,10 +73,13 @@
     true)) ; no existing story, so this will fail existence check later
 
 (defn- valid-share-request? [conn story-uuid share-props]
-  (if-let [existing-story (story-res/get-story conn story-uuid)]
-    (if (lib-schema/valid? common-res/ShareRequest share-props)
-        {:existing-story existing-story :share-request share-props}
-        [false, {:share-request share-props}]) ; invalid share request
+  (if-let* [existing-story (story-res/get-story conn story-uuid)
+            ts (db-common/current-timestamp)
+            _seq? (seq? share-props)
+            share-request (map #(assoc % :shared-at ts) share-props)]
+    (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-request)
+        {:existing-story existing-story :share-request share-request}
+        [false, {:share-request share-request}]) ; invalid share request
     
     true)) ; no existing story, so this will fail existence check later
 
@@ -126,7 +129,7 @@
   (if-let* [board (:existing-board ctx)
             story (:existing-story ctx)
             share-request (:share-request ctx)
-            shared {:shared (conj (or (:shared story) []) share-request)}
+            shared {:shared (concat (or (:shared story) []) share-request)}
             update-result (story-res/update-story! conn (:uuid story) shared (:user ctx))]
     (do 
       (timbre/info "Shared story:" story-for)
@@ -411,7 +414,9 @@
                                                (:existing-comments ctx)
                                                (:existing-reactions ctx)
                                                (:access-level ctx)
-                                               (-> ctx :user :user-id))))
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-request ctx)))))
 
 ;; A resource for access to a particular story by its secure UUID
 (defresource story-access [conn org-slug secure-uuid]

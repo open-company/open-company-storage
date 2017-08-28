@@ -92,11 +92,15 @@
 (def ShareRequest {
   :medium ShareMedium
   (schema/optional-key :note) (schema/maybe schema/Str)
+  
   ;; Email medium
   (schema/optional-key :to) [lib-schema/EmailAddress]
   (schema/optional-key :subject) (schema/maybe schema/Str)
+  
   ;; Slack medium
-  (schema/optional-key :channel) lib-schema/SlackChannel})
+  (schema/optional-key :channel) lib-schema/SlackChannel
+
+  :shared-at lib-schema/ISO8601})
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
