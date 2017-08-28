@@ -15,6 +15,7 @@
    :org-name (schema/maybe schema/Str)
    :org-logo-url (schema/maybe schema/Str)
    :title (schema/maybe schema/Str)
+   :secure-uuid lib-schema/UniqueID
    :published-at lib-schema/ISO8601
    :shared-at lib-schema/ISO8601})
 
@@ -28,6 +29,7 @@
    :org-name (:name org)
    :org-logo-url (:logo-url org)
    :title (:title story)
+   :secure-uuid (:secure-uuid story)
    :published-at (:published-at story)
    :shared-at (:shared-at share-request)})
 
