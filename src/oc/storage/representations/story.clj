@@ -16,7 +16,7 @@
 
 (def representation-props [:uuid :title :banner-url :banner-width :banner-height :body 
                            :org-name :org-logo-url :org-logo-width :org-logo-height
-                           :storyboard-name :status
+                           :storyboard-name :storyboard-slug :status
                            :author :created-at :updated-at])
 
 (defun url
@@ -113,6 +113,7 @@
       (select-keys  representation-props)
       (include-secure-uuid (:secure-uuid story) access-level)
       (assoc :storyboard-name (:name board))
+      (assoc :storyboard-slug (:slug board))
       (assoc :reactions reaction-rep)
       (assoc :links full-links))))
 
