@@ -1,6 +1,7 @@
 (ns oc.storage.api.boards
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
+            [defun.core :refer (defun-)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
@@ -38,8 +39,9 @@
 
 (defn- assemble-board
   "Assemble the entry, topic, author, and viewer data needed for a board response."
-  [conn org-slug slug board ctx]
-  (let [entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
+  [conn org-slug board ctx]
+  (let [slug (:slug board)
+        entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
                         (filter :topic-slug) ; remove entries w/ no topic
@@ -63,19 +65,36 @@
       (assoc :entries entry-reps)
       (assoc :topics (sort-by :name topics)))))
 
-(defn- assemble-storyboard
+(defun- assemble-storyboard
   "Assemble the story, author, and viewer data needed for a board response."
-  [conn org slug board ctx]
+
+  ;; Draft storyboard
+  ([conn org :guard map? board :guard #(= (:slug %) (:slug board-res/default-drafts-storyboard)) ctx]
   (let [org-slug (:slug org)
-        stories (if (= slug (:slug board-res/default-drafts-storyboard))
-                  ;; drafts by the user
-                  (story-res/list-stories-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft)
-                  ;; all stories for the board
-                  (story-res/list-stories-by-board conn (:uuid board)))
+        slug (:slug board)
+        stories (story-res/list-stories-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft)
+        storyboard-uuids (distinct (map :board-uuid stories))
+        storyboards (filter map? (map #(board-res/get-board conn %) storyboard-uuids))
+        storyboard-map (zipmap (map :uuid storyboards) storyboards)
+        story-reps (map #(story-rep/render-story-for-collection org (or (storyboard-map (:board-uuid %)) board) %
+                            (comments %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      stories)]
+    (assemble-storyboard org-slug board story-reps ctx)))
+
+  ;; Regular storyboard
+  ([conn org :guard map? board :guard map? ctx]
+  (let [org-slug (:slug org)
+        stories (story-res/list-stories-by-board conn (:uuid board))
         story-reps (map #(story-rep/render-story-for-collection org board %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
-                      stories)
+                      stories)]
+    (assemble-storyboard org-slug board story-reps ctx)))
+
+  ;; Recursion to finish up both kinds of storyboards
+  ([org-slug :guard string? board :guard map? story-reps :guard seq? ctx]
+  (let [slug (:slug board)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
         viewers (:viewers board)
@@ -83,7 +102,7 @@
     (-> board 
       (assoc :authors author-reps)
       (assoc :viewers viewer-reps)
-      (assoc :stories story-reps))))
+      (assoc :stories story-reps)))))
 
 ;; ----- Validations -----
 
@@ -211,9 +230,9 @@
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
-                                         (when (= slug (:slug board-res/default-drafts-storyboard))
-                                            (board-res/drafts-storyboard org-uuid (:user ctx)))
-                                         (board-res/get-board conn org-uuid slug))]
+                                         (if (= slug (:slug board-res/default-drafts-storyboard))
+                                            (board-res/drafts-storyboard org-uuid (:user ctx))
+                                            (board-res/get-board conn org-uuid slug)))]
                         {:existing-org org :existing-board board}
                         false))
 
@@ -224,8 +243,8 @@
   ;; Responses
   :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
                              full-board (if (= (keyword (:type board)) :story)
-                                          (assemble-storyboard conn (:existing-org ctx) slug board ctx)
-                                          (assemble-board conn org-slug slug board ctx))]
+                                          (assemble-storyboard conn (:existing-org ctx) board ctx)
+                                          (assemble-board conn org-slug board ctx))]
                           (board-rep/render-board org-slug full-board (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
