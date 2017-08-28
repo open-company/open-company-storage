@@ -1,6 +1,7 @@
 (ns oc.storage.api.stories
   "Liberator API for story resources."
   (:require [clojure.string :as s]
+            [defun.core :refer (defun-)]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY)]
@@ -12,7 +13,8 @@
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
-            [oc.storage.api.access :as access]            
+            [oc.storage.api.access :as access]
+            [oc.storage.lib.email :as email]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.story :as story-rep]
             [oc.storage.resources.common :as common-res]
@@ -47,6 +49,24 @@
     (map #(story-rep/render-story-for-collection org board % (comments %) (reactions %) access user-id)
       (take 2 related-stories))))
 
+(defun- trigger-share-requests
+  "Parallel recursive function to send share requests to AWS SQS."
+
+  ;; Initial
+  ([org story user share-requests :guard seq?]
+  (doall (pmap (partial trigger-share-requests org story user) share-requests)))
+
+  ;; Email share
+  ([org story user share-request :guard #(= "email" (:medium %)) ]
+  (timbre/info "Triggering share: email for" (:uuid story) "of" (:slug org))
+  (email/send-trigger! (email/->trigger org story share-request user)))
+
+  ;; Slack share
+  ([org story user share-request :guard #(= "slack" (:medium %))]
+  (timbre/info "Triggering share: slack for" (:uuid story) "of" (:slug org))
+  ; (bot/send-trigger! (bot/->trigger org story share-request user))
+  ))
+
 ;; ----- Validations -----
 
 (defn- valid-new-story? [conn org-slug board-slug ctx]
@@ -72,14 +92,14 @@
     
     true)) ; no existing story, so this will fail existence check later
 
-(defn- valid-share-request? [conn story-uuid share-props]
+(defn- valid-share-requests? [conn story-uuid share-props]
   (if-let* [existing-story (story-res/get-story conn story-uuid)
             ts (db-common/current-timestamp)
             _seq? (seq? share-props)
-            share-request (map #(assoc % :shared-at ts) share-props)]
-    (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-request)
-        {:existing-story existing-story :share-request share-request}
-        [false, {:share-request share-request}]) ; invalid share request
+            share-requests (map #(assoc % :shared-at ts) share-props)]
+    (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-requests)
+        {:existing-story existing-story :share-requests share-requests}
+        [false, {:share-requests share-requests}]) ; invalid share request
     
     true)) ; no existing story, so this will fail existence check later
 
@@ -108,33 +128,38 @@
 
 (defn- delete-story [conn ctx story-for]
   (timbre/info "Deleting story:" story-for)
-  (if-let* [board (:existing-board ctx)
-            story (:existing-story ctx)
+  (if-let* [story (:existing-story ctx)
             _delete-result (story-res/delete-story! conn (:uuid story))]
     (do (timbre/info "Deleted story:" story-for) true)
     (do (timbre/error "Failed deleting story:" story-for) false)))
 
 (defn- publish-story [conn ctx story-for]
   (timbre/info "Publishing story:" story-for)
-  (if-let* [board (:existing-board ctx)
+  (if-let* [org (:existing-org ctx)
             story (:existing-story ctx)
-            share-request (if (:share-request ctx) {:shared (concat (or (:shared story) []) (:share-request ctx))} true)
-            publish-result (if (map? share-request)
-                            (story-res/publish-story! conn (:uuid story) share-request (:user ctx))
-                            (story-res/publish-story! conn (:uuid story) (:user ctx)))]
+            user (:user ctx)
+            share-requests (if (:share-requests ctx) 
+                              {:shared (concat (or (:shared story) []) (:share-requests ctx))}
+                              true)
+            publish-result (if (map? share-requests)
+                            (story-res/publish-story! conn (:uuid story) share-requests user)
+                            (story-res/publish-story! conn (:uuid story) user))]
     (do
+      (trigger-share-requests org story user share-requests)
       (timbre/info "Published story:" story-for)
       {:updated-story publish-result})
     (do (timbre/error "Failed publishing story:" story-for) false)))
 
 (defn- share-story [conn ctx story-for]
   (timbre/info "Sharing story:" story-for)
-  (if-let* [board (:existing-board ctx)
+  (if-let* [org (:existing-org ctx)
             story (:existing-story ctx)
-            share-request (:share-request ctx)
-            shared {:shared (concat (or (:shared story) []) share-request)}
-            update-result (story-res/update-story! conn (:uuid story) shared (:user ctx))]
-    (do 
+            user (:user ctx)
+            share-requests (:share-requests ctx)
+            shared {:shared (concat (or (:shared story) []) share-requests)}
+            update-result (story-res/update-story! conn (:uuid story) shared user)]
+    (do
+      (trigger-share-requests org story user share-requests)
       (timbre/info "Shared story:" story-for)
       {:updated-story update-result})
     (do (timbre/error "Failed sharing story:" story-for) false)))
@@ -328,7 +353,7 @@
     :options true
     :post (fn [ctx] (let [share-props (:data ctx)]
                       (or (nil? share-props) ; no share is fine
-                          (valid-share-request? conn story-uuid share-props))))})
+                          (valid-share-requests? conn story-uuid share-props))))})
   :new? false 
   :respond-with-entity? true
 
@@ -389,7 +414,7 @@
   ;; Validations
   :processable? (by-method {
     :options true
-    :post (fn [ctx] (valid-share-request? conn story-uuid (:data ctx)))})
+    :post (fn [ctx] (valid-share-requests? conn story-uuid (:data ctx)))})
 
   ;; Existentialism
   :can-post-to-missing? false
@@ -424,7 +449,7 @@
                                                (:access-level ctx)
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-request ctx)))))
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-requests ctx)))))
 
 ;; A resource for access to a particular story by its secure UUID
 (defresource story-access [conn org-slug secure-uuid]
