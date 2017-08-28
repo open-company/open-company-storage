@@ -68,7 +68,7 @@
   :access AccessLevel
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
-  (schema/optional-key :slack-mirror) lib-schema/SlackMirror
+  (schema/optional-key :slack-mirror) lib-schema/SlackChannel
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
@@ -87,19 +87,20 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
-; (def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
+(def ShareMedium (schema/pred #(#{:email :slack} (keyword %))))
 
-; (def ShareRequest {
-;   :title (schema/maybe schema/Str)
-;   :medium ShareMedium
-;   :entries [{:topic-slug Slug :created-at lib-schema/ISO8601}]
-;   ;; Email medium
-;   (schema/optional-key :to) [lib-schema/EmailAddress]
-;   (schema/optional-key :subject) (schema/maybe schema/Str)
-;   (schema/optional-key :note) (schema/maybe schema/Str)
-;   ;; Slack medium
-;   (schema/optional-key :channel) lib-schema/NonBlankStr
-;   (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
+(def ShareRequest {
+  :medium ShareMedium
+  (schema/optional-key :note) (schema/maybe schema/Str)
+  
+  ;; Email medium
+  (schema/optional-key :to) [lib-schema/EmailAddress]
+  (schema/optional-key :subject) (schema/maybe schema/Str)
+  
+  ;; Slack medium
+  (schema/optional-key :channel) lib-schema/SlackChannel
+
+  :shared-at lib-schema/ISO8601})
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
@@ -125,6 +126,8 @@
     :author [ContributingAuthor]
     (schema/optional-key :published-at) lib-schema/ISO8601
     (schema/optional-key :publisher) lib-schema/Author
+
+    (schema/optional-key :shared) [ShareRequest]
     
     :created-at lib-schema/ISO8601
     :updated-at lib-schema/ISO8601})
