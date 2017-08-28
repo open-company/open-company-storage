@@ -143,12 +143,12 @@
                                                           :publisher publisher
                                                           :secure-uuid (db-common/unique-id)})
           updated-authors (conj authors (assoc publisher :updated-at ts))
-          story-update (assoc merged-story :author updated-authors)
-          updated-story (db-common/update-resource conn table-name primary-key original-story story-update ts)]
-      (schema/validate common/Story updated-story)
-      ;; Delete the story's draft interactions
-      (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
-      updated-story))))
+          story-update (assoc merged-story :author updated-authors)]
+      (schema/validate common/Story story-update)
+      (let [updated-story (db-common/update-resource conn table-name primary-key original-story story-update ts)]
+        ;; Delete the story's draft interactions
+        (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+        updated-story)))))
 
 (schema/defn ^:always-validate delete-story!
   "Given the UUID of the story, delete the story and all its interactions. Return `true` on success."

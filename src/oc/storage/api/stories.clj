@@ -118,10 +118,9 @@
   (timbre/info "Publishing story:" story-for)
   (if-let* [board (:existing-board ctx)
             story (:existing-story ctx)
-            share-request (:share-request ctx)
-            shared (when share-request {:shared (concat (or (:shared story) []) share-request)})
-            publish-result (if shared
-                            (story-res/publish-story! conn (:uuid story) shared (:user ctx))
+            share-request (if (:share-request ctx) {:shared (concat (or (:shared story) []) (:share-request ctx))} true)
+            publish-result (if (map? share-request)
+                            (story-res/publish-story! conn (:uuid story) share-request (:user ctx))
                             (story-res/publish-story! conn (:uuid story) (:user ctx)))]
     (do
       (timbre/info "Published story:" story-for)
