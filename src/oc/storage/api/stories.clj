@@ -3,7 +3,7 @@
   (:require [clojure.string :as s]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY POST)]
+            [compojure.core :as compojure :refer (ANY)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -72,6 +72,14 @@
     
     true)) ; no existing story, so this will fail existence check later
 
+(defn- valid-share-request? [conn story-uuid share-props]
+  (if-let [existing-story (story-res/get-story conn story-uuid)]
+    (if (lib-schema/valid? common-res/ShareRequest share-props)
+        {:existing-story existing-story :share-request share-props}
+        [false, {:share-request share-props}]) ; invalid share request
+    
+    true)) ; no existing story, so this will fail existence check later
+
 ;; ----- Actions -----
 
 (defn- create-story [conn ctx story-for]
@@ -112,6 +120,18 @@
       (timbre/info "Published story:" story-for)
       {:updated-story publish-result})
     (do (timbre/error "Failed publishing story:" story-for) false)))
+
+(defn- share-story [conn ctx story-for]
+  (timbre/info "Sharing story:" story-for)
+  (if-let* [board (:existing-board ctx)
+            story (:existing-story ctx)
+            share-request (:share-request ctx)
+            shared {:shared (conj (or (:shared story) []) share-request)}
+            update-result (story-res/update-story! conn (:uuid story) shared (:user ctx))]
+    (do 
+      (timbre/info "Shared story:" story-for)
+      {:updated-story update-result})
+    (do (timbre/error "Failed sharing story:" story-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -317,7 +337,7 @@
                         false))
   
   ;; Actions
-  :post! (fn [ctx] (publish-story conn ctx (s/join " " [org-slug story-uuid])))
+  :post! (fn [ctx] (publish-story conn ctx (s/join " " [org-slug board-slug story-uuid])))
 
   ;; Responses
   :handle-ok (fn [ctx] (story-rep/render-story (:existing-org ctx)
@@ -325,6 +345,71 @@
                                                (:updated-story ctx)
                                                [] ; no comments
                                                [] ; no reactions
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id))))
+
+;; A resource for operations to share a particular story
+(defresource share [conn org-slug board-slug story-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+  
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/story-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/story-media-type)})
+
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/share-request-media-type))})
+
+  ;; Data handling
+  :new? false 
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (valid-share-request? conn story-uuid (:data ctx)))
+    :delete true})
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               story (or (:existing-story ctx)
+                                         (story-res/get-story conn story-uuid))
+                               board (board-res/get-board conn (:board-uuid story))
+                               comments (or (:existing-comments ctx)
+                                            (story-res/list-comments-for-story conn (:uuid story)))
+                               reactions (or (:existing-reactions ctx)
+                                             (story-res/list-reactions-for-story conn (:uuid story)))
+                               _matches? (and (= org-uuid (:org-uuid story))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :published (keyword (:status story))))] ; sanity check
+                        {:existing-org org :existing-board board :existing-story story
+                         :existing-comments comments :existing-reactions reactions}
+                        false))
+  
+  ;; Actions
+  :post! (fn [ctx] (share-story conn ctx (s/join " " [org-slug board-slug story-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (story-rep/render-story (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-story ctx)
+                                               (:existing-comments ctx)
+                                               (:existing-reactions ctx)
                                                (:access-level ctx)
                                                (-> ctx :user :user-id))))
 
@@ -396,11 +481,19 @@
         [org-slug board-slug story-uuid]
         (pool/with-pool [conn db-pool]
           (story conn org-slug board-slug story-uuid)))
-      (POST "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish"
+      (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish"
         [org-slug board-slug story-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug story-uuid)))
-      (POST "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish/"
+      (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/publish/"
         [org-slug board-slug story-uuid]
         (pool/with-pool [conn db-pool]
-          (publish conn org-slug board-slug story-uuid))))))
+          (publish conn org-slug board-slug story-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/share"
+        [org-slug board-slug story-uuid]
+        (pool/with-pool [conn db-pool]
+          (share conn org-slug board-slug story-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/stories/:story-uuid/share/"
+        [org-slug board-slug story-uuid]
+        (pool/with-pool [conn db-pool]
+          (share conn org-slug board-slug story-uuid))))))

@@ -51,6 +51,11 @@
   (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug story-uuid) "/publish")
     {:accept mt/story-media-type}))
 
+(defn- share-link [org-slug board-slug story-uuid]
+  (hateoas/link-map "share" hateoas/POST (str (url org-slug board-slug story-uuid) "/share")
+    {:content-type mt/share-request-media-type
+     :accept mt/story-media-type}))
+
 (defn- secure-link [org-slug secure-uuid]
   (hateoas/link-map "secure" hateoas/GET (secure-url org-slug secure-uuid) {:accept mt/story-media-type}))
 
@@ -99,7 +104,9 @@
                                    (content/comments-link org-uuid board-uuid story-uuid comments)])
 
                     :else links)
-        full-links (if draft? (conj more-links (publish-link org-slug board-slug story-uuid)) more-links)]
+        full-links (if draft?
+                      (conj more-links (publish-link org-slug board-slug story-uuid))
+                      (conj more-links (share-link org-slug board-slug story-uuid)))]
     (-> (merge org story)
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys  representation-props)
