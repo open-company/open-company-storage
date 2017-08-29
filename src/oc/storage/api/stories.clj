@@ -15,6 +15,7 @@
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.lib.email :as email]
+            [oc.storage.lib.bot :as bot]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.story :as story-rep]
             [oc.storage.resources.common :as common-res]
@@ -64,8 +65,7 @@
   ;; Slack share
   ([org story user share-request :guard #(= "slack" (:medium %))]
   (timbre/info "Triggering share: slack for" (:uuid story) "of" (:slug org))
-  ; (bot/send-trigger! (bot/->trigger org story share-request user))
-  ))
+  (bot/send-share-snapshot-trigger! (bot/->share-snapshot-trigger org story share-request user))))
 
 ;; ----- Validations -----
 
