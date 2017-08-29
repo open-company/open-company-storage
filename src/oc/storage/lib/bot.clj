@@ -1,6 +1,5 @@
 (ns oc.storage.lib.bot
-  (:require [clojure.string :as s]
-            [amazonica.aws.sqs :as sqs]
+  (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
