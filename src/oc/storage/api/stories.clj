@@ -145,7 +145,7 @@
                             (story-res/publish-story! conn (:uuid story) share-requests user)
                             (story-res/publish-story! conn (:uuid story) user))]
     (do
-      (trigger-share-requests org story user share-requests)
+      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org story user share-requests))
       (timbre/info "Published story:" story-for)
       {:updated-story publish-result})
     (do (timbre/error "Failed publishing story:" story-for) false)))
@@ -159,7 +159,7 @@
             shared {:shared (concat (or (:shared story) []) share-requests)}
             update-result (story-res/update-story! conn (:uuid story) shared user)]
     (do
-      (trigger-share-requests org story user share-requests)
+      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org story user share-requests))
       (timbre/info "Shared story:" story-for)
       {:updated-story update-result})
     (do (timbre/error "Failed sharing story:" story-for) false)))
