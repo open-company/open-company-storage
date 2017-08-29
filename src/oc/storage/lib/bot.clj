@@ -17,7 +17,7 @@
     :receiver {
       :type (schema/enum :all-members :user :channel)
       :slack-org-id lib-schema/NonBlankStr
-      (schema/optional-key :receiver-id) schema/Str
+      (schema/optional-key :id) schema/Str
   }})
 
 (def ShareSnapshotTrigger 
@@ -52,7 +52,7 @@
       :receiver {
         :type :channel
         :slack-org-id slack-org-id
-        :receiver-id (-> share-request :channel :channel-id)
+        :id (-> share-request :channel :channel-id)
       }
       :bot (bot-for slack-org-id user)
       :note (:note share-request)
