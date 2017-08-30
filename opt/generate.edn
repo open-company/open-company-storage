@@ -16,9 +16,6 @@
   :max-title-words 12 ; how many words in a headline
   :max-story-paragraphs 20 ; maximum paragraphs of text in a body
   :chance-of-banner 0.5 ; fraction of stories with a banner image
-  :chance-of-image 0.25 ; fraction of stories with a photo
-  :chance-of-video 0.05 ; fraction of updates with a video
-  :chance-of-chart 0.10 ; fraction of stories with a chart
 
   ;; Reactions
   :chance-of-reaction 0.1 ; fraction of reactions (3 per entry) that are used per update

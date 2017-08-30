@@ -463,12 +463,12 @@ http://localhost:3001/companies/hotel-procrastination
 
 To import company sample data from an edn file run:
 ```console
-lein run -m oc.storage.util.import -- ./opt/samples/buff.edn
+lein run -m oc.storage.util.import -- ./opt/samples/18f.edn
 ```
 
 use `-d` to erase the company while importing like this:
 ```console
-lein run -m oc.storage.util.import -- -d ./opt/samples/buff.edn
+lein run -m oc.storage.util.import -- -d ./opt/samples/green-labs.edn
 ```
 
 To add all the company sample data in a directory (each file with a `.edn` extension), run:
@@ -493,6 +493,22 @@ or
 DB_NAME="open_company_storage" lein run -m oc.storage.util.import -- -d ./opt/samples/
 ```
 
+#### Generate sample data
+
+To generate sample data into an existing org, run:
+
+```
+lein run -m oc.storage.util.generate -- <org-slug> <config-file> <start-date> <end-data>
+```
+
+e.g.
+
+```
+lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-06-30
+```
+
+See the sample generation config file `./opt/generate.edn` for how the sample data generation can be customized.
+ 
 
 ## Testing
 

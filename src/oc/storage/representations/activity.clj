@@ -26,19 +26,21 @@
 
 (defn- pagination-links
   "Add `next` and/or `prior` links for pagination as needed."
-  [org {:keys [start start? direction]} activity]
-  (let [entries (:entries activity)
-        activity? (not-empty entries)
-        last-activity (when activity? (:created-at (last entries)))
-        first-activity (when activity? (:created-at (first entries)))
-        next? (or (= (:direction activity) :previous)
-                  (= (:next-count activity) config/default-limit))
-        next-url (when next? (url org {:start last-activity :direction :before}))
+  [org {:keys [start start? direction]} data]
+  (let [activity (:activity data)
+        activity? (not-empty activity)
+        last-activity (last activity)
+        first-activity (first activity)
+        last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
+        first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
+        next? (or (= (:direction data) :previous)
+                  (= (:next-count data) config/default-limit))
+        next-url (when next? (url org {:start last-activity-date :direction :before}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))
         prior? (and start?
-                    (or (= (:direction activity) :next)
-                        (= (:previous-count activity) config/default-limit)))
-        prior-url (when prior? (url org {:start first-activity :direction :after}))
+                    (or (= (:direction data) :next)
+                        (= (:previous-count data) config/default-limit)))
+        prior-url (when prior? (url org {:start first-activity-date :direction :after}))
         prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))
 
