@@ -4,6 +4,7 @@
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
+            [clj-time.format :as f]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
@@ -19,7 +20,14 @@
 
 ;; ----- Utility functions -----
 
-(defn activity-sort
+(defn- valid-timestamp? [ts]
+  (try
+    (f/parse db-common/timestamp-format ts)
+    true
+    (catch IllegalArgumentException e
+      false)))
+
+(defn- activity-sort
   "
   Compare function to sort 2 entries and/or activity by their `created-at` or `published-at` order respectively,
   in the order (:asc or :desc) provided.
@@ -103,6 +111,18 @@
     :options true
     :get (fn [ctx] (access/access-level-for conn slug (:user ctx)))})
 
+  ;; Check the request
+  :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+                              start (:start ctx-params)
+                              valid-start? (if start (valid-timestamp? start) true)
+                              direction (keyword (:direction ctx-params))
+                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
+                              valid-direction? (if direction (#{:before :after :around} direction) true)
+                              ;; a specified start/direction must be together or ommitted
+                              pairing-allowed? (or (and start direction)
+                                                   (and (not start) (not direction)))]
+                          (not (and valid-start? valid-direction? pairing-allowed?))))
+
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
@@ -118,9 +138,7 @@
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
-                             ;; around is only valid with a specified start
-                             allowed-direction (if (and (not start?) (= direction :around)) :before direction) 
-                             params (merge start-params {:direction allowed-direction :start? start?})
+                             params (merge start-params {:direction direction :start? start?})
                              boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
