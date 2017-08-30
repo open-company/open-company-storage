@@ -146,7 +146,8 @@
                             (story-res/publish-story! conn (:uuid story) shared user)
                             (story-res/publish-story! conn (:uuid story) user))]
     (do
-      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org story user share-requests))
+      (when (and (seq? share-requests)(any? share-requests))
+        (trigger-share-requests org publish-result user share-requests))
       (timbre/info "Published story:" story-for)
       {:updated-story publish-result})
     (do (timbre/error "Failed publishing story:" story-for) false)))
