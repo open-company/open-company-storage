@@ -138,8 +138,8 @@
   (if-let* [org (:existing-org ctx)
             story (:existing-story ctx)
             user (:user ctx)
-            share-requests (:share-requests ctx)
-            shared (if share-requests 
+            share-requests (or (:share-requests ctx) true)
+            shared (if (seq? share-requests)
                       {:shared (concat (or (:shared story) []) share-requests)}
                       true)
             publish-result (if (map? shared)

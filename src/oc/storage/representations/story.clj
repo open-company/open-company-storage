@@ -125,17 +125,15 @@
 (defn render-story
  "Create a JSON representation of the story for the REST API"
   ([org board story comments reactions related access-level user-id]
-  (let [story-uuid (:uuid story)]
-    (json/generate-string
-      (assoc (render-story-for-collection org board story comments reactions access-level user-id)
-        :related related)
-      {:pretty config/pretty?})))
+  (json/generate-string
+    (assoc (render-story-for-collection org board story comments reactions access-level user-id)
+      :related related)
+    {:pretty config/pretty?}))
 
   ([org board story comments reactions access-level user-id]
-  (let [story-uuid (:uuid story)]
-    (json/generate-string
-      (render-story-for-collection org board story comments reactions access-level user-id)      
-      {:pretty config/pretty?}))))
+  (json/generate-string
+    (render-story-for-collection org board story comments reactions access-level user-id)      
+    {:pretty config/pretty?})))
 
 (defn render-story-list
   "
