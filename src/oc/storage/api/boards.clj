@@ -275,6 +275,7 @@
     :options true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
                          (valid-new-board? conn org-slug ctx)))})
+  :conflict? (fn [ctx] (not (board-res/slug-available? conn (org-res/uuid-for conn org-slug) (-> ctx :new-board :slug))))
 
   ;; Actions
   :post! (fn [ctx] (create-board conn ctx org-slug))

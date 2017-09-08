@@ -66,7 +66,7 @@
 
 ;; ----- Board Slug -----
 
-(def reserved-slugs #{"create-board" "settings" "boards" "stories" "activity"})
+(def reserved-slugs #{"create-board" "settings" "boards" "stories" "journals" "all-activity" "activity"})
 
 (declare list-all-boards-by-org)
 (defn taken-slugs
@@ -82,7 +82,7 @@
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)
          (slug/valid-slug? slug)]}
-  (not (contains? (taken-slugs conn) slug)))
+  (not (contains? (taken-slugs conn org-uuid) slug)))
 
 ;; ----- Org CRUD -----
 
