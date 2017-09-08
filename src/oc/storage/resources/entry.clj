@@ -118,7 +118,7 @@
           topic-named-entry (assoc merged-entry :topic-name topic-name)
           slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
-          updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
+          updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
           updated-author (assoc slugged-entry :author updated-authors)
           attachments (:attachments merged-entry)
           updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
