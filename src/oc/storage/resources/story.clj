@@ -113,6 +113,28 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :secure-uuid-org-uuid [[secure-uuid org-uuid]]))))
 
+(defn author-update
+  "
+  Add the specified editing author to the authors list with the following rules:
+
+  - if there is only the original author, the editor gets added
+  - if there is an existing editor(s), and the last editor is not the same as this editor, this editor gets added
+  - if there is an existing editor(s), and the last editor is the same as this editor, the last editor gets replaced
+  "
+  [authors author ts]
+  (let [last-editor (last authors)
+        this-editor (assoc author :updated-at ts)]
+    (cond
+      ;; if there is only the original author, the editor gets added
+      (< (count authors) 2)
+      (concat authors [this-editor])
+      ;; if there is an existing editor(s), and the last editor is not the same as this editor, this editor gets added
+      (not= (:user-id last-editor) (:user-id this-editor))
+      (concat authors [this-editor])
+      ;; if there is an existing editor(s), and the last editor is the same as this editor, the last editor gets replaced
+      :else
+      (concat (drop-last authors) [this-editor]))))
+
 (schema/defn ^:always-validate update-story! :- (schema/maybe common/Story)
   "
   Given the UUID of the story, an updated story property map, and a user (as the author), update the story and
@@ -128,7 +150,7 @@
     (let [authors (:author original-story)
           merged-story (merge original-story (ignore-props story))
           ts (db-common/current-timestamp)
-          updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
+          updated-authors (author-update authors (lib-schema/author-for-user user) ts)
           updated-story (assoc merged-story :author updated-authors)]
       (schema/validate common/Story updated-story)
       (db-common/update-resource conn table-name primary-key original-story updated-story ts))))
