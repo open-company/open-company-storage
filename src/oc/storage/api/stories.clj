@@ -85,7 +85,14 @@
 (defn- valid-story-update? [conn story-uuid story-props]
   (if-let [existing-story (story-res/get-story conn story-uuid)]
     ;; Merge the existing story with the new updates
-    (let [updated-story (merge existing-story (story-res/clean story-props))]
+    (let [new-storyboard-slug (:storyboard-slug story-props) ; check if they are moving the story
+          new-storyboard (when new-storyboard-slug ; look up the board it's being moved to
+                          (board-res/get-board conn (:org-uuid existing-story) new-storyboard-slug))
+          new-storyboard-uuid (when (= (:type new-storyboard) "story") (:uuid new-storyboard))
+          props (if new-storyboard-uuid
+                  (assoc story-props :board-uuid new-storyboard-uuid)
+                  (dissoc story-props :board-uuid))
+          updated-story (merge existing-story (story-res/ignore-props props))]
       (if (lib-schema/valid? common-res/Story updated-story)
         {:existing-story existing-story :updated-story updated-story}
         [false, {:updated-story updated-story}])) ; invalid update

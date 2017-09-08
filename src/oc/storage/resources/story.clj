@@ -17,14 +17,23 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:published-at :publisher :secure-uuid})
+  #{:published-at :publisher :secure-uuid :storyboard-slug})
+
+(def ignored-properties
+  "Properties of a resource that are ignored during an update."
+  (disj reserved-properties :board-uuid))
 
 ; ;; ----- Utility functions -----
 
 (defn clean
-  "Remove any reserved properties from the org."
-  [update]
-  (apply dissoc (common/clean update) reserved-properties))
+  "Remove any reserved properties from the story."
+  [story]
+  (apply dissoc (common/clean story) reserved-properties))
+
+(defn ignore-props
+  "Remove any ignored properties from the story."
+  [story]
+  (apply dissoc story ignored-properties))
 
 ;; ----- Story CRUD -----
 
@@ -117,7 +126,7 @@
          (map? story)]}
   (if-let [original-story (get-story conn uuid)]
     (let [authors (:author original-story)
-          merged-story (merge original-story (clean story))
+          merged-story (merge original-story (ignore-props story))
           ts (db-common/current-timestamp)
           updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
           updated-story (assoc merged-story :author updated-authors)]
