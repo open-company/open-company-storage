@@ -68,7 +68,7 @@
   :access AccessLevel
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
-  (schema/optional-key :slack-mirror) lib-schema/SlackChannel
+  (schema/optional-key :slack-mirror) (schema/maybe lib-schema/SlackChannel)
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
