@@ -75,9 +75,8 @@
   Given an story and all the metadata about it, render an access level appropriate rendition of the story
   for use in an API response.
   "
-  [org board story comments reactions access-level user-id]
-  (let [secure-access? (= user-id :secure)
-        story-uuid (:uuid story)
+  [org board story comments reactions access-level user-id secure-access?]
+  (let [story-uuid (:uuid story)
         secure-uuid (:secure-uuid story)
         org-slug (:slug org)
         org-uuid (:uuid org)
@@ -130,14 +129,20 @@
 
 (defn render-story-for-collection
   "Create a map of the story for use in a collection in the API"
-  [org board story comments reactions access-level user-id]
-  (story-and-links org board story comments reactions access-level user-id))
+  ([org board story comments reactions access-level user-id]
+  (story-and-links org board story comments reactions access-level user-id false))
+
+  ([org board story comments reactions access-level user-id secure-access?]
+  (story-and-links org board story comments reactions access-level user-id secure-access?)))
 
 (defn render-story
  "Create a JSON representation of the story for the REST API"
   ([org board story comments reactions related access-level user-id]
+  (render-story org board story comments reactions related access-level user-id false))
+  
+  ([org board story comments reactions related access-level user-id secure-access?]
   (json/generate-string
-    (assoc (render-story-for-collection org board story comments reactions access-level user-id)
+    (assoc (render-story-for-collection org board story comments reactions access-level user-id secure-access?)
       :related related)
     {:pretty config/pretty?}))
 

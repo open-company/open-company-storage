@@ -504,7 +504,9 @@
                                                (:existing-story ctx)
                                                (:existing-comments ctx)
                                                (:existing-reactions ctx)
+                                               [] ; no related stories for secure UUID access
                                                (:access-level ctx)
+                                               (-> ctx :user :user-id)
                                                :secure)))
 
 ;; ----- Routes -----
