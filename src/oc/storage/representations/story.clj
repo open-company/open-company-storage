@@ -76,38 +76,49 @@
   for use in an API response.
   "
   [org board story comments reactions access-level user-id]
-  (let [story-uuid (:uuid story)
+  (let [secure-access? (= user-id :secure)
+        story-uuid (:uuid story)
         secure-uuid (:secure-uuid story)
         org-slug (:slug org)
         org-uuid (:uuid org)
         board-slug (:slug board)
         board-uuid (:uuid board)
         draft? (= :draft (keyword (:status story)))
-        reaction-rep (if (or draft? (= access-level :public))
+        reaction-rep (if (or draft? (not (or (= access-level :author) (= access-level :viewer))))
                     []
                     (content/reactions-and-links org-uuid board-uuid story-uuid reactions user-id))
-        links (if (= user-id :secure)
+        links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
                 ;; normal access
                 [(self-link org-slug board-slug story-uuid)
                  (up-link org-slug board-slug)])
-        more-links (cond 
-                    (or (and draft? (not= user-id :secure)) (= access-level :author))
+        more-links (cond
+                    ;; Accessing drafts, or access by authors get editing links
+                    (or (and draft? (not secure-access?)) (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug story-uuid)
                                    (delete-link org-slug board-slug story-uuid)
                                    (secure-link org-slug secure-uuid)
                                    (content/comment-link org-uuid board-uuid story-uuid)
-                                   (content/comments-link org-uuid board-uuid story-uuid comments)])
-
+                                   (content/comments-link org-uuid board-uuid story-uuid comments)
+                                   (board-rep/interaction-link board-uuid)])
+                    ;; Access by viewers get comments
                     (= access-level :viewer)
                     (concat links [(content/comment-link org-uuid board-uuid story-uuid)
-                                   (content/comments-link org-uuid board-uuid story-uuid comments)])
-
+                                   (content/comments-link org-uuid board-uuid story-uuid comments)
+                                   (board-rep/interaction-link board-uuid)])
+                    ;; Everyone else is read-only
                     :else links)
-        full-links (if draft?
+        full-links (cond
+                      ;; Drafts need a publish link
+                      draft?
                       (conj more-links (publish-link org-slug board-slug story-uuid))
-                      (conj more-links (share-link org-slug board-slug story-uuid)))]
+                      ;; Indirect access via the storyboard, rather than direct access by the secure ID
+                      ;; needs a share link
+                      (not secure-access?)
+                      (conj more-links (share-link org-slug board-slug story-uuid))
+                      ;; Otherwise just the links they already have
+                      :else more-links)]
     (-> (merge org story)
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys  representation-props)

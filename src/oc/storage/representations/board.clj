@@ -50,7 +50,7 @@
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
-(defn- interaction-link [board-uuid]
+(defn interaction-link [board-uuid]
   (hateoas/link-map "interactions" "GET"
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
 

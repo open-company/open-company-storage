@@ -483,8 +483,9 @@
                                story (or (:existing-story ctx)
                                          (story-res/get-story-by-secure conn org-uuid secure-uuid))
                                board (board-res/get-board conn (:board-uuid story))
+                               access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)
                                _matches? (= org-uuid (:org-uuid board))] ; sanity check
-                        {:existing-org org :existing-board board :existing-story story}
+                        {:existing-org org :existing-board board :existing-story story :access-level access-level}
                         false))
   
   ;; Responses
@@ -493,7 +494,7 @@
                                                (:existing-story ctx)
                                                [] ; no comments
                                                [] ; no reactions
-                                               :public
+                                               (:access-level ctx)
                                                :secure)))
 
 ;; ----- Routes -----
