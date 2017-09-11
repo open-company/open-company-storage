@@ -484,16 +484,26 @@
                                          (story-res/get-story-by-secure conn org-uuid secure-uuid))
                                board (board-res/get-board conn (:board-uuid story))
                                access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)
+                               reactions? (or (= :author access-level) (= :viewer access-level))
+                               comments (if reactions?
+                                          (or (:existing-comments ctx)
+                                              (story-res/list-comments-for-story conn (:uuid story)))
+                                          [])
+                               reactions (if reactions?
+                                          (or (:existing-reactions ctx)
+                                              (story-res/list-reactions-for-story conn (:uuid story)))
+                                          [])
                                _matches? (= org-uuid (:org-uuid board))] ; sanity check
-                        {:existing-org org :existing-board board :existing-story story :access-level access-level}
+                        {:existing-org org :existing-board board :existing-story story
+                         :existing-comments comments :existing-reactions reactions :access-level access-level}
                         false))
   
   ;; Responses
   :handle-ok (fn [ctx] (story-rep/render-story (:existing-org ctx)
                                                (:existing-board ctx)
                                                (:existing-story ctx)
-                                               [] ; no comments
-                                               [] ; no reactions
+                                               (:existing-comments ctx)
+                                               (:existing-reactions ctx)
                                                (:access-level ctx)
                                                :secure)))
 
