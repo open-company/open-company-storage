@@ -44,15 +44,15 @@
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction} org board-by-uuid]
+  [conn {start :start direction :direction} org board-by-uuid allowed-boards]
   (let [order (if (= :after direction) :asc :desc)
         activities (cond
 
                   (= direction :around)
-                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after)
-                        previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after)
-                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before)
-                        next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before)
+                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after allowed-boards)
+                        previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after allowed-boards)
+                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards)
+                        next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before allowed-boards)
                         previous-activity (merge-activity previous-entries previous-stories :asc)
                         next-activity (merge-activity next-entries next-stories :desc)]
                     {:direction :around
@@ -61,16 +61,16 @@
                      :activity (concat (reverse previous-activity) next-activity)})
                   
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)
-                        previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction)
+                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
+                        previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
                         previous-activity (merge-activity previous-entries previous-stories :asc)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction)
-                        next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction)
+                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
+                        next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
                         next-activity (merge-activity next-entries next-stories :desc)]
                     {:direction :next
                      :next-count (count next-activity)
@@ -140,11 +140,11 @@
                              direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction :start? start?})
                              boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-                             ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-activity conn params org board-by-uuid)]
+                             activity (assemble-activity conn params org board-by-uuid allowed-boards)]
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
 ;; A resource for operations on the calendar of activity for a particular Org

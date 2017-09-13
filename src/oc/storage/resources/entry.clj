@@ -1,6 +1,7 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let* when-let*)]
+            [rethinkdb.query :as r]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
@@ -151,12 +152,13 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, return the entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
   (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
                                           "created-at" order start direction config/default-limit
+                                          :board-uuid r/contains allowed-boards
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
