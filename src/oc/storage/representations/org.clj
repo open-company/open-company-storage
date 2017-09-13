@@ -45,16 +45,16 @@
                           (concat links [(activity-link org) (calendar-link org)])
                           links)
         full-links (if (= access-level :author) 
-                      (concat links [(board-create-link org)
-                                     (partial-update-link org)
-                                     (add-author-link org)
-                                     (hateoas/collection-link (str (url org) "/stories")
-                                        {:accept mt/story-collection-media-type}
-                                        {:count (:story-count org)})
-                                     (hateoas/create-link (str (url org) "/stories/")
-                                        {:content-type mt/share-request-media-type
-                                         :accept mt/story-media-type})])
-                      links)]
+                      (concat activity-links [(board-create-link org)
+                                              (partial-update-link org)
+                                              (add-author-link org)
+                                              (hateoas/collection-link (str (url org) "/stories")
+                                                  {:accept mt/story-collection-media-type}
+                                                  {:count (:story-count org)})
+                                              (hateoas/create-link (str (url org) "/stories/")
+                                                  {:content-type mt/share-request-media-type
+                                                   :accept mt/story-media-type})])
+                      activity-links)]
     (assoc org :links full-links)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
@@ -85,7 +85,7 @@
         full-links (if authed?
                       (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
                                                                  :accept mt/org-media-type}))
-                links)]
+                      links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href "/"
