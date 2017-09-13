@@ -133,12 +133,6 @@
       ;; no access
       :else false))))
 
-(defn allow-team-admins
-  ""
-  [user]
-  ;; TODO
-  true)
-
 (defn allow-team-admins-or-no-org
   ""
   [conn user]

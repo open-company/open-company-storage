@@ -98,7 +98,7 @@
 
 ;; A resource for operations on the activity of a particular Org
 (defresource activity [conn slug]
-  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
 
@@ -109,7 +109,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn slug (:user ctx)))})
+    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
@@ -149,7 +149,7 @@
 
 ;; A resource for operations on the calendar of activity for a particular Org
 (defresource calendar [conn slug]
-  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
 
@@ -160,7 +160,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn slug (:user ctx)))})
+    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
