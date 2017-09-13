@@ -24,7 +24,7 @@
     [medley "1.0.0"] ; Utility functions https://github.com/weavejester/medley
     [zprint "0.4.2"] ; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     
-    [open-company/lib "0.12.16"] ; Library for OC projects https://github.com/open-company/open-company-lib
+    [open-company/lib "0.12.17"] ; Library for OC projects https://github.com/open-company/open-company-lib
     ; In addition to common functions, brings in the following common dependencies used by this project:
     ; httpkit - Web server http://http-kit.org/
     ; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -59,7 +59,7 @@
         :open-company-auth-passphrase "this_is_a_qa_secret" ; JWT secret
       }
       :dependencies [
-        [midje "1.9.0-alpha9"] ; Example-based testing https://github.com/marick/Midje
+        [midje "1.9.0-alpha10"] ; Example-based testing https://github.com/marick/Midje
         [ring-mock "0.1.5"] ; Test Ring requests https://github.com/weavejester/ring-mock
         [philoskim/debux "0.3.12"] ; `dbg` macro around -> or let https://github.com/philoskim/debux
       ]

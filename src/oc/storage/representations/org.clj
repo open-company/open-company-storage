@@ -6,8 +6,9 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
-(def representation-props [:slug :name :team-id :logo-url :logo-width :logo-height
-                           :boards :author :authors :created-at :updated-at])
+(def public-representation-props [:slug :name :team-id :logo-url :logo-width :logo-height
+                           :boards :created-at :updated-at])
+(def representation-props (concat public-representation-props [:author :authors]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -39,7 +40,10 @@
   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
 (defn- org-links [org access-level]
-  (let [links [(self-link org) (activity-link org) (calendar-link org)]
+  (let [links [(self-link org)]
+        activity-links (if (or (= access-level :author) (= access-level :viewer))
+                          (concat links [(activity-link org) (calendar-link org)])
+                          links)
         full-links (if (= access-level :author) 
                       (concat links [(board-create-link org)
                                      (partial-update-link org)
@@ -64,11 +68,14 @@
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
   [org access-level]
-  (let [slug (:slug org)]
+  (let [slug (:slug org)
+        rep-props (if (or (= :author access-level) (= :viewer access-level))
+                    representation-props
+                    public-representation-props)]
     (json/generate-string
       (-> org
         (org-links access-level)
-        (select-keys (conj representation-props :links)))
+        (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
 (defn render-org-list
