@@ -114,7 +114,7 @@
                       (conj more-links (publish-link org-slug board-slug story-uuid))
                       ;; Indirect access via the storyboard, rather than direct access by the secure ID
                       ;; needs a share link
-                      (not secure-access?)
+                      (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
                       (conj more-links (share-link org-slug board-slug story-uuid))
                       ;; Otherwise just the links they already have
                       :else more-links)]
