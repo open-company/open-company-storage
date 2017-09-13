@@ -8,8 +8,9 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]))
 
-(def representation-props [:slug :type :name :access :promoted :topics :entries :stories :author :authors :viewers
-                          :slack-mirror :created-at :updated-at])
+(def public-representation-props [:slug :type :name :access :promoted :topics :entries :stories
+                                  :created-at :updated-at])
+(def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers]))
 
 (defun url
   ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))
@@ -118,8 +119,11 @@
 (defn render-board
   "Create a JSON representation of the board for the REST API"
   [org-slug board access-level]
-  (json/generate-string
-    (-> board
-      (select-keys representation-props)
-      (board-links org-slug (:uuid board) access-level))
-    {:pretty config/pretty?}))
+  (let [rep-props (if (or (= :author access-level) (= :viemer access-level))
+                      representation-props
+                      public-representation-props)]
+    (json/generate-string
+      (-> board
+        (select-keys rep-props)
+        (board-links org-slug (:uuid board) access-level))
+      {:pretty config/pretty?})))
