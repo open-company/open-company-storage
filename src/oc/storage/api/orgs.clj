@@ -21,9 +21,16 @@
 
 ;; ----- Utility functions -----
 
-(defn- board-with-access-level [org board user]
-  (let [level (access/access-level-for org board user)]
-    (if level (merge board level) board)))
+(defn- board-with-access-level
+  "
+  Merge in `access` level user is accessing this board with, and if that level is public, remove author and
+  viewer lists.
+  "
+  [org board user]
+  (let [level (access/access-level-for org board user)
+        public? (= :public (:access-level level))
+        clean-board (if public? (dissoc board :authors :viewers) board)]
+    (if level (merge clean-board level) clean-board)))
 
 ;; ----- Actions -----
 
