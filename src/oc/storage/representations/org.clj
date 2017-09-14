@@ -42,7 +42,7 @@
 (defn- org-links [org access-level]
   (let [links [(self-link org)]
         activity-links (if (or (= access-level :author) (= access-level :viewer))
-                          (concat links [(activity-link org) (calendar-link org)])
+                          (concat links [(activity-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (= access-level :author) 
                       (concat activity-links [(board-create-link org)

@@ -173,6 +173,7 @@
                              user-id (:user-id user)
                              org (:existing-org ctx)
                              org-id (:uuid org)
+                             ;; TODO filter by allowed boards
                              ;boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              ;board-uuids (map :uuid boards)
@@ -192,7 +193,8 @@
       (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       ;; Calendar of activity operations
-      (OPTIONS "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      (OPTIONS "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      (GET "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      (GET "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug))))))
+      ; (OPTIONS "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
+      ; (OPTIONS "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
+      ; (GET "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
+      ; (GET "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
+      )))
