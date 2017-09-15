@@ -36,8 +36,9 @@
 (defn- activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
 
-(defn- calendar-link [org]
-  (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
+;; Not currently used
+; (defn- calendar-link [org]
+;   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
 (defn- org-links [org access-level]
   (let [links [(self-link org)]
