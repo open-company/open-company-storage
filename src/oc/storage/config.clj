@@ -79,6 +79,6 @@
   "Press"
   "Sales"})
 
-(def default-reactions ["👌" "👀" "🇫🇰"])
+(def default-reactions ["👌" "👀" "💥"])
 
 (def default-limit 20)
