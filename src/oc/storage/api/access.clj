@@ -118,6 +118,9 @@
       ;; an org author of this non-private board
       (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
       
+      ;; an admin of this org's team for this non-private board
+      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author}
+
       ;; a named viewer of this board
       (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
       
