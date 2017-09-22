@@ -19,14 +19,23 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:topic-slug})
+  (clojure.set/union common/reserved-properties #{:board-slug :topic-slug}))
+
+(def ignored-properties
+  "Properties of a resource that are ignored during an update."
+  (disj reserved-properties :board-uuid))
 
 ;; ----- Utility functions -----
 
 (defn clean
   "Remove any reserved properties from the entry."
   [entry]
-  (apply dissoc (common/clean entry) reserved-properties))
+  (apply dissoc entry reserved-properties))
+
+(defn ignore-props
+  "Remove any ignored properties from the entry."
+  [entry]
+  (apply dissoc entry ignored-properties))
 
 (defn timestamp-attachments
   "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
@@ -115,7 +124,7 @@
           new-topic-name (:topic-name entry)
           topic-name (when-not (clojure.string/blank? new-topic-name) new-topic-name)
           topic-slug (when topic-name (slugify/slugify topic-name))
-          merged-entry (merge original-entry (clean entry))
+          merged-entry (merge original-entry (ignore-props entry))
           topic-named-entry (assoc merged-entry :topic-name topic-name)
           slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)

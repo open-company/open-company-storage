@@ -37,7 +37,14 @@
 (defn- valid-entry-update? [conn entry-uuid entry-props]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
-    (let [merged-entry (merge existing-entry (entry-res/clean entry-props))
+    (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
+          new-board (when new-board-slug ; look up the board it's being moved to
+                          (board-res/get-board conn (:org-uuid existing-entry) new-board-slug))
+          new-board-uuid (when (= (:type new-board) "entry") (:uuid new-board))
+          props (if new-board-uuid
+                  (assoc entry-props :board-uuid new-board-uuid)
+                  (dissoc entry-props :board-uuid))
+          merged-entry (merge existing-entry (entry-res/ignore-props props))
           updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry :updated-entry updated-entry}

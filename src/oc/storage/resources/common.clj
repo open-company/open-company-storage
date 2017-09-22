@@ -131,10 +131,3 @@
     
     :created-at lib-schema/ISO8601
     :updated-at lib-schema/ISO8601})
-
-;; ----- Utility functions -----
-
-(defn clean
-  "Remove any reserved properties from the resource."
-  [resource]
-  (apply dissoc resource reserved-properties))

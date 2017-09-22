@@ -18,7 +18,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:published-at :publisher :secure-uuid :storyboard-slug})
+  (clojure.set/union common/reserved-properties #{:published-at :publisher :secure-uuid :storyboard-slug}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
@@ -29,7 +29,7 @@
 (defn clean
   "Remove any reserved properties from the story."
   [story]
-  (apply dissoc (common/clean story) reserved-properties))
+  (apply dissoc story reserved-properties))
 
 (defn ignore-props
   "Remove any ignored properties from the story."

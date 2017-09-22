@@ -86,7 +86,7 @@
   (if-let [existing-story (story-res/get-story conn story-uuid)]
     ;; Merge the existing story with the new updates
     (let [new-storyboard-slug (:storyboard-slug story-props) ; check if they are moving the story
-          new-storyboard (when new-storyboard-slug ; look up the board it's being moved to
+          new-storyboard (when new-storyboard-slug ; look up the storyboard it's being moved to
                           (board-res/get-board conn (:org-uuid existing-story) new-storyboard-slug))
           new-storyboard-uuid (when (= (:type new-storyboard) "story") (:uuid new-storyboard))
           props (if new-storyboard-uuid

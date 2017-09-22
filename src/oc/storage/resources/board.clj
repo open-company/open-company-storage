@@ -20,11 +20,11 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:authors :viewers})
+  (clojure.set/union common/reserved-properties #{:authors :viewers}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (merge reserved-properties #{:type}))
+  (clojure.set/union reserved-properties #{:type}))
 
 ;; ----- Data Defaults -----
 
@@ -46,7 +46,7 @@
 (defn clean
   "Remove any reserved properties from the board."
   [board]
-  (apply dissoc (common/clean board) reserved-properties))
+  (apply dissoc board reserved-properties))
 
 (defn ignore-props
   "Remove any ignored properties from the board."
