@@ -6,8 +6,8 @@
             [oc.storage.app :as app]
             [oc.storage.components :as components]))
 
-(def system nil)
-(def conn nil)
+(defonce system nil)
+(defonce conn nil)
 
 (defn init
   ([] (init c/storage-server-port))

@@ -484,12 +484,11 @@
                                          (story-res/get-story-by-secure conn org-uuid secure-uuid))
                                board (board-res/get-board conn (:board-uuid story))
                                access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)
-                               reactions? (or (= :author access-level) (= :viewer access-level))
-                               comments (if reactions?
+                               comments (if (or (= :author access-level) (= :viewer access-level))
                                           (or (:existing-comments ctx)
                                               (story-res/list-comments-for-story conn (:uuid story)))
                                           [])
-                               reactions (if reactions?
+                               reactions (if (or (= :author access-level) (= :viewer access-level))
                                           (or (:existing-reactions ctx)
                                               (story-res/list-reactions-for-story conn (:uuid story)))
                                           [])
