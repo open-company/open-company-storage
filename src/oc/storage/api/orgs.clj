@@ -170,7 +170,8 @@
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
                                                 (assoc :authors author-reps))
-                                              (:access-level ctx))))
+                                              (:access-level ctx)
+                                              user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
@@ -259,7 +260,7 @@
                                   slug (:slug new-org)]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org new-org :author)
+                                (org-rep/render-org new-org :author (-> ctx :user :user-id))
                                 mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

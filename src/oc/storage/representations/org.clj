@@ -40,6 +40,13 @@
 ; (defn- calendar-link [org]
 ;   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
+(defn change-link [org access-level user-id]
+  (if (or (= access-level :author) (= access-level :viewer))
+    (assoc org :links
+      (conj (:links org) 
+        (hateoas/link-map "changes" "GET" (str config/change-server-ws-url "/change-socket/user/" user-id) nil)))
+    org))
+
 (defn- org-links [org access-level]
   (let [links [(self-link org)]
         activity-links (if (or (= access-level :author) (= access-level :viewer))
@@ -68,7 +75,7 @@
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
-  [org access-level]
+  [org access-level user-id]
   (let [slug (:slug org)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                     representation-props
@@ -76,6 +83,7 @@
     (json/generate-string
       (-> org
         (org-links access-level)
+        (change-link access-level user-id)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 

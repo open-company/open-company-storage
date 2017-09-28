@@ -1,4 +1,4 @@
-(ns oc.storage.lib.bot
+(ns oc.storage.async.bot
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]

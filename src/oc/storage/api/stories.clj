@@ -14,8 +14,9 @@
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
-            [oc.storage.lib.email :as email]
-            [oc.storage.lib.bot :as bot]
+            [oc.storage.async.email :as email]
+            [oc.storage.async.bot :as bot]
+            [oc.storage.async.change :as change]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.story :as story-rep]
             [oc.storage.resources.common :as common-res]
@@ -153,6 +154,8 @@
                             (story-res/publish-story! conn (:uuid story) shared user)
                             (story-res/publish-story! conn (:uuid story) user))]
     (do
+      (timbre/info "Triggering change for:" (:uuid story))
+      (change/send-trigger! (change/->trigger publish-result))
       (when (and (seq? share-requests)(any? share-requests))
         (trigger-share-requests org publish-result user share-requests))
       (timbre/info "Published story:" story-for)

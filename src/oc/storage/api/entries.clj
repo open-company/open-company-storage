@@ -12,6 +12,7 @@
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]            
+            [oc.storage.async.change :as change]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
@@ -61,6 +62,8 @@
     
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
+      (timbre/info "Triggering change for:" (:uuid entry-result))
+      (change/send-trigger! (change/->trigger entry-result))
       {:created-entry entry-result})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))

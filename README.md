@@ -183,6 +183,7 @@ Make sure you update the section in `project.clj` that looks like this to contai
     :aws-secret-access-key "CHANGE-ME"
     :aws-sqs-bot-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
     :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+    :aws-sqs-change-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
   }
 ```
 

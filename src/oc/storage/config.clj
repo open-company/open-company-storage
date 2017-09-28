@@ -46,6 +46,7 @@
 (defonce auth-server-url (or (env :auth-server-url) "http://localhost:3003"))
 (defonce interaction-server-url (or (env :interaction-server-url) "http://localhost:3002"))
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) "ws://localhost:3002"))
+(defonce change-server-ws-url (or (env :change-server-ws-url) "ws://localhost:3006"))
 
 ;; ----- Liberator -----
 
@@ -60,6 +61,7 @@
 
 (defonce aws-sqs-bot-queue (env :aws-sqs-bot-queue))
 (defonce aws-sqs-email-queue (env :aws-sqs-email-queue))
+(defonce aws-sqs-change-queue (env :aws-sqs-change-queue))
 
 ;; ----- JWT -----
 

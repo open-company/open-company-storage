@@ -1,4 +1,4 @@
-(ns oc.storage.lib.email
+(ns oc.storage.async.email
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
