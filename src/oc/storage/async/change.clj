@@ -10,13 +10,13 @@
   {:type (schema/enum "change")
    :container-id lib-schema/UniqueID
    :content-id lib-schema/UniqueID
-   :created-at lib-schema/ISO8601})
+   :change-at lib-schema/ISO8601})
 
 (defn ->trigger [content]
   {:type "change"
    :content-id (:uuid content)
    :container-id (:board-uuid content)
-   :created-at (or (:published-at content) (:created-at content))})
+   :change-at (or (:published-at content) (:created-at content))})
 
 (defn send-trigger! [trigger]
   (timbre/info "Change notification request to queue:" config/aws-sqs-change-queue)
