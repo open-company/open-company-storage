@@ -8,7 +8,7 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]))
 
-(def public-representation-props [:slug :type :name :access :promoted :topics :entries :stories
+(def public-representation-props [:uuid :slug :type :name :access :promoted :topics :entries :stories
                                   :created-at :updated-at])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers]))
 
