@@ -50,11 +50,12 @@
 
                   (= direction :around)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after allowed-boards)
-                        previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after allowed-boards)
+                        ;previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after allowed-boards)
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards)
-                        next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before allowed-boards)
-                        previous-activity (merge-activity previous-entries previous-stories :asc)
-                        next-activity (merge-activity next-entries next-stories :desc)]
+                        ;next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before allowed-boards)
+                        previous-activity (merge-activity previous-entries [] :asc) ;previous-stories :asc)
+                        next-activity (merge-activity next-entries [] :desc) ;next-stories :desc)
+                        ]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -62,16 +63,18 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
-                        previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
-                        previous-activity (merge-activity previous-entries previous-stories :asc)]
+                        ;previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
+                        previous-activity (merge-activity previous-entries [] :asc) ; previous-stories :asc)]
+                        ]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
-                        next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
-                        next-activity (merge-activity next-entries next-stories :desc)]
+                        ;next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
+                        next-activity (merge-activity next-entries [] :desc) ;next-stories :desc)]
+                        ]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
