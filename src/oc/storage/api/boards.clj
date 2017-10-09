@@ -1,6 +1,7 @@
 (ns oc.storage.api.boards
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
+            [defun.core :refer (defun-)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
@@ -14,10 +15,12 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.representations.story :as story-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.story :as story-res]))
 
 ;; ----- Utility functions -----
 
@@ -36,9 +39,9 @@
 
 (defn- assemble-board
   "Assemble the entry, topic, author, and viewer data needed for a board response."
-  [conn org-slug slug ctx]
-  (let [board (or (:updated-board ctx) (:existing-board ctx))
-        entries (entry-res/get-entries-by-board conn (:uuid board)) ; all entries for the board
+  [conn org-slug board ctx]
+  (let [slug (:slug board)
+        entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
                         (filter :topic-slug) ; remove entries w/ no topic
@@ -53,14 +56,53 @@
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)
         authors (:authors board)
-        author-reps (map #(board-rep/render-author-for-collection org-slug slug %) authors)
+        author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
         viewers (:viewers board)
-        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug %) viewers)]
+        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug % (:access-level ctx)) viewers)]
     (-> board 
       (assoc :authors author-reps)
       (assoc :viewers viewer-reps)
       (assoc :entries entry-reps)
       (assoc :topics (sort-by :name topics)))))
+
+(defun- assemble-storyboard
+  "Assemble the story, author, and viewer data needed for a board response."
+
+  ;; Draft storyboard
+  ([conn org :guard map? board :guard #(= (:slug %) (:slug board-res/default-drafts-storyboard)) ctx]
+  (let [org-slug (:slug org)
+        slug (:slug board)
+        stories (story-res/list-stories-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft)
+        storyboard-uuids (distinct (map :board-uuid stories))
+        storyboards (filter map? (map #(board-res/get-board conn %) storyboard-uuids))
+        storyboard-map (zipmap (map :uuid storyboards) storyboards)
+        story-reps (map #(story-rep/render-story-for-collection org (or (storyboard-map (:board-uuid %)) board) %
+                            (comments %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      stories)]
+    (assemble-storyboard org-slug board story-reps ctx)))
+
+  ;; Regular storyboard
+  ([conn org :guard map? board :guard map? ctx]
+  (let [org-slug (:slug org)
+        stories (story-res/list-stories-by-board conn (:uuid board))
+        story-reps (map #(story-rep/render-story-for-collection org board %
+                            (comments %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      stories)]
+    (assemble-storyboard org-slug board story-reps ctx)))
+
+  ;; Recursion to finish up both kinds of storyboards
+  ([org-slug :guard string? board :guard map? story-reps :guard seq? ctx]
+  (let [slug (:slug board)
+        authors (:authors board)
+        author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
+        viewers (:viewers board)
+        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug % (:access-level ctx)) viewers)]
+    (-> board 
+      (assoc :authors author-reps)
+      (assoc :viewers viewer-reps)
+      (assoc :stories story-reps)))))
 
 ;; ----- Validations -----
 
@@ -141,13 +183,20 @@
 
     (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))
 
+(defn- delete-board [conn ctx org-slug slug]
+  (timbre/info "Deleting board:" slug "of org:" org-slug)
+  (if-let* [board (:existing-board ctx)
+            _delete-result (board-res/delete-board! conn (:uuid board))]
+    (do (timbre/info "Deleted board:" slug "of org:" org-slug) true)
+    (do (timbre/warn "Failed deleting board:" slug "of org:" org-slug) false)))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular board
 (defresource board [conn org-slug slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
-  :allowed-methods [:options :get :patch]
+  :allowed-methods [:options :get :patch :delete]
 
   ;; Media type client accepts
   :available-media-types [mt/board-media-type]
@@ -157,13 +206,15 @@
   :known-content-type? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))})
+    :patch (fn [ctx] (api-common/known-content-type? ctx mt/board-media-type))
+    :delete true})
   
   ;; Authorization
   :allowed? (by-method {
     :options true
     :get (fn [ctx] (access/access-level-for conn org-slug slug (:user ctx)))
-    :patch (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))})
+    :patch (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -171,21 +222,30 @@
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
                           (slugify/valid-slug? slug)
-                          (valid-board-update? conn org-slug slug (:data ctx))))})
+                          (valid-board-update? conn org-slug slug (:data ctx))))
+    :delete true})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug))
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
-                               board (or (:existing-board ctx) (board-res/get-board conn (:uuid org) slug))]
+                               org-uuid (:uuid org)
+                               board (or (:existing-board ctx)
+                                         (if (= slug (:slug board-res/default-drafts-storyboard))
+                                            (board-res/drafts-storyboard org-uuid (:user ctx))
+                                            (board-res/get-board conn org-uuid slug)))]
                         {:existing-org org :existing-board board}
                         false))
 
   ;; Actions
   :patch! (fn [ctx] (update-board conn ctx org-slug slug))
-
+  :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
+  
   ;; Responses
-  :handle-ok (fn [ctx] (let [board (assemble-board conn org-slug slug ctx)]
-                          (board-rep/render-board org-slug board (:access-level ctx))))
+  :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
+                             full-board (if (= (keyword (:type board)) :story)
+                                          (assemble-storyboard conn (:existing-org ctx) board ctx)
+                                          (assemble-board conn org-slug board ctx))]
+                          (board-rep/render-board org-slug full-board (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
 
@@ -215,6 +275,7 @@
     :options true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
                          (valid-new-board? conn org-slug ctx)))})
+  :conflict? (fn [ctx] (not (board-res/slug-available? conn (org-res/uuid-for conn org-slug) (-> ctx :new-board :slug))))
 
   ;; Actions
   :post! (fn [ctx] (create-board conn ctx org-slug))

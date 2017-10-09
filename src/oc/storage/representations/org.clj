@@ -6,8 +6,9 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
-(def representation-props [:slug :name :team-id :currency :logo-url :logo-width :logo-height
-                           :boards :author :authors :created-at :updated-at])
+(def public-representation-props [:slug :name :team-id :logo-url :logo-width :logo-height
+                           :boards :created-at :updated-at])
+(def representation-props (concat public-representation-props [:author :authors]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -35,40 +36,47 @@
 (defn- activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
 
-(defn- calendar-link [org]
-  (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
+;; Not currently used
+; (defn- calendar-link [org]
+;   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
 (defn- org-links [org access-level]
-  (let [links [(self-link org) (activity-link org) (calendar-link org)]
+  (let [links [(self-link org)]
+        activity-links (if (or (= access-level :author) (= access-level :viewer))
+                          (concat links [(activity-link org)]) ; (calendar-link org) - not currently used
+                          links)
         full-links (if (= access-level :author) 
-                      (concat links [(board-create-link org)
-                                     (partial-update-link org)
-                                     (add-author-link org)
-                                     (hateoas/collection-link (str (url org) "/stories")
-                                        {:accept mt/story-collection-media-type}
-                                        {:count (:story-count org)})
-                                     (hateoas/create-link (str (url org) "/stories/")
-                                        {:content-type mt/share-request-media-type
-                                         :accept mt/story-media-type})])
-                      links)]
+                      (concat activity-links [(board-create-link org)
+                                              (partial-update-link org)
+                                              (add-author-link org)
+                                              (hateoas/collection-link (str (url org) "/stories")
+                                                  {:accept mt/story-collection-media-type}
+                                                  {:count (:story-count org)})
+                                              (hateoas/create-link (str (url org) "/stories/")
+                                                  {:content-type mt/share-request-media-type
+                                                   :accept mt/story-media-type})])
+                      activity-links)]
     (assoc org :links full-links)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
 
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"
-  [org user-id]
+  [org user-id access-level]
   {:user-id user-id
-   :links [(remove-author-link org user-id)]})
+   :links (if (= access-level :author) [(remove-author-link org user-id)] [])})
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
   [org access-level]
-  (let [slug (:slug org)]
+  (let [slug (:slug org)
+        rep-props (if (or (= :author access-level) (= :viewer access-level))
+                    representation-props
+                    public-representation-props)]
     (json/generate-string
       (-> org
         (org-links access-level)
-        (select-keys (conj representation-props :links)))
+        (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
 (defn render-org-list
@@ -78,7 +86,7 @@
         full-links (if authed?
                       (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
                                                                  :accept mt/org-media-type}))
-                links)]
+                      links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href "/"

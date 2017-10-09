@@ -1,14 +1,14 @@
 {
   :slug "18f"
   :name "18F"
-  :team-id "1234-abcd-1234"  
+  :team-id "abcd-1234-abcd"  
   :logo-url "https://cdn.filestackcontent.com/V5WDoVEwRnqcimyBKirv"
   :logo-width 160
   :logo-height 160
 
   :author {
     :name "Albert Camus"
-    :avatar-url "http://www.phillipslytle.com/include/uploads/AtteaFrederick_P.jpg"
+    :avatar-url "https://images-na.ssl-images-amazon.com/images/M/MV5BZTcwZGVlOGEtYTc1My00MmU1LTkwNWEtYWIwNDk1NzExODBlL2ltYWdlL2ltYWdlXkEyXkFqcGdeQXVyNDkzNTM2ODg@._V1_UY317_CR142,0,214,317_AL_.jpg"
     :user-id "abcd-1234-abcd"
   }
 
@@ -79,7 +79,7 @@
     }
 
     {
-      :name "All Hands"
+      :name "Company News"
 
       :entries [
         {
@@ -93,6 +93,14 @@
           :topic-name "Team and Hiring"
           :headline "12 Open Positions"
           :body "<p>We have 4 projects that have a critical shortage of<b> information security / cyber security</b> talent. Please send any recruiting leads, contacts or ideas for staffing these 6 positions to <a href=\"https://www.linkedin.com/in/lee-rogers-9a531062\">Lee Rogers</a>.</p><p><a href=\"https://pages.18f.gov/joining-18f/open-positions/\">Full list</a> of open roles.</p><p>Current <a href=\"https://pages.18f.gov/joining-18f/who-we-are-hiring/\">recruiting pipeline details</a>.</p>"
+          :author [
+            {
+              :name "David Zvenyach"
+              :avatar-url "https://static.sched.org/a10/3250480/avatar.jpg.320x320px.jpg?bc6"
+              :user-id "5678-1234-5678"
+              :updated-at "2017-06-18T12:02:16.539Z"
+            }
+          ]
           :created-at "2017-06-18T12:02:16.539Z"
         }
 
@@ -106,8 +114,7 @@
         {
           :topic-name "Growth"
           :headline "Starting to See Billable Hours Growth"
-          :body "<p>After a steady decline in the middle of the year, it's important to see that these numbers improving before the challenging ❄&nbsp;winter holiday season approaches . This has been a great job on all fronts 💥. Let's keep it up.</p>"
-          :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&format=interactive"
+          :body "<p>After a steady decline in the middle of the year, it's important to see that these numbers improving before the challenging ❄&nbsp;winter holiday season approaches . This has been a great job on all fronts 💥. Let's keep it up.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1022324161&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' src='/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1022324161&amp;format=interactive' class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
           :created-at "2017-06-15T12:02:16.539Z"
         }
 
@@ -128,7 +135,15 @@
         {
           :topic-name "Compliance"
           :headline "2016 Due Dates are Approaching!"
-          :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by <b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"        
+          :body "<p>2016 IPA (Ethics) <a href=\"https://ethics.od.nih.gov/training.htm\">online training</a> is due for all 18F full-time employees by <b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the <a href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a> by <b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by <b>Dec. 1</b>.</p>"
+          :author [
+            {
+              :name "David Zvenyach"
+              :avatar-url "https://static.sched.org/a10/3250480/avatar.jpg.320x320px.jpg?bc6"
+              :user-id "5678-1234-5678"
+              :updated-at "2017-06-12T12:02:16.539Z"
+            }
+          ]
           :created-at "2017-06-12T12:02:16.539Z"
         }
       ]
@@ -160,6 +175,42 @@
           :created-at "2017-06-10T12:02:16.539Z"          
         }
       ]
+    }
+
+    {
+      :name "All-hands Update"
+      :type "story"
+
+      :stories [
+        {
+          :title "August Update"
+          :body "<p><b>Delivery is the strategy</b></p><p>Help federal agencies build, buy, and share efficient and easy-to-use digital services.</p><p>Transforming government from the inside out, creating cultural change by working with teams inside agencies who want to create great services for the public.</p><p><b>First 18F Diversity Report Finalized<br></b></p><p>The Diversity Working Group has just finalized the first 18F Diversity Report. Everyone is invited to&nbsp;<a target=\"_blank\" href=\"https://diversity.unc.edu/files/2015/11/UNC-Diversity_Report_2014-15.pdf\">review the report</a>&nbsp;and come to the first open team Diversity goal setting meeting on Oct. 30th.<br></p><p><img class=\"carrot-no-preview\" src=\"https://cdn.filestackcontent.com/3meUuuShGU3u7XTfhXtQ\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/v26dWc4vRrGAMw0GInM3\" width=\"558\" height=\"446\"><br><br><br></p><p><b>2016 Due Dates are Approaching!</b></p><p>2016 IPA (Ethics)&nbsp;<a target=\"_blank\" href=\"https://ethics.od.nih.gov/training.htm\">online training</a>&nbsp;is due for all 18F full-time employees by&nbsp;<b>Nov. 15th</b>.</p><p>Everyone needs to review their property assignments in the&nbsp;<a target=\"_blank\" href=\"http://www.gsa.gov/portal/content/104604\">PPIMS (personal property inventory system)</a>&nbsp;by&nbsp;<b>Nov. 19th</b>. New system by 18F's own Frank Gerry!</p><p>All people managers need to have their 216-C forms in by&nbsp;<b>Dec. 1</b>.</p>"
+          :banner-url "https://open-company-sample-data.s3.amazonaws.com/jason-blackeye-209586.jpg"
+          :banner-width 1038
+          :banner-height 453
+          :created-at "2017-08-04T12:02:16.539Z"
+        }
+        {
+          :title "July Update"
+          :body "<p><b>Starting to See Billable Hours Growth<br></b></p><p>After a steady decline in the middle of the year, it's important to see that these numbers improving before the challenging &nbsp;❄&nbsp;winter holiday season approaches . This has been a great job on all fronts 💥. Let's keep it up.</p><p><iframe data-thumbnail=\"https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1033950253&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p\" data-media-type=\"chart\" data-chart-id=\"1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc\" src=\"/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&amp;format=interactive\" class=\"carrot-no-preview\" width=\"550\" height=\"430\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\"></iframe><br><br><b>14 new projects, 5 more likely by end of year.<br></b></p><p>We've added 14 client projects since the start of July and have 5 in the final phase and likely to close by the end of the year. 2 of those have start dates in 2016.</p><p>Sales project <a href=\"https://drive.google.com/previewtemplate?id=0AjB1eFqhMvf-dFFJSWI2WXlnXy1TZzcyTzlGTXZneEE&amp;mode=public&amp;ddrp=1%23\">spreadsheet</a>.<br></p><p>Sales project&nbsp;<a target=\"_blank\" href=\"https://drive.google.com/previewtemplate?id&gt;spreadsheet&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;Deal pipeline &lt;a target=\" _blank\"=\"\">Trello board</a>.</p><p><b><br></b></p><p><b>Effective Utilization</b></p><p></p><p>We are under increasing scrutinization to maximize our resource utilization rates and bring 18F finances into the black.</p><p>GAO published a&nbsp;<a target=\"_blank\" href=\"http://www.gao.gov/products/GAO-16-602\">report</a>&nbsp;on Sept. 14th recommending we tie performance outcomes to cost savings.</p><p>Our challenge is to end the last quarter of the year with full cost recovery and as an organization make a net-positive contribution to ASF&nbsp;2017.</p><p><img class=\"carrot-no-preview\" src=\"https://open-company-sample-data.s3.amazonaws.com/monthly%20utilization%20trend.png\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/QEzQpVkeTbWB7PelnDoA\" width=\"408\" height=\"131\"><br><br><br></p><p>It'll take the whole team's efforts to meet this challenge.&nbsp;<a target=\"_blank\" href=\"http://www.govtech.com/civic/Is-18F-on-Solid-Financial-Footing.html\">Track our utilization</a>.</p><p>Join the&nbsp;<a target=\"_blank\" href=\"http://www.govtech.com/civic/Is-18F-on-Solid-Financial-Footing.html\">weekly finance meetings</a>.</p>"
+          :created-at "2017-07-05T12:02:16.539Z"
+          :author [
+            {
+              :name "David Zvenyach"
+              :avatar-url "https://static.sched.org/a10/3250480/avatar.jpg.320x320px.jpg?bc6"
+              :user-id "5678-1234-5678"
+              :updated-at "2017-07-05T12:02:16.539Z"
+            }
+          ]
+        }
+      ]
+    }
+
+    {
+      :name "Investor Update"
+      :type "story"
+
+      :stories []
     }
   ]
 }

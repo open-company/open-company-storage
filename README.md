@@ -248,16 +248,14 @@ Then enter these commands one-by-one, noting the output:
 })
 
 (org/create-org! conn
-  (org/->org {:name "Blank"
-              :currency "GBP"}
+  (org/->org {:name "Blank"}
               author))
 
-(org/put-org! conn "open" {
+(org/create-org! conn "open" {
     :name "OpenCompany"
     :logo-url "https://open-company-assets.s3.amazonaws.com/open-company.png"
     :logo-width 142
-    :logo-height 142
-    :currency "FKP"}
+    :logo-height 142}
     author)
 
 (org/create-org! conn
@@ -265,8 +263,7 @@ Then enter these commands one-by-one, noting the output:
               :slug (slug/find-available-slug "Buffer" (org/taken-slugs conn))
               :logo-url "https://open-company-assets.s3.amazonaws.com/buffer.png"
               :logo-width 313
-              :logo-height 319
-              :currency "USD"}
+              :logo-height 319}
               author))
 
 ;; list orgs
@@ -287,9 +284,12 @@ Then enter these commands one-by-one, noting the output:
 (board/create-board! conn
   (board/->board (org/uuid-for conn "open") {:name "Engineering"} author))
 
+(board/create-board! conn
+  (board/->storyboard (org/uuid-for conn "open") {:name "Customer Update"} author))
+
 ;; list boards
 (board/list-boards-by-org conn (org/uuid-for conn "blank"))
-(board/list-boards-by-org conn (org/uuid-for conn "open"))
+(board/list-storyboards-by-org conn (org/uuid-for conn "open"))
 
 ;; create some entries
 (entry/create-entry! conn
@@ -303,6 +303,10 @@ Then enter these commands one-by-one, noting the output:
 
 (entry/create-entry! conn
   (entry/->entry conn (board/uuid-for conn "open" "engineering") {:topic-name "Team" :body "Hiring ClojureScript talent."} author))
+
+;; create some stories
+(story/create-story! conn
+  (story/->story conn (board/uuid-for conn "open" "customer-update") {:title "News Update" :body "All is well!"} author))
 
 ;; delete an org
 (org/delete-org! conn "blank")
@@ -337,7 +341,7 @@ from the OpenCompany Authentication service if you are only making requests agai
 Create a company with cURL:
 
 ```console
-echo "{\"currency\": \"EUR\", \"name\": \"Hotel Procrastination\", \
+echo "{\"name\": \"Hotel Procrastination\", \
       \"diversity\": {\"headline\": \"We are all guilty.\", \"pin\": true}, \
       \"update\": {\"headline\": \"Our Food is Bad\", \"body\": \"Hotel guests rate it 1 of 10.\", \"pin\": true}, \
       \"mission\": {\"headline\": \"Better Food\", \"body\": \"That's the goal.\"}, \
@@ -375,7 +379,7 @@ Update a company with cURL:
 
 ```console
 curl -i -X PATCH \
--d '{"currency": "FKP" }' \
+-d '{"name": "ACME" }' \
 --header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
 --header "Accept: application/vnd.open-company.company.v1+json" \
 --header "Accept-Charset: utf-8" \
@@ -459,12 +463,12 @@ http://localhost:3001/companies/hotel-procrastination
 
 To import company sample data from an edn file run:
 ```console
-lein run -m oc.storage.util.import -- ./opt/samples/buff.edn
+lein run -m oc.storage.util.import -- ./opt/samples/18f.edn
 ```
 
 use `-d` to erase the company while importing like this:
 ```console
-lein run -m oc.storage.util.import -- -d ./opt/samples/buff.edn
+lein run -m oc.storage.util.import -- -d ./opt/samples/green-labs.edn
 ```
 
 To add all the company sample data in a directory (each file with a `.edn` extension), run:
@@ -489,6 +493,22 @@ or
 DB_NAME="open_company_storage" lein run -m oc.storage.util.import -- -d ./opt/samples/
 ```
 
+#### Generate sample data
+
+To generate sample data into an existing org, run:
+
+```
+lein run -m oc.storage.util.generate -- <org-slug> <config-file> <start-date> <end-data>
+```
+
+e.g.
+
+```
+lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-06-30
+```
+
+See the sample generation config file `./opt/generate.edn` for how the sample data generation can be customized.
+ 
 
 ## Testing
 

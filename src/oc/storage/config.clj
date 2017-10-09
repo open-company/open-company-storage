@@ -17,7 +17,7 @@
 
 ;; ----- Sentry -----
 
-(defonce dsn (or (env :open-company-sentry-api) false))
+(defonce dsn (or (env :open-company-sentry-storage) false))
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 
@@ -79,6 +79,6 @@
   "Press"
   "Sales"})
 
-(def default-reactions ["👌" "👀" "🇫🇰"])
+(def default-reactions ["👌" "👀" "💥"])
 
 (def default-limit 20)

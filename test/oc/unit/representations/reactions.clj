@@ -1,11 +1,11 @@
-(ns oc.unit.representations.entry
+(ns oc.unit.representations.reactions
   (:require [midje.sweet :refer :all]
             [midje.util :refer (testable-privates)]
             [oc.storage.config :as config]
             [oc.storage.representations.entry :as entry-rep]))
 
 ;; this is the function we're testing in this namespace
-(testable-privates oc.storage.representations.entry reactions-and-links)
+(testable-privates oc.storage.representations.content reactions-and-links)
 
 (def uuid "1234-abcd-1234") ; dummy uuid, not important to what we're testing
 

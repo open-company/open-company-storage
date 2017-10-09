@@ -1,6 +1,7 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let* when-let*)]
+            [rethinkdb.query :as r]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
@@ -18,14 +19,23 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:topic-slug})
+  (clojure.set/union common/reserved-properties #{:board-slug :topic-slug}))
+
+(def ignored-properties
+  "Properties of a resource that are ignored during an update."
+  (disj reserved-properties :board-uuid))
 
 ;; ----- Utility functions -----
 
 (defn clean
-  "Remove any reserved properties from the org."
+  "Remove any reserved properties from the entry."
   [entry]
-  (apply dissoc (common/clean entry) reserved-properties))
+  (apply dissoc entry reserved-properties))
+
+(defn ignore-props
+  "Remove any ignored properties from the entry."
+  [entry]
+  (apply dissoc entry ignored-properties))
 
 (defn timestamp-attachments
   "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
@@ -38,8 +48,10 @@
 
 (schema/defn ^:always-validate ->entry :- common/Entry
   "
-  Take an org UUID, a board UUID, a minimal map describing a Entry, and a user (as the author) and
+  Take a board UUID, a minimal map describing an Entry, and a user (as the author) and
   'fill the blanks' with any missing properties.
+
+  Throws an exception if the board specified in the entry can't be found.
   "
   [conn board-uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
@@ -49,25 +61,28 @@
           topic-slug (when topic-name (slugify/slugify topic-name))
           ts (db-common/current-timestamp)]
       (-> entry-props
-        keywordize-keys
-        clean
-        (assoc :uuid (db-common/unique-id))
-        (assoc :topic-slug topic-slug)
-        (update :topic-name #(or % nil))
-        (update :headline #(or % ""))
-        (update :body #(or % ""))
-        (update :attachments #(timestamp-attachments % ts))
-        (assoc :org-uuid (:org-uuid board))
-        (assoc :board-uuid board-uuid)
-        (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-        (assoc :created-at ts)
-        (assoc :updated-at ts)))
-    false)) ; no board
+          keywordize-keys
+          clean
+          (assoc :uuid (db-common/unique-id))
+          (assoc :topic-slug topic-slug)
+          (update :topic-name #(or % nil))
+          (update :headline #(or % ""))
+          (update :body #(or % ""))
+          (update :attachments #(timestamp-attachments % ts))
+          (assoc :org-uuid (:org-uuid board))
+          (assoc :board-uuid board-uuid)
+          (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
+          (assoc :created-at ts)
+          (assoc :updated-at ts)))
+    (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
-(schema/defn ^:always-validate create-entry!
-  "Create an entry for the board. Throws a runtime exception if the entry doesn't conform to the common/Entry schema.
+(schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
+  "
+  Create an entry for the board. Returns the newly created entry.
 
-  Returns the newly created entry, or false if the board specified in the entry can't be found."
+  Throws a runtime exception if the provided entry doesn't conform to the
+  common/Entry schema. Throws an exception if the board specified in the entry can't be found.
+  "
   ([conn entry :- common/Entry] (create-entry! conn entry (db-common/current-timestamp)))
 
   ([conn entry :- common/Entry ts :- lib-schema/ISO8601]
@@ -76,15 +91,14 @@
             board (board-res/get-board conn board-uuid)]
     (let [author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
       (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
-    ;; No board
-    false)))
+    (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid entry)}))))) ; no board
 
-(schema/defn ^:always-validate get-entry
+(schema/defn ^:always-validate get-entry :- (schema/maybe common/Entry)
   "
   Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org and board, and the UUID of the entry,
-  retrieve the entry, or return nil if it doesn't exist.
+  Or given the UUID of the org, board, entry, retrieve the entry, or return nil if it doesn't exist. This variant 
+  is used to confirm that the entry belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
@@ -96,7 +110,7 @@
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
-  Given the ID of the entry, an updated entry property map, and a user (as the author), update the entry and
+  Given the UUID of the entry, an updated entry property map, and a user (as the author), update the entry and
   return the updated entry on success.
 
   Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
@@ -110,11 +124,11 @@
           new-topic-name (:topic-name entry)
           topic-name (when-not (clojure.string/blank? new-topic-name) new-topic-name)
           topic-slug (when topic-name (slugify/slugify topic-name))
-          merged-entry (merge original-entry (clean entry))
+          merged-entry (merge original-entry (ignore-props entry))
           topic-named-entry (assoc merged-entry :topic-name topic-name)
           slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
-          updated-authors (conj authors (assoc (lib-schema/author-for-user user) :updated-at ts))
+          updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
           updated-author (assoc slugged-entry :author updated-authors)
           attachments (:attachments merged-entry)
           updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
@@ -122,69 +136,48 @@
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
 (schema/defn ^:always-validate delete-entry!
-  "
-  Given the entry map, or the UUID of the board, the slug of the topic and the created-at timestamp, delete the entry
-  and return `true` on success.
-  "
-  ([conn entry :- common/Entry] (delete-entry! conn (:board-uuid entry) (:uuid entry)))
-
-  ([conn board-uuid :- lib-schema/UniqueID uuid :- lib-schema/UniqueID]
+  "Given the UUID of the entry, delete the entry and all its interactions. Return `true` on success."
+  [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (if-let [board (board-res/get-board conn board-uuid)]
-    (do
-      ;; Delete interactions
-      (db-common/delete-resource conn common/interaction-table-name :entry-uuid uuid)
-      (db-common/delete-resource conn table-name uuid))
-    ;; No board
-    false)))
+  (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+  (db-common/delete-resource conn table-name uuid))
 
-(schema/defn ^:always-validate get-comments-for-entry
+(schema/defn ^:always-validate list-comments-for-entry
   "Given the UUID of the entry, return a list of the comments for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :body (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :body])))
+  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :body])))
 
-(schema/defn ^:always-validate get-reactions-for-entry
+(schema/defn ^:always-validate list-reactions-for-entry
   "Given the UUID of the entry, return a list of the reactions for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :reaction (db-common/read-resources conn common/interaction-table-name "entry-uuid" uuid [:uuid :author :reaction])))
+  (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction])))
 
 ;; ----- Collection of entries -----
 
-(schema/defn ^:always-validate get-entries-by-org
+(schema/defn ^:always-validate list-entries-by-org
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, return the entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
   (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
                                           "created-at" order start direction config/default-limit
-                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          :board-uuid r/contains allowed-boards
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
 
-(schema/defn ^:always-validate get-entries-by-board
+(schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the entries for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :board-uuid board-uuid
-                                          :interactions common/interaction-table-name :uuid :entry-uuid
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
-
-(schema/defn ^:always-validate get-interactions-by-board
-  "
-  Given the UUID of the board, return all the comments for entries of the board,
-  grouped by `entry-uuid`.
-  "
-  [conn org-uuid :- lib-schema/UniqueID board-uuid :- lib-schema/UniqueID]
-  {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-in-group conn
-    common/interaction-table-name
-    :board-uuid-org-uuid
-    [board-uuid org-uuid] "entry-uuid"))
 
 ;; ----- Data about entries -----
 

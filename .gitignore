@@ -16,5 +16,7 @@ pom.xml.asc
 /.nrepl-port
 .idea/
 
+/opt/open-company-interaction
+
 .ruby-gemset
 .ruby-version

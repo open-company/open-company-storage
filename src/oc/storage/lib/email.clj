@@ -3,43 +3,41 @@
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
-            [oc.storage.config :as config]
-            [oc.storage.resources.common :as common-res]))
+            [oc.storage.config :as config]))
 
 (def EmailTrigger
   {:type (schema/enum "story")
-   :to [schema/Str]
-   :subject schema/Str
-   :note schema/Str
+   :to [lib-schema/EmailAddress]
+   :subject (schema/maybe schema/Str)
+   :note (schema/maybe schema/Str)
    :reply-to (schema/maybe schema/Str)
-   :slug schema/Str
-   :org-slug schema/Str
-   :org-name schema/Str
-   :logo-url (schema/maybe schema/Str)
-   :origin-url schema/Str
-   :currency schema/Str
-   :entries [common-res/StoryEntry]
-   :created-at lib-schema/ISO8601})
+   :org-slug lib-schema/NonBlankStr
+   :org-name (schema/maybe schema/Str)
+   :org-logo-url (schema/maybe schema/Str)
+   :title (schema/maybe schema/Str)
+   :secure-uuid lib-schema/UniqueID
+   :published-at lib-schema/ISO8601
+   :shared-at lib-schema/ISO8601})
 
-(defn ->trigger [org-slug story origin-url user]
+(defn ->trigger [org story share-request user]
   {:type "story"
-   :to (vec (:to story))
-   :subject (:subject story)
-   :note (:note story)
+   :to (vec (:to share-request))
+   :subject (:subject share-request)
+   :note (:note share-request)
    :reply-to (:email user)
-   :slug (:slug story)
-   :org-slug org-slug
-   :origin-url origin-url
-   :org-name (:org-name story)
-   :logo-url (:logo-url story)
-   :currency (:currency story)
-   :entries (:entries story)
-   :created-at (:created-at story)})
+   :org-slug (:slug org)
+   :org-name (:name org)
+   :org-logo-url (:logo-url org)
+   :title (:title story)
+   :secure-uuid (:secure-uuid story)
+   :published-at (:published-at story)
+   :shared-at (:shared-at share-request)})
 
 (defn send-trigger! [trigger]
-  (timbre/info "Email request to:" config/aws-sqs-email-queue "\n" (dissoc trigger :entries))
+  (timbre/info "Email request to queue:" config/aws-sqs-email-queue)
+  (timbre/trace "Email request:" (dissoc trigger :entries))
   (schema/validate EmailTrigger trigger)
-  (timbre/info "Sending request to:" config/aws-sqs-email-queue)
+  (timbre/info "Sending request to queue:" config/aws-sqs-email-queue)
   (sqs/send-message
    {:access-key config/aws-access-key-id
     :secret-key config/aws-secret-access-key}

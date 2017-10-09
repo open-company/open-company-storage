@@ -16,11 +16,11 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:authors})
+  (clojure.set/union common/reserved-properties #{:authors}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (merge reserved-properties #{:team-id}))
+  (clojure.set/union reserved-properties #{:team-id}))
 
 ;; ----- Data Defaults -----
 
@@ -31,7 +31,7 @@
 (defn clean
   "Remove any reserved properties from the org."
   [org]
-  (apply dissoc (common/clean org) reserved-properties))
+  (apply dissoc org reserved-properties))
 
 (defn ignore-props
   "Remove any ignored properties from the org."
@@ -86,7 +86,6 @@
         (assoc :slug slug)
         (assoc :uuid (db-common/unique-id))
         (assoc :authors [(:user-id user)])
-        (update :currency #(or % "USD"))
         (update :promoted #(or % default-promoted))
         (update :logo-width #(or % 0))
         (update :logo-height #(or % 0))
@@ -141,22 +140,6 @@
       (schema/validate common/Org updated-org)
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
 
-(schema/defn ^:always-validate put-org! :- common/Org
-  "
-  Given the slug of the org and an org property map, create or update the org
-  and return `true` on success.
-
-  NOTE: doesn't update authors, see: `add-author`, `remove-author`
-  NOTE: doesn't handle case of slug change.
-  "
-  [conn slug org user :- lib-schema/User]
-  {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)
-         (map? org)]}
-  (if (get-org conn slug)
-    (update-org! conn slug org)
-    (create-org! conn (->org slug org user))))
-
 (defn delete-org!
   "Given the slug of the org, delete it and all its boards, entries, and updates and return `true` on success."
   [conn slug]
@@ -165,12 +148,12 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
-      ;; Delete stories
-      ;;(db-common/delete-resource conn common/story-table-name :org-uuid uuid)
       ;; Delete interactions
       (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
       ;; Delete entries
       (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
+      ;; Delete stories
+      (db-common/delete-resource conn common/story-table-name :org-uuid uuid)
       ;; Delete boards
       (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
       ;; Delete the org itself
@@ -222,7 +205,7 @@
     (sort-by primary-key)
     vec)))
 
-(defn get-orgs-by-index
+(defn list-orgs-by-index
   "
   Given the name of a secondary index and a value, retrieve all matching orgs.
 
@@ -236,13 +219,13 @@
          (string? index-key)]}
   (db-common/read-resources conn table-name index-key v))
 
-(defn get-orgs-by-teams
+(defn list-orgs-by-teams
   "
-  Get orgs by a sequence of team-id's, returning `slug` and `name`. 
+  Given a sequence of team-id's, retrieve all matching orgs, returning `slug` and `name`. 
   
-  Additional fields can be optionally specified.
+  Additional fields to return can be optionally specified.
   "
-  ([conn team-ids] (get-orgs-by-teams conn team-ids []))
+  ([conn team-ids] (list-orgs-by-teams conn team-ids []))
 
   ([conn team-ids additional-fields]
   {:pre [(db-common/conn? conn)
@@ -251,17 +234,17 @@
          (every? #(or (string? %) (keyword? %)) additional-fields)]}
     (db-common/read-resources conn table-name :team-id team-ids (concat [:slug :name] additional-fields))))
 
-(defn get-orgs-by-team
+(defn list-orgs-by-team
   "
-  Get orgs by a team-id, returning `slug` and `name`. 
+  Given a team-id, retrieve all matching orgs, returning `slug` and `name`. 
   
-  Additional fields can be optionally specified.
+  Additional fields to return can be optionally specified.
   "
-  ([conn team-id] (get-orgs-by-team conn team-id []))
+  ([conn team-id] (list-orgs-by-team conn team-id []))
   
   ([conn team-id additional-fields]
     {:pre [(schema/validate lib-schema/UniqueID team-id)]}
-  (get-orgs-by-teams conn [team-id] additional-fields)))
+  (list-orgs-by-teams conn [team-id] additional-fields)))
 
 ;; ----- Armageddon -----
 
@@ -269,9 +252,9 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all stories, interactions, entries, boards and orgs
-  ;;(db-common/delete-all-resources! conn common/story-table-name)
+  ;; Delete all interactions, entries, stories, boards and orgs
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
+  (db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
   (db-common/delete-all-resources! conn table-name))

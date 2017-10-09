@@ -15,7 +15,8 @@
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.org :as org]
             [oc.storage.resources.board :as board]
-            [oc.storage.resources.entry :as entry]  
+            [oc.storage.resources.entry :as entry]
+            [oc.storage.resources.story :as story]
             [oc.storage.config :as c])
   (:gen-class))
 
@@ -25,42 +26,55 @@
 
 ;; ----- Resource import -----
 
-; (defn import-update [conn org update author]
-;   (let [org-slug (:slug org)
-;         update-slug (:slug update)
-;         title (:title update)
-;         update-author (or (:author update) author)
-;         timestamp (or (:created-at update) (db-common/current-timestamp))]
-;     (println (str "Creating update '" title "' for org '" org-slug "'."))
-;     (update/create-update! conn 
-;       (clojure.core/update (update/->update conn org-slug (dissoc update :slug :author :created-at) update-author)
-;         :slug #(or update-slug %))
-;       timestamp)
-;     (println (str "Created update '" title "' for org '" org-slug "'."))))
-
-(defn- import-entry [conn org board entry author]
+(defn import-story [conn org board story-props author]
   (let [board-uuid (:uuid board)
-        timestamp (:created-at entry)
-        entry-authors (or (:author entry) [(assoc (dissoc author :teams) :updated-at timestamp)])
+        timestamp (:created-at story-props)
+        story-authors (or (:author story-props) [(assoc (dissoc author :teams) :updated-at timestamp)])
+        authors (map #(assoc % :teams [(:team-id org)]) story-authors)
+        story (story/->story conn board-uuid story-props (first authors))
+        fixed-story (-> story
+                      (assoc :author story-authors)                    
+                      (assoc :status :published)
+                      (assoc :publisher (dissoc author :teams))
+                      (assoc :published-at timestamp))]
+    (println (str "Creating story '" (:title story) "' on board '" (:name board) "'."))
+    (db-common/create-resource conn story/table-name fixed-story timestamp)))
+
+(defn- import-entry [conn org board entry-props author]
+  (let [board-uuid (:uuid board)
+        timestamp (:created-at entry-props)
+        entry-authors (or (:author entry-props) [(assoc (dissoc author :teams) :updated-at timestamp)])
         authors (map #(assoc % :teams [(:team-id org)]) entry-authors)
-        entry (entry/->entry conn board-uuid entry (first authors))
+        entry (entry/->entry conn board-uuid entry-props (first authors))
         fixed-entry (assoc entry :author entry-authors)]
     (println (str "Creating entry at " timestamp " on board '" (:name board) "'"))
     (db-common/create-resource conn entry/table-name fixed-entry timestamp)))
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
-  (if-let [new-board (board/create-board! conn (board/->board (:uuid org)
-                        (dissoc board :entries) author))]
-    (do
-      ;; Create the entries
-      (println (str "Creating " (count (:entries board)) " entries."))
-      (doseq [entry (:entries board)]
-        (import-entry conn org new-board entry author)))
-    
-    (do
-      (println "\nFailed to create the board!")
-      (exit 1 "Board creation failed."))))
+  (let [storyboard? (:type board)
+        empty-board (dissoc board :entries :stories)
+        board-props (if storyboard?
+                      (board/->storyboard (:uuid org) empty-board author)
+                      (board/->board (:uuid org) empty-board author))]
+    (if-let [new-board (board/create-board! conn board-props)]
+      
+      (if storyboard?
+        ;; Create the stories
+        (do
+          (println (str "Creating " (count (:stories board)) " stories."))
+          (doseq [story (:stories board)]
+            (import-story conn org new-board story author)))
+
+        ;; Create the entries
+        (do
+          (println (str "Creating " (count (:entries board)) " entries."))
+          (doseq [entry (:entries board)]
+            (import-entry conn org new-board entry author))))
+      
+      (do
+        (println "\nFailed to create the board!")
+        (exit 1 "Board creation failed.")))))
 
 (defn- import-org [conn options data]
   (let [delete (:delete options)
@@ -154,3 +168,23 @@
       (catch Exception e
         (println e)
         (exit 1 "Exception importing.")))))
+
+(comment
+
+(defn iframe-tag
+  [data-thumbnail data-type id-attribute id-value attribs]
+  (str "<p><iframe "
+            "data-thumbnail='" data-thumbnail "' "
+            "data-media-type='" data-type "' "
+            id-attribute "='" id-value "' "
+            attribs " "
+            "class='carrot-no-preview' width='560' height='315' frameborder='0' "
+            "webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''>"
+          "</iframe></p>"))
+
+(defn chart-tag [sheet-id oid]
+  (let [thumbnail (str "https://docs.google.com/spreadsheets/d/" sheet-id "/embed/oimg?id=" sheet-id "&amp;oid=" oid "&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p")
+        source (str "src='/_/sheets-proxy/spreadsheets/d/" sheet-id "/pubchart?oid=" oid "&amp;format=interactive'")]
+    (iframe-tag thumbnail "chart" "data-chart-id" sheet-id source)))
+
+)

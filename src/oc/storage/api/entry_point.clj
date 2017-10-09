@@ -19,7 +19,7 @@
   [conn org-slug]
   (when-let* [org (org-res/get-org conn org-slug)
               org-uuid (:uuid org)
-              boards (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])]
+              boards (board-res/list-all-boards-by-index conn "org-uuid-access" [[org-uuid "public"]])]
     (if (empty? boards) false org)))
 
 ;; ----- Responses -----
@@ -29,7 +29,7 @@
   ;; TODO: promoted orgs w/ public boards
   (let [authed-orgs (if user
                 ;; Auth'd user
-                (org-res/get-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
+                (org-res/list-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
                 ;; Not auth'd
                 [])
         org-slugs (set (map :slug authed-orgs)) ; set of the org slugs for this user

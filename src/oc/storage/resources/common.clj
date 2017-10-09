@@ -29,52 +29,55 @@
   :file-url lib-schema/NonBlankStr
   :created-at lib-schema/ISO8601})
 
-(def EntryAuthor
+(def ContributingAuthor
+  "An author in a sequence of Authors involved in creating content."
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
-(def StoryEntry {
+(def Entry 
+  "An entry on a board."
+  {
   :uuid lib-schema/UniqueID
-  :topic-name (schema/maybe lib-schema/NonBlankStr)
+  :org-uuid lib-schema/UniqueID
+  :board-uuid lib-schema/UniqueID
   :topic-slug (schema/maybe Slug)
+  :topic-name (schema/maybe lib-schema/NonBlankStr)
+  
   :headline schema/Str
   :body schema/Str
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
-  ;; Charts
-  (schema/optional-key :chart-url) (schema/maybe schema/Str)
   
-  :author [EntryAuthor]
+  ;; Comment sync
+  (schema/optional-key :slack-thread) lib-schema/SlackThread
+
+  :author [ContributingAuthor]
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
-(def Entry
-  (merge StoryEntry {
-    :org-uuid lib-schema/UniqueID
-    :board-uuid lib-schema/UniqueID
-    (schema/optional-key :slack-thread) lib-schema/SlackThread}))
-
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
-(def Board {
+(def Board
+  "An entry or story container."
+  {
   :uuid lib-schema/UniqueID
+  :type (schema/pred #((set [:entry :story]) (keyword %)))
   :slug Slug
   :name lib-schema/NonBlankStr
   :org-uuid lib-schema/UniqueID
   :access AccessLevel
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
-  (schema/optional-key :slack-mirror) lib-schema/SlackMirror
+  (schema/optional-key :slack-mirror) (schema/maybe lib-schema/SlackChannel)
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
 (def Org {
   :uuid lib-schema/UniqueID
-  :slug Slug
   :name lib-schema/NonBlankStr
+  :slug Slug
   :team-id lib-schema/UniqueID
-  :currency schema/Str
   (schema/optional-key :logo-url) (schema/maybe schema/Str)
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
@@ -84,38 +87,47 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
-; (def ShareMedium (schema/pred #(#{:legacy :link :email :slack} (keyword %))))
+(def ShareMedium (schema/pred #(#{:email :slack} (keyword %))))
 
-; (def ShareRequest {
-;   :title (schema/maybe schema/Str)
-;   :medium ShareMedium
-;   :entries [{:topic-slug Slug :created-at lib-schema/ISO8601}]
-;   ;; Email medium
-;   (schema/optional-key :to) [lib-schema/EmailAddress]
-;   (schema/optional-key :subject) (schema/maybe schema/Str)
-;   (schema/optional-key :note) (schema/maybe schema/Str)
-;   ;; Slack medium
-;   (schema/optional-key :channel) lib-schema/NonBlankStr
-;   (schema/optional-key :slack-org-id) lib-schema/NonBlankStr})
+(def ShareRequest {
+  :medium ShareMedium
+  (schema/optional-key :note) (schema/maybe schema/Str)
+  
+  ;; Email medium
+  (schema/optional-key :to) [lib-schema/EmailAddress]
+  (schema/optional-key :subject) (schema/maybe schema/Str)
+  
+  ;; Slack medium
+  (schema/optional-key :channel) lib-schema/SlackChannel
 
-; (def Story 
-;   (merge ShareRequest {
-;     (schema/optional-key :id) lib-schema/UUIDStr
-;     :slug Slug ; slug of the update, made from the slugified title and a short UUID fragment
-;     :org-uuid lib-schema/UniqueID
-;     :org-name lib-schema/NonBlankStr
-;     :currency schema/Str
-;     (schema/optional-key :logo-url) (schema/maybe schema/Str)
-;     (schema/optional-key :logo-width) schema/Int
-;     (schema/optional-key :logo-height) schema/Int          
-;     :entries [UpdateEntry]
-;     :author lib-schema/Author ; user that created the update
-;     :created-at lib-schema/ISO8601
-;     :updated-at lib-schema/ISO8601}))
+  :shared-at lib-schema/ISO8601})
 
-;; ----- Utility functions -----
+(def Status (schema/pred #(#{:draft :published} (keyword %))))
 
-(defn clean
-  "Remove any reserved properties from the resource."
-  [resource]
-  (apply dissoc resource reserved-properties))
+(def Story
+  "A story on a board."
+  {
+    :uuid lib-schema/UniqueID
+    (schema/optional-key :secure-uuid) lib-schema/UniqueID
+    :org-uuid lib-schema/UniqueID
+    :board-uuid lib-schema/UniqueID
+
+    :status Status
+
+    :title schema/Str    
+    (schema/optional-key :banner-url) (schema/maybe schema/Str)
+    (schema/optional-key :banner-width) schema/Int
+    (schema/optional-key :banner-height) schema/Int          
+    :body schema/Str
+
+    ;; Comment sync
+    (schema/optional-key :slack-thread) lib-schema/SlackThread
+
+    :author [ContributingAuthor]
+    (schema/optional-key :published-at) lib-schema/ISO8601
+    (schema/optional-key :publisher) lib-schema/Author
+
+    (schema/optional-key :shared) [ShareRequest]
+    
+    :created-at lib-schema/ISO8601
+    :updated-at lib-schema/ISO8601})

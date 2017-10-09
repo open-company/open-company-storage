@@ -73,7 +73,7 @@
       ((set teams) (:team-id org)) {:access-level :viewer}
       
       ;; public access to orgs w/ at least 1 public board
-      (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
+      (seq (board-res/list-all-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
         {:access-level :public}
       
       ;; no access
@@ -117,10 +117,10 @@
       
       ;; an org author of this non-private board
       (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
-
-      ;; an admin of this org's team
-      ((set admin) (:team-id org)) {:access-level :author}
       
+      ;; an admin of this org's team for this non-private board
+      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author}
+
       ;; a named viewer of this board
       (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
       
@@ -132,12 +132,6 @@
       
       ;; no access
       :else false))))
-
-(defn allow-team-admins
-  ""
-  [user]
-  ;; TODO
-  true)
 
 (defn allow-team-admins-or-no-org
   ""

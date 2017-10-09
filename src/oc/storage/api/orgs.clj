@@ -16,7 +16,21 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.story :as story-res]))
+
+;; ----- Utility functions -----
+
+(defn- board-with-access-level
+  "
+  Merge in `access` level user is accessing this board with, and if that level is public, remove author and
+  viewer lists.
+  "
+  [org board user]
+  (let [level (access/access-level-for org board user)
+        public? (= :public (:access-level level))
+        clean-board (if public? (dissoc board :authors :viewers) board)]
+    (if level (merge clean-board level) clean-board)))
 
 ;; ----- Actions -----
 
@@ -31,11 +45,18 @@
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
       {:created-org (assoc org-result :boards
-                     (map
-                        #(board-res/create-board! conn
-                          (board-res/->board uuid {:name %} author))
-                        board-res/default-boards))})
-    
+                        (concat
+                          ;; Create default boards
+                          (map
+                            #(board-res/create-board! conn
+                              (board-res/->board uuid {:name %} author))
+                            board-res/default-boards)
+                          ;; Create default storyboards
+                          (map
+                            #(board-res/create-board! conn
+                              (board-res/->storyboard uuid {:name %} author))
+                            board-res/default-storyboards)))})
+  
     (do (timbre/error "Failed creating org.") false)))
 
 (defn- update-org [conn ctx slug]
@@ -134,11 +155,18 @@
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-reps (map #(board-rep/render-board-for-collection slug %) allowed-boards)
+                             boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             board-access (map #(board-with-access-level org % user) boards)
+                             allowed-boards (filter :access-level board-access)
+                             draft-stories (when user-id (story-res/list-stories-by-org-author conn org-id user-id :draft))
+                             draft-story-count (count draft-stories)
+                             full-boards (if (pos? draft-story-count)
+                                            (conj allowed-boards (board-res/drafts-storyboard org-id user))
+                                            allowed-boards)
+                             board-reps (map #(board-rep/render-board-for-collection slug % draft-story-count)
+                                          full-boards)
                              authors (:authors org)
-                             author-reps (map #(org-rep/render-author-for-collection org %) authors)]
+                             author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
                           (org-rep/render-org (-> org
                                                 (assoc :boards board-reps)
                                                 (assoc :authors author-reps))

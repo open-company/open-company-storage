@@ -2,7 +2,6 @@
   :slug "green-labs"
   :name "GreenLabs"
   :team-id "1234-abcd-1234"
-  :currency "USD"
   :logo-url "https://open-company-assets.s3.amazonaws.com/green-labs.png"
   :logo-width 160
   :logo-height 160
@@ -45,8 +44,7 @@
 
           :topic-name "Finances"
           :headline "Revenue rising, expenses steady&nbsp;⚖"
-          :body "<p>Though monthly expenses have been kept in check, we expect to ramp up marketing expenses in the fall to pursue a higher rate of growth.</p><p>Our cash runway is growing because of the revenue, but we are still planning a capital raise in early 2017 so we can grow the team more quickly.</p>"
-          :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&format=interactive"
+          :body "<p>Though monthly expenses have been kept in check, we expect to ramp up marketing expenses in the fall to pursue a higher rate of growth.</p><p>Our cash runway is growing because of the revenue, but we are still planning a capital raise in early 2017 so we can grow the team more quickly.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1033950253&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' src='/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&amp;format=interactive' class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
           :created-at "2017-07-16T16:20:11.411Z"
         }
 
@@ -54,8 +52,7 @@
     
           :topic-name "Growth"
           :headline "Automated Lab Work Tops 20%"
-          :body "<p>The past two years have seen the greatest increase in lab work assigned to robots, but this is the first time the 20% threshold has been breached.</p><p>Automation is expected to handle up to 80% within five years.</p>"
-          :chart-url "https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&format=interactive"
+          :body "<p>The past two years have seen the greatest increase in lab work assigned to robots, but this is the first time the 20% threshold has been breached.</p><p>Automation is expected to handle up to 80% within five years.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1340351038&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' src='/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&amp;format=interactive' class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
           :created-at "2017-07-16T16:44:10.331Z"
         }
 

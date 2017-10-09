@@ -3,7 +3,7 @@
   (:require [clojure.string :as s]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (OPTIONS GET POST ANY)]
+            [compojure.core :as compojure :refer (ANY)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -37,7 +37,14 @@
 (defn- valid-entry-update? [conn entry-uuid entry-props]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
-    (let [merged-entry (merge existing-entry (entry-res/clean entry-props))
+    (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
+          new-board (when new-board-slug ; look up the board it's being moved to
+                          (board-res/get-board conn (:org-uuid existing-entry) new-board-slug))
+          new-board-uuid (when (= (:type new-board) "entry") (:uuid new-board))
+          props (if new-board-uuid
+                  (assoc entry-props :board-uuid new-board-uuid)
+                  (dissoc entry-props :board-uuid))
+          merged-entry (merge existing-entry (entry-res/ignore-props props))
           updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry :updated-entry updated-entry}
@@ -48,37 +55,37 @@
 ;; ----- Actions -----
 
 (defn- create-entry [conn ctx entry-for]
-  (timbre/info "Creating entry:" entry-for)
+  (timbre/info "Creating entry for:" entry-for)
   (if-let* [new-entry (:new-entry ctx)
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     
     (do
-      (timbre/info "Created entry:" entry-for)
+      (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       {:created-entry entry-result})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
 (defn- update-entry [conn ctx entry-for]
-  (timbre/info "Updating entry:" entry-for)
+  (timbre/info "Updating entry for:" entry-for)
   (if-let* [updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry (:user ctx))]
     (do 
-      (timbre/info "Updated entry:" entry-for)
+      (timbre/info "Updated entry for:" entry-for)
       {:updated-entry updated-result})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
-  (timbre/info "Deleting entry:" entry-for)
+  (timbre/info "Deleting entry for:" entry-for)
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
-            _delete-result (entry-res/delete-entry! conn (:uuid board) (:uuid entry))]
-    (do (timbre/info "Deleted entry:" entry-for) true)
-    (do (timbre/info "Failed deleting entry:" entry-for) false)))
+            _delete-result (entry-res/delete-entry! conn (:uuid entry))]
+    (do (timbre/info "Deleted entry for:" entry-for) true)
+    (do (timbre/error "Failed deleting entry for:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-; A resource for operations on a particular entry
+;; A resource for operations on a particular entry
 (defresource entry [conn org-slug board-slug entry-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
@@ -122,9 +129,9 @@
                                entry (or (:existing-entry ctx)
                                          (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
                                comments (or (:existing-comments ctx)
-                                            (entry-res/get-comments-for-entry conn (:uuid entry)))
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
-                                            (entry-res/get-reactions-for-entry conn (:uuid entry)))]
+                                            (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org org :existing-board board :existing-entry entry
                          :existing-comments comments :existing-reactions reactions}
                         false))
@@ -150,7 +157,7 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
-; A resource for operations on all entries of a particular board
+;; A resource for operations on all entries of a particular board
 (defresource entry-list [conn org-slug board-slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
@@ -169,7 +176,7 @@
                           :options true
                           :get true
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
-                          :delete true})  
+                          :delete true})
   
   ;; Authorization
   :allowed? (by-method {
@@ -188,10 +195,12 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
                                             (slugify/valid-slug? board-slug))
-                               board-uuid (board-res/uuid-for conn org-slug board-slug)
-                               entries (entry-res/get-entries-by-board conn board-uuid)
-                               org-uuid (org-res/uuid-for conn org-slug)]
-                        {:existing-entries entries}
+                               org-uuid (org-res/uuid-for conn org-slug)
+                               board (board-res/get-board conn org-uuid board-slug)
+                               board-uuid (:uuid board)
+                               board? (= (keyword (:type board)) :entry)
+                               entries (entry-res/list-entries-by-board conn board-uuid)]
+                        {:existing-entries entries :existing-board board}
                         false))
 
   ;; Actions
@@ -202,7 +211,7 @@
                           (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
-                                (entry-rep/url org-slug board-slug (:created-at new-entry))
+                                (entry-rep/url org-slug board-slug (:uuid new-entry))
                                 (entry-rep/render-entry org-slug board-slug new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
@@ -215,35 +224,7 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Entry list operations
-      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (GET "/orgs/:org-slug/boards/:board-slug/entries"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries/"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (GET "/orgs/:org-slug/boards/:board-slug/entries/"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries/new"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (POST "/orgs/:org-slug/boards/:board-slug/entries/new"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (OPTIONS "/orgs/:org-slug/boards/:board-slug/entries/new/"
-        [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
-          (entry-list conn org-slug board-slug)))
-      (POST "/orgs/:org-slug/boards/:board-slug/entries/new/"
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries"
         [org-slug board-slug]
         (pool/with-pool [conn db-pool] 
           (entry-list conn org-slug board-slug)))
