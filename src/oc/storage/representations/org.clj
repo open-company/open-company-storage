@@ -42,9 +42,12 @@
 
 (defn change-link [org access-level user-id]
   (if (or (= access-level :author) (= access-level :viewer))
-    (assoc org :links
-      (conj (:links org) 
-        (hateoas/link-map "changes" "GET" (str config/change-server-ws-url "/change-socket/user/" user-id) nil)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "changes"
+        "GET"
+        (str config/change-server-ws-url "/change-socket/user/" user-id)
+        nil))
     org))
 
 (defn- org-links [org access-level]
