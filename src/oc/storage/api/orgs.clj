@@ -16,8 +16,7 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
-            [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.story :as story-res]))
+            [oc.storage.resources.board :as board-res]))
 
 ;; ----- Utility functions -----
 
