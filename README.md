@@ -193,14 +193,15 @@ You can also override these settings with environmental variables in the form of
 
 ## Technical Design
 
-The storage service is composed of 6 main responsibilities:
+The storage service is composed of 7 main responsibilities:
 
 - CRUD of orgs, boards, stories and entries
 - Access control to orgs, boards, stories and entries
-- Notifying the Slack bot of new org signups via SQS
+- Notifying the Slack bot of new orgs via SQS
 - Notifying the Slack bot and Email service of share requests via SQS
 - Notifying the Slack bot and Email service of new invites via SQS
 - Notifying the Email service of password reset and email validation requests via SQS
+- Notifying the Change service of entry publish events via SQS
 
 The storage service provides a HATEOAS REST API:
 
