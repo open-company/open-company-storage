@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.9.0-beta1"]
+    [org.clojure/clojure "1.9.0-beta2"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.3.5"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -29,7 +29,7 @@
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
     ;; NB: com.taoensso/encore pulled in by oc.lib
     ;; NB: com.taoensso/timbre pulled in by oc.lib
-    [ring-logger-timbre "0.7.5" :exclusions [com.taoensso/encore com.taoensso/timbre]] 
+    [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore com.taoensso/timbre]] 
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.0"]
     ;; HTTP client https://github.com/dakrone/clj-http
@@ -37,10 +37,10 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.2"]
+    [zprint "0.4.3"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.14.4"]
+    [open-company/lib "0.14.5"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -124,7 +124,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.2" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.3" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {
