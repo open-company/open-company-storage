@@ -8,7 +8,6 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
-            [oc.storage.representations.story :as story-rep]
             [oc.storage.config :as config]))
 
 (defn url [{slug :slug} {start :start direction :direction}]
@@ -67,14 +66,8 @@
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org activity comments reactions access-level user-id]
-  (if (:status activity) ; check if it's a story
-    ;; Story
-    (story-rep/render-story-for-collection org 
-      {:uuid (:board-uuid activity) :slug (:board-slug activity) :name (:board-name activity)}
-      activity comments reactions access-level user-id)
-    ;; Entry
-    (entry-rep/render-entry-for-collection (:slug org) (:board-slug activity)
-      activity comments reactions access-level user-id)))
+  (entry-rep/render-entry-for-collection (:slug org) (:board-slug activity)
+    activity comments reactions access-level user-id))
 
 (defn render-activity-list
   "

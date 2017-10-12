@@ -19,7 +19,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  (clojure.set/union common/reserved-properties #{:board-slug :topic-slug}))
+  (clojure.set/union common/reserved-properties #{:board-slug :topic-slug :published-at :publisher :secure-uuid}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
@@ -37,13 +37,6 @@
   [entry]
   (apply dissoc entry ignored-properties))
 
-(defn timestamp-attachments
-  "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
-  ([attachments] (timestamp-attachments attachments (db-common/current-timestamp)))
-  
-  ([attachments timestamp]
-  (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
-
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -59,21 +52,25 @@
   (if-let [board (board-res/get-board conn board-uuid)]
     (let [topic-name (:topic-name entry-props)
           topic-slug (when topic-name (slugify/slugify topic-name))
-          ts (db-common/current-timestamp)]
+          ts (db-common/current-timestamp)
+          author (lib-schema/author-for-user user)]
       (-> entry-props
           keywordize-keys
           clean
           (assoc :uuid (db-common/unique-id))
+          (assoc :secure-uuid (db-common/unique-id))
+          (assoc :status "published") ; TEMPORARY, should default to "draft"
           (assoc :topic-slug topic-slug)
           (update :topic-name #(or % nil))
           (update :headline #(or % ""))
           (update :body #(or % ""))
-          (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
-          (assoc :author [(assoc (lib-schema/author-for-user user) :updated-at ts)])
+          (assoc :author [(assoc author :updated-at ts)])
+          (assoc :publisher author) ; TEMPORARY, will be conditional on status as draft or published
           (assoc :created-at ts)
-          (assoc :updated-at ts)))
+          (assoc :updated-at ts)
+          (assoc :published-at ts))) ; TEMPORARY, will be conditional on status of draft or published
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
@@ -108,6 +105,21 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :uuid-board-uuid-org-uuid [[uuid board-uuid org-uuid]]))))
 
+(schema/defn ^:always-validate get-entry-by-secure-uuid :- (schema/maybe common/Entry)
+  "
+  Given the secure UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
+
+  Or given the UUID of the org, and story, retrieve the story, or return nil if it doesn't exist. This variant 
+  is used to confirm that the story belongs to the specified org.
+  "
+  ([conn secure-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :secure-uuid secure-uuid)))
+
+  ([conn org-uuid :- lib-schema/UniqueID secure-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :secure-uuid-org-uuid [[secure-uuid org-uuid]]))))
+
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
   Given the UUID of the entry, an updated entry property map, and a user (as the author), update the entry and
@@ -129,9 +141,7 @@
           slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
           updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-          updated-author (assoc slugged-entry :author updated-authors)
-          attachments (:attachments merged-entry)
-          updated-entry (assoc updated-author :attachments (timestamp-attachments attachments ts))]
+          updated-entry (assoc slugged-entry :author updated-authors)]
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 

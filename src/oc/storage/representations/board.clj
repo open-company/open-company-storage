@@ -8,8 +8,7 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]))
 
-(def public-representation-props [:uuid :slug :type :name :access :promoted :topics :entries :stories
-                                  :created-at :updated-at])
+(def public-representation-props [:uuid :slug :name :access :promoted :topics :entries :created-at :updated-at])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers]))
 
 (defun url
@@ -25,10 +24,6 @@
 (defn- create-entry-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/entries/")
                                                 {:content-type mt/entry-media-type
                                                  :accept mt/entry-media-type}))
-
-(defn- create-story-link [org-slug slug] (hateoas/create-link (str (url org-slug slug) "/stories/")
-                                                {:content-type mt/story-media-type
-                                                 :accept mt/story-media-type}))
 
 (defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (url org-slug slug)
                                               {:content-type mt/board-media-type
@@ -57,15 +52,12 @@
 
 (defn- board-collection-links [board org-slug draft-story-count]
   (let [board-slug (:slug board)
-        story? (= :story (keyword (:type board)))
         options (if (zero? draft-story-count) {} {:count draft-story-count})
         links [(self-link org-slug board-slug options)]
         full-links (if (or (= :author (:access-level board))
-                           (and (= board-slug "drafts") story?))
+                           (= board-slug "drafts"))
           ;; Author gets create link
-          (conj links (if story?
-            (create-story-link org-slug board-slug)
-            (create-entry-link org-slug board-slug)))
+          (conj links (create-entry-link org-slug board-slug))
           ;; No create link
           links)]
     (assoc board :links full-links)))
@@ -83,9 +75,7 @@
         ;; Authors get board management links
         full-links (if (= access-level :author)
                     (concat interaction-links [
-                                   (if (= (keyword (:type board)) :entry)
-                                      (create-entry-link org-slug slug)
-                                      (create-story-link org-slug slug))                                      
+                                   (create-entry-link org-slug slug)
                                    (partial-update-link org-slug slug)
                                    (delete-link org-slug slug)
                                    (add-author-link org-slug slug)
@@ -110,7 +100,9 @@
   ([org-slug board] (render-board-for-collection org-slug board 0))
 
   ([org-slug board draft-story-count]
-  (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-storyboard)) draft-story-count 0)]
+  ;; REMOVE if/when we decide if drafts on our their own board
+  ;;(let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-storyboard)) draft-story-count 0)]
+  (let [this-board-count 0]
     (-> board
       (select-keys (conj representation-props :access-level))
       (board-collection-links org-slug this-board-count)

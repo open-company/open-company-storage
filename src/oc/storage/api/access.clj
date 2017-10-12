@@ -73,7 +73,7 @@
       ((set teams) (:team-id org)) {:access-level :viewer}
       
       ;; public access to orgs w/ at least 1 public board
-      (seq (board-res/list-all-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
+      (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
         {:access-level :public}
       
       ;; no access

@@ -16,7 +16,6 @@
             [oc.storage.resources.org :as org]
             [oc.storage.resources.board :as board]
             [oc.storage.resources.entry :as entry]
-            [oc.storage.resources.story :as story]
             [oc.storage.config :as c])
   (:gen-class))
 
@@ -25,20 +24,6 @@
   (System/exit status))
 
 ;; ----- Resource import -----
-
-(defn import-story [conn org board story-props author]
-  (let [board-uuid (:uuid board)
-        timestamp (:created-at story-props)
-        story-authors (or (:author story-props) [(assoc (dissoc author :teams) :updated-at timestamp)])
-        authors (map #(assoc % :teams [(:team-id org)]) story-authors)
-        story (story/->story conn board-uuid story-props (first authors))
-        fixed-story (-> story
-                      (assoc :author story-authors)                    
-                      (assoc :status :published)
-                      (assoc :publisher (dissoc author :teams))
-                      (assoc :published-at timestamp))]
-    (println (str "Creating story '" (:title story) "' on board '" (:name board) "'."))
-    (db-common/create-resource conn story/table-name fixed-story timestamp)))
 
 (defn- import-entry [conn org board entry-props author]
   (let [board-uuid (:uuid board)
@@ -52,25 +37,15 @@
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
-  (let [storyboard? (:type board)
-        empty-board (dissoc board :entries :stories)
-        board-props (if storyboard?
-                      (board/->storyboard (:uuid org) empty-board author)
-                      (board/->board (:uuid org) empty-board author))]
+  (let [empty-board (dissoc board :entries :stories)
+        board-props (board/->board (:uuid org) empty-board author)]
     (if-let [new-board (board/create-board! conn board-props)]
       
-      (if storyboard?
-        ;; Create the stories
-        (do
-          (println (str "Creating " (count (:stories board)) " stories."))
-          (doseq [story (:stories board)]
-            (import-story conn org new-board story author)))
-
-        ;; Create the entries
-        (do
-          (println (str "Creating " (count (:entries board)) " entries."))
-          (doseq [entry (:entries board)]
-            (import-entry conn org new-board entry author))))
+      ;; Create the entries
+      (do
+        (println (str "Creating " (count (:entries board)) " entries."))
+        (doseq [entry (:entries board)]
+          (import-entry conn org new-board entry author)))
       
       (do
         (println "\nFailed to create the board!")

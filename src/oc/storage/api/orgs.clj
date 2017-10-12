@@ -44,17 +44,11 @@
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
       {:created-org (assoc org-result :boards
-                        (concat
-                          ;; Create default boards
-                          (map
-                            #(board-res/create-board! conn
-                              (board-res/->board uuid {:name %} author))
-                            board-res/default-boards)
-                          ;; Create default storyboards
-                          (map
-                            #(board-res/create-board! conn
-                              (board-res/->storyboard uuid {:name %} author))
-                            board-res/default-storyboards)))})
+                        ;; Create default boards
+                        (map
+                          #(board-res/create-board! conn
+                            (board-res/->board uuid {:name %} author))
+                          board-res/default-boards))})
   
     (do (timbre/error "Failed creating org.") false)))
 
@@ -154,8 +148,7 @@
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
-                             boards (filter #(= (:type %) "entry")
-                                      (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access]))                             
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
                              ;draft-stories (when user-id (story-res/list-stories-by-org-author conn org-id user-id :draft))

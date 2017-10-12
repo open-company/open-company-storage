@@ -24,22 +24,20 @@
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (clojure.set/union reserved-properties #{:type}))
+  reserved-properties)
 
 ;; ----- Data Defaults -----
 
-(def default-boards ["Who We Are" "Company News"])
-(def default-storyboards []) ;"All-hands Update" "Investor Update"])
+(def default-boards ["Announcements" "CEO" "Welcome 👋"])
 
 (def default-access :team)
 
-(def default-drafts-storyboard {
-  :uuid "0000-0000-0000"
-  :name "Drafts"
-  :slug "drafts"
-  :type "story"
-  :viewers []
-  :access :private})
+; (def default-drafts-storyboard {
+;   :uuid "0000-0000-0000"
+;   :name "Drafts"
+;   :slug "drafts"
+;   :viewers []
+;   :access :private})
 
 ;; ----- Utility functions -----
 
@@ -53,28 +51,28 @@
   [board]
   (apply dissoc board ignored-properties))
 
-(schema/defn ^:always-validate drafts-storyboard :- common/Board
-  "Return a storyboard for the specified org and author."
-  [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
-  (let [now (db-common/current-timestamp)]
-    (merge default-drafts-storyboard {
-      :org-uuid org-uuid
-      :author (lib-schema/author-for-user user)
-      :authors [(:user-id user)]
-      :created-at now
-      :updated-at now})))
+; (schema/defn ^:always-validate drafts-storyboard :- common/Board
+;   "Return a storyboard for the specified org and author."
+;   [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+;   (let [now (db-common/current-timestamp)]
+;     (merge default-drafts-storyboard {
+;       :org-uuid org-uuid
+;       :author (lib-schema/author-for-user user)
+;       :authors [(:user-id user)]
+;       :created-at now
+;       :updated-at now})))
 
 ;; ----- Board Slug -----
 
 (def reserved-slugs #{"create-board" "settings" "boards" "all-activity"})
 
-(declare list-all-boards-by-org)
+(declare list-boards-by-org)
 (defn taken-slugs
   "Return all board slugs which are in use as a set."
   [conn org-uuid]
   {:pre [(db-common/conn? conn)
          (schema/validate lib-schema/UniqueID org-uuid)]}
-  (into reserved-slugs (map :slug (list-all-boards-by-org conn org-uuid))))
+  (into reserved-slugs (map :slug (list-boards-by-org conn org-uuid))))
 
 (defn slug-available?
   "Return true if the slug is not used by any board in the org."
@@ -104,7 +102,6 @@
         keywordize-keys
         clean
         (assoc :uuid (db-common/unique-id))
-        (update :type #(or % :entry))
         (assoc :slug slug)
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
@@ -114,17 +111,6 @@
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
 
-(schema/defn ^:always-validate ->storyboard :- common/Board
-  "
-  Take an org UUID, a minimal map describing a storyboard, a user and an optional slug and 'fill the blanks' with
-  any missing properties.
-  "
-  ([org-uuid board-props user]
-  (assoc (->board org-uuid board-props user) :type :story))
-
-  ([org-uuid slug board-props user :- lib-schema/User]
-  (assoc (->board org-uuid slug board-props user) :type :story)))
-  
 (schema/defn ^:always-validate create-board!
   "
   Create a board in the system. Throws a runtime exception if the board doesn't conform to the common/Board schema.
@@ -196,8 +182,6 @@
   (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
   ;; Delete entries
   (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
-  ;; Delete stories
-  (db-common/delete-resource conn common/story-table-name :board-uuid uuid)
   ;; Delete the board itself
   (db-common/delete-resource conn table-name uuid)))
 
@@ -259,46 +243,27 @@
 
 ;; ----- Collection of boards -----
 
-(defn list-all-boards
+(defn list-boards
   "
   Return a sequence of boards and storyboards with slugs, UUIDs, names, type, and org-uuid, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
   "
-  ([conn] (list-all-boards conn []))
+  ([conn] (list-boards conn []))
 
   ([conn additional-keys]
   {:pre [(db-common/conn? conn)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name :org-uuid :type] additional-keys)
+  (->> (into [primary-key :slug :name :org-uuid] additional-keys)
     (db-common/read-resources conn table-name)
-    (sort-by :slug)
-    vec)))
-
-(defn list-all-boards-by-org
-  "
-  Return a sequence of boards and storyboards with slugs, UUIDs, type and names, sorted by slug.
-  
-  Note: if additional-keys are supplied, they will be included in the map, and only boards
-  containing those keys will be returned.
-  "
-  ([conn org-uuid] (list-all-boards-by-org conn org-uuid []))
-
-  ([conn org-uuid additional-keys]
-  {:pre [(db-common/conn? conn)
-         (schema/validate lib-schema/UniqueID org-uuid)
-         (sequential? additional-keys)
-         (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name :type] additional-keys)
-    (db-common/read-resources conn table-name :org-uuid org-uuid)
     (sort-by :slug)
     vec)))
 
 (defn list-boards-by-org
   "
-  Return a sequence of boards with slugs, UUIDs, type and names, sorted by slug.
+  Return a sequence of boards and storyboards with slugs, UUIDs, type and names, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
@@ -306,50 +271,18 @@
   ([conn org-uuid] (list-boards-by-org conn org-uuid []))
 
   ([conn org-uuid additional-keys]
-  (filter #(= (keyword (:type %)) :entry) (list-all-boards-by-org conn org-uuid additional-keys))))
-
-(defn list-storyboards-by-org
-  "
-  Return a sequence of boards with slugs, UUIDs, type and names, sorted by slug.
-  
-  Note: if additional-keys are supplied, they will be included in the map, and only boards
-  containing those keys will be returned.
-  "
-  ([conn org-uuid] (list-storyboards-by-org conn org-uuid []))
-
-  ([conn org-uuid additional-keys]
-  (filter #(= (keyword (:type %)) :story) (list-all-boards-by-org conn org-uuid additional-keys))))
-
-(defn list-all-boards-by-index
-  "
-  Given the name of a secondary index and a value, retrieve all matching boards and storyboards
-  as a sequence of maps with slugs, UUIDs and names, sorted by slug.
-  
-  Secondary indexes:
-  :uuid
-  :slug
-  :authors
-  :viewers
-
-  Note: if additional-keys are supplied, they will be included in the map, and only boards
-  containing those keys will be returned.
-  "
-  ([conn index-key index-value] (list-all-boards-by-index conn index-key index-value []))
-
-  ([conn index-key index-value additional-keys]
   {:pre [(db-common/conn? conn)
-         (or (keyword? index-key) (string? index-key))
+         (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-
-  (->> (into [primary-key :slug :name :type] additional-keys)
-    (db-common/read-resources conn table-name index-key index-value)
+  (->> (into [primary-key :slug :name] additional-keys)
+    (db-common/read-resources conn table-name :org-uuid org-uuid)
     (sort-by :slug)
     vec)))
 
 (defn list-boards-by-index
   "
-  Given the name of a secondary index and a value, retrieve all matching boards
+  Given the name of a secondary index and a value, retrieve all matching boards and storyboards
   as a sequence of maps with slugs, UUIDs and names, sorted by slug.
   
   Secondary indexes:
@@ -364,26 +297,15 @@
   ([conn index-key index-value] (list-boards-by-index conn index-key index-value []))
 
   ([conn index-key index-value additional-keys]
-  (filter #(= (keyword (:type %)) :entry) (list-all-boards-by-index conn index-key index-value additional-keys))))
+  {:pre [(db-common/conn? conn)
+         (or (keyword? index-key) (string? index-key))
+         (sequential? additional-keys)
+         (every? #(or (string? %) (keyword? %)) additional-keys)]}
 
-(defn list-storyboards-by-index
-  "
-  Given the name of a secondary index and a value, retrieve all matching storyboards
-  as a sequence of maps with slugs, UUIDs and names, sorted by slug.
-  
-  Secondary indexes:
-  :uuid
-  :slug
-  :authors
-  :viewers
-
-  Note: if additional-keys are supplied, they will be included in the map, and only boards
-  containing those keys will be returned.
-  "
-  ([conn index-key index-value] (list-storyboards-by-index conn index-key index-value []))
-
-  ([conn index-key index-value additional-keys]
-  (filter #(= (keyword (:type %)) :story) (list-all-boards-by-index conn index-key index-value additional-keys))))
+  (->> (into [primary-key :slug :name] additional-keys)
+    (db-common/read-resources conn table-name index-key index-value)
+    (sort-by :slug)
+    vec)))
 
 ;; ----- Armageddon -----
 
@@ -391,8 +313,7 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions, entries, stories, and boards
+  ;; Delete all interactions, entries, and boards
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn common/story-table-name)
   (db-common/delete-all-resources! conn table-name))

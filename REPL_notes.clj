@@ -9,7 +9,6 @@
 (require '[oc.storage.resources.org :as org] :reload)
 (require '[oc.storage.resources.board :as board] :reload)
 (require '[oc.storage.resources.entry :as entry] :reload)
-(require '[oc.storage.resources.story :as story] :reload)
 
 ;; productive set of development namespaces (REST API)
 (require '[cheshire.core :as json])
@@ -23,15 +22,13 @@
 (require '[oc.storage.api.activity :as activity-api] :reload)
 (require '[oc.storage.api.boards :as boards-api] :reload)
 (require '[oc.storage.api.entries :as entries-api] :reload)
-(require '[oc.storage.api.story :as stories-api] :reload)
 (require '[oc.storage.representations.media-types :as mt] :reload)
 (require '[oc.storage.representations.org :as org-rep] :reload)
 (require '[oc.storage.representations.board :as board-rep] :reload)
 (require '[oc.storage.representations.entry :as entry-rep] :reload)
-(require '[oc.storage.representations.story :as story-rep] :reload)
 
 ;; make a (fake) REST API request
-(api-request :get "/companies/buffer" {:headers {:Accept (company-rep/media-type)}})
+(api-request :get "/orgs/buffer" {:headers {:Accept (company-rep/media-type)}})
 
 ;; print last exception
 (print-stack-trace *e)
@@ -54,12 +51,6 @@
 (aprint (with-open [c (apply r/connect conn2)]
   (-> (r/table "orgs")
       (r/get-all ["51ab-4c86-a477"] {:index :team-id})
-      (r/run c))))
-
-;; Get stories by org ID and author ID
-(aprint (with-open [c (apply r/connect conn2)]
-  (-> (r/table "stories")
-      (r/get-all [["ac53-4d41-8894" "af94-4f56-aa88"]] {:index :author-user-id-org-uuid})
       (r/run c))))
 
 ;; Get orgs by team ID

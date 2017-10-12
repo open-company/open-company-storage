@@ -15,8 +15,7 @@
             [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.story :as story-res]))
+            [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- Utility functions -----
 
@@ -142,7 +141,7 @@
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction :start? start?})
-                             boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
@@ -151,39 +150,38 @@
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
 ;; A resource for operations on the calendar of activity for a particular Org
-(defresource calendar [conn slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+; (defresource calendar [conn slug]
+;   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :get]
+;   :allowed-methods [:options :get]
 
-  ;; Media type client accepts
-  :available-media-types [mt/activity-calendar-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-calendar-media-type)
+;   ;; Media type client accepts
+;   :available-media-types [mt/activity-calendar-media-type]
+;   :handle-not-acceptable (api-common/only-accept 406 mt/activity-calendar-media-type)
 
-  ;; Authorization
-  :allowed? (by-method {
-    :options true
-    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+;   ;; Authorization
+;   :allowed? (by-method {
+;     :options true
+;     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
-  ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
-                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org org}
-                        false))
+;   ;; Existentialism
+;   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+;                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
+;                         {:existing-org org}
+;                         false))
 
-  ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id user)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             ;; TODO filter by allowed boards
-                             ;boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-                             ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
-                             ;board-uuids (map :uuid boards)
-                             months (distinct (concat (entry-res/entry-months-by-org conn org-id)
-                                                      (story-res/story-months-by-org conn org-id)))
-                             calendar-data (assemble-calendar months)]
-                          (activity-rep/render-activity-calendar org calendar-data (:access-level ctx) user-id))))
+;   ;; Responses
+;   :handle-ok (fn [ctx] (let [user (:user ctx)
+;                              user-id (:user-id user)
+;                              org (:existing-org ctx)
+;                              org-id (:uuid org)
+;                              ;; TODO filter by allowed boards
+;                              ;boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+;                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+;                              ;board-uuids (map :uuid boards)
+;                              months (entry-res/entry-months-by-org conn org-id)
+;                              calendar-data (assemble-calendar months)]
+;                           (activity-rep/render-activity-calendar org calendar-data (:access-level ctx) user-id))))
 
 ;; ----- Routes -----
 
