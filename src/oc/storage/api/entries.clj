@@ -1,6 +1,7 @@
 (ns oc.storage.api.entries
   "Liberator API for entry resources."
   (:require [clojure.string :as s]
+            [defun.core :refer (defun-)]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY)]
@@ -8,17 +9,39 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
+            [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
-            [oc.storage.api.access :as access]            
+            [oc.storage.api.access :as access]          
             [oc.storage.async.change :as change]
+            [oc.storage.async.email :as email]
+            [oc.storage.async.bot :as bot]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]))
+
+;; ----- Utility functions -----
+
+(defun- trigger-share-requests
+  "Parallel recursive function to send share requests to AWS SQS."
+
+  ;; Initial
+  ([org entry user share-requests :guard seq?]
+  (doall (pmap (partial trigger-share-requests org entry user) share-requests)))
+
+  ;; Email share
+  ([org entry user share-request :guard #(= "email" (:medium %)) ]
+  (timbre/info "Triggering share: email for" (:uuid entry) "of" (:slug org))
+  (email/send-trigger! (email/->trigger org entry share-request user)))
+
+  ;; Slack share
+  ([org entry user share-request :guard #(= "slack" (:medium %))]
+  (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
+  (bot/send-share-snapshot-trigger! (bot/->share-snapshot-trigger org entry share-request user))))
 
 ;; ----- Validations -----
 
@@ -49,6 +72,17 @@
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry :updated-entry updated-entry}
         [false, {:updated-entry updated-entry}])) ; invalid update
+    
+    true)) ; no existing entry, so this will fail existence check later
+
+(defn- valid-share-requests? [conn entry-uuid share-props]
+  (if-let* [existing-entry (entry-res/get-entry conn entry-uuid)
+            ts (db-common/current-timestamp)
+            _seq? (seq? share-props)
+            share-requests (map #(assoc % :shared-at ts) share-props)]
+    (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-requests)
+        {:existing-entry existing-entry :share-requests share-requests}
+        [false, {:share-requests share-requests}]) ; invalid share request
     
     true)) ; no existing entry, so this will fail existence check later
 
@@ -84,6 +118,20 @@
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do (timbre/info "Deleted entry for:" entry-for) true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
+
+(defn- share-entry [conn ctx entry-for]
+  (timbre/info "Sharing entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)
+            share-requests (:share-requests ctx)
+            shared {:shared (concat (or (:shared entry) []) share-requests)}
+            update-result (entry-res/update-entry! conn (:uuid entry) shared user)]
+    (do
+      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org entry user share-requests))
+      (timbre/info "Shared entry:" entry-for)
+      {:updated-entry update-result})
+    (do (timbre/error "Failed sharing entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -220,56 +268,71 @@
     (api-common/unprocessable-entity-response (:reason ctx))))
 
 ;; A resource for operations to share a particular entry
-; (defresource share [conn org-slug board-slug entry-uuid]
-;   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+(defresource share [conn org-slug board-slug entry-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-;   :allowed-methods [:options :post]
+  :allowed-methods [:options :post]
 
-;   ;; Authorization
-;   :allowed? (by-method {
-;     :options true
-;     :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
   
-;   ;; Media type client accepts
-;   :available-media-types (by-method {
-;                             :post [mt/story-media-type]})
-;   :handle-not-acceptable (by-method {
-;                             :post (api-common/only-accept 406 mt/story-media-type)})
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
 
-;   ;; Media type client sends
-;   :known-content-type? (by-method {
-;                           :options true
-;                           :post (fn [ctx] (api-common/known-content-type? ctx mt/share-request-media-type))})
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/share-request-media-type))})
 
-;   ;; Data handling
-;   :new? false 
-;   :respond-with-entity? true
+  ;; Data handling
+  :new? false 
+  :respond-with-entity? true
 
-;   ;; Validations
-;   :processable? (by-method {
-;     :options true
-;     :post (fn [ctx] (valid-share-requests? conn story-uuid (:data ctx)))})
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (valid-share-requests? conn entry-uuid (:data ctx)))})
 
-;   ;; Existentialism
-;   :can-post-to-missing? false
-;   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-;                                             (slugify/valid-slug? board-slug))
-;                                org (or (:existing-org ctx)
-;                                        (org-res/get-org conn org-slug))
-;                                org-uuid (:uuid org)
-;                                story (or (:existing-story ctx)
-;                                          (story-res/get-story conn story-uuid))
-;                                board (board-res/get-board conn (:board-uuid story))
-;                                comments (or (:existing-comments ctx)
-;                                             (story-res/list-comments-for-story conn (:uuid story)))
-;                                reactions (or (:existing-reactions ctx)
-;                                              (story-res/list-reactions-for-story conn (:uuid story)))
-;                                _matches? (and (= org-uuid (:org-uuid story))
-;                                               (= org-uuid (:org-uuid board))
-;                                               (= :published (keyword (:status story))))] ; sanity check
-;                         {:existing-org org :existing-board board :existing-story story
-;                          :existing-comments comments :existing-reactions reactions}
-;                         false))
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn entry-uuid))
+                               board (board-res/get-board conn (:board-uuid entry))
+                               _matches? (and (= org-uuid (:org-uuid entry))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :published (keyword (:status entry)))) ; sanity check
+                               comments (or (:existing-comments ctx)
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
+                               reactions (or (:existing-reactions ctx)
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))] 
+                        {:existing-org org :existing-board board :existing-entry entry
+                         :existing-comments comments :existing-reactions reactions}
+                        false))
+  
+  ;; Actions
+  :post! (fn [ctx] (share-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               (:existing-comments ctx)
+                                               (:existing-reactions ctx)
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-requests ctx)))))
+
 
 ;; A resource for access to a particular entry by its secure UUID
 (defresource entry-access [conn org-slug secure-uuid]
@@ -350,12 +413,11 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (entry conn org-slug board-slug entry-uuid)))
-      ; (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
-      ;   [org-slug board-slug entry-uuid]
-      ;   (pool/with-pool [conn db-pool]
-      ;     (share conn org-slug board-slug entry-uuid)))
-      ; (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
-      ;   [org-slug board-slug entry-uuid]
-      ;   (pool/with-pool [conn db-pool]
-      ;     (share conn org-slug board-slug entry-uuid)))
-      )))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (share conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (share conn org-slug board-slug entry-uuid))))))

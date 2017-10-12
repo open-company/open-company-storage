@@ -51,10 +51,10 @@
 (defn- delete-link [org-slug board-slug entry-uuid]
   (hateoas/delete-link (url org-slug board-slug entry-uuid)))
 
-; (defn- publish-link [org-slug board-slug entry-uuid]
-;   (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug entry-uuid) "/publish")
-;     {:content-type mt/share-request-media-type
-;      :accept mt/entry-media-type}))
+(defn- publish-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug entry-uuid) "/publish")
+    {:content-type mt/share-request-media-type
+     :accept mt/entry-media-type}))
 
 (defn- share-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "share" hateoas/POST (str (url org-slug board-slug entry-uuid) "/share")
@@ -103,7 +103,7 @@
                 ;; normal access
                 [(self-link org-slug board-slug entry-uuid)
                  (up-link org-slug board-slug)])
-        full-links (cond 
+        more-links (cond 
                     ;; Accessing drafts, or access by authors get editing links                    
                     (or (and draft? (not secure-access?)) (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug entry-uuid)
@@ -118,7 +118,18 @@
                                    (content/comments-link org-uuid board-uuid entry-uuid comments)
                                    (board-rep/interaction-link board-uuid)])
                     ;; Everyone else is read-only
-                    :else links)]
+                    :else links)
+        full-links (cond
+              ;; Drafts need a publish link
+              draft?
+              (conj more-links (publish-link org-slug board-slug entry-uuid))
+              ;; Indirect access via the board, rather than direct access by the secure ID
+              ;; needs a share link
+              (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
+              (conj more-links (share-link org-slug board-slug entry-uuid))
+              ;; Otherwise just the links they already have
+              :else more-links)]
+
     (-> (select-keys entry representation-props) ; TODO morge in org
       (clean-blank-topic)
       (include-secure-uuid secure-uuid access-level)
