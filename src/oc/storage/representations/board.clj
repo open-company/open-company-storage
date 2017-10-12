@@ -5,8 +5,7 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.representations.org :as org-rep]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :topics :entries :created-at :updated-at])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers]))

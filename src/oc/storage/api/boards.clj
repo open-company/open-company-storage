@@ -1,7 +1,6 @@
 (ns oc.storage.api.boards
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
-            [defun.core :refer (defun-)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]

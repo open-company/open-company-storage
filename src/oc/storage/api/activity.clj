@@ -83,18 +83,19 @@
                                                         :board-name (:name (board-by-uuid (:board-uuid activity)))}))
                                     %))))
 
-(defn- assemble-calendar
-  "
-  Given a sequence of months, e.g. `[[2017 06] [2017 04] [2016 11] [2016 07] [2015 12]]`
+;; Not used right now
+; (defn- assemble-calendar
+;   "
+;   Given a sequence of months, e.g. `[[2017 06] [2017 04] [2016 11] [2016 07] [2015 12]]`
 
-  Return a map of the months by year, e.g. `{'2017' [[2017 06] [2017 04]]
-                                             '2016' [[2016 11] [2016 07]]
-                                             '2015' [[2015 12]]}`
-  "
-  [months]
-  (let [years (distinct (map first months))
-        months-by-year (map #(filter (fn [month] (= % (first month))) months) years)]
-    (zipmap years months-by-year)))
+;   Return a map of the months by year, e.g. `{'2017' [[2017 06] [2017 04]]
+;                                              '2016' [[2016 11] [2016 07]]
+;                                              '2015' [[2015 12]]}`
+;   "
+;   [months]
+;   (let [years (distinct (map first months))
+;         months-by-year (map #(filter (fn [month] (= % (first month))) months) years)]
+;     (zipmap years months-by-year)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

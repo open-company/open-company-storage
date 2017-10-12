@@ -41,7 +41,7 @@
   ;; Slack share
   ([org entry user share-request :guard #(= "slack" (:medium %))]
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
-  (bot/send-share-snapshot-trigger! (bot/->share-snapshot-trigger org entry share-request user))))
+  (bot/send-share-entry-trigger! (bot/->share-entry-trigger org entry share-request user))))
 
 ;; ----- Validations -----
 

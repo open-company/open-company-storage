@@ -8,7 +8,7 @@
 (def BotTrigger 
   "All Slack bot triggers have the following properties."
   {
-    :type (schema/enum "share-snapshot")
+    :type (schema/enum "share-entry")
     :bot {
        :token lib-schema/NonBlankStr
        :id lib-schema/NonBlankStr
@@ -19,15 +19,15 @@
       (schema/optional-key :id) schema/Str
   }})
 
-(def ShareSnapshotTrigger 
-  "A Slack bot trigger to share a snapshot."
+(def ShareEntryTrigger 
+  "A Slack bot trigger to share an Entry."
   (merge BotTrigger {
-    :type (schema/enum "share-snapshot")  
+    :type (schema/enum "share-entry")  
     :note (schema/maybe schema/Str)
     :org-slug lib-schema/NonBlankStr
     :org-name (schema/maybe schema/Str)
     :org-logo-url (schema/maybe schema/Str)
-    :title (schema/maybe schema/Str)
+    :headline (schema/maybe schema/Str)
     :secure-uuid lib-schema/UniqueID
     :published-at lib-schema/ISO8601
     :shared-at lib-schema/ISO8601}))
@@ -42,12 +42,12 @@
       {:token (:token slack-bot) :id (:id slack-bot)}
       false)))
 
-(schema/defn ^:always-validate ->share-snapshot-trigger :- ShareSnapshotTrigger
+(schema/defn ^:always-validate ->share-entry-trigger :- ShareEntryTrigger
   "Given a story for an org and a share request, create the share trigger."
-  [org story share-request user]
+  [org entry share-request user]
   (let [slack-org-id (-> share-request :channel :slack-org-id)]
     {
-      :type "share-snapshot"
+      :type "share-entry"
       :receiver {
         :type :channel
         :slack-org-id slack-org-id
@@ -58,9 +58,9 @@
       :org-slug (:slug org)
       :org-name (:name org)
       :org-logo-url (:logo-url org)
-      :title (:title story)
-      :secure-uuid (:secure-uuid story)
-      :published-at (:published-at story)
+      :headline (:headline entry)
+      :secure-uuid (:secure-uuid entry)
+      :published-at (:published-at entry)
       :shared-at (:shared-at share-request)
     }))
 
@@ -75,5 +75,5 @@
    trigger)
   (timbre/info "Request sent to:" config/aws-sqs-bot-queue))
 
-(schema/defn ^:always-validate send-share-snapshot-trigger! [trigger :- ShareSnapshotTrigger]
+(schema/defn ^:always-validate send-share-entry-trigger! [trigger :- ShareEntryTrigger]
   (send-trigger! trigger))
