@@ -28,7 +28,7 @@
 
 ;; ----- Data Defaults -----
 
-(def default-boards ["Announcements" "CEO" "Welcome 👋"])
+(def default-boards ["Announcements" "CEO" "Who We Are" "Welcome 👋"])
 
 (def default-access :team)
 
