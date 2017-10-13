@@ -372,8 +372,8 @@
                         false))
   
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry (:slug (:existing-org ctx)) ; temp
-                                               (:slug (:existing-board ctx)) ; temp
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:slug (:existing-board ctx))
                                                (:existing-entry ctx)
                                                (:existing-comments ctx)
                                                (:existing-reactions ctx)
