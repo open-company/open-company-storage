@@ -39,7 +39,7 @@
 (defn- merge-activity
   "Given a set of entries and stories and a sort order, return up to the default limit of them, intermixed and sorted."
   [entries stories order]
-  (take config/default-limit (sort (partial activity-sort order) (concat entries stories))))
+  (take config/default-activity-limit (sort (partial activity-sort order) (concat entries stories))))
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."

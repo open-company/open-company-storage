@@ -1,13 +1,17 @@
 (ns oc.storage.api.orgs
   "Liberator API for org resources."
   (:require [if-let.core :refer (if-let*)]
+            [clj-time.core :as t]
+            [clj-time.format :as f]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
+            [oc.lib.time :as lib-time]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
+            [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
@@ -16,7 +20,8 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- Utility functions -----
 
@@ -31,6 +36,20 @@
         clean-board (if public? (dissoc board :authors :viewers) board)]
     (if level (merge clean-board level) clean-board)))
 
+(defn- create-board
+  ""
+  [conn org board author]
+  (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (dissoc board :entries) author))]
+    (doseq [entry (:entries board)]
+      (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))]
+        (db-common/create-resource conn common-res/entry-table-name 
+          (-> (entry-res/->entry conn (:uuid board-result) (dissoc entry :author :time-offset) (:author entry))
+            (assoc :status :published)
+            (assoc :created-at ts)
+            (assoc :updated-at ts)
+            (assoc :published-at ts)
+            (assoc :publisher (:author entry))) ts)))))
+
 ;; ----- Actions -----
 
 (defn create-org [conn ctx]
@@ -43,12 +62,9 @@
           author (:user ctx)]
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
-      {:created-org (assoc org-result :boards
-                        ;; Create default boards
-                        (map
-                          #(board-res/create-board! conn
-                            (board-res/->board uuid {:name %} author))
-                          board-res/default-boards))})
+      (doseq [board (:boards config/default-new-org)]
+        (create-board conn org-result board author))
+      {:created-org org-result})
   
     (do (timbre/error "Failed creating org.") false)))
 

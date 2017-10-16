@@ -33,12 +33,12 @@
         last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
         first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
         next? (or (= (:direction data) :previous)
-                  (= (:next-count data) config/default-limit))
+                  (= (:next-count data) config/default-activity-limit))
         next-url (when next? (url org {:start last-activity-date :direction :before}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))
         prior? (and start?
                     (or (= (:direction data) :next)
-                        (= (:previous-count data) config/default-limit)))
+                        (= (:previous-count data) config/default-activity-limit)))
         prior-url (when prior? (url org {:start first-activity-date :direction :after}))
         prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))

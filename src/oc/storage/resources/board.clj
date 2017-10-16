@@ -28,16 +28,15 @@
 
 ;; ----- Data Defaults -----
 
-(def default-boards ["Announcements" "CEO" "Who We Are" "Welcome 👋"])
-
 (def default-access :team)
 
-; (def default-drafts-storyboard {
-;   :uuid "0000-0000-0000"
-;   :name "Drafts"
-;   :slug "drafts"
-;   :viewers []
-;   :access :private})
+;; REMOVE Once it's confirmed if drafts will have a board
+;; (def default-drafts-storyboard {
+;;   :uuid "0000-0000-0000"
+;;   :name "Drafts"
+;;   :slug "drafts"
+;;   :viewers []
+;;   :access :private})
 
 ;; ----- Utility functions -----
 
@@ -51,16 +50,17 @@
   [board]
   (apply dissoc board ignored-properties))
 
-; (schema/defn ^:always-validate drafts-storyboard :- common/Board
-;   "Return a storyboard for the specified org and author."
-;   [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
-;   (let [now (db-common/current-timestamp)]
-;     (merge default-drafts-storyboard {
-;       :org-uuid org-uuid
-;       :author (lib-schema/author-for-user user)
-;       :authors [(:user-id user)]
-;       :created-at now
-;       :updated-at now})))
+;; REMOVE Once it's confirmed if drafts will have a board
+;; (schema/defn ^:always-validate drafts-storyboard :- common/Board
+;;   "Return a storyboard for the specified org and author."
+;;   [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+;;   (let [now (db-common/current-timestamp)]
+;;     (merge default-drafts-storyboard {
+;;       :org-uuid org-uuid
+;;       :author (lib-schema/author-for-user user)
+;;       :authors [(:user-id user)]
+;;       :created-at now
+;;       :updated-at now})))
 
 ;; ----- Board Slug -----
 

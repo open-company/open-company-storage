@@ -213,7 +213,7 @@
 ;          (#{:desc :asc} order)
 ;          (#{:before :after} direction)]}
 ;   (db-common/read-resources-and-relations conn table-name :status-org-uuid [[:published org-uuid]]
-;                                           "created-at" order start direction config/default-limit
+;                                           "created-at" order start direction config/default-activity-limit
 ;                                           :board-uuid r/contains allowed-boards
 ;                                           :interactions common/interaction-table-name :uuid :resource-uuid
 ;                                           ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
