@@ -2,10 +2,6 @@
   :boards [
 
     {
-      :name "Announcements"
-    }
-
-    {
       :name "Welcome 👋"
 
       :entries [
@@ -99,10 +95,6 @@
           <p>Team Carrot</p>"
         }
       ]
-    }
-
-    {
-      :name "Who We Are"
     }
   ]
 }
