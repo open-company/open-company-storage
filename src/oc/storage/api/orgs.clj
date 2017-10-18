@@ -36,19 +36,42 @@
         clean-board (if public? (dissoc board :authors :viewers) board)]
     (if level (merge clean-board level) clean-board)))
 
+(defn- create-interaction
+  "Create any default interactions (from config) for a new default entry."
+  [conn org-uuid interaction resource]
+  (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset interaction) 0))))
+        content-key (if (:body interaction) :body :reaction)]
+    (db-common/create-resource conn common-res/interaction-table-name {
+      :uuid (db-common/unique-id)
+      content-key (content-key interaction)
+      :board-uuid (:board-uuid resource)
+      :org-uuid org-uuid
+      :resource-uuid (:uuid resource)
+      :author (:author interaction)} ts)))
+
+(defn- create-entry
+  "Create any default entries (from config) for a new default board."
+  [conn entry board]
+  (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
+        entry-res (db-common/create-resource conn common-res/entry-table-name 
+                    (-> (entry-res/->entry conn (:uuid board)
+                                                (dissoc entry :author :time-offset :comments :reactions)
+                                                (:author entry))
+                      (assoc :status :published)
+                      (assoc :created-at ts)
+                      (assoc :updated-at ts)
+                      (assoc :published-at ts)
+                      (assoc :publisher (:author entry))) ts)
+        interaction-resource (merge entry entry-res)]
+    ;; create any entry interactions (comments and/or reactions) in parallel
+    (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
+              (concat (:comments interaction-resource) (:reactions interaction-resource))))))
+
 (defn- create-board
-  ""
+  "Create any default boards (from config) and their contents for a new org."
   [conn org board author]
   (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (dissoc board :entries) author))]
-    (doseq [entry (:entries board)]
-      (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))]
-        (db-common/create-resource conn common-res/entry-table-name 
-          (-> (entry-res/->entry conn (:uuid board-result) (dissoc entry :author :time-offset) (:author entry))
-            (assoc :status :published)
-            (assoc :created-at ts)
-            (assoc :updated-at ts)
-            (assoc :published-at ts)
-            (assoc :publisher (:author entry))) ts)))))
+    (doall (pmap #(create-entry conn % board-result) (:entries board))))) ; create any board entries in parallel
 
 ;; ----- Actions -----
 

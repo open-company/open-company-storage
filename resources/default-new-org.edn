@@ -13,44 +13,107 @@
             :name "Stuart Levinson",
             :user-id "26ff-4483-9c07"
           }
-          :headline "Boards make it easy to stay organized"
-          :body "<p><img src=\"https://cdn.filestackcontent.com/QsIsbZW5QR6W2ZfbM6GY\" class=\"carrot-no-preview\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/kJ5Y2k42ROe6qiKsQwM1\" width=\"4272\" height=\"1126\"></p>
-          <p>Carrot makes it easy to post announcements, team updates, ideas and stories. Boards help you keep posts organized.</p>
-          <p>Some sample board ideas are:</p>
+          :headline "Stay organized with BOARDS"
+          :body "<p><img src=\"https://cdn.filestackcontent.com/ka7vsSVmnxwIURuodywQ\" class=\"carrot-no-preview\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/48V04ztTTO9gTl0DN4ad\" width=\"4896\" height=\"2529\"></p>
+          <p>When you walk into a grocery store for milk, it's pretty easy to find what you want. It's in the dairy section. In Carrot, boards do the same thing for your announcements, updates, and stories.</p>
+          <p>Create whatever boards you want to keep related information together so it's easy for your team to find it. Some common board examples are:</p>
           <ul>
+          <li>Announcements - general, company-wide announcements</li>
           <li>CEO - important updates from the CEO</li>
-          <li>General - company-wide announcements</li>
-          <li>All-Hands - updates for employees</li>
+          <li>All-Hands - weekly or monthly company updates</li>
           <li>Sales - the latest projections, wins and updates from the sales group</li>
           <li>Projects - lessons learned and the latest status of key projects</li>
           <li>Products - news about company products, releases and new developments</li>
           <li>Who We Are - mission, values, key company resources</li>
           <li>HR - resources for employees, announcements regarding new policies</li>
           </ul>
-          <p>You can also create boards to organize information you'd like to share with outside stakeholders, such as:</p>
-          <ul><li>Investor Updates<br></li>
-          <li>Friends and Family Updates</li>
-          <li>Customer News</li>
+          <p>You can also create boards to organize information you'd like to share with your extended team, such as:</p>
+          <ul>
+          <li>Investor - monthly investor and advisor updates<br></li>
+          <li>F&amp;F - keep friends and family engaged and supportive</li>
+          <li>Customer News - stories you'd like to share</li>
           </ul>
           <p>Happy writing! ✍</p>
           <p>Team Carrot</p>"
+          :comments [
+            {
+              :time-offset 12 ; 12 minutes ago
+              :body "<p>Hmm, maybe you should've used the Veggie section 🍐 🍎</p>"
+              :author {
+                :avatar-url "https://avatars.slack-edge.com/2017-02-02/136114833346_3758034af26a3b4998f4_512.jpg",
+                :name "Iacopo Carroro",
+                :user-id "15d9-4735-9320"
+              }
+            }
+            {
+              :time-offset 15 ; 15 minutes ago
+              :body "<p>You're comparing the dairy section to Carrot boards? Brilliant!</p>"
+              :author {
+                :avatar-url "https://secure.gravatar.com/avatar/e7407a2aefa6b5a54a0af630a0a58210.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0020-512.png",
+                :name "Nathan Zorn",
+                :user-id "14d8-4648-866e"
+              }
+            }
+          ]
+          :reactions [
+            {
+              :time-offset 15 ; 12 minutes ago
+              :reaction "💥"
+              :author {
+                :avatar-url "https://secure.gravatar.com/avatar/e7407a2aefa6b5a54a0af630a0a58210.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0020-512.png",
+                :name "Nathan Zorn",
+                :user-id "14d8-4648-866e"
+              }
+            }
+          ]
         }
 
-       {
+        {
           :time-offset 1440 ; 1 day ago in minutes
           :author {
             :avatar-url "https://avatars.slack-edge.com/2016-01-04/17691305283_beac02319067680e6936_512.jpg",
             :name "Stuart Levinson",
             :user-id "26ff-4483-9c07"
           }
-          :headline "Inviting your team"
-          :body "<p><img src=\"https://cdn.filestackcontent.com/4eTjAP4jRiKuJr5BCFa1\" class=\"carrot-no-preview\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/3G6jtzfQhuUHaL4nzSrw\" width=\"640\" height=\"480\"></p>
-          <p>Carrot is more fun when you let others in. Instead of relying on one person to create updates, opening it up provides an opportunity for anyone to say what they feel is important.</p>
-          <p>Even if teams prefer to have a few people writing updates (e.g., managers), Carrot makes it easy for team members to react to the updates, comment and ask questions.</p>
-          <p>When everyone gets involved, that's when you create real alignment.</p>
-          <p>Click \"Invite People\" in the bottom left to invite your team.</p>
+          :headline "Invite your team"
+          :body "<p><img src=\"https://cdn.filestackcontent.com/iMiISOlqR766MbWj5bRe\" class=\"carrot-no-preview\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/G7Zzu6T4RhSFvuQD6teY\" width=\"5868\" height=\"4004\"></p><p>There's no \"I\" in \"Team\", right?</p>
+          <p>Carrot is more fun when you let others in. Instead of relying on one person to create updates, inviting your team makes it easy for others to contribute.</p>
+          <p>When you invite someone, you can give them editing permission or view-only permission. Everyone on the team will be able to add reactions and comments which creates a great feedback loop, too.</p>
+          <p>When it's this easy to stay involved, you'll get real transparency and alignment.</p>
+          <p>Click \"<b class=\"bold\">Invite People</b>\" in the bottom left to invite your team.</p>
           <p>Happy collaborating!</p>
           <p>Team Carrot</p>"
+          :comments [
+            {
+              :time-offset 120 ; 2 hours ago in minutes
+              :body "<p>Where has this been? Our team is going to love it. I'll send out the invites.</p>"
+              :author {
+                :avatar-url "https://secure.gravatar.com/avatar/e7407a2aefa6b5a54a0af630a0a58210.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0020-512.png",
+                :name "Nathan Zorn",
+                :user-id "14d8-4648-866e"
+              }
+            }
+          ]
+          :reactions [
+            {
+              :time-offset 120 ; 12 minutes ago
+              :reaction "👌"
+              :author {
+                :avatar-url "https://secure.gravatar.com/avatar/e7407a2aefa6b5a54a0af630a0a58210.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0020-512.png",
+                :name "Nathan Zorn",
+                :user-id "14d8-4648-866e"
+              }
+            }
+            {
+              :time-offset 1430 ; 1 day ago in minutes
+              :reaction "👌"
+              :author {
+                :avatar-url "https://cdn.filestackcontent.com/p6cwp6NQlelqYZzW05KR",
+                :name "Sean Johnson",
+                :user-id "afef-4a84-9f3d"
+              }
+            }
+          ]
         }
 
         {
@@ -60,17 +123,15 @@
             :name "Sean Johnson",
             :user-id "afef-4a84-9f3d"
           }
-          :headline "Adding images, video and charts"
-          :body "<p>Want to add more color to your posts? Just hit the <b class=\"bold\">+</b> button to insert
-          different types of media.</p><p>You can insert images from your computer, cloud services such as Dropbox,
-          or a web search for the perfect image.</p>
+          :headline "Add images, video and charts"
+          :body "<p>One image is worth 1000 words? How about videos and charts? Just hit the <b class=\"bold\">+</b> button to insert different types of media.</p>
+          <p>You can insert images from your computer, cloud services such as Dropbox, or a web search for the perfect image, like this SpaceX launch!</p>
           <p><img src=\"https://cdn.filestackcontent.com/kp9qpRkRSak4a27dwMbg\" class=\"carrot-no-preview\" data-media-type=\"image\" data-thumbnail=\"https://cdn.filestackcontent.com/qRug7yV8R7Stqf7hTviM\" width=\"3000\" height=\"2000\"></p>
-          <p><br></p>
-          <p>Videos can be embedded from Youtube and Vimeo, too.</p>
+          <p>Have a video that conveys what you want to say? Embed one from either Youtube or Vimeo.</p>
           <p><iframe class=\"carrot-no-preview\" frameborder=\"0\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\" allowfullscreen=\"true\" data-thumbnail=\"https://img.youtube.com/vi/SB4N4xF2B2w/0.jpg\" data-video-type=\":youtube\" data-video-id=\"SB4N4xF2B2w\" src=\"https://www.youtube.com/embed/SB4N4xF2B2w\" width=\"560\" height=\"315\"></iframe></p>
-          <p><br></p>
-          <p>Using Google Sheets to chart data? It's easy to embed charts, and we'll keep them in sync, too.<iframe data-thumbnail=\"https://docs.google.com/spreadsheets/d/2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K/embed/oimg?id=2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K&amp;oid=1644804215&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p\" data-media-type=\"chart\" data-chart-id=\"2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K\" src=\"/_/sheets-proxy/spreadsheets/d/e/2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K/pubchart?oid=1644804215&amp;format=interactive\" class=\"carrot-no-preview\" width=\"550\" height=\"430\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\"></iframe></p>
-          <p>Have fun!</p>
+          <p>Using Google Sheets to chart data? It's easy to embed charts, and we'll keep them in sync, too.</p>
+          <p><iframe data-thumbnail=\"https://docs.google.com/spreadsheets/d/2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K/embed/oimg?id=2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K&amp;oid=1644804215&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p\" data-media-type=\"chart\" data-chart-id=\"2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K\" src=\"/_/sheets-proxy/spreadsheets/d/e/2PACX-1vRE6-VdWxpUZJwlUzH81Huk8blffFJe4ohRGkYe89MLNMGi_phY-ejDRjChr4SaQFqD6EmbsBF83b2K/pubchart?oid=1644804215&amp;format=interactive\" class=\"carrot-no-preview\" width=\"550\" height=\"430\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\"></iframe></p>
+          <p>Have fun! 🚀</p>
           <p>Team Carrot</p>"
         }
 
@@ -88,8 +149,7 @@
           <li>Add <a href=\"https://www.organicfacts.net/health-benefits/vegetable/carrots.html\">links</a></li>
           <li>Add a bulleted list like this one</li>
           </ul>
-          <p>You can also add emojis with the emoji button visible when editing 🐶. Or type a colon \":\" and
-          type the name of the emoji you want.</p>
+          <p>And yes, of course you can add emojis any way you like! 😍 Click on the emoji button in the bottom left, or type a colon \":\" and then the name of the emoji you want, e.g., \"robot\" and you'll get one of these guys 🤖.</p>
           <p>Questions about editing? <a href=\"mailto:hello@carrot.io\">Let us know</a>.</p>
           <p>Happy editing!</p>
           <p>Team Carrot</p>"
