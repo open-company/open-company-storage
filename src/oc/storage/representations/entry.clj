@@ -105,7 +105,7 @@
                 [(self-link org-slug board-slug entry-uuid)
                  (up-link org-slug board-slug)])
         more-links (cond 
-                    ;; Accessing drafts, or access by authors get editing links                    
+                    ;; Accessing their drafts, or access by an author, both get editing links                    
                     (or (and draft? (not secure-access?)) (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug entry-uuid)
                                    (delete-link org-slug board-slug entry-uuid)
