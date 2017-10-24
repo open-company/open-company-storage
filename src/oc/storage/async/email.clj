@@ -6,7 +6,7 @@
             [oc.storage.config :as config]))
 
 (def EmailTrigger
-  {:type (schema/enum "story")
+  {:type (schema/enum "share-entry")
    :to [lib-schema/EmailAddress]
    :subject (schema/maybe schema/Str)
    :note (schema/maybe schema/Str)
@@ -14,13 +14,13 @@
    :org-slug lib-schema/NonBlankStr
    :org-name (schema/maybe schema/Str)
    :org-logo-url (schema/maybe schema/Str)
-   :title (schema/maybe schema/Str)
+   :headline (schema/maybe schema/Str)
    :secure-uuid lib-schema/UniqueID
    :published-at lib-schema/ISO8601
    :shared-at lib-schema/ISO8601})
 
-(defn ->trigger [org story share-request user]
-  {:type "story"
+(defn ->trigger [org entry share-request user]
+  {:type "share-entry"
    :to (vec (:to share-request))
    :subject (:subject share-request)
    :note (:note share-request)
@@ -28,9 +28,9 @@
    :org-slug (:slug org)
    :org-name (:name org)
    :org-logo-url (:logo-url org)
-   :title (:title story)
-   :secure-uuid (:secure-uuid story)
-   :published-at (:published-at story)
+   :headline (:headline entry)
+   :secure-uuid (:secure-uuid entry)
+   :published-at (:published-at entry)
    :shared-at (:shared-at share-request)})
 
 (defn send-trigger! [trigger]

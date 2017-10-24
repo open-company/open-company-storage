@@ -69,6 +69,8 @@
 
 ;; ----- OpenCompany -----
 
+(defonce default-new-org (read-string (slurp (clojure.java.io/resource "default-new-org.edn"))))
+
 (defonce topics #{
   "CEO Update"
   "Competition"
@@ -81,6 +83,6 @@
   "Press"
   "Sales"})
 
-(def default-reactions ["👌" "👀" "💥"])
+(defonce default-reactions ["👌" "👀" "💥"])
 
-(def default-limit 20)
+(defonce default-activity-limit 20)

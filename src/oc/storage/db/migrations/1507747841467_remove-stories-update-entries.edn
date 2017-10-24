@@ -1,0 +1,69 @@
+(ns oc.storage.db.migrations.remove-stories-update-entries
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.lib.db.common :as db-common]
+            [oc.storage.config :as config]
+            [oc.storage.resources.board :as board]
+            [oc.storage.resources.entry :as entry]))
+
+(defn up [conn]
+  
+  (println "Deleting table: stories")
+  (try
+    (println (m/delete-table conn "stories"))
+    (catch clojure.lang.ExceptionInfo e
+      (println "Stories table didn't exist.")))
+
+  (println "Remove existing storyboards...")
+  (println (-> (r/table board/table-name)
+              (r/filter (r/fn [b]
+                (r/eq "story" (r/get-field b "type"))))
+              (r/delete)
+              (r/run conn)))
+
+  (println "Remove type from existing boards...")
+  (println (m/remove-properties conn board/table-name [:type]))
+
+  (println "Remove attachments from existing entries...")
+  (println (m/remove-properties conn entry/table-name [:attachments]))
+
+  (println "Add new properties to existing entries...")
+  (let [entries (db-common/read-resources conn entry/table-name)]
+    (println "Updating" (count entries) "existing entries...")
+    (doseq [entry entries]
+      (let [publisher (dissoc (first (:author entry)) :updated-at)]
+        (-> (r/table entry/table-name)
+          (r/get (entry/primary-key entry))
+          (r/update (r/fn [resource]
+            {:secure-uuid (db-common/unique-id)
+             :status "published"
+             :published-at (:created-at entry)
+             :publisher publisher}))
+          (r/run conn)))))
+
+  (println "Adding indexes...")
+
+  (println (m/create-index conn entry/table-name "secure-uuid"))
+
+  (println (m/create-compound-index conn entry/table-name "secure-uuid-org-uuid"
+              (r/fn [row] [(r/get-field row "secure-uuid")
+                           (r/get-field row "org-uuid")])))
+
+  (println (m/create-compound-index conn entry/table-name "status-board-uuid"
+              (r/fn [row] [(r/get-field row "status")
+                           (r/get-field row "board-uuid")])))
+
+  (println (m/create-compound-index conn entry/table-name "status-org-uuid"
+              (r/fn [row] [(r/get-field row "status")
+                           (r/get-field row "org-uuid")])))
+
+  (println (m/create-compound-index conn entry/table-name "status-org-uuid-author-id"
+              (r/fn [row] (r/distinct
+                            (r/map (r/get-field row "author")
+                              (r/fn [author]
+                                [(r/get-field row "status")
+                                 (r/get-field row "org-uuid")
+                                 (r/get-field author ["user-id"])]))))
+              {:multi true}))
+
+  true) ; return true on success

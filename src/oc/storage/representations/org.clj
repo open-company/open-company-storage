@@ -58,13 +58,7 @@
         full-links (if (= access-level :author) 
                       (concat activity-links [(board-create-link org)
                                               (partial-update-link org)
-                                              (add-author-link org)
-                                              (hateoas/collection-link (str (url org) "/stories")
-                                                  {:accept mt/story-collection-media-type}
-                                                  {:count (:story-count org)})
-                                              (hateoas/create-link (str (url org) "/stories/")
-                                                  {:content-type mt/share-request-media-type
-                                                   :accept mt/story-media-type})])
+                                              (add-author-link org)])
                       activity-links)]
     (assoc org :links full-links)))
 

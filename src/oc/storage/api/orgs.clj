@@ -1,13 +1,17 @@
 (ns oc.storage.api.orgs
   "Liberator API for org resources."
   (:require [if-let.core :refer (if-let*)]
+            [clj-time.core :as t]
+            [clj-time.format :as f]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
+            [oc.lib.time :as lib-time]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
+            [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
@@ -17,7 +21,7 @@
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.story :as story-res]))
+            [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- Utility functions -----
 
@@ -32,6 +36,43 @@
         clean-board (if public? (dissoc board :authors :viewers) board)]
     (if level (merge clean-board level) clean-board)))
 
+(defn- create-interaction
+  "Create any default interactions (from config) for a new default entry."
+  [conn org-uuid interaction resource]
+  (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset interaction) 0))))
+        content-key (if (:body interaction) :body :reaction)]
+    (db-common/create-resource conn common-res/interaction-table-name {
+      :uuid (db-common/unique-id)
+      content-key (content-key interaction)
+      :board-uuid (:board-uuid resource)
+      :org-uuid org-uuid
+      :resource-uuid (:uuid resource)
+      :author (:author interaction)} ts)))
+
+(defn- create-entry
+  "Create any default entries (from config) for a new default board."
+  [conn entry board]
+  (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
+        entry-res (db-common/create-resource conn common-res/entry-table-name 
+                    (-> (entry-res/->entry conn (:uuid board)
+                                                (dissoc entry :author :time-offset :comments :reactions)
+                                                (:author entry))
+                      (assoc :status :published)
+                      (assoc :created-at ts)
+                      (assoc :updated-at ts)
+                      (assoc :published-at ts)
+                      (assoc :publisher (:author entry))) ts)
+        interaction-resource (merge entry entry-res)]
+    ;; create any entry interactions (comments and/or reactions) in parallel
+    (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
+              (concat (:comments interaction-resource) (:reactions interaction-resource))))))
+
+(defn- create-board
+  "Create any default boards (from config) and their contents for a new org."
+  [conn org board author]
+  (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (dissoc board :entries) author))]
+    (doall (pmap #(create-entry conn % board-result) (:entries board))))) ; create any board entries in parallel
+
 ;; ----- Actions -----
 
 (defn create-org [conn ctx]
@@ -44,18 +85,9 @@
           author (:user ctx)]
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
-      {:created-org (assoc org-result :boards
-                        (concat
-                          ;; Create default boards
-                          (map
-                            #(board-res/create-board! conn
-                              (board-res/->board uuid {:name %} author))
-                            board-res/default-boards)
-                          ;; Create default storyboards
-                          (map
-                            #(board-res/create-board! conn
-                              (board-res/->storyboard uuid {:name %} author))
-                            board-res/default-storyboards)))})
+      (doseq [board (:boards config/default-new-org)]
+        (create-board conn org-result board author))
+      {:created-org org-result})
   
     (do (timbre/error "Failed creating org.") false)))
 
@@ -155,16 +187,16 @@
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
-                             boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
-                             draft-stories (when user-id (story-res/list-stories-by-org-author conn org-id user-id :draft))
-                             draft-story-count (count draft-stories)
-                             full-boards (if (pos? draft-story-count)
-                                            (conj allowed-boards (board-res/drafts-storyboard org-id user))
-                                            allowed-boards)
+                             ;draft-stories (when user-id (story-res/list-stories-by-org-author conn org-id user-id :draft))
+                             draft-story-count 0 ;(count draft-stories)
+                             ; full-boards (if (pos? draft-story-count)
+                             ;                (conj allowed-boards (board-res/drafts-storyboard org-id user))
+                             ;                allowed-boards)
                              board-reps (map #(board-rep/render-board-for-collection slug % draft-story-count)
-                                          full-boards)
+                                          allowed-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
                           (org-rep/render-org (-> org

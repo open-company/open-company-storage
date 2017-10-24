@@ -9,7 +9,6 @@
 (def org-table-name "orgs")
 (def board-table-name "boards")
 (def entry-table-name "entries")
-(def story-table-name "stories")
 (def interaction-table-name "interactions")
 
 ;; ----- Properties common to all resources -----
@@ -22,46 +21,16 @@
 
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
-(def Attachment {
-  :file-name lib-schema/NonBlankStr
-  :file-type lib-schema/NonBlankStr
-  :file-size schema/Num
-  :file-url lib-schema/NonBlankStr
-  :created-at lib-schema/ISO8601})
-
 (def ContributingAuthor
   "An author in a sequence of Authors involved in creating content."
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
-(def Entry 
-  "An entry on a board."
-  {
-  :uuid lib-schema/UniqueID
-  :org-uuid lib-schema/UniqueID
-  :board-uuid lib-schema/UniqueID
-  :topic-slug (schema/maybe Slug)
-  :topic-name (schema/maybe lib-schema/NonBlankStr)
-  
-  :headline schema/Str
-  :body schema/Str
-  
-  ;; Attachments
-  (schema/optional-key :attachments) [Attachment]
-  
-  ;; Comment sync
-  (schema/optional-key :slack-thread) lib-schema/SlackThread
-
-  :author [ContributingAuthor]
-  :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
-
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Board
-  "An entry or story container."
+  "An entry container."
   {
   :uuid lib-schema/UniqueID
-  :type (schema/pred #((set [:entry :story]) (keyword %)))
   :slug Slug
   :name lib-schema/NonBlankStr
   :org-uuid lib-schema/UniqueID
@@ -104,30 +73,29 @@
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
-(def Story
-  "A story on a board."
+(def Entry 
+  "An entry on a board."
   {
-    :uuid lib-schema/UniqueID
-    (schema/optional-key :secure-uuid) lib-schema/UniqueID
-    :org-uuid lib-schema/UniqueID
-    :board-uuid lib-schema/UniqueID
+  :uuid lib-schema/UniqueID
+  :secure-uuid lib-schema/UniqueID
+  :org-uuid lib-schema/UniqueID
+  :board-uuid lib-schema/UniqueID
+  :topic-slug (schema/maybe Slug)
+  :topic-name (schema/maybe lib-schema/NonBlankStr)
+  
+  :status Status
 
-    :status Status
+  :headline schema/Str
+  :body schema/Str
+  
+  ;; Comment sync
+  (schema/optional-key :slack-thread) lib-schema/SlackThread
 
-    :title schema/Str    
-    (schema/optional-key :banner-url) (schema/maybe schema/Str)
-    (schema/optional-key :banner-width) schema/Int
-    (schema/optional-key :banner-height) schema/Int          
-    :body schema/Str
+  :author [ContributingAuthor]
+  (schema/optional-key :published-at) lib-schema/ISO8601
+  (schema/optional-key :publisher) lib-schema/Author
 
-    ;; Comment sync
-    (schema/optional-key :slack-thread) lib-schema/SlackThread
+  (schema/optional-key :shared) [ShareRequest]
 
-    :author [ContributingAuthor]
-    (schema/optional-key :published-at) lib-schema/ISO8601
-    (schema/optional-key :publisher) lib-schema/Author
-
-    (schema/optional-key :shared) [ShareRequest]
-    
-    :created-at lib-schema/ISO8601
-    :updated-at lib-schema/ISO8601})
+  :created-at lib-schema/ISO8601
+  :updated-at lib-schema/ISO8601})

@@ -15,8 +15,7 @@
             [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.story :as story-res]))
+            [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- Utility functions -----
 
@@ -40,7 +39,7 @@
 (defn- merge-activity
   "Given a set of entries and stories and a sort order, return up to the default limit of them, intermixed and sorted."
   [entries stories order]
-  (take config/default-limit (sort (partial activity-sort order) (concat entries stories))))
+  (take config/default-activity-limit (sort (partial activity-sort order) (concat entries stories))))
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
@@ -50,11 +49,12 @@
 
                   (= direction :around)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after allowed-boards)
-                        previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after allowed-boards)
+                        ;previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after allowed-boards)
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards)
-                        next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before allowed-boards)
-                        previous-activity (merge-activity previous-entries previous-stories :asc)
-                        next-activity (merge-activity next-entries next-stories :desc)]
+                        ;next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before allowed-boards)
+                        previous-activity (merge-activity previous-entries [] :asc) ;previous-stories :asc)
+                        next-activity (merge-activity next-entries [] :desc) ;next-stories :desc)
+                        ]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -62,16 +62,18 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
-                        previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
-                        previous-activity (merge-activity previous-entries previous-stories :asc)]
+                        ;previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
+                        previous-activity (merge-activity previous-entries [] :asc) ; previous-stories :asc)]
+                        ]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
-                        next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
-                        next-activity (merge-activity next-entries next-stories :desc)]
+                        ;next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
+                        next-activity (merge-activity next-entries [] :desc) ;next-stories :desc)]
+                        ]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -81,18 +83,19 @@
                                                         :board-name (:name (board-by-uuid (:board-uuid activity)))}))
                                     %))))
 
-(defn- assemble-calendar
-  "
-  Given a sequence of months, e.g. `[[2017 06] [2017 04] [2016 11] [2016 07] [2015 12]]`
+;; Not used right now
+; (defn- assemble-calendar
+;   "
+;   Given a sequence of months, e.g. `[[2017 06] [2017 04] [2016 11] [2016 07] [2015 12]]`
 
-  Return a map of the months by year, e.g. `{'2017' [[2017 06] [2017 04]]
-                                             '2016' [[2016 11] [2016 07]]
-                                             '2015' [[2015 12]]}`
-  "
-  [months]
-  (let [years (distinct (map first months))
-        months-by-year (map #(filter (fn [month] (= % (first month))) months) years)]
-    (zipmap years months-by-year)))
+;   Return a map of the months by year, e.g. `{'2017' [[2017 06] [2017 04]]
+;                                              '2016' [[2016 11] [2016 07]]
+;                                              '2015' [[2015 12]]}`
+;   "
+;   [months]
+;   (let [years (distinct (map first months))
+;         months-by-year (map #(filter (fn [month] (= % (first month))) months) years)]
+;     (zipmap years months-by-year)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -139,7 +142,7 @@
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction :start? start?})
-                             boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
@@ -148,39 +151,38 @@
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
 ;; A resource for operations on the calendar of activity for a particular Org
-(defresource calendar [conn slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+; (defresource calendar [conn slug]
+;   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :get]
+;   :allowed-methods [:options :get]
 
-  ;; Media type client accepts
-  :available-media-types [mt/activity-calendar-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-calendar-media-type)
+;   ;; Media type client accepts
+;   :available-media-types [mt/activity-calendar-media-type]
+;   :handle-not-acceptable (api-common/only-accept 406 mt/activity-calendar-media-type)
 
-  ;; Authorization
-  :allowed? (by-method {
-    :options true
-    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+;   ;; Authorization
+;   :allowed? (by-method {
+;     :options true
+;     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
-  ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
-                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org org}
-                        false))
+;   ;; Existentialism
+;   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+;                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
+;                         {:existing-org org}
+;                         false))
 
-  ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id user)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             ;; TODO filter by allowed boards
-                             ;boards (board-res/list-all-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-                             ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
-                             ;board-uuids (map :uuid boards)
-                             months (distinct (concat (entry-res/entry-months-by-org conn org-id)
-                                                      (story-res/story-months-by-org conn org-id)))
-                             calendar-data (assemble-calendar months)]
-                          (activity-rep/render-activity-calendar org calendar-data (:access-level ctx) user-id))))
+;   ;; Responses
+;   :handle-ok (fn [ctx] (let [user (:user ctx)
+;                              user-id (:user-id user)
+;                              org (:existing-org ctx)
+;                              org-id (:uuid org)
+;                              ;; TODO filter by allowed boards
+;                              ;boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+;                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+;                              ;board-uuids (map :uuid boards)
+;                              months (entry-res/entry-months-by-org conn org-id)
+;                              calendar-data (assemble-calendar months)]
+;                           (activity-rep/render-activity-calendar org calendar-data (:access-level ctx) user-id))))
 
 ;; ----- Routes -----
 

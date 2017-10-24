@@ -40,7 +40,7 @@
     [zprint "0.4.3"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.14.5"]
+    [open-company/lib "0.14.7"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -90,7 +90,7 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.1"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.2.4"]
+        [jonase/eastwood "0.2.5"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-kibit "0.1.6-beta2" :exclusions [org.clojure/clojure]]
       ]
@@ -112,7 +112,7 @@
       :plugins [
         ;; Check for code smells https://github.com/dakrone/lein-bikeshed
         ;; NB: org.clojure/tools.cli is pulled in by lein-kibit
-        [lein-bikeshed "0.4.1" :exclusions [org.clojure/tools.cli]] 
+        [lein-bikeshed "0.5.0" :exclusions [org.clojure/tools.cli]] 
         ;; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-checkall "0.1.1"]
         ;; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
@@ -155,11 +155,9 @@
                  '[oc.storage.resources.org :as org]
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
-                 '[oc.storage.resources.story :as story]
                  '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
-                 '[oc.storage.representations.story :as story-rep]
                  )
       ]
     }]
