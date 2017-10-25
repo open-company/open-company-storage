@@ -1,10 +1,7 @@
 (ns oc.storage.representations.activity
   "Resource representations for OpenCompany activity."
   (:require [cheshire.core :as json]
-            [clj-time.format :as format]
-            [clj-time.core :as t]
             [oc.lib.hateoas :as hateoas]
-            [oc.lib.db.common :as db-common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
