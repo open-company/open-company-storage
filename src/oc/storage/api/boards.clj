@@ -62,8 +62,8 @@
       (assoc :entries entry-reps)
       (assoc :topics (sort-by :name topics)))))
 
-; REMOVE as soon as we decide draft updates won't be on a draft board
-; (defun- assemble-storyboard
+;; TODO add back for drafts board
+; (defun- assemble-board
 ;   "Assemble the story, author, and viewer data needed for a board response."
 
 ;   ;; Draft storyboard
@@ -228,7 +228,7 @@
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
-                                         ;; REMOVE if/when we decide drafts do or don't get a draft board
+                                         ;; TODO add back for draft board
                                          ;;(if (= slug (:slug board-res/default-drafts-storyboard))
                                          ;;   (board-res/drafts-storyboard org-uuid (:user ctx))
                                             (board-res/get-board conn org-uuid slug))]

@@ -43,25 +43,26 @@
         prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))
 
-(defn- calendar-link [start org]
-  (hateoas/self-link (url org {:start start :direction :around}) {:accept mt/activity-collection-media-type}))
+;; Calendar not used right now
+; (defn- calendar-link [start org]
+;   (hateoas/self-link (url org {:start start :direction :around}) {:accept mt/activity-collection-media-type}))
 
-(defn- last-minute [year month]
-  (t/plus (t/last-day-of-the-month year month) (t/hours 23) (t/minutes 59) (t/seconds 59)))
+; (defn- last-minute [year month]
+;   (t/plus (t/last-day-of-the-month year month) (t/hours 23) (t/minutes 59) (t/seconds 59)))
 
-(defn- calendar-month [year month org]
-  (let [iso-month (format/unparse db-common/timestamp-format (last-minute year month))]
-    {:month month :year year :links [(calendar-link iso-month org)]}))
+; (defn- calendar-month [year month org]
+;   (let [iso-month (format/unparse db-common/timestamp-format (last-minute year month))]
+;     {:month month :year year :links [(calendar-link iso-month org)]}))
 
-(defn- calendar-year
-  "Create a map for each year in the calendar with an activity feed link for the year, a sequence of months, and
-  an activity feed link for each month."
-  [year-data org]
-  (let [year (Integer. (first year-data))
-        iso-year (format/unparse db-common/timestamp-format (last-minute year 12))
-        month-data (map #(Integer. (last %)) (last year-data))
-        months (map #(calendar-month year % org) month-data)]
-    {:year year :links [(calendar-link iso-year org)] :months months}))
+; (defn- calendar-year
+;   "Create a map for each year in the calendar with an activity feed link for the year, a sequence of months, and
+;   an activity feed link for each month."
+;   [year-data org]
+;   (let [year (Integer. (first year-data))
+;         iso-year (format/unparse db-common/timestamp-format (last-minute year 12))
+;         month-data (map #(Integer. (last %)) (last year-data))
+;         months (map #(calendar-month year % org) month-data)]
+;     {:year year :links [(calendar-link iso-year org)] :months months}))
 
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
@@ -88,7 +89,8 @@
                                     access-level user-id) (:activity activity))}}
       {:pretty config/pretty?})))
 
-(defn render-activity-calendar
-  "Render a JSON map of activity calendar links for the API."
-  [org calendar-data access-level user-id]
-  (json/generate-string (map #(calendar-year % org) calendar-data)))
+;; Calendar not used right now
+; (defn render-activity-calendar
+;   "Render a JSON map of activity calendar links for the API."
+;   [org calendar-data access-level user-id]
+;   (json/generate-string (map #(calendar-year % org) calendar-data)))

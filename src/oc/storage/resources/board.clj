@@ -30,8 +30,8 @@
 
 (def default-access :team)
 
-;; REMOVE Once it's confirmed if drafts will have a board
-;; (def default-drafts-storyboard {
+;; TODO add back for drafts board
+;; (def default-drafts-board {
 ;;   :uuid "0000-0000-0000"
 ;;   :name "Drafts"
 ;;   :slug "drafts"
@@ -50,9 +50,9 @@
   [board]
   (apply dissoc board ignored-properties))
 
-;; REMOVE Once it's confirmed if drafts will have a board
-;; (schema/defn ^:always-validate drafts-storyboard :- common/Board
-;;   "Return a storyboard for the specified org and author."
+;; TODO add back for drafts board
+;; (schema/defn ^:always-validate drafts-board :- common/Board
+;;   "Return a board for the specified org and author."
 ;;   [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
 ;;   (let [now (db-common/current-timestamp)]
 ;;     (merge default-drafts-storyboard {

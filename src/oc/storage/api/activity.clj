@@ -83,7 +83,7 @@
                                                         :board-name (:name (board-by-uuid (:board-uuid activity)))}))
                                     %))))
 
-;; Not used right now
+;; Calendar not used right now
 ; (defn- assemble-calendar
 ;   "
 ;   Given a sequence of months, e.g. `[[2017 06] [2017 04] [2016 11] [2016 07] [2015 12]]`
@@ -150,6 +150,7 @@
                              activity (assemble-activity conn params org board-by-uuid allowed-boards)]
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
+;; Calendar not used right now
 ;; A resource for operations on the calendar of activity for a particular Org
 ; (defresource calendar [conn slug]
 ;   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -194,7 +195,8 @@
       (OPTIONS "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      ;; Calendar of activity operations
+      ;; Calendar not used right now
+;; Calendar of activity operations
       ; (OPTIONS "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
       ; (OPTIONS "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
       ; (GET "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
