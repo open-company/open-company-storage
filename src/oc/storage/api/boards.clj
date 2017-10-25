@@ -44,7 +44,7 @@
                         (filter :topic-slug) ; remove entries w/ no topic
                         (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
                         set) ; distinct topics for the board
-        all-topics (clojure.set/union board-topics (map topic-for-name config/topics)) ; board's topics and default
+        all-topics (distinct (concat board-topics (map topic-for-name config/topics))) ; board's topics and default
         topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
                     board-topics ; just the board's topics
                     all-topics) ; board's and default
