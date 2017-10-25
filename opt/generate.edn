@@ -11,17 +11,11 @@
   :chance-of-video 0.05 ; fraction of updates with a video
   :chance-of-chart 0.05 ; fraction of updates with a chart
 
-  ;; Stories
-  :chance-of-story 0.15 ; fraction of days that have stories
-  :max-title-words 12 ; how many words in a headline
-  :max-story-paragraphs 20 ; maximum paragraphs of text in a body
-  :chance-of-banner 0.5 ; fraction of stories with a banner image
-
-  ;; Reactions
+  ;; Reactions - not yet used
   :chance-of-reaction 0.1 ; fraction of reactions (3 per entry) that are used per update
   :max-reactions 15 ; for a used reaction, up to how many
 
-  ;; Comments
+  ;; Comments - not yet used
   :chance-of-comment 0.15 ; fraction of entries that have comments
   :max-comments 10 ; for an entry with comments, up to how many
 
