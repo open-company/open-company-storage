@@ -7,15 +7,22 @@
             [oc.storage.config :as config]))
 
 (def ChangeTrigger
-  {:type (schema/enum "change")
+  "
+  A trigger for one of the various types of changes that are published:
+
+  add - the specified content-id is newly created, this happens when a board or entry is added
+  refresh - the content-id should be refreshed, this happens when a board or entry is updated
+  delete - the specified content-id is deleted, this happens when a board or entry is removed
+  "
+  {:type (schema/enum :add :refresh :delete)
    :container-id lib-schema/UniqueID
    :content-id lib-schema/UniqueID
    :change-at lib-schema/ISO8601})
 
-(defn ->trigger [content]
-  {:type "change"
+(defn ->trigger [change-type content]
+  {:type change-type
    :content-id (:uuid content)
-   :container-id (:board-uuid content)
+   :container-id (or (:board-uuid content) (:org-uuid content))
    :change-at (or (:published-at content) (:created-at content))})
 
 (defn send-trigger! [trigger]
