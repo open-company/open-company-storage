@@ -131,7 +131,7 @@
     
     (do
       (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
-      (change/send-trigger! (change/->trigger :add board-result))
+      (change/send-trigger! (change/->trigger :add :board board-result))
       {:created-board board-result})
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
@@ -176,7 +176,7 @@
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
     (do
       (timbre/info "Updated board:" slug "of org:" org-slug)
-      (change/send-trigger! (change/->trigger :refresh board))
+      (change/send-trigger! (change/->trigger :refresh :board updated-result))
       (if (and (= "private" (:access updated-board)) ; board is being set private
                (nil? ((set (:authors updated-result)) user-id))) ; and current user is not an author
         (add-member conn ctx org-slug slug :authors user-id) ; make the current user an author
@@ -190,7 +190,7 @@
             _delete-result (board-res/delete-board! conn (:uuid board))]
     (do 
       (timbre/info "Deleted board:" slug "of org:" org-slug)
-      (change/send-trigger! (change/->trigger :delete board))
+      (change/send-trigger! (change/->trigger :delete :board board))
       true)
     (do (timbre/warn "Failed deleting board:" slug "of org:" org-slug) false)))
 

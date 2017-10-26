@@ -197,11 +197,11 @@ The storage service is composed of 7 main responsibilities:
 
 - CRUD of orgs, boards, stories and entries
 - Access control to orgs, boards, stories and entries
-- Notifying the Slack bot of new orgs via SQS
-- Notifying the Slack bot and Email service of share requests via SQS
-- Notifying the Slack bot and Email service of new invites via SQS
-- Notifying the Email service of password reset and email validation requests via SQS
-- Notifying the Change service of entry publish events via SQS
+- Notifying the [Bot service](https://github.com/open-company/open-company-bot) of new orgs via SQS
+- Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of share requests via SQS
+- Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS
+- Notifying the [Email service](https://github.com/open-company/open-company-email) of password reset and email validation requests via SQS
+- Notifying the [Change service](https://github.com/open-company/open-company-change) of board and entry changes via SQS
 
 The storage service provides a HATEOAS REST API:
 

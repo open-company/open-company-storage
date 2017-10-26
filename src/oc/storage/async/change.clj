@@ -16,17 +16,20 @@
   "
   {:type (schema/enum :add :refresh :delete)
    :container-id lib-schema/UniqueID
+   :content-type (schema/enum :board :entry)
    :content-id lib-schema/UniqueID
    :change-at lib-schema/ISO8601})
 
-(defn ->trigger [change-type content]
+(defn ->trigger [change-type content-type content]
   {:type change-type
    :content-id (:uuid content)
+   :content-type content-type
    :container-id (or (:board-uuid content) (:org-uuid content))
    :change-at (or (:published-at content) (:created-at content))})
 
 (defn send-trigger! [trigger]
-  (timbre/info "Change notification request to queue:" config/aws-sqs-change-queue)
+  (timbre/info "Change notification request of" (:type trigger)
+               "for" (:content-id trigger) "to queue" config/aws-sqs-change-queue)
   (timbre/trace "Change request:" trigger)
   (schema/validate ChangeTrigger trigger)
   (timbre/info "Sending request to queue:" config/aws-sqs-change-queue)
