@@ -2,8 +2,6 @@
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
-[![Dependency Status](https://www.versioneye.com/user/projects/5955236b6725bd0054e4c8a1/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5955236b6725bd0054e4c8a1)
-[![Roadmap on Trello](http://img.shields.io/badge/roadmap-trello-blue.svg?style=flat)](https://trello.com/b/3naVWHgZ/open-company-development)
 
 
 ## Background
@@ -193,7 +191,7 @@ You can also override these settings with environmental variables in the form of
 
 ## Technical Design
 
-The storage service is composed of 7 main responsibilities:
+The Storage service is composed of 7 main responsibilities:
 
 - CRUD of orgs, boards, stories and entries
 - Access control to orgs, boards, stories and entries
@@ -203,13 +201,13 @@ The storage service is composed of 7 main responsibilities:
 - Notifying the Email service of password reset and email validation requests via SQS
 - Notifying the Change service of entry publish events via SQS
 
-The storage service provides a HATEOAS REST API:
+The Storage service provides a HATEOAS REST API:
 
 ![Storage Service Diagram](https://cdn.rawgit.com/open-company/open-company-storage/mainline/docs/Storage-REST-API.svg)
 
-The Interaction Service shares a RethinkDB database instance with the [Interaction Service](https://github.com/open-company/open-company-interaction).
+The Storage service shares a RethinkDB database instance with the [Interaction service](https://github.com/open-company/open-company-interaction).
 
-![Storage Schema Diagram](https://cdn.rawgit.com/open-company/open-company-storage/mainline/docs/Storage-Schema.svg)
+![Storage service schema diagram](https://cdn.rawgit.com/open-company/open-company-storage/mainline/docs/Storage-Schema.svg)
 
 ## Usage
 
@@ -230,94 +228,6 @@ lein migrate-db
 lein repl
 ```
 
-Then enter these commands one-by-one, noting the output:
-
-```clojure
-;; start the development system
-(go) ; NOTE: if you are already running the service externally to the REPL, use `(go 3737)` to change the port
-
-;; create some orgs
-
-(def author {
-  :user-id "c133-43fe-8712"
-  :teams ["f725-4791-80ac"]
-  :name "Wile E. Coyote"
-  :first-name "Wile"
-  :last-name "Coyote"
-  :avatar-url "http://www.emoticonswallpapers.com/avatar/cartoons/Wiley-Coyote-Dazed.jpg"
-  :email "wile.e.coyote@acme.com"
-  :auth-source "slack"
-})
-
-(org/create-org! conn
-  (org/->org {:name "Blank"}
-              author))
-
-(org/create-org! conn "open" {
-    :name "OpenCompany"
-    :logo-url "https://open-company-assets.s3.amazonaws.com/open-company.png"
-    :logo-width 142
-    :logo-height 142}
-    author)
-
-(org/create-org! conn
-  (org/->org {:name "Buffer"
-              :slug (slug/find-available-slug "Buffer" (org/taken-slugs conn))
-              :logo-url "https://open-company-assets.s3.amazonaws.com/buffer.png"
-              :logo-width 313
-              :logo-height 319}
-              author))
-
-;; list orgs
-(org/list-orgs conn)
-
-;; get an org
-(aprint (org/get-org conn "blank"))
-(aprint (org/get-org conn "open"))
-(aprint (org/get-org conn "buffer"))
-
-;; update an org
-(org/update-org! conn "blank" {:name "Blank.com"})
-
-;; create some boards
-(board/create-board! conn
-  (board/->board (org/uuid-for conn "blank") {:name "Sales"} author))
-
-(board/create-board! conn
-  (board/->board (org/uuid-for conn "open") {:name "Engineering"} author))
-
-(board/create-board! conn
-  (board/->storyboard (org/uuid-for conn "open") {:name "Customer Update"} author))
-
-;; list boards
-(board/list-boards-by-org conn (org/uuid-for conn "blank"))
-(board/list-storyboards-by-org conn (org/uuid-for conn "open"))
-
-;; create some entries
-(entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "blank" "sales") {:topic-name "Team" :headline "Now hiring blank people."} author))
-
-(entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "open" "engineering") {:topic-name "CEO Update" :headline "It's all good."} author))
-
-(entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "open" "engineering") :team {:topic-name "Team" :headline "Hiring" :body "Hiring Clojure talent."} author))
-
-(entry/create-entry! conn
-  (entry/->entry conn (board/uuid-for conn "open" "engineering") {:topic-name "Team" :body "Hiring ClojureScript talent."} author))
-
-;; create some stories
-(story/create-story! conn
-  (story/->story conn (board/uuid-for conn "open" "customer-update") {:title "News Update" :body "All is well!"} author))
-
-;; delete an org
-(org/delete-org! conn "blank")
-
-;; cleanup
-(org/delete-all-orgs! conn)
-```
-
-
 #### Server
 
 Start a production instance:
@@ -335,131 +245,12 @@ lein start
 #### API Requests
 
 You'll need a JWToken to use the REST API via cURL as an authenticated user. The token is passed in the `Authorization`
-header with each request. You can either extract your own token from the cookie in your web browser, to make requests
-against your own services or our servers, or you can also use a
-[sample token](https://github.com/open-company/open-company-auth#sample-jwtoken)
-from the OpenCompany Authentication service if you are only making requests against your local services.
+header with each request. You can either extract your own token from the headers of requests from your web browser, 
+or you can generate a token using the [Authentication service](https://github.com/open-company/open-company-auth).
 
-Create a company with cURL:
+You can see a list of common API requests and responses by loading the `oc-storage.paw` file from this repository
+into the [Paw API Development tool](https://paw.cloud/).
 
-```console
-echo "{\"name\": \"Hotel Procrastination\", \
-      \"diversity\": {\"headline\": \"We are all guilty.\", \"pin\": true}, \
-      \"update\": {\"headline\": \"Our Food is Bad\", \"body\": \"Hotel guests rate it 1 of 10.\", \"pin\": true}, \
-      \"mission\": {\"headline\": \"Better Food\", \"body\": \"That's the goal.\"}, \
-      \"team\": {\"headline\": \"New Head Chef\", \"body\": \"Welcome Bobby Flay to the team.\"}}" \
-      > ./hotel.json
-curl -i -X POST \
--d @./hotel.json \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3001/companies/
-```
-
-List the companies with cURL:
-
-```console
-curl -i -X GET \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept-Charset: utf-8" \
-http://localhost:3001/companies
-```
-
-Request the company with cURL:
-
-```console
-curl -i -X GET \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
-http://localhost:3001/companies/hotel-procrastination
-```
-
-Update a company with cURL:
-
-```console
-curl -i -X PATCH \
--d '{"name": "ACME" }' \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3001/companies/hotel-procrastination
-```
-
-Create a new section entry with cURL:
-
-```console
-curl -i -X PUT \
--d '{"body": "It\u0027s all that and a bag of chips.","title": "Founder\u0027s Update", "headline": "Make it rain!"}' \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.section.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.section.v1+json" \
-http://localhost:3001/companies/hotel-procrastination/update
-```
-
-Reorder a company's sections with cURL:
-
-```console
-curl -i -X PATCH \
--d '{"sections": ["update", "diversity", "mission", "team"]}' \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3001/companies/hotel-procrastination
-```
-
-Archive a section from a company with cURL:
-
-```console
-curl -i -X PATCH \
--d '{"sections": ["update", "diversity", "team"]}' \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3001/companies/hotel-procrastination
-```
-
-Add an archived section back to the company with cURL:
-
-```console
-curl -i -X PATCH \
--d '{"sections": ["update", "diversity", "team", "mission"]}' \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
---header "Content-Type: application/vnd.open-company.company.v1+json" \
-http://localhost:3001/companies/hotel-procrastination
-```
-
-Delete the company with cURL:
-
-```console
-curl -i -X DELETE \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
-http://localhost:3001/companies/hotel-procrastination
-```
-
-Then, try (and fail) to get a section and the company with cURL:
-
-```console
-curl -i -X GET \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.section.v1+json" \
---header "Accept-Charset: utf-8" \
-http://localhost:3001/companies/hotel-procrastination/update
-
-curl -i -X GET \
---header "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyLWlkIjoiMTIzNDU2IiwibmFtZSI6ImNveW90ZSIsInJlYWwtbmFtZSI6IldpbGUgRS4gQ295b3RlIiwiYXZhdGFyIjoiaHR0cDpcL1wvd3d3LmVtb3RpY29uc3dhbGxwYXBlcnMuY29tXC9hdmF0YXJcL2NhcnRvb25zXC9XaWxleS1Db3lvdGUtRGF6ZWQuanBnIiwiZW1haWwiOiJ3aWxlLmUuY295b3RlQGFjbWUuY29tIiwib3duZXIiOmZhbHNlLCJhZG1pbiI6ZmFsc2UsIm9yZy1pZCI6Ijk4NzY1In0.HwqwEijPYDXTLdnL0peO8_KEtj379s4P5oJyv06yhfU" \
---header "Accept: application/vnd.open-company.company.v1+json" \
---header "Accept-Charset: utf-8" \
-http://localhost:3001/companies/hotel-procrastination
-```
 
 #### Import sample data
 
