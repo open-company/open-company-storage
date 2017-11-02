@@ -132,8 +132,13 @@
               :else more-links)]
 
     (-> (if secure-access?
-          (merge (clojure.set/rename-keys org {:slug :org-slug}) entry) ; "stand-alone", so include selected org props
-          (dissoc entry :board-uuid)) ; don't need the org props, or board-uuid
+          ;; "stand-alone", so include extra props
+          (-> org
+            (clojure.set/rename-keys  {:slug :org-slug})
+            (merge entry)
+            (assoc :board-slug board-slug))
+          ;; don't need the extra props
+          (dissoc entry :board-uuid))
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (clean-blank-topic)
