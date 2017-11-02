@@ -2,8 +2,6 @@
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
-[![Dependency Status](https://www.versioneye.com/user/projects/5955236b6725bd0054e4c8a1/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5955236b6725bd0054e4c8a1)
-[![Roadmap on Trello](http://img.shields.io/badge/roadmap-trello-blue.svg?style=flat)](https://trello.com/b/3naVWHgZ/open-company-development)
 
 
 ## Background
@@ -42,7 +40,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8+ JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
-* [RethinkDB](http://rethinkdb.com/) v2.3.5+ - a multi-modal (document, key/value, relational) open source NoSQL database
+* [RethinkDB](http://rethinkdb.com/) v2.3.6+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
 
@@ -197,11 +195,11 @@ The storage service is composed of 7 main responsibilities:
 
 - CRUD of orgs, boards, stories and entries
 - Access control to orgs, boards, stories and entries
-- Notifying the Slack bot of new orgs via SQS
-- Notifying the Slack bot and Email service of share requests via SQS
-- Notifying the Slack bot and Email service of new invites via SQS
-- Notifying the Email service of password reset and email validation requests via SQS
-- Notifying the Change service of entry publish events via SQS
+- Notifying the [Bot service](https://github.com/open-company/open-company-bot) of new orgs via SQS
+- Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of share requests via SQS
+- Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS
+- Notifying the [Email service](https://github.com/open-company/open-company-email) of password reset and email validation requests via SQS
+- Notifying the [Change service](https://github.com/open-company/open-company-change) of board and entry changes via SQS
 
 The storage service provides a HATEOAS REST API:
 

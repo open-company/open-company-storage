@@ -74,19 +74,23 @@
 ;; Remove a property from all entries
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "entries")
-    (r/replace (r/fn [section]
-      (r/without section [:data :intervals :metrics :units :prompt])))
+    (r/replace (r/fn [e]
+      (r/without e [:data :intervals :metrics :units :prompt])))
+    (r/run c)))
+
+;; Update a property in an entry
+(with-open [c (apply r/connect conn2)]
+  (-> (r/table "entries")
+    (r/get "b0d3-4072-954e")
+    (r/update (r/fn [e]
+      {:published-at "2017-10-27T19:12:40.644Z"}))
     (r/run c)))
 
 ;; Provide a new slug for an org
+;; Insert a copy with the new slug
 (with-open [c (apply r/connect conn2)]
   (-> (r/table "orgs")
-      (r/insert (assoc (company/get-company conn "old-slug") :slug "new-slug"))
-      (r/run c)))
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "entries")
-      (r/get-all ["old-slug"] {:index "company-slug"})
-      (r/update {:slug "new-slug"})
+      (r/insert (assoc (org/get-org conn "old-slug") :slug "new-slug"))
       (r/run c)))
 (org/delete-org! conn "old-slug")
 
