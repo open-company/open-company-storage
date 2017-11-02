@@ -95,8 +95,7 @@
     
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (timbre/info "Triggering change for:" (:uuid entry-result))
-      (change/send-trigger! (change/->trigger entry-result))
+      (change/send-trigger! (change/->trigger :add :entry entry-result))
       {:created-entry entry-result})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
@@ -107,6 +106,7 @@
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry (:user ctx))]
     (do 
       (timbre/info "Updated entry for:" entry-for)
+      (change/send-trigger! (change/->trigger :refresh :entry updated-result))
       {:updated-entry updated-result})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
@@ -116,7 +116,10 @@
   (if-let* [board (:existing-board ctx)
             entry (:existing-entry ctx)
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
-    (do (timbre/info "Deleted entry for:" entry-for) true)
+    (do
+      (timbre/info "Deleted entry for:" entry-for)
+      (change/send-trigger! (change/->trigger :delete :entry entry))
+      true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
 
 (defn- share-entry [conn ctx entry-for]
