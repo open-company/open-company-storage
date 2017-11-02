@@ -15,7 +15,7 @@
                        :logo-height :org-logo-height})
 
 (def representation-props [:uuid :topic-name :topic-slug :headline :body :status
-                           :org-name :org-logo-url :org-logo-width :org-logo-height
+                           :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name
                            :team-id :author :publisher :published-at :created-at :updated-at])
 
@@ -131,13 +131,13 @@
               ;; Otherwise just the links they already have
               :else more-links)]
 
-    (-> (if secure-access? (merge org entry) (dissoc entry :board-uuid))
+    (-> (if secure-access?
+          (merge (clojure.set/rename-keys org {:slug :org-slug}) entry) ; "stand-alone", so include selected org props
+          (dissoc entry :board-uuid)) ; don't need the org props, or board-uuid
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (clean-blank-topic)
       (include-secure-uuid secure-uuid access-level)
-      ;; (assoc :board-name (:name board)) TODO
-      ;; (assoc :board-slug (:slug board)) TODO
       (assoc :reactions reactions)
       (assoc :links full-links))))
 
