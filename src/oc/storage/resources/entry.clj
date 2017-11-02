@@ -156,13 +156,13 @@
   "Given the UUID of the entry, return a list of the comments for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :body])))
+  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :body :created-at])))
 
 (schema/defn ^:always-validate list-reactions-for-entry
   "Given the UUID of the entry, return a list of the reactions for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction])))
+  (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction :created-at])))
 
 ;; ----- Collection of entries -----
 

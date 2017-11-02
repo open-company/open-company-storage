@@ -14,10 +14,10 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:uuid :topic-name :topic-slug :headline :body
-                           :org-name :org-logo-url :org-logo-width :org-logo-height
-                           :board-slug :board-name :status
-                           :author :publisher :published-at :created-at :updated-at])
+(def representation-props [:uuid :topic-name :topic-slug :headline :body :status
+                           :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
+                           :board-uuid :board-slug :board-name
+                           :team-id :author :publisher :published-at :created-at :updated-at])
 
 (defun url
 
@@ -131,13 +131,18 @@
               ;; Otherwise just the links they already have
               :else more-links)]
 
-    (-> (if secure-access? (merge org entry) entry)
+    (-> (if secure-access?
+          ;; "stand-alone", so include extra props
+          (-> org
+            (clojure.set/rename-keys  {:slug :org-slug})
+            (merge entry)
+            (assoc :board-slug board-slug))
+          ;; don't need the extra props
+          (dissoc entry :board-uuid))
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (clean-blank-topic)
       (include-secure-uuid secure-uuid access-level)
-      ;; (assoc :board-name (:name board)) TODO
-      ;; (assoc :board-slug (:slug board)) TODO
       (assoc :reactions reactions)
       (assoc :links full-links))))
 
@@ -147,21 +152,21 @@
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
-  ([org-slug board-slug entry comments reactions access-level user-id]
-  (render-entry-for-collection org-slug board-slug entry comments reactions access-level user-id false))
+  ([org board-slug entry comments reactions access-level user-id]
+  (render-entry-for-collection org board-slug entry comments reactions access-level user-id false))
 
-  ([org-slug board-slug entry comments reactions access-level user-id secure-access?]
-  (entry-and-links entry board-slug org-slug comments reactions access-level user-id secure-access?)))
+  ([org board-slug entry comments reactions access-level user-id secure-access?]
+  (entry-and-links entry board-slug org comments reactions access-level user-id secure-access?)))
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
-  ([org-slug board-slug entry comments reactions access-level user-id]
-  (render-entry org-slug board-slug entry comments reactions access-level user-id false))
+  ([org board-slug entry comments reactions access-level user-id]
+  (render-entry org board-slug entry comments reactions access-level user-id false))
 
-  ([org-slug board-slug entry comments reactions access-level user-id secure-access?]
+  ([org board-slug entry comments reactions access-level user-id secure-access?]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (render-entry-for-collection org-slug board-slug entry comments reactions access-level user-id secure-access?)
+      (render-entry-for-collection org board-slug entry comments reactions access-level user-id secure-access?)
       {:pretty config/pretty?}))))
 
 (defn render-entry-list
