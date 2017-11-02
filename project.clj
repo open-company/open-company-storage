@@ -105,9 +105,10 @@
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
-        :aws-sqs-bot-queue "CHANGE-ME"
-        :aws-sqs-email-queue "CHANGE-ME"
-        :aws-sqs-change-queue "CHANGE-ME"
+        :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
+        :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
+        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the 
+        :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
       }
       :plugins [
         ;; Check for code smells https://github.com/dakrone/lein-bikeshed

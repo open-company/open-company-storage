@@ -3,6 +3,7 @@
             [taoensso.timbre :as timbre]
             [org.httpkit.server :as httpkit]
             [oc.lib.db.pool :as pool]
+            [oc.storage.async.notification :as notification]
             [oc.storage.config :as c]))
 
 (defrecord HttpKit [options handler server]
@@ -33,6 +34,22 @@
         (dissoc component :pool))
       component)))
 
+(defrecord AsyncConsumers []
+  component/Lifecycle
+
+  (start [component]
+    (timbre/info "[async-consumers] starting")
+    (notification/start) ; core.async channel consumer for notification events
+    (assoc component :async-consumers true))
+
+  (stop [{:keys [async-consumers] :as component}]
+    (if async-consumers
+      (do
+        (timbre/info "[async-consumers] stopping")
+        (notification/stop) ; core.async channel consumer for notification events
+        (dissoc component :async-consumers))
+    component)))
+
 (defrecord Handler [handler-fn]
   component/Lifecycle
   (start [component]
@@ -43,10 +60,13 @@
 
 (defn storage-system [{:keys [host port handler-fn] :as opts}]
   (component/system-map
-   :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
-   :handler (component/using
-             (map->Handler {:handler-fn handler-fn})
-             [:db-pool])
-   :server  (component/using
-             (map->HttpKit {:options {:port port}})
-             [:handler])))
+    :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
+    :async-consumers (component/using
+                        (map->AsyncConsumers {})
+                        [])
+    :handler (component/using
+                (map->Handler {:handler-fn handler-fn})
+                [:db-pool])
+    :server  (component/using
+                (map->HttpKit {:options {:port port}})
+                [:handler])))

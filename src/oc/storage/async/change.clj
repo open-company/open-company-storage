@@ -1,4 +1,5 @@
 (ns oc.storage.async.change
+  "Publish change service triggers to AWS SQS."
   (:require [amazonica.aws.sqs :as sqs]
             [cheshire.core :as json]
             [taoensso.timbre :as timbre]
