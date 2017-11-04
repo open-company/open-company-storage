@@ -86,3 +86,5 @@
 (defonce default-reactions ["👌" "👀" "💥"])
 
 (defonce default-activity-limit 20)
+
+(defonce whats-new-board (env :whats-new-board))

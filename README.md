@@ -165,29 +165,53 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
-#### Required Secrets
+#### Configuration
 
-A secret is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the Storage Service for creating and validating [JSON Web Tokens](https://jwt.io/).
-
-An [AWS SQS queue](https://aws.amazon.com/sqs/) is used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API.
-
-Make sure you update the section in `project.clj` that looks like this to contain your actual JWT and AWS SQS secrets:
+Make sure you update the section in `project.clj` that looks like this to contain your specific configuration:
 
 ```clojure
 :dev [:qa {
   :env ^:replace {
+    :db-name "open_company_storage_dev"
+    :liberator-trace "true" ; liberator debug data in HTTP response headers
+    :hot-reload "true" ; reload code when changed on the file system
     :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
     :aws-access-key-id "CHANGE-ME"
     :aws-secret-access-key "CHANGE-ME"
     :aws-sqs-bot-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
     :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
     :aws-sqs-change-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
+    :whats-new-org-slug "carrot"
+    :whats-new-board-slug "whats-new"
   }
 ```
 
 You can also override these settings with environmental variables in the form of `OPEN_COMPANY_AUTH_PASSPHRASE` and
 `AWS_ACCESS_KEY_ID`, etc. Use environmental variables to provide production secrets when running in production.
 
+##### Shared Secrets
+
+A secret, `open-company-auth-passphrase`, is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the Storage Service for creating and validating [JSON Web Tokens](https://jwt.io/).
+
+##### HTTP Behavior
+
+There are two options controlling HTTP behavior:
+
+`liberator-trace` will include detailed debug info in HTTP response headers that correspond to each step in the [Liberator decision graph](https://clojure-liberator.github.io/liberator/tutorial/decision-graph.html) for that request.
+
+The `hot-reload` configuration controls if each request checks for updated code to load, useful for development, but not for production.
+
+Both of these settings take the string `true` or `false`.
+
+##### AWS
+
+[AWS SQS](https://aws.amazon.com/sqs/)  queues ace used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API and update the corresponding .
+
+##### What's New
+
+The What's New feature of the [Web UI](https://github.com/open-company/open-company-web) is powered by entries from a public board specified by `whats-new-board`. These entries can be created on the specified board using the Storage service APIs or with the Web UI.
+
+If `whats-new-board` is removed or left blank, no What's New feature will be provided.
 
 ## Technical Design
 
