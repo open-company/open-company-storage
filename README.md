@@ -205,7 +205,7 @@ Both of these settings take the string `true` or `false`.
 
 ##### AWS
 
-[AWS SQS](https://aws.amazon.com/sqs/)  queues ace used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API and update the corresponding .
+[AWS SQS](https://aws.amazon.com/sqs/)  queues are used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API and update the corresponding `aws-` configuration properties with the key, secret and queue names.
 
 ##### What's New
 
