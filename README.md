@@ -172,17 +172,17 @@ Make sure you update the section in `project.clj` that looks like this to contai
 ```clojure
 :dev [:qa {
   :env ^:replace {
-    :db-name "open_company_storage_dev"
-    :liberator-trace "true" ; liberator debug data in HTTP response headers
-    :hot-reload "true" ; reload code when changed on the file system
-    :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-    :aws-access-key-id "CHANGE-ME"
-    :aws-secret-access-key "CHANGE-ME"
-    :aws-sqs-bot-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
-    :aws-sqs-email-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
-    :aws-sqs-change-queue "https://sqs.REGION.amazonaws.com/CHANGE/ME" 
-    :whats-new-org-slug "carrot"
-    :whats-new-board-slug "whats-new"
+        :db-name "open_company_storage_dev"
+        :liberator-trace "true" ; liberator debug data in HTTP response headers
+        :hot-reload "true" ; reload code when changed on the file system
+        :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
+        :whats-new-board "/orgs/carrot/boards/what-s-new"
+        :aws-access-key-id "CHANGE-ME"
+        :aws-secret-access-key "CHANGE-ME"
+        :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
+        :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
+        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the Change service 
+        :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
   }
 ```
 
@@ -207,6 +207,8 @@ Both of these settings take the string `true` or `false`.
 
 [AWS SQS](https://aws.amazon.com/sqs/)  queues are used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API and update the corresponding `aws-` configuration properties with the key, secret and queue names.
 
+An optional [AWS SNS](https://aws.amazon.com/sns/) pub/sub topic is used to push notifications of content changes to interested listeners. If you want to take advantage of this capability, configure the `aws-sns-storage-topic-arn` with the ARN (Amazon Resource Name) of the SNS topic you setup in AWS.
+
 ##### What's New
 
 The What's New feature of the [Web UI](https://github.com/open-company/open-company-web) is powered by entries from a public board specified by `whats-new-board`. These entries can be created on the specified board using the Storage service APIs or with the Web UI.
@@ -224,6 +226,7 @@ The Storage service is composed of 7 main responsibilities:
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS
 - Notifying the [Email service](https://github.com/open-company/open-company-email) of password reset and email validation requests via SQS
 - Notifying the [Change service](https://github.com/open-company/open-company-change) of board and entry changes via SQS
+- Publishing org, board and entry change notifications to interested subscribers via SNS
 
 The Storage service provides a HATEOAS REST API:
 

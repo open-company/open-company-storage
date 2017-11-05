@@ -108,7 +108,7 @@
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
-        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the 
+        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the Change service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
       }
       :plugins [
