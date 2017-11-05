@@ -45,7 +45,7 @@
                         (filter :topic-slug) ; remove entries w/ no topic
                         (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
                         set) ; distinct topics for the board
-        all-topics (clojure.set/union board-topics (map topic-for-name config/topics)) ; board's topics and default
+        all-topics (distinct (concat board-topics (map topic-for-name config/topics))) ; board's topics and default
         topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
                     board-topics ; just the board's topics
                     all-topics) ; board's and default
@@ -63,8 +63,8 @@
       (assoc :entries entry-reps)
       (assoc :topics (sort-by :name topics)))))
 
-; REMOVE as soon as we decide draft updates won't be on a draft board
-; (defun- assemble-storyboard
+;; TODO add back for drafts board
+; (defun- assemble-board
 ;   "Assemble the story, author, and viewer data needed for a board response."
 
 ;   ;; Draft storyboard
@@ -234,7 +234,7 @@
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
-                                         ;; REMOVE if/when we decide drafts do or don't get a draft board
+                                         ;; TODO add back for draft board
                                          ;;(if (= slug (:slug board-res/default-drafts-storyboard))
                                          ;;   (board-res/drafts-storyboard org-uuid (:user ctx))
                                             (board-res/get-board conn org-uuid slug))]

@@ -62,7 +62,8 @@
     "AWS SNS notification topic ARN: " c/aws-sns-notification-topic-arn "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
-    "Sentry: " c/dsn "\n\n"
+    "Sentry: " c/dsn "\n"
+    "What's New board: " c/whats-new-board "\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition
