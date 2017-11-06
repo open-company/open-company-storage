@@ -118,7 +118,7 @@
         ;; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-checkall "0.1.1"]
         ;; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
-        [lein-pprint "1.1.2"]
+        [lein-pprint "1.2.0"]
         ;; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-ancient "0.6.14"]
         ;; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
