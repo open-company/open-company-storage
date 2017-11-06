@@ -106,9 +106,10 @@
         :whats-new-board "/orgs/carrot/boards/what-s-new"
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
-        :aws-sqs-bot-queue "CHANGE-ME"
-        :aws-sqs-email-queue "CHANGE-ME"
-        :aws-sqs-change-queue "CHANGE-ME"
+        :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
+        :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
+        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the Change service
+        :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
       }
       :plugins [
         ;; Check for code smells https://github.com/dakrone/lein-bikeshed
@@ -117,7 +118,7 @@
         ;; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-checkall "0.1.1"]
         ;; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
-        [lein-pprint "1.1.2"]
+        [lein-pprint "1.2.0"]
         ;; Check for outdated dependencies https://github.com/xsc/lein-ancient
         [lein-ancient "0.6.14"]
         ;; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
@@ -206,6 +207,8 @@
     ;; Enable some linters that are disabled by default
     :add-linters [:unused-namespaces :unused-private-vars] ; :unused-locals]
 
+    :config-files ["third-party-macros.clj"]
+    
     ;; Exclude testing namespaces
     :tests-paths ["test"]
     :exclude-namespaces [:test-paths]

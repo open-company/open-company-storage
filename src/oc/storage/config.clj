@@ -54,7 +54,7 @@
 (defonce liberator-trace (bool (or (env :liberator-trace) false)))
 (defonce pretty? (not prod?)) ; JSON response as pretty?
 
-;; ----- AWS SQS -----
+;; ----- AWS SNS / SQS -----
 
 (defonce aws-access-key-id (env :aws-access-key-id))
 (defonce aws-secret-access-key (env :aws-secret-access-key))
@@ -62,6 +62,8 @@
 (defonce aws-sqs-bot-queue (env :aws-sqs-bot-queue))
 (defonce aws-sqs-email-queue (env :aws-sqs-email-queue))
 (defonce aws-sqs-change-queue (env :aws-sqs-change-queue))
+
+(defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn))
 
 ;; ----- JWT -----
 

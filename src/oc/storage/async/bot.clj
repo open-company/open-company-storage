@@ -1,4 +1,5 @@
 (ns oc.storage.async.bot
+  "Publish Slack bot triggers to AWS SQS."
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]

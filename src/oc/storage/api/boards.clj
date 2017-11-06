@@ -12,6 +12,7 @@
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.async.change :as change]
+            [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.entry :as entry-rep]
@@ -125,13 +126,14 @@
 
 ;; ----- Actions -----
 
-(defn- create-board [conn {new-board :new-board} org-slug]
+(defn- create-board [conn {new-board :new-board user :user} org-slug]
   (timbre/info "Creating board for org:" org-slug)
   (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
     
     (do
       (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
-      (change/send-trigger! (change/->trigger :add :board board-result))
+      (change/send-trigger! (change/->trigger :add board-result))
+      (notification/send-trigger! (notification/->trigger :add board-result user))
       {:created-board board-result})
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
@@ -172,11 +174,13 @@
   (timbre/info "Updating board:" slug "of org:" org-slug)
   (if-let* [user (:user ctx)
             user-id (:user-id user)
+            board (:existing-board ctx)
             updated-board (:board-update ctx)
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
     (do
       (timbre/info "Updated board:" slug "of org:" org-slug)
-      (change/send-trigger! (change/->trigger :refresh :board updated-result))
+      (change/send-trigger! (change/->trigger :update updated-result))
+      (notification/send-trigger! (notification/->trigger :update board updated-result user))
       (if (and (= "private" (:access updated-board)) ; board is being set private
                (nil? ((set (:authors updated-result)) user-id))) ; and current user is not an author
         (add-member conn ctx org-slug slug :authors user-id) ; make the current user an author
@@ -190,7 +194,8 @@
             _delete-result (board-res/delete-board! conn (:uuid board))]
     (do 
       (timbre/info "Deleted board:" slug "of org:" org-slug)
-      (change/send-trigger! (change/->trigger :delete :board board))
+      (change/send-trigger! (change/->trigger :delete board))
+      (notification/send-trigger! (notification/->trigger :delete board (:user ctx)))
       true)
     (do (timbre/warn "Failed deleting board:" slug "of org:" org-slug) false)))
 

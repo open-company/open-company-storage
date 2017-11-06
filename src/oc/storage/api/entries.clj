@@ -15,6 +15,7 @@
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]          
             [oc.storage.async.change :as change]
+            [oc.storage.async.notification :as notification]
             [oc.storage.async.email :as email]
             [oc.storage.async.bot :as bot]
             [oc.storage.representations.media-types :as mt]
@@ -95,18 +96,22 @@
     
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (change/send-trigger! (change/->trigger :add :entry entry-result))
+      (change/send-trigger! (change/->trigger :add entry-result))
+      (notification/send-trigger! (notification/->trigger :add entry-result (:user ctx)))
       {:created-entry entry-result})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
 (defn- update-entry [conn ctx entry-for]
   (timbre/info "Updating entry for:" entry-for)
-  (if-let* [updated-entry (:updated-entry ctx)
-            updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry (:user ctx))]
+  (if-let* [user (:user ctx)
+            entry (:existing-entry ctx)
+            updated-entry (:updated-entry ctx)
+            updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (do 
       (timbre/info "Updated entry for:" entry-for)
-      (change/send-trigger! (change/->trigger :refresh :entry updated-result))
+      (change/send-trigger! (change/->trigger :update updated-result))
+      (notification/send-trigger! (notification/->trigger :update entry updated-result user))
       {:updated-entry updated-result})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
@@ -118,7 +123,8 @@
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
       (timbre/info "Deleted entry for:" entry-for)
-      (change/send-trigger! (change/->trigger :delete :entry entry))
+      (change/send-trigger! (change/->trigger :delete entry))
+      (notification/send-trigger! (notification/->trigger :delete entry (:user ctx)))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
 
