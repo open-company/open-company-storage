@@ -63,7 +63,7 @@
 (defonce aws-sqs-email-queue (env :aws-sqs-email-queue))
 (defonce aws-sqs-change-queue (env :aws-sqs-change-queue))
 
-(defonce aws-sns-notification-topic-arn (env :aws-sns-notification-topic-arn))
+(defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn))
 
 ;; ----- JWT -----
 

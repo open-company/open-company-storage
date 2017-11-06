@@ -14,6 +14,7 @@
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
+            [oc.storage.async.notification :as notification]
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
@@ -85,6 +86,7 @@
           author (:user ctx)]
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
+      (notification/send-trigger! (notification/->trigger :add org-result (:user ctx)))
       (doseq [board (:boards config/default-new-org)]
         (create-board conn org-result board author))
       {:created-org org-result})
@@ -97,6 +99,7 @@
             update-result (org-res/update-org! conn slug updated-org)]
     (do
       (timbre/info "Updated org:" slug)
+      (notification/send-trigger! (notification/->trigger :update (:existing-org ctx) update-result (:user ctx)))
       {:updated-org update-result})
 
     (do (timbre/error "Failed updating org:" slug) false)))
