@@ -83,6 +83,13 @@
     (assoc entry :secure-uuid secure-uuid)
     entry))
 
+(defn- include-reactions
+  "Include reactions only if we have some."
+  [entry reactions]
+  (if (empty? reactions)
+    entry
+    (assoc entry :reactions reactions)))
+
 (defun- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -143,7 +150,7 @@
       (select-keys representation-props)
       (clean-blank-topic)
       (include-secure-uuid secure-uuid access-level)
-      (assoc :reactions reactions)
+      (include-reactions reactions)
       (assoc :links full-links))))
 
   ([entry board-slug org-slug comments reactions access-level user-id secure-access?]

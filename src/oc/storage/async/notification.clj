@@ -29,11 +29,9 @@
 
 ;; ----- Data schema -----
 
-(defn notification-type? [notification-type]
-  (or (= notification-type :add) (= notification-type :update) (= notification-type :delete)))
+(defn- notification-type? [notification-type] (#{:add :update :delete} notification-type))
 
-(defn resource-type? [resource-type]
-  (or (= resource-type :org) (= resource-type :board) (= resource-type :entry)))
+(defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
 
 (def NotificationTrigger
   "
@@ -48,7 +46,7 @@
 
   The user whose actions triggered the notification is included as `user`.
 
-  A timestamp for when the notice was created is included as `notice-at`.
+  A timestamp for when the notice was created is included as `notification-at`.
   "
   {:notification-type (schema/pred notification-type?)
    :resource-type (schema/pred resource-type?)
@@ -63,7 +61,7 @@
 
 ;; ----- Event handling -----
 
-(defn handle-notification-message
+(defn- handle-notification-message
   [trigger]
   (timbre/debug "Notification request of:" (:notification-type trigger)
                "for:" (trigger :current :uuid) "to topic:" config/aws-sns-storage-topic-arn)
@@ -82,7 +80,7 @@
 
 ;; ----- Event loop -----
 
-(defn notification-loop []
+(defn- notification-loop []
   (reset! notification-go true)
   (timbre/info "Starting notification...")
   (async/go (while @notification-go
