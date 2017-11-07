@@ -83,8 +83,9 @@
     (assoc entry :secure-uuid secure-uuid)
     entry))
 
-(defn- include-reactions [entry reactions]
+(defn- include-reactions
   "Include reactions only if we have some."
+  [entry reactions]
   (if (empty? reactions)
     entry
     (assoc entry :reactions reactions)))
