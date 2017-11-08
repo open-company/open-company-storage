@@ -26,6 +26,10 @@
     (catch IllegalArgumentException e
       false)))
 
+;; TODO This activity stuff, `activity-sort`, `merge-activity` and `assemble-activity` is overly complicated
+;; because it used to merge entries and stories. It no longer does so can be simplified. This also may entail some
+;; changes to `entry/list-entries-by-org`
+
 (defn- activity-sort
   "
   Compare function to sort 2 entries and/or activity by their `created-at` or `published-at` order respectively,
@@ -49,12 +53,9 @@
 
                   (= direction :around)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after allowed-boards)
-                        ;previous-stories (story-res/list-stories-by-org conn (:uuid org) :asc start :after allowed-boards)
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards)
-                        ;next-stories (story-res/list-stories-by-org conn (:uuid org) :desc start :before allowed-boards)
-                        previous-activity (merge-activity previous-entries [] :asc) ;previous-stories :asc)
-                        next-activity (merge-activity next-entries [] :desc) ;next-stories :desc)
-                        ]
+                        previous-activity (merge-activity previous-entries [] :asc)
+                        next-activity (merge-activity next-entries [] :desc)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -62,18 +63,14 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
-                        ;previous-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
-                        previous-activity (merge-activity previous-entries [] :asc) ; previous-stories :asc)]
-                        ]
+                        previous-activity (merge-activity previous-entries [] :asc)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
-                        ;next-stories (story-res/list-stories-by-org conn (:uuid org) order start direction allowed-boards)
-                        next-activity (merge-activity next-entries [] :desc) ;next-stories :desc)]
-                        ]
+                        next-activity (merge-activity next-entries [] :desc)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -196,7 +193,7 @@
       (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       ;; Calendar not used right now
-;; Calendar of activity operations
+      ;; Calendar of activity operations
       ; (OPTIONS "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
       ; (OPTIONS "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
       ; (GET "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))

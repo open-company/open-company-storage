@@ -59,7 +59,7 @@
           clean
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
-          (assoc :status "published") ; TEMPORARY, should default to "draft"
+          (assoc :status "draft")
           (assoc :topic-slug topic-slug)
           (update :topic-name #(or % nil))
           (update :headline #(or % ""))
@@ -67,10 +67,8 @@
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc author :updated-at ts)])
-          (assoc :publisher author) ; TEMPORARY, will be conditional on status as draft or published
           (assoc :created-at ts)
-          (assoc :updated-at ts)
-          (assoc :published-at ts))) ; TEMPORARY, will be conditional on status of draft or published
+          (assoc :updated-at ts)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
@@ -145,6 +143,32 @@
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
+(schema/defn ^:always-validate publish-entry! :- (schema/maybe common/Entry)
+  "
+  Given the UUID of the entry, an optional updated entry map, and a user (as the publishing author),
+  publish the entry and return the updated entry on success.
+  "
+  ([conn uuid :- lib-schema/UniqueID user :- lib-schema/User] (publish-entry! conn uuid {} user))
+
+  ([conn uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)
+         (map? entry-props)]}
+  (if-let [original-entry (get-entry conn uuid)]
+    (let [authors (:author original-entry)
+          ts (db-common/current-timestamp)
+          publisher (lib-schema/author-for-user user)
+          merged-entry (merge original-entry entry-props {:status :published
+                                                          :published-at ts
+                                                          :publisher publisher
+                                                          :secure-uuid (db-common/unique-id)})
+          updated-authors (conj authors (assoc publisher :updated-at ts))
+          entry-update (assoc merged-entry :author updated-authors)]
+      (schema/validate common/Entry entry-update)
+      (let [updated-entry (db-common/update-resource conn table-name primary-key original-entry entry-update ts)]
+        ;; Delete the draft entry's interactions
+        (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+        updated-entry)))))
+
 (schema/defn ^:always-validate delete-entry!
   "Given the UUID of the entry, delete the entry and all its interactions. Return `true` on success."
   [conn uuid :- lib-schema/UniqueID]
@@ -175,19 +199,35 @@
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (db-common/read-resources-and-relations conn table-name :org-uuid org-uuid
+  (db-common/read-resources-and-relations conn table-name :status-org-uuid [[:published org-uuid]]
                                           "created-at" order start direction config/default-activity-limit
                                           :board-uuid r/contains allowed-boards
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
+                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"]))
+
+(schema/defn ^:always-validate list-entries-by-org-author
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  and a direction, one of `:before` or `:after`, and an optional status of `:draft` or `:published` (the default)
+  return the stories by the author with any interactions.
+  "
+  ([conn org-uuid :- lib-schema/UniqueID user-id]
+    (list-entries-by-org-author conn org-uuid user-id :published))
+
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID status]
+  {:pre [(db-common/conn? conn)
+         (#{:published :draft} status)]}
+  (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[status org-uuid user-id]]
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
+                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"])))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the entries for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :board-uuid board-uuid
+  (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "body" "reaction" "author" "created-at" "updated-at"]))
+                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"]))
 
 ;; ----- Data about entries -----
 
