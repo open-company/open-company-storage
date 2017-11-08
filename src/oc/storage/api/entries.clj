@@ -121,7 +121,7 @@
   (if-let* [user (:user ctx)
             org (:existing-org ctx)
             updated-entry (:updated-entry ctx)
-            publish-result (entry-res/publish-entry! conn (:uuid entry) updated-entry user)]
+            publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
       (timbre/info "Published entry for:" (:uuid entry))
       (change/send-trigger! (change/->trigger :add publish-result))
