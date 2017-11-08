@@ -123,7 +123,7 @@
             updated-entry (:updated-entry ctx)
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
-      (timbre/info "Published entry for:" (:uuid entry))
+      (timbre/info "Published entry for:" (:uuid updated-entry))
       (change/send-trigger! (change/->trigger :add publish-result))
       (timbre/info "Published entry:" entry-for)
       {:updated-entry publish-result})
