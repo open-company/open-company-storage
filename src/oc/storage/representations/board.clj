@@ -5,7 +5,8 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]))
+            [oc.storage.representations.org :as org-rep]
+            [oc.storage.resources.board :as board-res]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :topics :entries :created-at :updated-at])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers]))
@@ -98,10 +99,8 @@
   "Create a map of the board for use in a collection in the REST API"
   ([org-slug board] (render-board-for-collection org-slug board 0))
 
-  ([org-slug board draft-story-count]
-  ;; REMOVE if/when we decide if drafts on our their own board
-  ;;(let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-storyboard)) draft-story-count 0)]
-  (let [this-board-count 0]
+  ([org-slug board draft-entry-count]
+  (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-board)) draft-entry-count 0)]
     (-> board
       (select-keys (conj representation-props :access-level))
       (board-collection-links org-slug this-board-count)
