@@ -23,7 +23,7 @@
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (disj reserved-properties :board-uuid))
+  (disj reserved-properties :board-uuid :status))
 
 ;; ----- Utility functions -----
 
@@ -36,6 +36,15 @@
   "Remove any ignored properties from the entry."
   [entry]
   (apply dissoc entry ignored-properties))
+
+(defn- publish-props
+  "Provide properties for an initially published entry."
+  [entry timestamp author]
+  (if (= (:status entry) "published")
+    (-> entry
+      (assoc :published-at timestamp)
+      (assoc :publisher author))
+    entry))
 
 ;; ----- Entry CRUD -----
 
@@ -59,7 +68,7 @@
           clean
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
-          (assoc :status "draft")
+          (update :status #(or % "draft"))
           (assoc :topic-slug topic-slug)
           (update :topic-name #(or % nil))
           (update :headline #(or % ""))
@@ -68,7 +77,8 @@
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc author :updated-at ts)])
           (assoc :created-at ts)
-          (assoc :updated-at ts)))
+          (assoc :updated-at ts)
+          (publish-props ts author)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
 
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
