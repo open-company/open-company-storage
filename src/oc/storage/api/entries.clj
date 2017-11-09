@@ -214,13 +214,15 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
+    :get (fn [ctx] (entry-rep/render-entry org-slug
+                      (:existing-board ctx)
                       (:existing-entry ctx)
                       (:existing-comments ctx)
                       (:existing-reactions ctx)
                       (:access-level ctx)
                       (-> ctx :user :user-id)))
-    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
+    :patch (fn [ctx] (entry-rep/render-entry org-slug
+                        (:existing-board ctx)
                         (:updated-entry ctx)
                         (:existing-comments ctx)
                         (:existing-reactions ctx)
@@ -453,7 +455,7 @@
   
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
-                                               (:slug (:existing-board ctx))
+                                               (:existing-board ctx)
                                                (:existing-entry ctx)
                                                (:existing-comments ctx)
                                                (:existing-reactions ctx)
