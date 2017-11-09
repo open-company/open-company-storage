@@ -72,7 +72,7 @@
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)]
-    (assemble-board org-slug board entry-reps ctx)))
+    (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
 
   ;; Recursion to finish up both kinds of boards
   ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
