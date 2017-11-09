@@ -95,13 +95,17 @@
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
   for use in an API response.
   "
-  ([entry board-slug org :guard map? comments reactions access-level user-id secure-access?]
+  ([entry board :guard map? org :guard map? comments reactions access-level user-id secure-access?]
   (let [entry-uuid (:uuid entry)
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
         org-slug (:slug org)
         board-uuid (:board-uuid entry)
+        board-slug (:slug board)
         draft? (= :draft (keyword (:status entry)))
+        full-entry (if draft?
+                      (merge {:board-slug (:slug board) :board-name (:name board)} entry)
+                      entry)
         reactions (if (= access-level :public)
                     []
                     (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
@@ -142,10 +146,10 @@
           ;; "stand-alone", so include extra props
           (-> org
             (clojure.set/rename-keys  {:slug :org-slug})
-            (merge entry)
+            (merge full-entry)
             (assoc :board-slug board-slug))
           ;; don't need the extra props
-          (dissoc entry :board-uuid))
+          (dissoc full-entry :board-uuid))
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (clean-blank-topic)
@@ -153,27 +157,33 @@
       (include-reactions reactions)
       (assoc :links full-links))))
 
+  ([entry board :guard map? org-slug comments reactions access-level user-id secure-access?]
+  (entry-and-links entry board {:slug org-slug} comments reactions access-level user-id secure-access?))
+
+  ([entry board-slug org :guard map? comments reactions access-level user-id secure-access?]
+  (entry-and-links entry {:slug board-slug} org comments reactions access-level user-id secure-access?))
+
   ([entry board-slug org-slug comments reactions access-level user-id secure-access?]
-  (entry-and-links entry board-slug {:slug org-slug} comments reactions access-level user-id secure-access?)))
+  (entry-and-links entry {:slug board-slug} {:slug org-slug} comments reactions access-level user-id secure-access?)))
 
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
-  ([org board-slug entry comments reactions access-level user-id]
-  (render-entry-for-collection org board-slug entry comments reactions access-level user-id false))
+  ([org board entry comments reactions access-level user-id]
+  (render-entry-for-collection org board entry comments reactions access-level user-id false))
 
-  ([org board-slug entry comments reactions access-level user-id secure-access?]
-  (entry-and-links entry board-slug org comments reactions access-level user-id secure-access?)))
+  ([org board entry comments reactions access-level user-id secure-access?]
+  (entry-and-links entry board org comments reactions access-level user-id secure-access?)))
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
-  ([org board-slug entry comments reactions access-level user-id]
-  (render-entry org board-slug entry comments reactions access-level user-id false))
+  ([org board entry comments reactions access-level user-id]
+  (render-entry org board entry comments reactions access-level user-id false))
 
-  ([org board-slug entry comments reactions access-level user-id secure-access?]
+  ([org board entry comments reactions access-level user-id secure-access?]
   (let [entry-uuid (:uuid entry)]
     (json/generate-string
-      (render-entry-for-collection org board-slug entry comments reactions access-level user-id secure-access?)
+      (render-entry-for-collection org board entry comments reactions access-level user-id secure-access?)
       {:pretty config/pretty?}))))
 
 (defn render-entry-list

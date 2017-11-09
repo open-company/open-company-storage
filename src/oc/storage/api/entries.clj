@@ -280,10 +280,11 @@
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug
                           (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
-  :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
+  :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
+                                  existing-board (:existing-board ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug (:uuid new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry [] []
+                                (entry-rep/render-entry org-slug existing-board new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
