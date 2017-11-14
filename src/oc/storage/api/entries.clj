@@ -96,7 +96,8 @@
     
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (change/send-trigger! (change/->trigger :add entry-result))
+      (when (= (:status entry-result) "published")
+        (change/send-trigger! (change/->trigger :add entry-result)))
       (notification/send-trigger! (notification/->trigger :add entry-result (:user ctx)))
       {:created-entry entry-result})
 
@@ -110,7 +111,8 @@
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (do 
       (timbre/info "Updated entry for:" entry-for)
-      (change/send-trigger! (change/->trigger :update updated-result))
+      (when (= (:status updated-result) "published")
+        (change/send-trigger! (change/->trigger :update updated-result)))
       (notification/send-trigger! (notification/->trigger :update entry updated-result user))
       {:updated-entry updated-result})
 
@@ -136,7 +138,8 @@
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
       (timbre/info "Deleted entry for:" entry-for)
-      (change/send-trigger! (change/->trigger :delete entry))
+      (when (= (:status entry) "published")
+        (change/send-trigger! (change/->trigger :delete entry)))
       (notification/send-trigger! (notification/->trigger :delete entry (:user ctx)))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))

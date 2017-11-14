@@ -82,7 +82,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.0-alpha10" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.9.0-alpha12" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]
@@ -126,7 +126,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.4" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.5" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {
