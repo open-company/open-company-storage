@@ -69,7 +69,7 @@
 
 (defn render-activity-list
   "
-  Given an org and a sequence of entry and story maps, create a JSON representation of a list of
+  Given an org and a sequence of entry maps, create a JSON representation of a list of
   activity for the API.
   "
   [params org activity access-level user-id]

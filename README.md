@@ -219,8 +219,8 @@ If `whats-new-board` is removed or left blank, no What's New feature will be pro
 
 The Storage service is composed of 7 main responsibilities:
 
-- CRUD of orgs, boards, stories and entries
-- Access control to orgs, boards, stories and entries
+- CRUD of orgs, boards, and entries
+- Access control to orgs, boards, and entries
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) of new orgs via SQS
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of share requests via SQS
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS

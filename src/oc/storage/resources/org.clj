@@ -48,9 +48,9 @@
                       "faq" "features" "forum" "forums" "founder" "founders" "help" "home"
                       "investor" "investors" "invite" "ios" "jobs" "login" "logout"
                       "news" "newsletter" "press" "pricing" "privacy" "profile" "register" "reset"
-                      "section" "sections" "signin" "signout" "signup" "story" "stories"
+                      "section" "sections" "signin" "signout" "signup"
                       "subscription-completed" "team" "terms" "topic" "topics"
-                      "update" "updates" "stuart" "sean" "iacopo"})
+                      "update" "updates" "stuart" "sean" "iacopo" "nathan"})
 
 (declare list-orgs)
 (defn taken-slugs

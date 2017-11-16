@@ -117,8 +117,8 @@
   "
   Given the secure UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org, and story, retrieve the story, or return nil if it doesn't exist. This variant 
-  is used to confirm that the story belongs to the specified org.
+  Or given the UUID of the org, and entry, retrieve the entry, or return nil if it doesn't exist. This variant 
+  is used to confirm that the entry belongs to the specified org.
   "
   ([conn secure-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
@@ -219,7 +219,7 @@
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, and an optional status of `:draft` or `:published` (the default)
-  return the stories by the author with any interactions.
+  return the entries by the author with any interactions.
   "
   ([conn org-uuid :- lib-schema/UniqueID user-id]
     (list-entries-by-org-author conn org-uuid user-id :published))

@@ -243,7 +243,7 @@
 
 (defn list-boards
   "
-  Return a sequence of boards and storyboards with slugs, UUIDs, names, type, and org-uuid, sorted by slug.
+  Return a sequence of boards with slugs, UUIDs, names, type, and org-uuid, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
@@ -261,7 +261,7 @@
 
 (defn list-boards-by-org
   "
-  Return a sequence of boards and storyboards with slugs, UUIDs, type and names, sorted by slug.
+  Return a sequence of boards with slugs, UUIDs, type and names, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
@@ -280,7 +280,7 @@
 
 (defn list-boards-by-index
   "
-  Given the name of a secondary index and a value, retrieve all matching boards and storyboards
+  Given the name of a secondary index and a value, retrieve all matching boards
   as a sequence of maps with slugs, UUIDs and names, sorted by slug.
   
   Secondary indexes:

@@ -50,9 +50,9 @@
   (hateoas/link-map "interactions" "GET"
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
 
-(defn- board-collection-links [board org-slug draft-story-count]
+(defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
-        options (if (zero? draft-story-count) {} {:count draft-story-count})
+        options (if (zero? draft-count) {} {:count draft-count})
         links [(self-link org-slug board-slug options)]
         full-links (if (or (= :author (:access-level board))
                            (= board-slug "drafts"))
