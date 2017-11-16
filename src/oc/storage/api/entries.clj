@@ -319,7 +319,7 @@
   :processable? (by-method {
     :options true
     :post (fn [ctx] (let [entry-props (:data ctx)]
-                      (or (nil? entry-props) ; no share is fine
+                      (or (nil? entry-props) ; no updates during publish is fine
                           (valid-entry-update? conn entry-uuid entry-props))))})
   :new? false 
   :respond-with-entity? true
