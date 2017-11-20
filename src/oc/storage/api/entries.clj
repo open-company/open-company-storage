@@ -96,7 +96,8 @@
     
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (change/send-trigger! (change/->trigger :add entry-result))
+      (when (= (:status entry-result) "published")
+        (change/send-trigger! (change/->trigger :add entry-result)))
       (notification/send-trigger! (notification/->trigger :add entry-result (:user ctx)))
       {:created-entry entry-result})
 
@@ -110,11 +111,25 @@
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (do 
       (timbre/info "Updated entry for:" entry-for)
-      (change/send-trigger! (change/->trigger :update updated-result))
+      (when (= (:status updated-result) "published")
+        (change/send-trigger! (change/->trigger :update updated-result)))
       (notification/send-trigger! (notification/->trigger :update entry updated-result user))
       {:updated-entry updated-result})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
+
+(defn- publish-entry [conn ctx entry-for]
+  (timbre/info "Publishing entry for:" entry-for)
+  (if-let* [user (:user ctx)
+            org (:existing-org ctx)
+            updated-entry (:updated-entry ctx)
+            publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
+    (do
+      (timbre/info "Published entry for:" (:uuid updated-entry))
+      (change/send-trigger! (change/->trigger :add publish-result))
+      (timbre/info "Published entry:" entry-for)
+      {:updated-entry publish-result})
+    (do (timbre/error "Failed publishing entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
   (timbre/info "Deleting entry for:" entry-for)
@@ -123,7 +138,8 @@
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
       (timbre/info "Deleted entry for:" entry-for)
-      (change/send-trigger! (change/->trigger :delete entry))
+      (when (= (:status entry) "published")
+        (change/send-trigger! (change/->trigger :delete entry)))
       (notification/send-trigger! (notification/->trigger :delete entry (:user ctx)))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
@@ -272,7 +288,8 @@
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
                           (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
-  :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
+  :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
+                                  existing-board (:existing-board ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug (:uuid new-entry))
                                 (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] []
@@ -280,6 +297,63 @@
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
+
+;; A resource for operations to publish a particular entry
+(defresource publish [conn org-slug board-slug entry-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Possibly no data to handle
+  :malformed? (by-method {
+    :options false
+    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (let [entry-props (:data ctx)]
+                      (or (nil? entry-props) ; no updates during publish is fine
+                          (valid-entry-update? conn entry-uuid entry-props))))})
+  :new? false 
+  :respond-with-entity? true
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn entry-uuid))
+                               board (board-res/get-board conn (:board-uuid entry))
+                               _matches? (and (= org-uuid (:org-uuid entry))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :draft (keyword (:status entry))))] ; sanity check
+                        {:existing-org org :existing-board board :existing-entry entry}
+                        false))
+  
+  ;; Actions
+  :post! (fn [ctx] (publish-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               [] ; no comments
+                                               [] ; no reactions
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id))))
 
 ;; A resource for operations to share a particular entry
 (defresource share [conn org-slug board-slug entry-uuid]
@@ -427,6 +501,14 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (entry conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (publish conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish/"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (publish conn org-slug board-slug entry-uuid)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]

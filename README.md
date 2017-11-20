@@ -2,7 +2,7 @@
 
 [![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
-
+[![Dependencies Status](https://versions.deps.co/open-company/open-company-storage/status.svg)](https://versions.deps.co/open-company/open-company-storage)
 
 ## Background
 
@@ -219,8 +219,8 @@ If `whats-new-board` is removed or left blank, no What's New feature will be pro
 
 The Storage service is composed of 7 main responsibilities:
 
-- CRUD of orgs, boards, stories and entries
-- Access control to orgs, boards, stories and entries
+- CRUD of orgs, boards, and entries
+- Access control to orgs, boards, and entries
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) of new orgs via SQS
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of share requests via SQS
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS

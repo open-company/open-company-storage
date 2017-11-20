@@ -37,7 +37,7 @@
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
-  (let [empty-board (dissoc board :entries :stories)
+  (let [empty-board (dissoc board :entries)
         board-props (board/->board (:uuid org) empty-board author)]
     (if-let [new-board (board/create-board! conn board-props)]
       
@@ -53,9 +53,8 @@
 
 (defn- import-org [conn options data]
   (let [delete (:delete options)
-        org (dissoc data :boards :stories)
+        org (dissoc data :boards)
         boards (:boards data)
-        updates (:stories data)
         org-slug (:slug org)
         author (assoc (:author org) :teams [(:team-id org)])
         prior-org (org/get-org conn org-slug)]
@@ -78,10 +77,6 @@
         (println (str "Creating " (count boards) " boards."))
         (doseq [board boards]
           (import-board conn new-org board author)))
-        ;; Create the updates
-        ; (println (str "Creating " (count updates) " updates."))
-        ; (doseq [update updates]
-        ;   (import-update conn new-org update author)))
 
       (do
         (println "\nFailed to create the org!")
@@ -106,7 +101,7 @@
       "Options:"
       options-summary
       ""
-      "Org data: an EDN file with an org, consisting of board(s) with topic entries and stories."
+      "Org data: an EDN file with an org, consisting of board(s) with entries."
       "Directory: a directory of org data EDN files"
       ""
       "Please refer to ./opt/samples for more information on the file format."

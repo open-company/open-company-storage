@@ -30,13 +30,12 @@
 
 (def default-access :team)
 
-;; TODO add back for drafts board
-;; (def default-drafts-board {
-;;   :uuid "0000-0000-0000"
-;;   :name "Drafts"
-;;   :slug "drafts"
-;;   :viewers []
-;;   :access :private})
+(def default-drafts-board {
+  :uuid "0000-0000-0000"
+  :name "Drafts"
+  :slug "drafts"
+  :viewers []
+  :access :private})
 
 ;; ----- Utility functions -----
 
@@ -50,17 +49,16 @@
   [board]
   (apply dissoc board ignored-properties))
 
-;; TODO add back for drafts board
-;; (schema/defn ^:always-validate drafts-board :- common/Board
-;;   "Return a board for the specified org and author."
-;;   [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
-;;   (let [now (db-common/current-timestamp)]
-;;     (merge default-drafts-storyboard {
-;;       :org-uuid org-uuid
-;;       :author (lib-schema/author-for-user user)
-;;       :authors [(:user-id user)]
-;;       :created-at now
-;;       :updated-at now})))
+(schema/defn ^:always-validate drafts-board :- common/Board
+  "Return a draft board for the specified org and author."
+  [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  (let [now (db-common/current-timestamp)]
+    (merge default-drafts-board {
+      :org-uuid org-uuid
+      :author (lib-schema/author-for-user user)
+      :authors [(:user-id user)]
+      :created-at now
+      :updated-at now})))
 
 ;; ----- Board Slug -----
 
@@ -245,7 +243,7 @@
 
 (defn list-boards
   "
-  Return a sequence of boards and storyboards with slugs, UUIDs, names, type, and org-uuid, sorted by slug.
+  Return a sequence of boards with slugs, UUIDs, names, type, and org-uuid, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
@@ -263,7 +261,7 @@
 
 (defn list-boards-by-org
   "
-  Return a sequence of boards and storyboards with slugs, UUIDs, type and names, sorted by slug.
+  Return a sequence of boards with slugs, UUIDs, type and names, sorted by slug.
   
   Note: if additional-keys are supplied, they will be included in the map, and only boards
   containing those keys will be returned.
@@ -282,7 +280,7 @@
 
 (defn list-boards-by-index
   "
-  Given the name of a secondary index and a value, retrieve all matching boards and storyboards
+  Given the name of a secondary index and a value, retrieve all matching boards
   as a sequence of maps with slugs, UUIDs and names, sorted by slug.
   
   Secondary indexes:

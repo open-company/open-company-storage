@@ -53,7 +53,7 @@
 
 (defn- publish-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug entry-uuid) "/publish")
-    {:content-type mt/share-request-media-type
+    {:content-type mt/entry-media-type
      :accept mt/entry-media-type}))
 
 (defn- react-link [org board entry-uuid]
@@ -110,6 +110,9 @@
         board-uuid (:board-uuid board)
         board-slug (:slug board)
         draft? (= :draft (keyword (:status entry)))
+        full-entry (if draft?
+                      (merge {:board-slug (:slug board) :board-name (:name board)} entry)
+                      entry)
         reactions (if (= access-level :public)
                     []
                     (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
@@ -156,10 +159,10 @@
           ;; "stand-alone", so include extra props
           (-> org
             (clojure.set/rename-keys  {:slug :org-slug})
-            (merge entry)
+            (merge full-entry)
             (assoc :board-slug board-slug))
           ;; don't need the extra props
-          (dissoc entry :board-uuid))
+          (dissoc full-entry :board-uuid))
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (clean-blank-topic)

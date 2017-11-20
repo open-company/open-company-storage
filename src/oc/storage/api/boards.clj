@@ -1,6 +1,7 @@
 (ns oc.storage.api.boards
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
+            [defun.core :refer (defun-)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
@@ -36,9 +37,25 @@
   [{interactions :interactions}]
   (filter :reaction interactions))
 
-(defn- assemble-board
-  "Assemble the entry, topic, author, and viewer data needed for a board response."
-  [conn org board ctx]
+(defun- assemble-board
+  "Assemble the entry, author, and viewer data needed for a board response."
+
+  ;; Draft board
+  ([conn org :guard map? board :guard #(= (:slug %) (:slug board-res/default-drafts-board)) ctx]
+  (let [org-slug (:slug org)
+        slug (:slug board)
+        entries (entry-res/list-entries-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft)
+        board-uuids (distinct (map :board-uuid entries))
+        boards (filter map? (map #(board-res/get-board conn %) board-uuids))
+        board-map (zipmap (map :uuid boards) boards)
+        entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
+                            (comments %) (reactions %)
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      entries)]
+    (assemble-board org-slug board entry-reps ctx)))
+
+  ;; Regular board
+  ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
         entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
@@ -54,7 +71,12 @@
         entry-reps (map #(entry-rep/render-entry-for-collection org board %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
-                      entries)
+                      entries)]
+    (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
+
+  ;; Recursion to finish up both kinds of boards
+  ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
+  (let [slug (:slug board)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
         viewers (:viewers board)
@@ -62,48 +84,7 @@
     (-> board 
       (assoc :authors author-reps)
       (assoc :viewers viewer-reps)
-      (assoc :entries entry-reps)
-      (assoc :topics (sort-by :name topics)))))
-
-;; TODO add back for drafts board
-; (defun- assemble-board
-;   "Assemble the story, author, and viewer data needed for a board response."
-
-;   ;; Draft storyboard
-;   ([conn org :guard map? board :guard #(= (:slug %) (:slug board-res/default-drafts-storyboard)) ctx]
-;   (let [org-slug (:slug org)
-;         slug (:slug board)
-;         stories (story-res/list-stories-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft)
-;         storyboard-uuids (distinct (map :board-uuid stories))
-;         storyboards (filter map? (map #(board-res/get-board conn %) storyboard-uuids))
-;         storyboard-map (zipmap (map :uuid storyboards) storyboards)
-;         story-reps (map #(story-rep/render-story-for-collection org (or (storyboard-map (:board-uuid %)) board) %
-;                             (comments %) (reactions %)
-;                             (:access-level ctx) (-> ctx :user :user-id))
-;                       stories)]
-;     (assemble-storyboard org-slug board story-reps ctx)))
-
-;   ;; Regular storyboard
-;   ([conn org :guard map? board :guard map? ctx]
-;   (let [org-slug (:slug org)
-;         stories (story-res/list-stories-by-board conn (:uuid board))
-;         story-reps (map #(story-rep/render-story-for-collection org board %
-;                             (comments %) (reactions %)
-;                             (:access-level ctx) (-> ctx :user :user-id))
-;                       stories)]
-;     (assemble-storyboard org-slug board story-reps ctx)))
-
-;   ;; Recursion to finish up both kinds of storyboards
-;   ([org-slug :guard string? board :guard map? story-reps :guard seq? ctx]
-;   (let [slug (:slug board)
-;         authors (:authors board)
-;         author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
-;         viewers (:viewers board)
-;         viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug % (:access-level ctx)) viewers)]
-;     (-> board 
-;       (assoc :authors author-reps)
-;       (assoc :viewers viewer-reps)
-;       (assoc :stories story-reps)))))
+      (assoc :entries entry-reps)))))
 
 ;; ----- Validations -----
 
@@ -240,10 +221,9 @@
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
-                                         ;; TODO add back for draft board
-                                         ;;(if (= slug (:slug board-res/default-drafts-storyboard))
-                                         ;;   (board-res/drafts-storyboard org-uuid (:user ctx))
-                                            (board-res/get-board conn org-uuid slug))]
+                                         (if (= slug (:slug board-res/default-drafts-board))
+                                            (board-res/drafts-board org-uuid (:user ctx))
+                                            (board-res/get-board conn org-uuid slug)))]
                         {:existing-org org :existing-board board}
                         false))
 
