@@ -201,13 +201,17 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry org-slug board-slug
+    :get (fn [ctx] (entry-rep/render-entry 
+                      (:existing-org ctx)
+                      (:existing-board ctx)
                       (:existing-entry ctx)
                       (:existing-comments ctx)
                       (:existing-reactions ctx)
                       (:access-level ctx)
                       (-> ctx :user :user-id)))
-    :patch (fn [ctx] (entry-rep/render-entry org-slug board-slug
+    :patch (fn [ctx] (entry-rep/render-entry
+                        (:existing-org ctx)
+                        (:existing-board ctx)
                         (:updated-entry ctx)
                         (:existing-comments ctx)
                         (:existing-reactions ctx)
@@ -254,23 +258,24 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
                                             (slugify/valid-slug? board-slug))
-                               org-uuid (org-res/uuid-for conn org-slug)
+                               org (org-res/get-org conn org-slug)
+                               org-uuid (:uuid org)
                                board (board-res/get-board conn org-uuid board-slug)
                                board-uuid (:uuid board)
                                entries (entry-res/list-entries-by-board conn board-uuid)]
-                        {:existing-entries entries :existing-board board}
+                        {:existing-org org :existing-board board :existing-entries entries}
                         false))
 
   ;; Actions
   :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug board-slug])))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug
+  :handle-ok (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
                           (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug (:uuid new-entry))
-                                (entry-rep/render-entry org-slug board-slug new-entry [] []
+                                (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
@@ -382,7 +387,7 @@
   
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
-                                               (:slug (:existing-board ctx))
+                                               (:existing-board ctx)
                                                (:existing-entry ctx)
                                                (:existing-comments ctx)
                                                (:existing-reactions ctx)

@@ -38,8 +38,9 @@
 
 (defn- assemble-board
   "Assemble the entry, topic, author, and viewer data needed for a board response."
-  [conn org-slug board ctx]
-  (let [slug (:slug board)
+  [conn org board ctx]
+  (let [org-slug (:slug org)
+        slug (:slug board)
         entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
@@ -50,7 +51,7 @@
         topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
                     board-topics ; just the board's topics
                     all-topics) ; board's and default
-        entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug %
+        entry-reps (map #(entry-rep/render-entry-for-collection org board %
                             (comments %) (reactions %)
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)
@@ -252,7 +253,7 @@
   
   ;; Responses
   :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
-                             full-board (assemble-board conn org-slug board ctx)]
+                             full-board (assemble-board conn (:existing-org ctx) board ctx)]
                           (board-rep/render-board org-slug full-board (:access-level ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
