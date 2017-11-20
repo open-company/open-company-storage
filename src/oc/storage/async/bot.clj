@@ -44,7 +44,7 @@
       false)))
 
 (schema/defn ^:always-validate ->share-entry-trigger :- ShareEntryTrigger
-  "Given a story for an org and a share request, create the share trigger."
+  "Given an entry for an org and a share request, create the share trigger."
   [org entry share-request user]
   (let [slack-org-id (-> share-request :channel :slack-org-id)]
     {

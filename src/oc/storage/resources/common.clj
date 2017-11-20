@@ -1,5 +1,5 @@
 (ns oc.storage.resources.common
-  "Resources are any thing stored in the open company platform: orgs, boards, topics, stories"
+  "Resources are any thing stored in the open company platform: orgs, boards, and entries"
   (:require [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]))
