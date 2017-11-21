@@ -3,7 +3,6 @@
   Async publish of notification events to AWS SNS.
   "
   (:require [clojure.core.async :as async :refer (<!! >!!)]
-            [defun.core :refer (defun defun-)]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
@@ -41,8 +40,8 @@
   update - the content-id should be refreshed, this happens when a board or entry is updated
   delete - the specified content-id is deleted, this happens when a board or entry is removed
 
-  The notification trigger contains the type of resource as `resource-type` and the current resource as `current`. If
-  the trigger is for an update it will also contain the updated resource as `update`. 
+  The notification trigger contains the type of resource as `resource-type` and the content as `new` and/or
+  `old` in a key called `content`.
 
   The user whose actions triggered the notification is included as `user`.
 
@@ -50,12 +49,15 @@
   "
   {:notification-type (schema/pred notification-type?)
    :resource-type (schema/pred resource-type?)
-   :current (schema/conditional #(= (resource-type %) :entry) common-res/Entry
-                                #(= (resource-type %) :board) common-res/Board
-                                :else common-res/Org)
-   (schema/optional-key :update) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
-                                                     #(= (resource-type %) :board) common-res/Board
-                                                     :else common-res/Org)
+   (schema/optional-key :org) common-res/Org
+   (schema/optional-key :board) common-res/Board   
+   :content {
+    (schema/optional-key :new) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
+                                                   #(= (resource-type %) :board) common-res/Board
+                                                   :else common-res/Org)
+    (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
+                                                   #(= (resource-type %) :board) common-res/Board
+                                                   :else common-res/Org)}
    :user lib-schema/User
    :notification-at lib-schema/ISO8601})
 
@@ -97,31 +99,26 @@
 
 ;; ----- Notification triggering -----
 
-(defun ->trigger
-  
-  ([notification-type :guard notification-type? content :guard map? user :guard map?]
-  (->trigger notification-type (resource-type content) content user))
-  
-  ([notification-type :guard #(= % :update) content :guard map? updated-content :guard map? user :guard map?]
-  (->trigger notification-type (resource-type content) content updated-content user))
-  
-  ([notification-type :guard notification-type? resource-type :guard resource-type?
-    content :guard map? user :guard map?]
-  {:notification-type notification-type
-   :resource-type resource-type
-   :current content
-   :user user
-   :notification-at (oc-time/current-timestamp)})
-
-  ([notification-type :guard #(= % :update) resource-type :guard resource-type?
-    content :guard map? updated-content :guard map? user :guard map?]
-  (assoc (->trigger notification-type resource-type content user) :update updated-content)))
+(defn ->trigger 
+  ([notification-type content user] (->trigger notification-type nil nil content user))
+  ([notification-type org content user] (->trigger notification-type org nil content user))
+  ([notification-type org board content user]
+  (let [notice {:notification-type notification-type
+                :resource-type (resource-type (or (:old content) (:new content)))
+                :content content
+                :user user
+                :notification-at (oc-time/current-timestamp)}
+        org-notice (if org (assoc notice :org org) notice)
+        final-notice (if board (assoc org-notice :board board) org-notice)]
+      final-notice)))
 
 (schema/defn ^:always-validate send-trigger! [trigger :- NotificationTrigger]
   (if (clojure.string/blank? config/aws-sns-storage-topic-arn)
-    (timbre/debug "Skipping a notification for:" (-> trigger :current :uuid))
+    (timbre/debug "Skipping a notification for:" (or (-> trigger :content :old :uuid)
+                                                     (-> trigger :content :new :uuid)))
     (do
-      (timbre/debug "Triggering a notification for:" (-> trigger :current :uuid))
+      (timbre/debug "Triggering a notification for:" (or (-> trigger :content :old :uuid)
+                                                         (-> trigger :content :new :uuid)))
       (>!! notification-chan trigger))))
 
 ;; ----- Component start/stop -----

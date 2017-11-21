@@ -91,21 +91,25 @@
 
 (defn- create-entry [conn ctx entry-for]
   (timbre/info "Creating entry for:" entry-for)
-  (if-let* [new-entry (:new-entry ctx)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            new-entry (:new-entry ctx)
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
         (change/send-trigger! (change/->trigger :add entry-result)))
-      (notification/send-trigger! (notification/->trigger :add entry-result (:user ctx)))
+      (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx)))
       {:created-entry entry-result})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
 (defn- update-entry [conn ctx entry-for]
   (timbre/info "Updating entry for:" entry-for)
-  (if-let* [user (:user ctx)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
@@ -113,7 +117,7 @@
       (timbre/info "Updated entry for:" entry-for)
       (when (= (:status updated-result) "published")
         (change/send-trigger! (change/->trigger :update updated-result)))
-      (notification/send-trigger! (notification/->trigger :update entry updated-result user))
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user))
       {:updated-entry updated-result})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
@@ -122,25 +126,29 @@
   (timbre/info "Publishing entry for:" entry-for)
   (if-let* [user (:user ctx)
             org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (change/send-trigger! (change/->trigger :add publish-result))
       (timbre/info "Published entry:" entry-for)
+      (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user))
       {:updated-entry publish-result})
     (do (timbre/error "Failed publishing entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
   (timbre/info "Deleting entry for:" entry-for)
-  (if-let* [board (:existing-board ctx)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
             entry (:existing-entry ctx)
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
       (timbre/info "Deleted entry for:" entry-for)
       (when (= (:status entry) "published")
         (change/send-trigger! (change/->trigger :delete entry)))
-      (notification/send-trigger! (notification/->trigger :delete entry (:user ctx)))
+      (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx)))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
 
@@ -272,11 +280,13 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
                                             (slugify/valid-slug? board-slug))
-                               org-uuid (org-res/uuid-for conn org-slug)
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
                                board (board-res/get-board conn org-uuid board-slug)
                                board-uuid (:uuid board)
                                entries (entry-res/list-entries-by-board conn board-uuid)]
-                        {:existing-entries entries :existing-board board}
+                        {:existing-org org :existing-board board :existing-entries entries}
                         false))
 
   ;; Actions

@@ -86,7 +86,7 @@
           author (:user ctx)]
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
-      (notification/send-trigger! (notification/->trigger :add org-result (:user ctx)))
+      (notification/send-trigger! (notification/->trigger :add {:new org-result} (:user ctx)))
       (doseq [board (:boards config/default-new-org)]
         (create-board conn org-result board author))
       {:created-org org-result})
@@ -99,7 +99,8 @@
             update-result (org-res/update-org! conn slug updated-org)]
     (do
       (timbre/info "Updated org:" slug)
-      (notification/send-trigger! (notification/->trigger :update (:existing-org ctx) update-result (:user ctx)))
+      (notification/send-trigger! (notification/->trigger :update {:old (:existing-org ctx) :new update-result}
+                                                          (:user ctx)))
       {:updated-org update-result})
 
     (do (timbre/error "Failed updating org:" slug) false)))
