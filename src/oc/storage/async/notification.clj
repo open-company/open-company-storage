@@ -3,7 +3,6 @@
   Async publish of notification events to AWS SNS.
   "
   (:require [clojure.core.async :as async :refer (<!! >!!)]
-            [defun.core :refer (defun defun-)]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
