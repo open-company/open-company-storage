@@ -38,7 +38,7 @@
    :change-at (or (:published-at content) (:created-at content))})
 
 (defn send-trigger! [trigger]
-  (timbre/info "Change notification request of" (:type trigger)
+  (timbre/info "Change notification request of" (:change-type trigger)
                "for" (:content-id trigger) "to queue" config/aws-sqs-change-queue)
   (timbre/trace "Change request:" trigger)
   (schema/validate ChangeTrigger trigger)
