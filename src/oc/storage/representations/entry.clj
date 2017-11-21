@@ -107,7 +107,7 @@
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
         org-slug (:slug org)
-        board-uuid (:board-uuid board)
+        board-uuid (:uuid board)
         board-slug (:slug board)
         draft? (= :draft (keyword (:status entry)))
         full-entry (if draft?
