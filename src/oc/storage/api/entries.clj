@@ -132,9 +132,9 @@
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
       (timbre/info "Published entry for:" (:uuid updated-entry))
-      (change/send-trigger! (change/->trigger :add :entry {:content {:new publish-result}}))
+      (change/send-trigger! (change/->trigger :add publish-result))
       (timbre/info "Published entry:" entry-for)
-      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new publish-result} user))
+      (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user))
       {:updated-entry publish-result})
     (do (timbre/error "Failed publishing entry:" entry-for) false)))
 
