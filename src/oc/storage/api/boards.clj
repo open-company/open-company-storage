@@ -108,14 +108,14 @@
 
 ;; ----- Actions -----
 
-(defn- create-board [conn {new-board :new-board user :user} org-slug]
+(defn- create-board [conn {org :existing-org new-board :new-board user :user} org-slug]
   (timbre/info "Creating board for org:" org-slug)
   (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
     
     (do
       (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
       (change/send-trigger! (change/->trigger :add board-result))
-      (notification/send-trigger! (notification/->trigger :add board-result user))
+      (notification/send-trigger! (notification/->trigger :add org {:new board-result} user))
       {:created-board board-result})
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
@@ -156,13 +156,14 @@
   (timbre/info "Updating board:" slug "of org:" org-slug)
   (if-let* [user (:user ctx)
             user-id (:user-id user)
+            org (:existing-org ctx)
             board (:existing-board ctx)
             updated-board (:board-update ctx)
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
     (do
       (timbre/info "Updated board:" slug "of org:" org-slug)
       (change/send-trigger! (change/->trigger :update updated-result))
-      (notification/send-trigger! (notification/->trigger :update board updated-result user))
+      (notification/send-trigger! (notification/->trigger :update org {:old board :new updated-result} user))
       (if (and (= "private" (:access updated-board)) ; board is being set private
                (nil? ((set (:authors updated-result)) user-id))) ; and current user is not an author
         (add-member conn ctx org-slug slug :authors user-id) ; make the current user an author
@@ -172,12 +173,13 @@
 
 (defn- delete-board [conn ctx org-slug slug]
   (timbre/info "Deleting board:" slug "of org:" org-slug)
-  (if-let* [board (:existing-board ctx)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
             _delete-result (board-res/delete-board! conn (:uuid board))]
     (do 
       (timbre/info "Deleted board:" slug "of org:" org-slug)
       (change/send-trigger! (change/->trigger :delete board))
-      (notification/send-trigger! (notification/->trigger :delete board (:user ctx)))
+      (notification/send-trigger! (notification/->trigger :delete org {:old board} (:user ctx)))
       true)
     (do (timbre/warn "Failed deleting board:" slug "of org:" org-slug) false)))
 
