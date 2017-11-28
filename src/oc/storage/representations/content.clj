@@ -93,8 +93,8 @@
                                  (group-by :reaction reactions)) ; reactions grouped by unicode character
         counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
         counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
-        top-three-reactions (take 3 (sort-by reaction-selection-sort counted-reactions)) ; top 3 reactions
-        sorted-reactions (sort-by reaction-order-sort top-three-reactions)] ; top 3 sorted
+        all-reactions (take config/max-reaction-count (sort-by reaction-selection-sort counted-reactions)) ; top 3 reactions
+        sorted-reactions (sort-by reaction-order-sort all-reactions)] ; top 3 sorted
     (map #(reaction-and-link org-uuid board-uuid resource-uuid (first %) (last %)
             (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; the user left one of these reactions?
               (get grouped-reactions (first %)))) 
