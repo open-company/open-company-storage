@@ -88,7 +88,8 @@
 ;; Sequence of 1 unicode char strings that provide the default reactions available to the user (if any)
 (defonce default-reactions [])
 
-(defonce max-reaction-count 5)
+(defonce max-reaction-count 5) 
+(defonce max-favorite-reaction-count 3)
 
 (defonce default-activity-limit 20)
 

@@ -40,7 +40,7 @@
     [zprint "0.4.4"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.14.7"]
+    [open-company/lib "0.14.8"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -158,6 +158,7 @@
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
                  '[oc.storage.representations.org :as org-rep]
+                 '[oc.storage.resources.reaction :as reaction]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
                  )
