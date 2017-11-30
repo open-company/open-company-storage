@@ -20,7 +20,8 @@
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 ;; ----- Utility functions -----
 
@@ -34,8 +35,20 @@
 
 (defn- reactions
   "Return a sequence of just the reactions for an entry."
-  [{interactions :interactions}]
+  ([{interactions :interactions}]
   (filter :reaction interactions))
+
+  ([conn {interactions :interactions} org-id user-id]
+  (let [entry-reactions (filter :reaction interactions) ; reactions on the entry
+        ;; user's favorite reactions if we need them
+        user-faves (if (< (count entry-reactions) config/max-favorite-reaction-count)
+                      (concat entry-reactions (map #(hash-map :reaction %) (reaction-res/user-favorites conn user-id)))
+                      entry-reactions)
+        ; org's favorite reactions if we need them
+        org-faves (if (< (count user-faves) config/max-favorite-reaction-count)
+                      (concat user-faves (map #(hash-map :reaction %) (reaction-res/org-favorites conn org-id)))
+                      user-faves)]
+    org-faves)))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
@@ -57,7 +70,9 @@
   ;; Regular board
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
+        org-id (:uuid org)
         slug (:slug board)
+        user-id (-> ctx :user :user-id)
         entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
@@ -69,8 +84,8 @@
                     board-topics ; just the board's topics
                     all-topics) ; board's and default
         entry-reps (map #(entry-rep/render-entry-for-collection org board %
-                            (comments %) (reactions %)
-                            (:access-level ctx) (-> ctx :user :user-id))
+                            (comments %) (reactions conn % org-id user-id)
+                            (:access-level ctx) user-id)
                       entries)]
     (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
 
