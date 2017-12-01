@@ -50,13 +50,13 @@
 
 (defn- reaction-and-link
   "Given the parts of a reaction URL, return a map representation of the reaction for use in the API."
-  [org-uuid board-uuid resource-uuid reaction reaction-count user?]
-  {:reaction reaction
-   :reacted (if user? true false)
-   :count reaction-count
-   :links [(if user?
-              (unreact-link org-uuid board-uuid resource-uuid reaction)
-              (react-link org-uuid board-uuid resource-uuid reaction))]})
+  [org-uuid board-uuid resource-uuid reaction user?]
+  (-> reaction
+    (dissoc :author-ids)
+    (assoc :reacted (if user? true false))
+    (assoc :links [(if user?
+                    (unreact-link org-uuid board-uuid resource-uuid reaction)
+                    (react-link org-uuid board-uuid resource-uuid reaction))])))
 
 (defn- reaction-selection-sort
   "
@@ -89,13 +89,8 @@
   for use in the API.
   "
   [org-uuid board-uuid resource-uuid reactions user-id]
-  (let [grouped-reactions (merge (apply hash-map (interleave config/default-reactions (repeat []))) ; defaults
-                                 (group-by :reaction reactions)) ; reactions grouped by unicode character
-        counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
-        counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
-        all-reactions (take config/max-reaction-count (sort-by reaction-selection-sort counted-reactions)) ; top 3 reactions
-        sorted-reactions (sort-by reaction-order-sort all-reactions)] ; top 3 sorted
-    (map #(reaction-and-link org-uuid board-uuid resource-uuid (first %) (last %)
-            (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; the user left one of these reactions?
-              (get grouped-reactions (first %)))) 
-      sorted-reactions)))
+  (let [limited-reactions (take config/max-reaction-count reactions)]
+    (map #(reaction-and-link org-uuid board-uuid resource-uuid %
+            ; the user left one of these reactions?
+            (some (fn [author-id] (= user-id author-id)) (:author-ids %)))
+      limited-reactions)))

@@ -35,20 +35,8 @@
 
 (defn- reactions
   "Return a sequence of just the reactions for an entry."
-  ([{interactions :interactions}]
+  [{interactions :interactions}]
   (filter :reaction interactions))
-
-  ([conn {interactions :interactions} org-id user-id]
-  (let [entry-reactions (filter :reaction interactions) ; reactions on the entry
-        ;; user's favorite reactions if we need them
-        user-faves (if (and user-id (< (count entry-reactions) config/max-favorite-reaction-count))
-                      (concat entry-reactions (map #(hash-map :reaction %) (reaction-res/user-favorites conn user-id)))
-                      entry-reactions)
-        ; org's favorite reactions if we need them
-        org-faves (if (< (count user-faves) config/max-favorite-reaction-count)
-                      (concat user-faves (map #(hash-map :reaction %) (reaction-res/org-favorites conn org-id)))
-                      user-faves)]
-    org-faves)))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
@@ -84,7 +72,8 @@
                     board-topics ; just the board's topics
                     all-topics) ; board's and default
         entry-reps (map #(entry-rep/render-entry-for-collection org board %
-                            (comments %) (reactions conn % org-id user-id)
+                            (comments %)
+                            (reaction-res/reactions-with-favorites conn org-id user-id (reactions %))
                             (:access-level ctx) user-id)
                       entries)]
     (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
