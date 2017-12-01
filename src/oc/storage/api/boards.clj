@@ -41,7 +41,7 @@
   ([conn {interactions :interactions} org-id user-id]
   (let [entry-reactions (filter :reaction interactions) ; reactions on the entry
         ;; user's favorite reactions if we need them
-        user-faves (if (< (count entry-reactions) config/max-favorite-reaction-count)
+        user-faves (if (and user-id (< (count entry-reactions) config/max-favorite-reaction-count))
                       (concat entry-reactions (map #(hash-map :reaction %) (reaction-res/user-favorites conn user-id)))
                       entry-reactions)
         ; org's favorite reactions if we need them
