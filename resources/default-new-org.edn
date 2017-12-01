@@ -1,5 +1,10 @@
 {
-  :boards []
+  :boards [
+    {
+      :name "All-hands 🙌"
+      :entries []
+    }
+  ]
 }
 
 ;     {
