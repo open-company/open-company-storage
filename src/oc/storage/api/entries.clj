@@ -88,6 +88,31 @@
     true)) ; no existing entry, so this will fail existence check later
 
 ;; ----- Actions -----
+(defn- share-entry [conn ctx entry-for]
+  (timbre/info "Sharing entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)
+            share-requests (:share-requests ctx)
+            shared {:shared (concat (or (:shared entry) []) share-requests)}
+            update-result (entry-res/update-entry! conn (:uuid entry) shared user)]
+    (do
+      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org entry user share-requests))
+      (timbre/info "Shared entry:" entry-for)
+      {:updated-entry update-result})
+    (do
+      (timbre/error "Failed sharing entry:" entry-for) false)))
+
+(defn- share-on-publish
+  [conn ctx entry-result]
+  (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
+    (let [share-request {:medium "slack"
+                         :note ""
+                         :shared-at (db-common/current-timestamp)
+                         :channel slack-channel}
+          share-req-ctx (assoc ctx :share-requests (list share-request))
+          share-ctx (assoc share-req-ctx :existing-entry entry-result)]
+      (share-entry conn share-ctx (:uuid entry-result)))))
 
 (defn- create-entry [conn ctx entry-for]
   (timbre/info "Creating entry for:" entry-for)
@@ -99,6 +124,7 @@
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
+        (share-on-publish conn ctx entry-result)
         (change/send-trigger! (change/->trigger :add entry-result)))
       (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx)))
       {:created-entry entry-result})
@@ -116,6 +142,7 @@
     (do 
       (timbre/info "Updated entry for:" entry-for)
       (when (= (:status updated-result) "published")
+        (share-on-publish conn updated-result)
         (change/send-trigger! (change/->trigger :update updated-result)))
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user))
       {:updated-entry updated-result})
@@ -151,20 +178,6 @@
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx)))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
-
-(defn- share-entry [conn ctx entry-for]
-  (timbre/info "Sharing entry:" entry-for)
-  (if-let* [org (:existing-org ctx)
-            entry (:existing-entry ctx)
-            user (:user ctx)
-            share-requests (:share-requests ctx)
-            shared {:shared (concat (or (:shared entry) []) share-requests)}
-            update-result (entry-res/update-entry! conn (:uuid entry) shared user)]
-    (do
-      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org entry user share-requests))
-      (timbre/info "Shared entry:" entry-for)
-      {:updated-entry update-result})
-    (do (timbre/error "Failed sharing entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
