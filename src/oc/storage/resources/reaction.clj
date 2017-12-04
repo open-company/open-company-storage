@@ -55,12 +55,12 @@
         ;; user's favorite reactions if we need them
         user-faves (when (and user-id (< (count reactions) config/max-favorite-reaction-count))
                       (user-favorites conn user-id))
-        filtered-user-faves (filter #(not (reaction-unicodes %)) user-faves)
+        filtered-user-faves (remove reaction-unicodes user-faves)
         reactions-and-user-faves (concat reactions
                                          (map #(hash-map :reaction % :count 0 :authors []) filtered-user-faves))
         ; org's favorite reactions if we need them
         reaction-unicodes (set (map :reaction reactions-and-user-faves))
         org-faves (when (< (count reactions-and-user-faves) config/max-favorite-reaction-count)
                     (org-favorites conn org-id))
-        filtered-org-faves (filter #(not (reaction-unicodes %)) org-faves)]
+        filtered-org-faves (remove reaction-unicodes org-faves)]
     (concat reactions-and-user-faves (map #(hash-map :reaction % :count 0 :authors []) filtered-org-faves))))
