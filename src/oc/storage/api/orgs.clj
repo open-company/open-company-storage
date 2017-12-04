@@ -297,13 +297,13 @@
                                   org-id (:uuid new-org)
                                   boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at])
                                   board-reps (map #(board-rep/render-board-for-collection slug % 0)
-                                                boards)
+                                                (map #(assoc % :access-level :author) boards))
                                   authors (:authors org)
                                   author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx))
                                                 authors)
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
-                                                (assoc :boards boards))]
+                                                (assoc :boards board-reps))]
                               (api-common/location-response
                                 (org-rep/url slug)
                                 (org-rep/render-org org-for-rep :author (-> ctx :user :user-id))
