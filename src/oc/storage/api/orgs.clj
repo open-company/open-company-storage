@@ -295,12 +295,11 @@
   :handle-created (fn [ctx] (let [new-org (:created-org ctx)
                                   slug (:slug new-org)
                                   org-id (:uuid new-org)
+                                  user-id (-> ctx :user :user-id)
                                   boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at])
                                   board-reps (map #(board-rep/render-board-for-collection slug % 0)
                                                 (map #(assoc % :access-level :author) boards))
-                                  authors (:authors org)
-                                  author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx))
-                                                authors)
+                                  author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
                                                 (assoc :boards board-reps))]
