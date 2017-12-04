@@ -204,7 +204,7 @@
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
                           (org-rep/render-org (-> org
-                                                (assoc :boards board-reps)
+                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
                                                 (assoc :authors author-reps))
                                               (:access-level ctx)
                                               user-id)))
@@ -302,7 +302,7 @@
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
-                                                (assoc :boards board-reps))]
+                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))]
                               (api-common/location-response
                                 (org-rep/url slug)
                                 (org-rep/render-org org-for-rep :author (-> ctx :user :user-id))
