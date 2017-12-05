@@ -50,7 +50,7 @@
         boards (filter map? (map #(board-res/get-board conn %) board-uuids))
         board-map (zipmap (map :uuid boards) boards)
         entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
-                            (comments %) (reactions %)
+                            [] []
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)]
     (assemble-board org-slug board entry-reps ctx)))

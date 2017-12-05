@@ -55,8 +55,8 @@
     (dissoc :author-ids)
     (assoc :reacted (if user? true false))
     (assoc :links [(if user?
-                    (unreact-link org-uuid board-uuid resource-uuid reaction)
-                    (react-link org-uuid board-uuid resource-uuid reaction))])))
+                    (unreact-link org-uuid board-uuid resource-uuid (:reaction reaction))
+                    (react-link org-uuid board-uuid resource-uuid (:reaction reaction)))])))
 
 (defn- reaction-selection-sort
   "
