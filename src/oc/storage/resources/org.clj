@@ -48,7 +48,7 @@
                       "faq" "features" "forum" "forums" "founder" "founders" "help" "home"
                       "investor" "investors" "invite" "ios" "jobs" "login" "logout"
                       "news" "newsletter" "press" "pricing" "privacy" "profile" "register" "reset"
-                      "section" "sections" "signin" "signout" "signup"
+                      "section" "sections" "signin" "signout" "signup" "sign-up"
                       "subscription-completed" "team" "terms" "topic" "topics"
                       "update" "updates" "stuart" "sean" "iacopo" "nathan"})
 
