@@ -1,32 +1,44 @@
 (ns oc.storage.resources.reaction
   (:require [clojure.core.cache :as cache]
+            [taoensso.timbre :as timbre]
             [oc.lib.db.common :as db-common]
             [oc.storage.config :as config]))
 
 ;; ----- Favorite Reaction cache -----
 
-(defonce empty-cache (cache/ttl-cache-factory {} :ttl 10000)) ; TTL of 10 minutes
+(defonce empty-cache (cache/ttl-cache-factory {} :ttl (* 5 60 1000))) ; TTL of 5 minutes
 (defonce FavoriteReactionCache (atom empty-cache))
 
 ;; ----- Favorite Reactions -----
 
-(defn- org-favorites
-  "Return the most favorite reactions (by number of times used) for the specified org.
+(defn- favorites
+  [conn uuid field]
+  (if-let [cached-response (cache/lookup @FavoriteReactionCache uuid)]
+    (do
+      (timbre/trace "Favorites cache hit for" (str field ":") uuid)
+      cached-response)
+    (do
+      (timbre/trace "Favorites cache miss for" (str field ":") uuid)
+      (reset! FavoriteReactionCache (cache/miss @FavoriteReactionCache uuid
+        (vec (map first 
+          (db-common/grouped-resources-by-most-common conn "interactions" field
+                                                      uuid "reaction" config/max-favorite-reaction-count))))))))
 
-  Results will be used from cache for up to 10m w/ a TTL cache."
-  [conn org-id]
-  (vec (map first 
-    (db-common/grouped-resources-by-most-common conn "interactions" "org-uuid"
-                                                org-id "reaction" config/max-favorite-reaction-count))))
+(defn- org-favorites
+  "
+  Return the most favorite reactions (by number of times used) for the specified org.
+
+  Results will be used from a TTL cache.
+  "
+  [conn org-id] (favorites conn org-id "org-uuid"))
 
 (defn- user-favorites
-  "Return the most favorite reactions (by number of times used) for the specified user.
+  "
+  Return the most favorite reactions (by number of times used) for the specified user.
 
-  Results will be used from cache for up to 10m w/ a TTL cache."
-  [conn user-id]
-  (vec (map first 
-    (db-common/grouped-resources-by-most-common conn "interactions" "author-uuid"
-                                                user-id "reaction" config/max-favorite-reaction-count))))
+  Results will be used from a TTL cache.
+  "
+  [conn user-id] (favorites conn user-id "author-uuid"))
 
 (defn- reaction-collapse
   "Reducer function that collapses reactions into count and sequence of author based on common reaction unicode."
