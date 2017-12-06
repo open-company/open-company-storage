@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.9.0-RC1"]
+    [org.clojure/clojure "1.9.0-RC2"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.3.5"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -61,7 +61,7 @@
   ;; All profile plugins
   :plugins [
     ;; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-ring "0.12.1"]
+    [lein-ring "0.12.2"]
     ;; Get environment settings from different sources https://github.com/weavejester/environ
     [lein-environ "1.1.0"]
   ]

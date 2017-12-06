@@ -5,7 +5,7 @@
 
 ;; ----- Favorite Reaction cache -----
 
-(defonce empty-cache (cache/ttl-cache-factory {} :ttl 10000))
+(defonce empty-cache (cache/ttl-cache-factory {} :ttl 10000)) ; TTL of 10 minutes
 (defonce FavoriteReactionCache (atom empty-cache))
 
 ;; ----- Favorite Reactions -----
@@ -57,10 +57,12 @@
                       (user-favorites conn user-id))
         filtered-user-faves (remove reaction-unicodes user-faves)
         reactions-and-user-faves (concat reactions
-                                         (map #(hash-map :reaction % :count 0 :authors []) filtered-user-faves))
+                                         (map #(hash-map :reaction % :count 0 :authors [] :author-ids [])
+                                            filtered-user-faves))
         ; org's favorite reactions if we need them
         reaction-unicodes (set (map :reaction reactions-and-user-faves))
         org-faves (when (< (count reactions-and-user-faves) config/max-favorite-reaction-count)
                     (org-favorites conn org-id))
         filtered-org-faves (remove reaction-unicodes org-faves)]
-    (concat reactions-and-user-faves (map #(hash-map :reaction % :count 0 :authors []) filtered-org-faves))))
+    (concat reactions-and-user-faves (map #(hash-map :reaction % :count 0 :authors [] :author-ids[])
+                                        filtered-org-faves))))
