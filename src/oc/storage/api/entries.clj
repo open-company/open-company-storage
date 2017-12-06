@@ -142,7 +142,7 @@
     (do 
       (timbre/info "Updated entry for:" entry-for)
       (when (= (:status updated-result) "published")
-        (share-on-publish conn updated-result)
+        (share-on-publish conn ctx updated-result)
         (change/send-trigger! (change/->trigger :update updated-result)))
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user))
       {:updated-entry updated-result})
