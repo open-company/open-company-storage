@@ -20,7 +20,8 @@
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 ;; ----- Utility functions -----
 
@@ -48,8 +49,8 @@
         board-uuids (distinct (map :board-uuid entries))
         boards (filter map? (map #(board-res/get-board conn %) board-uuids))
         board-map (zipmap (map :uuid boards) boards)
-        entry-reps (map #(entry-rep/render-entry-for-collection org-slug (or (board-map (:board-uuid %)) board) %
-                            (comments %) (reactions %)
+        entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
+                            [] []
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)]
     (assemble-board org-slug board entry-reps ctx)))
@@ -57,7 +58,9 @@
   ;; Regular board
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
+        org-id (:uuid org)
         slug (:slug board)
+        user-id (-> ctx :user :user-id)
         entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
@@ -68,9 +71,10 @@
         topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
                     board-topics ; just the board's topics
                     all-topics) ; board's and default
-        entry-reps (map #(entry-rep/render-entry-for-collection org-slug slug %
-                            (comments %) (reactions %)
-                            (:access-level ctx) (-> ctx :user :user-id))
+        entry-reps (map #(entry-rep/render-entry-for-collection org board %
+                            (comments %)
+                            (reaction-res/reactions-with-favorites conn org-id user-id (reactions %))
+                            (:access-level ctx) user-id)
                       entries)]
     (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
 

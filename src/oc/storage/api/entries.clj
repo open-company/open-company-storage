@@ -23,7 +23,8 @@
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 ;; ----- Utility functions -----
 
@@ -225,20 +226,26 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry org-slug
-                      (:existing-board ctx)
-                      (:existing-entry ctx)
-                      (:existing-comments ctx)
-                      (:existing-reactions ctx)
-                      (:access-level ctx)
-                      (-> ctx :user :user-id)))
-    :patch (fn [ctx] (entry-rep/render-entry org-slug
+    :get (fn [ctx] (let [user-id (-> ctx :user :user-id)
+                         org-id (-> ctx :existing-org :uuid)]
+                      (entry-rep/render-entry 
+                        (:existing-org ctx)
                         (:existing-board ctx)
-                        (:updated-entry ctx)
+                        (:existing-entry ctx)
                         (:existing-comments ctx)
-                        (:existing-reactions ctx)
+                        (reaction-res/reactions-with-favorites conn org-id user-id (:existing-reactions ctx))
                         (:access-level ctx)
-                        (-> ctx :user :user-id)))})
+                        user-id)))
+    :patch (fn [ctx] (let [user-id (-> ctx :user :user-id)
+                         org-id (-> ctx :existing-org :uuid)]
+                        (entry-rep/render-entry
+                          (:existing-org ctx)
+                          (:existing-board ctx)
+                          (:updated-entry ctx)
+                          (:existing-comments ctx)
+                          (reaction-res/reactions-with-favorites conn org-id user-id (:existing-reactions ctx))
+                          (:access-level ctx)
+                          user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
@@ -293,13 +300,13 @@
   :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug board-slug])))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry-list org-slug board-slug
+  :handle-ok (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
                           (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug board-slug (:uuid new-entry))
-                                (entry-rep/render-entry org-slug existing-board new-entry [] []
+                                (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
@@ -422,7 +429,10 @@
                                                (:existing-board ctx)
                                                (:updated-entry ctx)
                                                (:existing-comments ctx)
-                                               (:existing-reactions ctx)
+                                               (reaction-res/reactions-with-favorites conn
+                                                                                      (-> ctx :existing-org :uuid)
+                                                                                      (-> ctx :user :user-id)
+                                                                                      (:existing-reactions ctx))
                                                (:access-level ctx)
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
@@ -467,14 +477,22 @@
                         false))
   
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
-                                               (:existing-board ctx)
-                                               (:existing-entry ctx)
-                                               (:existing-comments ctx)
-                                               (:existing-reactions ctx)
-                                               (:access-level ctx)
-                                               (-> ctx :user :user-id)
-                                               :secure)))
+  :handle-ok (fn [ctx] (let [access-level (:access-level ctx)
+                             user-id (-> ctx :user :user-id)
+                             org-id (-> ctx :existing-org :uuid)]
+                          (entry-rep/render-entry (:existing-org ctx)
+                                                  (:existing-board ctx)
+                                                  (:existing-entry ctx)
+                                                  (:existing-comments ctx)
+                                                  (if (or (= :author access-level) (= :viewer access-level))
+                                                    (reaction-res/reactions-with-favorites conn
+                                                                                           org-id
+                                                                                           user-id
+                                                                                           (:existing-reactions ctx))
+                                                    [])
+                                                  access-level
+                                                  user-id
+                                                  :secure))))
 
 ;; ----- Routes -----
 

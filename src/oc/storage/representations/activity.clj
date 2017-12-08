@@ -5,6 +5,7 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.config :as config]))
 
 (defn url [{slug :slug} {start :start direction :direction}]
@@ -64,7 +65,7 @@
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org activity comments reactions access-level user-id]
-  (entry-rep/render-entry-for-collection (:slug org) (:board-slug activity)
+  (entry-rep/render-entry-for-collection org {:slug (:board-slug activity) :uuid (:board-uuid activity)}
     activity comments reactions access-level user-id))
 
 (defn render-activity-list
@@ -72,8 +73,9 @@
   Given an org and a sequence of entry maps, create a JSON representation of a list of
   activity for the API.
   "
-  [params org activity access-level user-id]
-  (let [collection-url (url org params)
+  [conn params org activity access-level user-id]
+  (let [org-id (:uuid org)
+        collection-url (url org params)
         links [(hateoas/self-link collection-url {:accept mt/activity-collection-media-type})
                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
         full-links (concat links (pagination-links org params activity))]
@@ -82,7 +84,8 @@
                     :href collection-url
                     :links full-links
                     :items (map #(render-activity-for-collection org %
-                                    (comments %) (reactions %)
+                                    (comments %)
+                                    (reaction-res/reactions-with-favorites conn org-id user-id (reactions %))
                                     access-level user-id) (:activity activity))}}
       {:pretty config/pretty?})))
 
