@@ -58,24 +58,26 @@
 
 (defn reactions-with-favorites
   "
-  Given a sequence of inidividual reaction interactions, collapse it down to a set of distinct reactions
+  Given a sequence of individual reaction interactions, collapse it down to a set of distinct reactions
   that include the count of how many times reacted and the list of author names and IDs that reacted, and
   supplement this list with user favorites (at count 0) if needed, and org favorites (at count 0) if needed.
   "
   [conn org-id user-id entry-reactions]
   (let [reactions (or (vals (reduce reaction-collapse {} (map #(assoc % :count 1) entry-reactions))) [])
         reaction-unicodes (set (map :reaction reactions))
+        needed-user-favs (- config/max-favorite-reaction-count (count reactions))
         ;; user's favorite reactions if we need them
-        user-faves (when (and user-id (< (count reactions) config/max-favorite-reaction-count))
+        user-favs (when (and user-id (pos? needed-user-favs))
                       (user-favorites conn user-id))
-        filtered-user-faves (remove reaction-unicodes user-faves)
-        reactions-and-user-faves (concat reactions
+        filtered-user-favs (remove reaction-unicodes user-favs)
+        reactions-and-user-favs (concat reactions
                                          (map #(hash-map :reaction % :count 0 :authors [] :author-ids [])
-                                            filtered-user-faves))
+                                            (take needed-user-favs filtered-user-favs)))
         ; org's favorite reactions if we need them
-        reaction-unicodes (set (map :reaction reactions-and-user-faves))
-        org-faves (when (< (count reactions-and-user-faves) config/max-favorite-reaction-count)
+        reaction-unicodes (set (map :reaction reactions-and-user-favs))
+        needed-org-favs (- config/max-favorite-reaction-count (count reactions-and-user-favs))
+        org-favs (when (and org-id (pos? needed-org-favs))
                     (org-favorites conn org-id))
-        filtered-org-faves (remove reaction-unicodes org-faves)]
-    (concat reactions-and-user-faves (map #(hash-map :reaction % :count 0 :authors [] :author-ids[])
-                                        filtered-org-faves))))
+        filtered-org-favs (remove reaction-unicodes org-favs)]
+    (concat reactions-and-user-favs (map #(hash-map :reaction % :count 0 :authors [] :author-ids[])
+                                        (take needed-org-favs filtered-org-favs)))))
