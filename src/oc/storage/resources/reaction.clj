@@ -19,10 +19,11 @@
       cached-response)
     (do
       (timbre/trace "Favorites cache miss for" (str field ":") uuid)
-      (reset! FavoriteReactionCache (cache/miss @FavoriteReactionCache uuid
-        (vec (map first 
-          (db-common/grouped-resources-by-most-common conn "interactions" field
-                                                      uuid "reaction" config/max-favorite-reaction-count))))))))
+      (let [favs (vec (map first
+                  (db-common/grouped-resources-by-most-common conn "interactions" field
+                                                              uuid "reaction" config/max-favorite-reaction-count)))]
+        (reset! FavoriteReactionCache (cache/miss @FavoriteReactionCache uuid favs))
+        favs))))
 
 (defn- org-favorites
   "
