@@ -43,45 +43,15 @@
   (let [react-url (interaction-url org-uuid board-uuid resource-uuid reaction)]
     (hateoas/link-map "react" hateoas/DELETE react-url {})))
 
-(defn- map-kv
-  "Utility function to do an operation on the value of every key in a map."
-  [f coll]
-  (reduce-kv (fn [m k v] (assoc m k (f v))) (empty coll) coll))
-
 (defn- reaction-and-link
   "Given the parts of a reaction URL, return a map representation of the reaction for use in the API."
-  [org-uuid board-uuid resource-uuid reaction reaction-count user?]
-  {:reaction reaction
-   :reacted (if user? true false)
-   :count reaction-count
-   :links [(if user?
-              (unreact-link org-uuid board-uuid resource-uuid reaction)
-              (react-link org-uuid board-uuid resource-uuid reaction))]})
-
-(defn- reaction-selection-sort
-  "
-  Sort order to select the most used reactions, with a tie breaker for default reactions in their default reaction
-  order.
-  "
-  [reaction]
-  (let [index-of (inc (.indexOf config/default-reactions (first reaction)))] ; order in the defaults
-    (if (zero? index-of) ; is it in the defaults, or legacy?
-      ;; it's legacy, so by reaction count
-      (* (last reaction) -1) ; more reactions gives a lower (negative) #, so it has a higher sort
-      ;; it's in the defaults, so by reaction count, but with a little extra for tie breaking with other reactions
-      (- (* (last reaction) -1) (- 1 (* index-of 0.25)))))) ; the earlier it is in the defaults the bigger the tie breaker
-
-(defn- reaction-order-sort
-  "
-  Keep the reaction order stable by sorting on the order they are provided, and if they are legacy
-  reactions, by the order of how many reactions they have (which while not definitively stable, will
-  effectively be fairly stable for legacy reactions).
-  "
-  [reaction]
-  (let [index-of (.indexOf config/default-reactions (first reaction))] ; order in the defaults
-    (if (= index-of -1) ; is it in the defaults, or legacy?
-      (* (last reaction) 10) ; it's legacy, so by reaction count
-      index-of))) ; by order in the defaults
+  [org-uuid board-uuid resource-uuid reaction user?]
+  (-> reaction
+    (dissoc :author-ids)
+    (assoc :reacted (if user? true false))
+    (assoc :links [(if user?
+                    (unreact-link org-uuid board-uuid resource-uuid (:reaction reaction))
+                    (react-link org-uuid board-uuid resource-uuid (:reaction reaction)))])))
 
 (defn reactions-and-links
   "
@@ -89,13 +59,8 @@
   for use in the API.
   "
   [org-uuid board-uuid resource-uuid reactions user-id]
-  (let [grouped-reactions (merge (apply hash-map (interleave config/default-reactions (repeat []))) ; defaults
-                                 (group-by :reaction reactions)) ; reactions grouped by unicode character
-        counted-reactions-map (map-kv count grouped-reactions) ; how many for each character?
-        counted-reactions (map #(vec [% (get counted-reactions-map %)]) (keys counted-reactions-map)) ; map -> sequence
-        top-three-reactions (take 3 (sort-by reaction-selection-sort counted-reactions)) ; top 3 reactions
-        sorted-reactions (sort-by reaction-order-sort top-three-reactions)] ; top 3 sorted
-    (map #(reaction-and-link org-uuid board-uuid resource-uuid (first %) (last %)
-            (some (fn [reaction] (= user-id (-> reaction :author :user-id))) ; the user left one of these reactions?
-              (get grouped-reactions (first %)))) 
-      sorted-reactions)))
+  (let [limited-reactions (take config/max-reaction-count reactions)]
+    (map #(reaction-and-link org-uuid board-uuid resource-uuid %
+            ; the user left one of these reactions?
+            (some (fn [author-id] (= user-id author-id)) (:author-ids %)))
+      limited-reactions)))

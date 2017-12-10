@@ -204,7 +204,7 @@
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
                           (org-rep/render-org (-> org
-                                                (assoc :boards board-reps)
+                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
                                                 (assoc :authors author-reps))
                                               (:access-level ctx)
                                               user-id)))
@@ -293,11 +293,20 @@
 
   ;; Responses
   :handle-created (fn [ctx] (let [new-org (:created-org ctx)
-                                  slug (:slug new-org)]
+                                  slug (:slug new-org)
+                                  org-id (:uuid new-org)
+                                  user-id (-> ctx :user :user-id)
+                                  boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at])
+                                  board-reps (map #(board-rep/render-board-for-collection slug % 0)
+                                                (map #(assoc % :access-level :author) boards))
+                                  author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
+                                  org-for-rep (-> new-org
+                                                (assoc :authors author-reps)
+                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org new-org :author (-> ctx :user :user-id))
-                                mt/org-media-type)))
+                                (org-rep/render-org org-for-rep :author (-> ctx :user :user-id))
+                                  mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
