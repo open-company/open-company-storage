@@ -89,6 +89,7 @@
     true)) ; no existing entry, so this will fail existence check later
 
 ;; ----- Actions -----
+
 (defn- share-entry [conn ctx entry-for]
   (timbre/info "Sharing entry:" entry-for)
   (if-let* [org (:existing-org ctx)
