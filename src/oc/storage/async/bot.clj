@@ -28,10 +28,15 @@
     :org-slug lib-schema/NonBlankStr
     :org-name (schema/maybe schema/Str)
     :org-logo-url (schema/maybe schema/Str)
+    :board-name (schema/maybe schema/Str)
     :headline (schema/maybe schema/Str)
+    :publisher lib-schema/Author
     :secure-uuid lib-schema/UniqueID
     :published-at lib-schema/ISO8601
-    :shared-at lib-schema/ISO8601}))
+    :auto-share schema/Bool
+    :sharer lib-schema/Author
+    :shared-at lib-schema/ISO8601
+    }))
 
 (defn- bot-for
   "Extract the right bot from the JWToken for the specified Slack org ID."
@@ -45,7 +50,7 @@
 
 (schema/defn ^:always-validate ->share-entry-trigger :- ShareEntryTrigger
   "Given an entry for an org and a share request, create the share trigger."
-  [org entry share-request user]
+  [org board entry share-request user]
   (let [slack-org-id (-> share-request :channel :slack-org-id)]
     {
       :type "share-entry"
@@ -58,10 +63,14 @@
       :note (:note share-request)
       :org-slug (:slug org)
       :org-name (:name org)
+      :board-name (:name board)
       :org-logo-url (:logo-url org)
       :headline (:headline entry)
       :secure-uuid (:secure-uuid entry)
       :published-at (:published-at entry)
+      :publisher (:publisher entry)
+      :auto-share (if (:auto-share entry) true false)
+      :sharer (lib-schema/author-for-user user)
       :shared-at (:shared-at share-request)
     }))
 

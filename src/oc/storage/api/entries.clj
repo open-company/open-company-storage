@@ -32,18 +32,18 @@
   "Parallel recursive function to send share requests to AWS SQS."
 
   ;; Initial
-  ([org entry user share-requests :guard seq?]
-  (doall (pmap (partial trigger-share-requests org entry user) share-requests)))
+  ([org board entry user share-requests :guard seq?]
+  (doall (pmap (partial trigger-share-requests org board entry user) share-requests)))
 
   ;; Email share
-  ([org entry user share-request :guard #(= "email" (:medium %)) ]
+  ([org board entry user share-request :guard #(= "email" (:medium %)) ]
   (timbre/info "Triggering share: email for" (:uuid entry) "of" (:slug org))
   (email/send-trigger! (email/->trigger org entry share-request user)))
 
   ;; Slack share
-  ([org entry user share-request :guard #(= "slack" (:medium %))]
+  ([org board entry user share-request :guard #(= "slack" (:medium %))]
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
-  (bot/send-share-entry-trigger! (bot/->share-entry-trigger org entry share-request user))))
+  (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
 
 ;; ----- Validations -----
 
@@ -90,6 +90,36 @@
 
 ;; ----- Actions -----
 
+(defn- share-entry [conn ctx entry-for]
+  (timbre/info "Sharing entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)
+            share-requests (:share-requests ctx)
+            shared {:shared (concat (or (:shared entry) []) share-requests)}
+            update-result (entry-res/update-entry! conn (:uuid entry) shared user)]
+    (do
+      (when (and (seq? share-requests) (any? share-requests))
+        (trigger-share-requests org board (assoc entry :auto-share (:auto-share ctx)) user share-requests))
+      (timbre/info "Shared entry:" entry-for)
+      {:updated-entry update-result})
+    (do
+      (timbre/error "Failed sharing entry:" entry-for) false)))
+
+(defn- auto-share-on-publish
+  [conn ctx entry-result]
+  (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
+    (let [share-request {:medium "slack"
+                         :note ""
+                         :shared-at (db-common/current-timestamp)
+                         :channel slack-channel}
+          share-ctx (-> ctx 
+                      (assoc :share-requests (list share-request))
+                      (assoc :existing-entry entry-result)
+                      (assoc :auto-share true))]
+      (share-entry conn share-ctx (:uuid entry-result)))))
+
 (defn- create-entry [conn ctx entry-for]
   (timbre/info "Creating entry for:" entry-for)
   (if-let* [org (:existing-org ctx)
@@ -100,6 +130,7 @@
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
+        (auto-share-on-publish conn ctx entry-result)
         (change/send-trigger! (change/->trigger :add entry-result)))
       (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx)))
       {:created-entry entry-result})
@@ -152,20 +183,6 @@
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx)))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
-
-(defn- share-entry [conn ctx entry-for]
-  (timbre/info "Sharing entry:" entry-for)
-  (if-let* [org (:existing-org ctx)
-            entry (:existing-entry ctx)
-            user (:user ctx)
-            share-requests (:share-requests ctx)
-            shared {:shared (concat (or (:shared entry) []) share-requests)}
-            update-result (entry-res/update-entry! conn (:uuid entry) shared user)]
-    (do
-      (when (and (seq? share-requests)(any? share-requests)) (trigger-share-requests org entry user share-requests))
-      (timbre/info "Shared entry:" entry-for)
-      {:updated-entry update-result})
-    (do (timbre/error "Failed sharing entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
