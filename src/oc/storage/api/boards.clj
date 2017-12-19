@@ -179,22 +179,22 @@
           new-authors (-> ctx :data :authors)
           new-viewers (-> ctx :data :viewers)]
       (timbre/info "Updated board:" slug "of org:" org-slug)
-      ;; Ensure current user is author
-      (when (and (= "private" (:access updated-board)) ; board is being set private
-               (nil? (current-authors user-id))) ; and current user is not an author
-        (add-member conn ctx org-slug slug :authors user-id)) ; make the current user an author
-      ;; If authors are specified, make any requested author changes as a "sync"
-      (when new-authors
-        (doseq [author (clojure.set/difference (set new-authors) current-authors)]
-          (add-member conn ctx (:slug org) (:slug updated-result) :authors author))
-        (doseq [author (clojure.set/difference current-authors (set new-authors))]
-          (remove-member conn ctx (:slug org) (:slug updated-result) :authors author)))
-      ;; If viewers are specified, make any requested viewer changes as a "sync"
-      (when new-viewers
-        (doseq [viewer (clojure.set/difference (set new-viewers) current-viewers)]
-          (add-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))
-        (doseq [viewer (clojure.set/difference current-viewers (set new-viewers))]
-          (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer)))
+      (when (= "private" (:access updated-board)) ; board is being set private
+        ;; Ensure current user is author
+        (when (nil? (current-authors user-id)) ; and current user is not an author
+          (add-member conn ctx org-slug slug :authors user-id)) ; make the current user an author
+        ;; If authors are specified, make any requested author changes as a "sync"
+        (when new-authors
+          (doseq [author (clojure.set/difference (set new-authors) current-authors)]
+            (add-member conn ctx (:slug org) (:slug updated-result) :authors author))
+          (doseq [author (clojure.set/difference current-authors (set new-authors))]
+            (remove-member conn ctx (:slug org) (:slug updated-result) :authors author)))
+        ;; If viewers are specified, make any requested viewer changes as a "sync"
+        (when new-viewers
+          (doseq [viewer (clojure.set/difference (set new-viewers) current-viewers)]
+            (add-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))
+          (doseq [viewer (clojure.set/difference current-viewers (set new-viewers))]
+            (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
         (change/send-trigger! (change/->trigger :update final-result))
         (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result} user))
