@@ -112,18 +112,6 @@
 
 ;; ----- Actions -----
 
-(defn- create-board [conn {org :existing-org new-board :new-board user :user} org-slug]
-  (timbre/info "Creating board for org:" org-slug)
-  (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
-    
-    (do
-      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
-      (change/send-trigger! (change/->trigger :add board-result))
-      (notification/send-trigger! (notification/->trigger :add org {:new board-result} user))
-      {:created-board board-result})
-    
-    (do (timbre/error "Failed creating board for org:" org-slug) false)))
-
 (defn- add-member
   "Add the specified author or viewer to the specified board."
   [conn ctx org-slug slug member-type user-id]
@@ -139,6 +127,27 @@
     (do
       (timbre/error "Failed adding" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
       false)))
+
+(defn- create-board [conn {org :existing-org new-board :new-board user :user :as ctx} org-slug]
+  (timbre/info "Creating board for org:" org-slug)
+  (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
+    
+    (let [authors (-> ctx :data :authors)
+          viewers (-> ctx :data :viewers)]
+      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
+      (change/send-trigger! (change/->trigger :add board-result))
+      (notification/send-trigger! (notification/->trigger :add org {:new board-result} user))
+      ;; Add any authors specified in the request
+      (doall (pmap #(add-member conn ctx (:slug org) (:slug board-result) :authors %) authors))
+      ;; Add any viewers specified in the request
+      (doall (pmap #(add-member conn ctx (:slug org) (:slug board-result) :viewers %) viewers))
+      {:created-board (if (and (empty? authors) (empty? viewers))
+                        ;; no additional members added, so using the create response is good
+                        board-result
+                        ;; retrieve the board again to get final list of members
+                        (board-res/get-board conn (:uuid board-result)))})
+    
+    (do (timbre/error "Failed creating board for org:" org-slug) false)))
 
 (defn- remove-member
   "Remove the specified author or viewer from the specified board."
