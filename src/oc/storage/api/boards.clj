@@ -128,27 +128,6 @@
       (timbre/error "Failed adding" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
       false)))
 
-(defn- create-board [conn {org :existing-org new-board :new-board user :user :as ctx} org-slug]
-  (timbre/info "Creating board for org:" org-slug)
-  (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
-    
-    (let [authors (-> ctx :data :authors)
-          viewers (-> ctx :data :viewers)]
-      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
-      (change/send-trigger! (change/->trigger :add board-result))
-      (notification/send-trigger! (notification/->trigger :add org {:new board-result} user))
-      ;; Add any authors specified in the request
-      (doall (pmap #(add-member conn ctx (:slug org) (:slug board-result) :authors %) authors))
-      ;; Add any viewers specified in the request
-      (doall (pmap #(add-member conn ctx (:slug org) (:slug board-result) :viewers %) viewers))
-      {:created-board (if (and (empty? authors) (empty? viewers))
-                        ;; no additional members added, so using the create response is good
-                        board-result
-                        ;; retrieve the board again to get final list of members
-                        (board-res/get-board conn (:uuid board-result)))})
-    
-    (do (timbre/error "Failed creating board for org:" org-slug) false)))
-
 (defn- remove-member
   "Remove the specified author or viewer from the specified board."
   [conn ctx org-slug slug member-type user-id]
@@ -165,6 +144,28 @@
       (timbre/error "Failed removing" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
       false)))
 
+(defn- create-board [conn {org :existing-org new-board :new-board user :user :as ctx} org-slug]
+  (timbre/info "Creating board for org:" org-slug)
+  (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
+    
+    (let [authors (-> ctx :data :authors)
+          viewers (-> ctx :data :viewers)]
+      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
+      ;; Add any authors specified in the request
+      (doseq [author authors] (add-member conn ctx (:slug org) (:slug board-result) :authors author))
+      ;; Add any viewers specified in the request
+      (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
+      (let [created-board (if (and (empty? authors) (empty? viewers))
+                            ;; no additional members added, so using the create response is good
+                            board-result
+                            ;; retrieve the board again to get final list of members
+                            (board-res/get-board conn (:uuid board-result)))]
+        (change/send-trigger! (change/->trigger :add created-board))
+        (notification/send-trigger! (notification/->trigger :add org {:new created-board} user))
+        {:created-board created-board}))
+    
+    (do (timbre/error "Failed creating board for org:" org-slug) false)))
+
 (defn- update-board [conn ctx org-slug slug]
   (timbre/info "Updating board:" slug "of org:" org-slug)
   (if-let* [user (:user ctx)
@@ -173,14 +174,31 @@
             board (:existing-board ctx)
             updated-board (:board-update ctx)
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
-    (do
+    (let [current-authors (set (:authors updated-result))
+          current-viewers (set (:viewers updated-result))
+          new-authors (-> ctx :data :authors)
+          new-viewers (-> ctx :data :viewers)]
       (timbre/info "Updated board:" slug "of org:" org-slug)
-      (change/send-trigger! (change/->trigger :update updated-result))
-      (notification/send-trigger! (notification/->trigger :update org {:old board :new updated-result} user))
-      (if (and (= "private" (:access updated-board)) ; board is being set private
-               (nil? ((set (:authors updated-result)) user-id))) ; and current user is not an author
-        (add-member conn ctx org-slug slug :authors user-id) ; make the current user an author
-        {:updated-board updated-result}))
+      ;; Ensure current user is author
+      (when (and (= "private" (:access updated-board)) ; board is being set private
+               (nil? (current-authors user-id))) ; and current user is not an author
+        (add-member conn ctx org-slug slug :authors user-id)) ; make the current user an author
+      ;; If authors are specified, make any requested author changes as a "sync"
+      (when new-authors
+        (doseq [author (clojure.set/difference (set new-authors) current-authors)]
+          (add-member conn ctx (:slug org) (:slug updated-result) :authors author))
+        (doseq [author (clojure.set/difference current-authors (set new-authors))]
+          (remove-member conn ctx (:slug org) (:slug updated-result) :authors author)))
+      ;; If viewers are specified, make any requested viewer changes as a "sync"
+      (when new-viewers
+        (doseq [viewer (clojure.set/difference (set new-viewers) current-viewers)]
+          (add-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))
+        (doseq [viewer (clojure.set/difference current-viewers (set new-viewers))]
+          (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer)))
+      (let [final-result (board-res/get-board conn (:uuid updated-result))]
+        (change/send-trigger! (change/->trigger :update final-result))
+        (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result} user))
+        {:updated-board final-result}))
 
     (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))
 
