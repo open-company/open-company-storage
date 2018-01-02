@@ -3,6 +3,7 @@
             [clojure.tools.namespace.repl :as ctnrepl]
             [oc.lib.db.pool :as pool]
             [oc.storage.config :as c]
+            [oc.storage.util.search :as search]
             [oc.storage.app :as app]
             [oc.storage.components :as components]))
 
@@ -41,3 +42,6 @@
 (defn reset []
   (stop)
   (ctnrepl/refresh :after 'user/go))
+
+(defn send-data-to-search-index []
+  (search/index-all-entries conn))
