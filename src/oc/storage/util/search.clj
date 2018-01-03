@@ -48,7 +48,7 @@
   (let [now (db-common/current-timestamp)]
     (doseq [org (org-res/list-orgs conn [:team-id])]
       (let [boards (board-res/list-boards-by-org conn (:uuid org))
-            allowed-boards (vec (map #(:uuid %) boards))
+            allowed-boards (vec (map :uuid boards))
             entries (entry-res/list-entries-by-org conn (:uuid org) :desc now :before allowed-boards)]
         (doseq [entry entries]
           (let [board (first (filter #(= (:uuid %) (:board-uuid entry)) boards))]
