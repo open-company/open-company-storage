@@ -40,7 +40,7 @@
 (defn- publish-props
   "Provide properties for an initially published entry."
   [entry timestamp author]
-  (if (= (:status entry) "published")
+  (if (= (keyword (:status entry)) :published)
     (-> entry
       (assoc :published-at timestamp)
       (assoc :publisher author))
@@ -94,8 +94,11 @@
   {:pre [(db-common/conn? conn)]}
   (if-let* [board-uuid (:board-uuid entry)
             board (board-res/get-board conn board-uuid)]
-    (let [author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
-      (db-common/create-resource conn table-name (assoc entry :author [author]) ts)) ; create the entry
+    (let [stamped-entry (if (= (keyword (:status entry)) :published)
+                              (assoc entry :published-at ts)
+                              entry)
+          author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
+      (db-common/create-resource conn table-name (assoc stamped-entry :author [author]) ts)) ; create the entry
     (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid entry)}))))) ; no board
 
 (schema/defn ^:always-validate get-entry :- (schema/maybe common/Entry)
@@ -203,17 +206,18 @@
 (schema/defn ^:always-validate list-entries-by-org
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
-  and a direction, one of `:before` or `:after`, return the entries for the org with any interactions.
+  and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
   "
   [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
   (db-common/read-resources-and-relations conn table-name :status-org-uuid [[:published org-uuid]]
-                                          "created-at" order start direction config/default-activity-limit
+                                          "published-at" order start direction config/default-activity-limit
                                           :board-uuid r/contains allowed-boards
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"]))
+                                          ["uuid" "headline" "body" "reaction" "author"
+                                           "published-at" "created-at" "updated-at"]))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "
@@ -232,7 +236,7 @@
                                           ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"])))
 
 (schema/defn ^:always-validate list-entries-by-board
-  "Given the UUID of the board, return the entries for the board with any interactions."
+  "Given the UUID of the board, return the published entries for the board with any interactions."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
@@ -253,7 +257,7 @@
   "
   [conn org-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/months-with-resource conn table-name :org-uuid org-uuid :created-at))
+  (db-common/months-with-resource conn table-name :org-uuid org-uuid :published-at))
 
 ;; ----- Armageddon -----
 

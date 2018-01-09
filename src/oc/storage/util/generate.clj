@@ -131,8 +131,9 @@
         video? (<= (rand) (:chance-of-video config-data))
         body (if video? (str part3 (video-tag)) part3)
         entry-props {:headline headline :body body}
-        entry (if topic? (assoc entry-props :topic-name topic) entry-props)]
-    (entry-res/create-entry! conn (entry-res/->entry conn board entry author) timestamp)))
+        entry (if topic? (assoc entry-props :topic-name topic) entry-props)
+        with-published (assoc entry :status :published)]
+    (entry-res/create-entry! conn (entry-res/->entry conn board with-published author) timestamp)))
 
 (defn- generate-updates [conn org config-data authors this-date]
   (let [update-count (int (inc (Math/floor (rand (:max-entries config-data)))))

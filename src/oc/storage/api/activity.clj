@@ -4,6 +4,7 @@
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
+            [clj-time.core :as t]
             [clj-time.format :as f]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
@@ -52,7 +53,13 @@
         activities (cond
 
                   (= direction :around)
-                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc start :after allowed-boards)
+                  ;; around is inclusive of the provided timestamp, so we offset the after timestamp by 1ms so as not
+                  ;; to exclude the provided timestamp (essentially with '> timestamp' and '< timestamp').
+                  ;; This means we actually have a 1ms overlap, but in practice, this is OK.
+                  (let [start-stamp (f/parse db-common/timestamp-format start)
+                        around-stamp (t/minus start-stamp (t/millis 1))
+                        around-start (f/unparse db-common/timestamp-format around-stamp)
+                        previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards)
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards)
                         previous-activity (merge-activity previous-entries [] :asc)
                         next-activity (merge-activity next-entries [] :desc)]
