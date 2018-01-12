@@ -39,7 +39,7 @@ Prospective users of [Carrot](https://carrot.io/) should get started by going to
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8+ JRE is needed to run Clojure
-* [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
+* [Leiningen](https://github.com/technomancy/leiningen) 2.7.1+ - Clojure's build and dependency management tool
 * [RethinkDB](http://rethinkdb.com/) v2.3.6+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
@@ -64,8 +64,8 @@ Leiningen is easy to install:
 Then let Leiningen install the rest of the dependencies:
 
 ```console
-git clone https://github.com/open-company/open-company-storage.git
-cd open-company-storage
+git clone https://github.com/open-company/open-company-search.git
+cd open-company-search
 lein deps
 ```
 
