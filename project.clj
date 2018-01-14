@@ -192,6 +192,7 @@
     "migrate-db" ["run" "-m" "oc.storage.db.migrations" "migrate"] ; run pending data migrations
     "start" ["do" "migrate-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "start"] ; start a server in production
+    "full-index" ["run" "-m" "oc.storage.util.search"] ; push a full index or re-index to search service SQS queue
     "autotest" ["with-profile" "qa" "do" "migrate-db," "midje" ":autotest"] ; watch for code changes and run affected tests
     "test!" ["with-profile" "qa" "do" "build," "migrate-db," "midje"] ; build, init the DB and run all tests
     "repl" ["with-profile" "+repl-config" "repl"]

@@ -64,8 +64,8 @@ Leiningen is easy to install:
 Then let Leiningen install the rest of the dependencies:
 
 ```console
-git clone https://github.com/open-company/open-company-search.git
-cd open-company-search
+git clone https://github.com/open-company/open-company-storage.git
+cd open-company-storage
 lein deps
 ```
 
@@ -329,6 +329,32 @@ lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-0
 
 See the sample generation config file `./opt/generate.edn` for how the sample data generation can be customized.
  
+#### Force initial indexing or re-indexing
+
+You can initiate an initial indexing of all the content stored in the storage service, or a re-indexing of the content from the commandline. Ensure you have `AWS_SQS_SEARCH_INDEX_QUEUE` set to the search service SQS queue you are using:
+
+```console
+export AWS_SQS_SEARCH_INDEX_QUEUE=change-me
+```
+
+Then run:
+
+```
+lein full-index
+```
+
+Or you can do it from the REPL. Ensure you have the `aws-sqs-search-index-queue` configuration set to the search service SQS queue you are using:
+
+```clojure
+config/aws-sqs-search-index-queue
+```
+
+then, from the REPL, run:
+
+```clojure
+(send-data-to-search-index)
+```
+
 
 ## Testing
 
