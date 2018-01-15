@@ -39,7 +39,7 @@ Prospective users of [Carrot](https://carrot.io/) should get started by going to
 Most of the dependencies are internal, meaning [Leiningen](https://github.com/technomancy/leiningen) will handle getting them for you. There are a few exceptions:
 
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8+ JRE is needed to run Clojure
-* [Leiningen](https://github.com/technomancy/leiningen) 2.5.1+ - Clojure's build and dependency management tool
+* [Leiningen](https://github.com/technomancy/leiningen) 2.7.1+ - Clojure's build and dependency management tool
 * [RethinkDB](http://rethinkdb.com/) v2.3.6+ - a multi-modal (document, key/value, relational) open source NoSQL database
 
 #### Java
@@ -329,6 +329,32 @@ lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-0
 
 See the sample generation config file `./opt/generate.edn` for how the sample data generation can be customized.
  
+#### Force initial indexing or re-indexing
+
+You can initiate an initial indexing of all the content stored in the storage service, or a re-indexing of the content from the commandline. Ensure you have `AWS_SQS_SEARCH_INDEX_QUEUE` set to the search service SQS queue you are using:
+
+```console
+export AWS_SQS_SEARCH_INDEX_QUEUE=change-me
+```
+
+Then run:
+
+```
+lein full-index
+```
+
+Or you can do it from the REPL. Ensure you have the `aws-sqs-search-index-queue` configuration set to the search service SQS queue you are using:
+
+```clojure
+config/aws-sqs-search-index-queue
+```
+
+then, from the REPL, run:
+
+```clojure
+(send-data-to-search-index)
+```
+
 
 ## Testing
 

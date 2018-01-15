@@ -37,10 +37,10 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.5"]
+    [zprint "0.4.6"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.14.14"]
+    [open-company/lib "0.14.15"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -126,7 +126,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.6" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.7" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {
@@ -192,6 +192,7 @@
     "migrate-db" ["run" "-m" "oc.storage.db.migrations" "migrate"] ; run pending data migrations
     "start" ["do" "migrate-db," "run"] ; start a development server
     "start!" ["with-profile" "prod" "do" "start"] ; start a server in production
+    "full-index" ["run" "-m" "oc.storage.util.search"] ; push a full index or re-index to search service SQS queue
     "autotest" ["with-profile" "qa" "do" "migrate-db," "midje" ":autotest"] ; watch for code changes and run affected tests
     "test!" ["with-profile" "qa" "do" "build," "migrate-db," "midje"] ; build, init the DB and run all tests
     "repl" ["with-profile" "+repl-config" "repl"]
