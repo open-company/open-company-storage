@@ -48,11 +48,11 @@
   (let [now (db-common/current-timestamp)]
     (doseq [org (org-res/list-orgs conn [:team-id])]
       (let [boards (board-res/list-boards-by-org conn (:uuid org) [:access])
-            allowed-boards (vec (map :uuid boards))
-            entries (entry-res/list-entries-by-org conn (:uuid org) :desc now :before allowed-boards)]
-        (doseq [entry entries]
-          (let [board (first (filter #(= (:uuid %) (:board-uuid entry)) boards))]
-            (send-trigger! (->trigger "entry" entry org board))))))))
+            allowed-boards (vec (map :uuid boards))]
+        (doseq [board boards]
+          (let [entries (entry-res/list-entries-by-board conn (:uuid board))]
+            (doseq [entry entries]
+              (send-trigger! (->trigger "entry" entry org board)))))))))
 
 ;; ----- CLI -----
 
