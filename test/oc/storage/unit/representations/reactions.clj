@@ -1,4 +1,4 @@
-(ns oc.unit.representations.reactions
+(ns oc.storage.unit.representations.reactions
   (:require [midje.sweet :refer :all]
             [midje.util :refer (testable-privates)]
             [oc.storage.config :as config]
