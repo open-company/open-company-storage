@@ -146,8 +146,7 @@
     (let [authors (:author original-entry)
           new-topic-name (:topic-name entry)
           topic-name (if (clojure.string/blank? new-topic-name)
-                      (if (contains? entry :topic-name)
-                        nil ; topic name is being intentionally cleared out
+                      (when-not (contains? entry :topic-name)
                         (:topic-name original-entry)) ; keep prior topic name
                       new-topic-name) ; new topic name provided
           topic-slug (when topic-name (slugify/slugify topic-name))
