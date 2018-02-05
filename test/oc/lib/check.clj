@@ -1,4 +1,4 @@
-(ns open-company.lib.check
+(ns oc.lib.check
   "Namespace for utility functions used in tests to check that things are as expected."
   (:require [clojure.test :refer (is)]
             [clj-time.core :as t]

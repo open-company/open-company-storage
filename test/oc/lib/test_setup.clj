@@ -1,7 +1,7 @@
-(ns open-company.lib.test-setup
+(ns oc.lib.test-setup
   (:require [com.stuartsierra.component :as component]
-            [open-company.components :as components]
-            [open-company.app :as app]))
+            [oc.storage.components :as components]
+            [oc.storage.app :as app]))
 
 (def test-system (atom nil))
 

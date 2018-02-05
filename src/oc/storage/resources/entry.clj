@@ -145,7 +145,10 @@
   (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           new-topic-name (:topic-name entry)
-          topic-name (when-not (clojure.string/blank? new-topic-name) new-topic-name)
+          topic-name (if (clojure.string/blank? new-topic-name)
+                      (when-not (contains? entry :topic-name)
+                        (:topic-name original-entry)) ; keep prior topic name
+                      new-topic-name) ; new topic name provided
           topic-slug (when topic-name (slugify/slugify topic-name))
           merged-entry (merge original-entry (ignore-props entry))
           topic-named-entry (assoc merged-entry :topic-name topic-name)
