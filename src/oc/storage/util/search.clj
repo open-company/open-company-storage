@@ -47,7 +47,7 @@
 (defn index-all-entries [conn]
   (let [now (db-common/current-timestamp)]
     (doseq [org (org-res/list-orgs conn [:team-id])]
-      (let [boards (board-res/list-boards-by-org conn (:uuid org) [:access])
+      (let [boards (board-res/list-boards-by-org conn (:uuid org) [:access :viewers :authors])
             allowed-boards (vec (map :uuid boards))]
         (doseq [board boards]
           (let [entries (entry-res/list-entries-by-board conn (:uuid board))]
