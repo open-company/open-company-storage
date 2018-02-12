@@ -33,7 +33,7 @@
         entry (entry/->entry conn board-uuid entry-props (first authors))
         fixed-entry (assoc entry :author entry-authors)]
     (println (str "Creating entry at " timestamp " on board '" (:name board) "'"))
-    (db-common/create-resource conn entry/table-name fixed-entry timestamp)))
+    (db-common/create-resource conn entry/table-name (assoc fixed-entry :status "published") timestamp)))
 
 (defn- import-board [conn org board author]
   (println (str "Creating board '" (:name board) "'."))
