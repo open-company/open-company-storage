@@ -94,6 +94,8 @@
 (defonce max-reaction-count 5) 
 (defonce max-favorite-reaction-count 3)
 
+(defonce inline-comment-count 10)
+
 (defonce default-activity-limit 20)
 
 (defonce whats-new-board (env :whats-new-board))
