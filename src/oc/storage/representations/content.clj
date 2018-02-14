@@ -52,17 +52,6 @@
                     (unreact-link org-uuid board-uuid resource-uuid (:reaction reaction))
                     (react-link org-uuid board-uuid resource-uuid (:reaction reaction)))])))
 
-(defn- comment-and-link
-  "Given a comment, return a map representation of the comment for use in the API."
-  [org-uuid board-uuid resource-uuid comment-res user?]
-  (-> comment-res
-    (assoc :links (conj (if user?
-                    [
-                      ; edit link
-                      ; delete link
-                    ]
-                    []) (comment-link org-uuid board-uuid resource-uuid)))))
-
 (defn reactions-and-links
   "
   Given a sequence of reactions and the parts of a interaction URL, return a representation of the reactions
@@ -74,12 +63,3 @@
             ; the user left one of these reactions?
             (some (fn [author-id] (= user-id author-id)) (:author-ids %)))
       limited-reactions)))
-
-(defn comments-and-links
-  "
-  Given a sequence of comments and the parts of an interaction URL, return a representation of the comments
-  for use in the API.
-  "
-  [org-uuid board-uuid resource-uuid comments user-id]
-  (let [limited-comments (take config/inline-comment-count comments)]
-    (map #(comment-and-link org-uuid board-uuid resource-uuid % false) limited-comments)))

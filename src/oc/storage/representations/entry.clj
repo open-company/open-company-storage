@@ -116,9 +116,7 @@
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
-        comment-list (if (= access-level :public)
-                        []
-                        (content/comments-and-links org-uuid board-uuid entry-uuid comments user-id))
+        comment-list (if (= access-level :public) [] (take config/inline-comment-count comments))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
