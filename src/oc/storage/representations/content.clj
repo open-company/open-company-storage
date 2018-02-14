@@ -47,7 +47,6 @@
   "Given the parts of a reaction URL, return a map representation of the reaction for use in the API."
   [org-uuid board-uuid resource-uuid reaction user?]
   (-> reaction
-    (dissoc :author-ids)
     (assoc :reacted (if user? true false))
     (assoc :links [(if user?
                     (unreact-link org-uuid board-uuid resource-uuid (:reaction reaction))
@@ -55,7 +54,7 @@
 
 (defn reactions-and-links
   "
-  Given a sequence of reactions and the parts of a reaction URL, return a representation of the reactions
+  Given a sequence of reactions and the parts of a interaction URL, return a representation of the reactions
   for use in the API.
   "
   [org-uuid board-uuid resource-uuid reactions user-id]

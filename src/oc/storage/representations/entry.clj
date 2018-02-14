@@ -90,12 +90,12 @@
     (assoc entry :secure-uuid secure-uuid)
     entry))
 
-(defn- include-reactions
-  "Include reactions only if we have some."
-  [entry reactions]
-  (if (empty? reactions)
+(defn- include-interactions
+  "Include interactions only if we have some."
+  [entry collection key-name]
+  (if (empty? collection)
     entry
-    (assoc entry :reactions reactions)))
+    (assoc entry key-name collection)))
 
 (defn- entry-and-links
   "
@@ -113,9 +113,12 @@
         full-entry (if draft?
                       (merge {:board-slug (:slug board) :board-name (:name board)} entry)
                       entry)
-        reactions (if (= access-level :public)
-                    []
-                    (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
+        reaction-list (if (= access-level :public)
+                        []
+                        (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
+        comment-list (if (= access-level :public)
+                        []
+                        (take config/inline-comment-count (reverse (sort-by :created-at comments))))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
@@ -140,7 +143,7 @@
                     :else links)
         react-links (if (and
                           (or (= access-level :author) (= access-level :viewer))
-                          (< (count reactions) config/max-reaction-count))
+                          (< (count reaction-list) config/max-reaction-count))
                       ;; Authors and viewers need a link to post fresh new reactions, unless we're maxed out
                       (conj more-links (react-link org board entry-uuid))
                       more-links)
@@ -167,7 +170,8 @@
       (select-keys representation-props)
       (clean-blank-topic)
       (include-secure-uuid secure-uuid access-level)
-      (include-reactions reactions)
+      (include-interactions reaction-list :reactions)
+      (include-interactions comment-list :comments)
       (assoc :links full-links))))
 
 (defn render-entry-for-collection
