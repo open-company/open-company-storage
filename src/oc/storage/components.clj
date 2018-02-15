@@ -6,31 +6,41 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.config :as c]))
 
-(defrecord HttpKit [options handler server]
+(defrecord HttpKit [options handler]
   component/Lifecycle
+
   (start [component]
+    (timbre/info "[http] starting...")
     (let [handler (get-in component [:handler :handler] handler)
           server  (httpkit/run-server handler options)]
-      (assoc component :server server)))
-  (stop [component]
-    (if-not server
-      component
+      (timbre/info "[http] started")
+      (assoc component :http-kit server)))
+
+  (stop [{:keys [http-kit] :as component}]
+    (if http-kit
       (do
-        (server)
-        (dissoc component :server)))))
+        (timbre/info "[http] stopping...")
+        (http-kit)
+        (timbre/info "[http] stopped")
+        (dissoc component :http-kit))
+      component)))
 
 (defrecord RethinkPool [size regenerate-interval pool]
   component/Lifecycle
+
   (start [component]
     (timbre/info "[rehinkdb-pool] starting")
     (let [pool (pool/fixed-pool (partial pool/init-conn c/db-options) pool/close-conn
                                 {:size size :regenerate-interval regenerate-interval})]
       (timbre/info "[rehinkdb-pool] started")
       (assoc component :pool pool)))
+
   (stop [component]
     (if pool
       (do
+        (timbre/info "[rethinkdb-pool] stopping...")
         (pool/shutdown-pool! pool)
+        (timbre/info "[rethinkdb-pool] stopped")
         (dissoc component :pool))
       component)))
 
@@ -40,6 +50,7 @@
   (start [component]
     (timbre/info "[async-consumers] starting")
     (notification/start) ; core.async channel consumer for notification events
+    (timbre/info "[async-consumers] started")
     (assoc component :async-consumers true))
 
   (stop [{:keys [async-consumers] :as component}]
@@ -47,15 +58,17 @@
       (do
         (timbre/info "[async-consumers] stopping")
         (notification/stop) ; core.async channel consumer for notification events
+        (timbre/info "[async-consumers] stopped")
         (dissoc component :async-consumers))
     component)))
 
 (defrecord Handler [handler-fn]
   component/Lifecycle
   (start [component]
-    (timbre/info "[handler] starting")
+    (timbre/info "[handler] started")
     (assoc component :handler (handler-fn component)))
   (stop [component]
+    (timbre/info "[handler] stopped")
     (dissoc component :handler)))
 
 (defn storage-system [{:keys [host port handler-fn] :as opts}]
