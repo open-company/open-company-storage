@@ -95,7 +95,11 @@
 (defn- valid-new-board? [conn org-slug {board-map :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
-      {:new-board (board-res/->board (:uuid org) board-map author) :existing-org org}
+      (let [notifications (:private-notifications board-map)
+            board-data (dissoc board-map :private-notifications)]
+        {:new-board (board-res/->board (:uuid org) board-data author)
+         :existing-org org
+         :notifications notifications})
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
@@ -103,10 +107,15 @@
 
 (defn- valid-board-update? [conn org-slug slug board-props]
   (if-let* [org (org-res/get-org conn org-slug)
-            board (board-res/get-board conn (:uuid org) slug)]
-    (let [updated-board (merge board (board-res/clean board-props))]
+            board (board-res/get-board conn (:uuid org) slug)
+            notifications (:private-notifications board-props)
+            board-data (dissoc board-props :private-notifications)]
+    (let [updated-board (merge board (board-res/clean board-data))]
       (if (lib-schema/valid? common-res/Board updated-board)
-        {:existing-org org :existing-board board :board-update updated-board}
+        {:existing-org org
+         :existing-board board
+         :board-update updated-board
+         :notifications notifications}
         [false, {:board-update updated-board}])) ; invalid update
     true)) ; No org or board, so this will fail existence check later
 
@@ -149,7 +158,8 @@
   (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
     
     (let [authors (-> ctx :data :authors)
-          viewers (-> ctx :data :viewers)]
+          viewers (-> ctx :data :viewers)
+          notifications (:notifications ctx)]
       (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
       ;; Add any authors specified in the request
       (doseq [author authors] (add-member conn ctx (:slug org) (:slug board-result) :authors author))
@@ -161,7 +171,7 @@
                             ;; retrieve the board again to get final list of members
                             (board-res/get-board conn (:uuid board-result)))]
         (change/send-trigger! (change/->trigger :add created-board))
-        (notification/send-trigger! (notification/->trigger :add org {:new created-board} user))
+        (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user))
         {:created-board created-board}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
@@ -173,6 +183,7 @@
             org (:existing-org ctx)
             board (:existing-board ctx)
             updated-board (:board-update ctx)
+            notifications (:notifications ctx)
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
     (let [current-authors (set (:authors updated-result))
           current-viewers (set (:viewers updated-result))
@@ -197,7 +208,8 @@
             (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
         (change/send-trigger! (change/->trigger :update final-result))
-        (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result} user))
+        (timbre/debug notifications)
+        (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user))
         {:updated-board final-result}))
 
     (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))

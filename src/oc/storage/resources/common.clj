@@ -99,3 +99,16 @@
 
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
+
+(def User
+  "User info to notify via email/slack"
+  {:updated-at lib-schema/ISO8601
+   :email schema/Str
+   :last-name schema/Str
+   :avatar-url schema/Str
+   :user-id lib-schema/UniqueID
+   :first-name schema/Str
+   :status schema/Str
+   :created-at lib-schema/ISO8601
+   schema/Keyword schema/Any ; and whatever else
+   })

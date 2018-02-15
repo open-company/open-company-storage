@@ -50,11 +50,12 @@
   {:notification-type (schema/pred notification-type?)
    :resource-type (schema/pred resource-type?)
    (schema/optional-key :org) common-res/Org
-   (schema/optional-key :board) common-res/Board   
+   (schema/optional-key :board) common-res/Board
    :content {
     (schema/optional-key :new) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
+    (schema/optional-key :notifications) (schema/maybe [common-res/User])
     (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)}
