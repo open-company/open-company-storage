@@ -2,7 +2,7 @@
   "
   Async publish of notification events to AWS SNS.
   "
-  (:require [clojure.core.async :as async :refer (<!! >!!)]
+  (:require [clojure.core.async :as async :refer (<! >!!)]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
@@ -87,7 +87,7 @@
   (timbre/info "Starting notification...")
   (async/go (while @notification-go
     (timbre/debug "Notification waiting...")
-    (let [message (<!! notification-chan)]
+    (let [message (<! notification-chan)]
       (timbre/debug "Processing message on notification channel...")
       (if (:stop message)
         (do (reset! notification-go false) (timbre/info "Notification stopped."))
