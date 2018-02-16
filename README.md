@@ -10,18 +10,18 @@
 
 > -- Dalai Lama
 
-Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution is surprisingly simple and effective - focused conversations that build transparency and alignment.
+Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps, but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution is surprisingly simple and effective - **focused conversations that build transparency and alignment**.
 
 OpenCompany is the open source platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
 
-Transparency expectations are changing. Organizations need to change as well if they are going to attract and retain savvy teams. Just as open source changed the way we build software, transparency changes how we build successful companies with information that is open, interactive, and always accessible. Carrot turns transparency into a competitive advantage.
+Transparency expectations are changing. Organizations need to change as well if they are going to attract and retain savvy teams. Just as open source changed the way we build software, transparency changes how we build successful companies with information that is open, interactive, and always accessible. **Carrot turns transparency into a competitive advantage**.
 
 To get started, head to: [Carrot](https://carrot.io/)
 
 
 ## Overview
 
-The OpenCompany Storage Service handles data access and data management of open company content and data. It supports other OpenCompany services, such as the Web application and OpenCompany Bot, as well as open API access.
+The OpenCompany Storage Service handles data access and data management of open company content and data. It supports other OpenCompany services, such as the [Web application](https://github.com/open-company/open-company-web) and the [Digest Service](https://github.com/open-company/open-company-digest), as well as open API access.
 
 
 ## Local Setup
