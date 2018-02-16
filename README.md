@@ -10,19 +10,11 @@
 
 > -- Dalai Lama
 
-Companies struggle to keep everyone on the same page. People are hyper-connected in the moment but still don't know what's happening across the company. Employees and investors, co-founders and execs, customers and community, they all want more transparency. The solution is surprisingly simple and effective - great company updates that build transparency and alignment.
+Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution is surprisingly simple and effective - focused conversations that build transparency and alignment.
 
-With that in mind we designed the [Carrot](https://carrot.io/) software-as-a-service application, powered by the open source [OpenCompany platform](https://github.com/open-company). The product design is based on three principles:
+OpenCompany is the open source platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
 
-1. It has to be easy or no one will play.
-2. The "big picture" should always be visible.
-3. Alignment is valuable beyond the team, too.
-
-Carrot simplifies how key business information is shared with stakeholders to create alignment. When information about growth, finances, ownership and challenges is shared transparently, it inspires trust, new ideas and new levels of stakeholder engagement. Carrot makes it easy for founders to engage with employees and investors, creating alignment for everyone.
-
-[Carrot](https://carrot.io/) is GitHub for the rest of your company.
-
-Transparency expectations are changing. Organizations need to change as well if they are going to attract and retain savvy employees and investors. Just as open source changed the way we build software, transparency changes how we build successful companies with information that is open, interactive, and always accessible. Carrot turns transparency into a competitive advantage.
+Transparency expectations are changing. Organizations need to change as well if they are going to attract and retain savvy teams. Just as open source changed the way we build software, transparency changes how we build successful companies with information that is open, interactive, and always accessible. Carrot turns transparency into a competitive advantage.
 
 To get started, head to: [Carrot](https://carrot.io/)
 
