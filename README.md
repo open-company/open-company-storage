@@ -10,7 +10,7 @@
 
 > -- Dalai Lama
 
-Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps, but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution is surprisingly simple and effective - **focused conversations that build transparency and alignment**.
+Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps, but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution - **focused conversations that build transparency and alignment**.
 
 OpenCompany is the open source platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
 
