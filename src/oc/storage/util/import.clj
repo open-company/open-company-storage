@@ -33,7 +33,7 @@
         entry (entry/->entry conn board-uuid entry-props (first authors))
         fixed-entry (-> entry
                       (assoc :author entry-authors)
-                      (assoc :publisher (first entry-authors))
+                      (assoc :publisher (dissoc (first entry-authors) :updated-at))
                       (assoc :published-at timestamp)
                       (assoc :status "published"))]
     (println (str "Creating entry at " timestamp " on board '" (:name board) "'"))
