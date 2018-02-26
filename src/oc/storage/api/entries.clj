@@ -243,26 +243,22 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (let [user-id (-> ctx :user :user-id)
-                         org-id (-> ctx :existing-org :uuid)]
-                      (entry-rep/render-entry 
+    :get (fn [ctx] (entry-rep/render-entry 
+                      (:existing-org ctx)
+                      (:existing-board ctx)
+                      (:existing-entry ctx)
+                      (:existing-comments ctx)
+                      (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                      (:access-level ctx)
+                      (-> ctx :user :user-id)))
+    :patch (fn [ctx] (entry-rep/render-entry
                         (:existing-org ctx)
                         (:existing-board ctx)
-                        (:existing-entry ctx)
+                        (:updated-entry ctx)
                         (:existing-comments ctx)
-                        (reaction-res/reactions-with-favorites conn org-id user-id (:existing-reactions ctx))
+                        (reaction-res/aggregate-reactions (:existing-reactions ctx))
                         (:access-level ctx)
-                        user-id)))
-    :patch (fn [ctx] (let [user-id (-> ctx :user :user-id)
-                         org-id (-> ctx :existing-org :uuid)]
-                        (entry-rep/render-entry
-                          (:existing-org ctx)
-                          (:existing-board ctx)
-                          (:updated-entry ctx)
-                          (:existing-comments ctx)
-                          (reaction-res/reactions-with-favorites conn org-id user-id (:existing-reactions ctx))
-                          (:access-level ctx)
-                          user-id)))})
+                        (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
@@ -446,10 +442,7 @@
                                                (:existing-board ctx)
                                                (:updated-entry ctx)
                                                (:existing-comments ctx)
-                                               (reaction-res/reactions-with-favorites conn
-                                                                                      (-> ctx :existing-org :uuid)
-                                                                                      (-> ctx :user :user-id)
-                                                                                      (:existing-reactions ctx))
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
                                                (:access-level ctx)
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
@@ -494,21 +487,16 @@
                         false))
   
   ;; Responses
-  :handle-ok (fn [ctx] (let [access-level (:access-level ctx)
-                             user-id (-> ctx :user :user-id)
-                             org-id (-> ctx :existing-org :uuid)]
+  :handle-ok (fn [ctx] (let [access-level (:access-level ctx)]
                           (entry-rep/render-entry (:existing-org ctx)
                                                   (:existing-board ctx)
                                                   (:existing-entry ctx)
                                                   (:existing-comments ctx)
                                                   (if (or (= :author access-level) (= :viewer access-level))
-                                                    (reaction-res/reactions-with-favorites conn
-                                                                                           org-id
-                                                                                           user-id
-                                                                                           (:existing-reactions ctx))
+                                                    (reaction-res/aggregate-reactions (:existing-reactions ctx))
                                                     [])
                                                   access-level
-                                                  user-id
+                                                  (-> ctx :user :user-id)
                                                   :secure))))
 
 ;; ----- Routes -----
