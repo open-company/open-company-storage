@@ -58,9 +58,7 @@
   ;; Regular board
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
-        org-id (:uuid org)
         slug (:slug board)
-        user-id (-> ctx :user :user-id)
         entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
@@ -73,8 +71,8 @@
                     all-topics) ; board's and default
         entry-reps (map #(entry-rep/render-entry-for-collection org board %
                             (comments %)
-                            (reaction-res/reactions-with-favorites conn org-id user-id (reactions %))
-                            (:access-level ctx) user-id)
+                            (reaction-res/aggregate-reactions (reactions %))
+                            (:access-level ctx) (-> ctx :user :user-id))
                       entries)]
     (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
 

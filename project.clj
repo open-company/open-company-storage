@@ -37,7 +37,7 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.6"]
+    [zprint "0.4.7"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
     [open-company/lib "0.16.2"]
@@ -82,7 +82,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.2-alpha2" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.9.2-alpha3" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]
@@ -126,7 +126,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.7" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.8" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {

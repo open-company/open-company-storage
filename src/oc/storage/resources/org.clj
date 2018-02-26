@@ -149,11 +149,17 @@
     
     (do
       ;; Delete interactions
-      (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
+      (try
+        (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; OK if no interactions
       ;; Delete entries
-      (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
+      (try 
+        (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; OK if no entries
       ;; Delete boards
-      (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
+      (try
+        (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; OK if no boards
       ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
     

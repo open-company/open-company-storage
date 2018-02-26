@@ -73,9 +73,8 @@
   Given an org and a sequence of entry maps, create a JSON representation of a list of
   activity for the API.
   "
-  [conn params org activity access-level user-id]
-  (let [org-id (:uuid org)
-        collection-url (url org params)
+  [params org activity access-level user-id]
+  (let [collection-url (url org params)
         links [(hateoas/self-link collection-url {:accept mt/activity-collection-media-type})
                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
         full-links (concat links (pagination-links org params activity))]
@@ -85,7 +84,7 @@
                     :links full-links
                     :items (map #(render-activity-for-collection org %
                                     (comments %)
-                                    (reaction-res/reactions-with-favorites conn org-id user-id (reactions %))
+                                    (reaction-res/aggregate-reactions (reactions %))
                                     access-level user-id) (:activity activity))}}
       {:pretty config/pretty?})))
 
