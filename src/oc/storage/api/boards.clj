@@ -206,7 +206,6 @@
             (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
         (change/send-trigger! (change/->trigger :update final-result))
-        (timbre/debug notifications)
         (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user))
         {:updated-board final-result}))
 

@@ -110,5 +110,4 @@
    :first-name schema/Str
    :status schema/Str
    :created-at lib-schema/ISO8601
-   schema/Keyword schema/Any ; and whatever else
-   })
+   schema/Keyword schema/Any}) ; and whatever else
