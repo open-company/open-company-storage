@@ -132,13 +132,11 @@
                                    (delete-link org-slug board-slug entry-uuid)
                                    (secure-link org-slug secure-uuid)                                   
                                    (content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
-                                   (board-rep/interaction-link board-uuid)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
                     ;; Access by viewers get comments
                     (= access-level :viewer)
                     (concat links [(content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
-                                   (board-rep/interaction-link board-uuid)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
                     ;; Everyone else is read-only
                     :else links)
         react-links (if (and

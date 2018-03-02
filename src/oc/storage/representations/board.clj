@@ -46,10 +46,6 @@
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
-(defn interaction-link [board-uuid]
-  (hateoas/link-map "interactions" "GET"
-    (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
-
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
@@ -67,20 +63,14 @@
   (let [slug (:slug board)
         ;; Everyone gets these
         links [(self-link org-slug slug) (up-link org-slug)]
-        ;; Viewers and authors get a WebSocket link to listen for new interactions
-        interaction-links (if (or (= access-level :author)
-                                  (= access-level :viewer))
-                            (conj links (interaction-link board-uuid))
-                            links)
         ;; Authors get board management links
         full-links (if (= access-level :author)
-                    (concat interaction-links [
-                                   (create-entry-link org-slug slug)
-                                   (partial-update-link org-slug slug)
-                                   (delete-link org-slug slug)
-                                   (add-author-link org-slug slug)
-                                   (add-viewer-link org-slug slug)])
-                    interaction-links)]
+                     (concat links [(create-entry-link org-slug slug)
+                                    (partial-update-link org-slug slug)
+                                    (delete-link org-slug slug)
+                                    (add-author-link org-slug slug)
+                                    (add-viewer-link org-slug slug)])
+                     links)]
     (assoc board :links full-links)))
 
 (defn render-author-for-collection
