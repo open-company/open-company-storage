@@ -70,7 +70,8 @@
           props (if new-board-uuid
                   (assoc entry-props :board-uuid new-board-uuid)
                   (dissoc entry-props :board-uuid))
-          updated-entry (merge existing-entry (entry-res/ignore-props props))]
+          merged-entry (merge existing-entry (entry-res/ignore-props props))
+          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry :updated-entry updated-entry}
         [false, {:updated-entry updated-entry}])) ; invalid update
