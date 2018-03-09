@@ -21,7 +21,7 @@
 
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
--(def Attachment {
+(def Attachment {
   :file-name lib-schema/NonBlankStr
   :file-type lib-schema/NonBlankStr
   :file-size schema/Num
