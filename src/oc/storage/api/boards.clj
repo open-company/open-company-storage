@@ -94,7 +94,8 @@
   (if-let [org (org-res/get-org conn org-slug)]
     (try
       (let [notifications (:private-notifications board-map)
-            entry-data (map #(entry-res/->entry conn entry-res/temp-uuid % author) (:entries board-map))
+            entry-data (map #(entry-res/->entry conn entry-res/temp-uuid 
+                                (assoc % :status "published") author) (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications)
                         (assoc :entries entry-data))]
@@ -157,14 +158,22 @@
   (timbre/info "Creating board for org:" org-slug)
   (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
     
-    (let [authors (-> ctx :data :authors)
+    (let [board-uuid (:uuid board-result)
+          authors (-> ctx :data :authors)
           viewers (-> ctx :data :viewers)
+          entries (:entries new-board)
           notifications (:notifications ctx)]
-      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
+      (timbre/info "Created board:" board-uuid "for org:" org-slug)
       ;; Add any authors specified in the request
       (doseq [author authors] (add-member conn ctx (:slug org) (:slug board-result) :authors author))
       ;; Add any viewers specified in the request
       (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
+      ;; Add any entries specified in the request
+      (doseq [entry entries]
+          (timbre/info "Creating entry for new board:" board-uuid)
+          (let [entry-result (entry-res/create-entry! conn
+                              (entry-res/->entry conn board-uuid (assoc entry :status "published") user))]
+            (timbre/info "Created entry for new board:" board-uuid "as" (:uuid entry-result))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
                             board-result
