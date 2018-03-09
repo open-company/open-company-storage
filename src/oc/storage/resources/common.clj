@@ -21,6 +21,16 @@
 
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
+<<<<<<< HEAD
+=======
+(def Attachment {
+  :file-name lib-schema/NonBlankStr
+  :file-type lib-schema/NonBlankStr
+  :file-size schema/Num
+  :file-url lib-schema/NonBlankStr
+  :created-at lib-schema/ISO8601})
+
+>>>>>>> 9d66260... Require new board's to have an entry sequence with an entry.
 (def ContributingAuthor
   "An author in a sequence of Authors involved in creating content."
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
@@ -28,7 +38,7 @@
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Board
-  "An entry container."
+  "An container of entries."
   {
   :uuid lib-schema/UniqueID
   :slug Slug
@@ -99,6 +109,11 @@
 
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
+
+(def NewBoard
+  "A new board for creation, requires at least one entry."
+  (merge Board {
+    :entries [(schema/one Entry "new-entry") Entry]}))
 
 (def User
   "User info to notify via email/slack"

@@ -94,7 +94,10 @@
   (if-let [org (org-res/get-org conn org-slug)]
     (try
       (let [notifications (:private-notifications board-map)
-            board-data (dissoc board-map :private-notifications)]
+            entry-data (map #(entry-res/->entry conn entry-res/temp-uuid % author) (:entries board-map))
+            board-data (-> board-map
+                        (dissoc :private-notifications)
+                        (assoc :entries entry-data))]
         {:new-board (board-res/->board (:uuid org) board-data author)
          :existing-org org
          :notifications notifications})

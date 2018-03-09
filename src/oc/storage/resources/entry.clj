@@ -10,6 +10,8 @@
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
+(def temp-uuid "9999-9999-9999")
+
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
@@ -58,7 +60,9 @@
   [conn board-uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (if-let [board (board-res/get-board conn board-uuid)]
+  (if-let [board (if (= board-uuid temp-uuid) 
+                    {:org-uuid temp-uuid} ; board doesn't exist yet, we're checking if this entry will be valid
+                    (board-res/get-board conn board-uuid))]
     (let [topic-name (:topic-name entry-props)
           topic-slug (when topic-name (slugify/slugify topic-name))
           ts (db-common/current-timestamp)
