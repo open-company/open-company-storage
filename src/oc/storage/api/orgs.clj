@@ -71,7 +71,7 @@
 (defn- create-board
   "Create any default boards (from config) and their contents for a new org."
   [conn org board author]
-  (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (dissoc board :entries) author))]
+  (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
     (doall (pmap #(create-entry conn % board-result) (:entries board))))) ; create any board entries in parallel
 
 ;; ----- Actions -----
