@@ -113,7 +113,7 @@
 (def NewBoard
   "A new board for creation, requires at least one entry."
   (merge Board {
-    :entries [(schema/one Entry "new-entry") Entry]}))
+    :entries [Entry]}))
 
 (def User
   "User info to notify via email/slack"
