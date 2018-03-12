@@ -48,6 +48,13 @@
       (assoc :publisher author))
     entry))
 
+(defn timestamp-attachments
+  "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
+  ([attachments] (timestamp-attachments attachments (db-common/current-timestamp)))
+ 
+  ([attachments timestamp]
+  (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
+
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -77,6 +84,7 @@
           (update :topic-name #(or % nil))
           (update :headline #(or % ""))
           (update :body #(or % ""))
+          (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc author :updated-at ts)])
@@ -159,7 +167,9 @@
           slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
           updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-          updated-entry (assoc slugged-entry :author updated-authors)]
+          attachments (:attachments merged-entry)
+          updated-attachments (assoc slugged-entry :attachments (timestamp-attachments attachments ts))
+          updated-entry (assoc updated-attachments :author updated-authors)]
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
