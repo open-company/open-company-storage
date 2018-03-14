@@ -199,7 +199,7 @@
                              full-boards (if (pos? draft-entry-count)
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
-                             board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count)
+                             board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count (count (entry-res/list-entries-by-board conn (:uuid %))))
                                           full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
@@ -297,7 +297,7 @@
                                   org-id (:uuid new-org)
                                   user-id (-> ctx :user :user-id)
                                   boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at])
-                                  board-reps (map #(board-rep/render-board-for-collection slug % 0)
+                                  board-reps (map #(board-rep/render-board-for-collection slug % 0 0)
                                                 (map #(assoc % :access-level :author) boards))
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
                                   org-for-rep (-> new-org
