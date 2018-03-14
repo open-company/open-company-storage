@@ -82,7 +82,7 @@
 
 ;; ----- Org CRUD -----
 
-(schema/defn ^:always-validate ->board :- common/Board
+(schema/defn ^:always-validate ->board :- common/NewBoard
   "
   Take an org UUID, a minimal map describing a board, a user and an optional slug and 'fill the blanks' with
   any missing properties.
@@ -115,10 +115,10 @@
 
   Check the slug in the response as it may change if there is a conflict with another board for the org.
   "
-  [conn board :- common/Board]
+  [conn board :- common/NewBoard]
   {:pre [(db-common/conn? conn)]}
   (db-common/create-resource conn table-name
-    (update board :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
+    (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
     (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-board :- (schema/maybe common/Board)
