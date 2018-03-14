@@ -173,6 +173,15 @@
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
+(defn upsert-entry!
+  "
+  If entry is found update otherwise create the new entry.
+  "
+  [conn entry user]
+  (if-let [original-entry (get-entry conn (:uuid entry))]
+    (update-entry! conn (:uuid entry) entry user)
+    (create-entry! conn entry)))
+
 (schema/defn ^:always-validate publish-entry! :- (schema/maybe common/Entry)
   "
   Given the UUID of the entry, an optional updated entry map, and a user (as the publishing author),

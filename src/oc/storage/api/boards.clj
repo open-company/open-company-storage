@@ -170,10 +170,13 @@
       (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
       ;; Add any entries specified in the request
       (doseq [entry entries]
-          (timbre/info "Creating entry for new board:" board-uuid)
-          (let [entry-result (entry-res/create-entry! conn
-                              (entry-res/->entry conn board-uuid (assoc entry :status "published") user))]
-            (timbre/info "Created entry for new board:" board-uuid "as" (:uuid entry-result))))
+        (let [new-entry (-> entry
+                            (assoc :status "published")
+                            (assoc :board-uuid board-uuid))]
+          (timbre/info "Upserting entry for new board:" board-uuid)
+          (let [entry-result (entry-res/upsert-entry! conn
+                 (entry-res/->entry conn board-uuid new-entry user) user)]
+            (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result)))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
                             board-result
