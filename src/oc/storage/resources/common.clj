@@ -111,7 +111,7 @@
   :updated-at lib-schema/ISO8601})
 
 (def NewBoard
-  "A new board for creation, requires at least one entry."
+  "A new board for creation, can have new or existing entries already."
   (merge Board {
     :entries [Entry]}))
 
