@@ -50,9 +50,9 @@
   (hateoas/link-map "interactions" "GET"
     (str config/interaction-server-ws-url "/interaction-socket/boards/" board-uuid) nil))
 
-(defn- board-collection-links [board org-slug draft-count]
+(defn- board-collection-links [board org-slug entry-count]
   (let [board-slug (:slug board)
-        options (if (zero? draft-count) {} {:count draft-count})
+        options (if (zero? entry-count) {} {:count entry-count})
         links [(self-link org-slug board-slug options)]
         full-links (if (or (= :author (:access-level board))
                            (= board-slug "drafts"))
@@ -97,10 +97,10 @@
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
-  ([org-slug board] (render-board-for-collection org-slug board 0))
+  ([org-slug board] (render-board-for-collection org-slug board 0 0))
 
-  ([org-slug board draft-entry-count]
-  (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-board)) draft-entry-count 0)]
+  ([org-slug board draft-entry-count entry-count]
+  (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-board)) draft-entry-count entry-count)]
     (-> board
       (select-keys (conj representation-props :access-level))
       (board-collection-links org-slug this-board-count)
