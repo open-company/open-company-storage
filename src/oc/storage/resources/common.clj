@@ -35,7 +35,7 @@
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Board
-  "An entry container."
+  "An container of entries."
   {
   :uuid lib-schema/UniqueID
   :slug Slug
@@ -109,6 +109,11 @@
 
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
+
+(def NewBoard
+  "A new board for creation, can have new or existing entries already."
+  (merge Board {
+    :entries [Entry]}))
 
 (def User
   "User info to notify via email/slack"

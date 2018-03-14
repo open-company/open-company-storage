@@ -94,7 +94,11 @@
   (if-let [org (org-res/get-org conn org-slug)]
     (try
       (let [notifications (:private-notifications board-map)
-            board-data (dissoc board-map :private-notifications)]
+            entry-data (map #(entry-res/->entry conn entry-res/temp-uuid 
+                                (assoc % :status "published") author) (:entries board-map))
+            board-data (-> board-map
+                        (dissoc :private-notifications)
+                        (assoc :entries entry-data))]
         {:new-board (board-res/->board (:uuid org) board-data author)
          :existing-org org
          :notifications notifications})
@@ -106,14 +110,13 @@
 (defn- valid-board-update? [conn org-slug slug board-props]
   (if-let* [org (org-res/get-org conn org-slug)
             board (board-res/get-board conn (:uuid org) slug)
-            notifications (:private-notifications board-props)
             board-data (dissoc board-props :private-notifications)]
     (let [updated-board (merge board (board-res/clean board-data))]
       (if (lib-schema/valid? common-res/Board updated-board)
         {:existing-org org
          :existing-board board
          :board-update updated-board
-         :notifications notifications}
+         :notifications (:private-notifications board-props)}
         [false, {:board-update updated-board}])) ; invalid update
     true)) ; No org or board, so this will fail existence check later
 
@@ -155,14 +158,22 @@
   (timbre/info "Creating board for org:" org-slug)
   (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
     
-    (let [authors (-> ctx :data :authors)
+    (let [board-uuid (:uuid board-result)
+          authors (-> ctx :data :authors)
           viewers (-> ctx :data :viewers)
+          entries (:entries new-board)
           notifications (:notifications ctx)]
-      (timbre/info "Created board:" (:uuid board-result) "for org:" org-slug)
+      (timbre/info "Created board:" board-uuid "for org:" org-slug)
       ;; Add any authors specified in the request
       (doseq [author authors] (add-member conn ctx (:slug org) (:slug board-result) :authors author))
       ;; Add any viewers specified in the request
       (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
+      ;; Add any entries specified in the request
+      (doseq [entry entries]
+          (timbre/info "Creating entry for new board:" board-uuid)
+          (let [entry-result (entry-res/create-entry! conn
+                              (entry-res/->entry conn board-uuid (assoc entry :status "published") user))]
+            (timbre/info "Created entry for new board:" board-uuid "as" (:uuid entry-result))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
                             board-result
@@ -181,9 +192,9 @@
             org (:existing-org ctx)
             board (:existing-board ctx)
             updated-board (:board-update ctx)
-            notifications (:notifications ctx)
             updated-result (board-res/update-board! conn (:uuid updated-board) updated-board)]
-    (let [current-authors (set (:authors updated-result))
+    (let [notifications (:notifications ctx)
+          current-authors (set (:authors updated-result))
           current-viewers (set (:viewers updated-result))
           new-authors (-> ctx :data :authors)
           new-viewers (-> ctx :data :viewers)]
