@@ -91,7 +91,8 @@
 ;; ----- Validations -----
 (defn- valid-entry-with-board?
   [conn entry author]
-  (if-let [found-entry (entry-res/get-entry conn (:uuid entry))]
+  (if-let* [entry-uuid (:uuid entry)
+           found-entry (entry-res/get-entry conn entry-uuid)]
     found-entry
     (entry-res/->entry conn entry-res/temp-uuid entry author)))
 
