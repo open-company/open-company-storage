@@ -89,13 +89,18 @@
       (assoc :entries entry-reps)))))
 
 ;; ----- Validations -----
+(defn- valid-entry-with-board?
+  [conn entry author]
+  (if-let [found-entry (entry-res/get-entry conn (:uuid entry))]
+    found-entry
+    (entry-res/->entry conn entry-res/temp-uuid entry author)))
 
 (defn- valid-new-board? [conn org-slug {board-map :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
       (let [notifications (:private-notifications board-map)
-            entry-data (map #(entry-res/->entry conn entry-res/temp-uuid 
-                                (assoc % :status "published") author) (:entries board-map))
+            entry-data (map #(valid-entry-with-board?
+                               conn (assoc % :status "published") author) (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications)
                         (assoc :entries entry-data))]
@@ -170,12 +175,14 @@
       (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
       ;; Add any entries specified in the request
       (doseq [entry entries]
-        (let [new-entry (-> entry
-                            (assoc :status "published")
-                            (assoc :board-uuid board-uuid))]
+        (let [fixed-entry (-> entry
+                              (assoc :status "published")
+                              (assoc :board-uuid board-uuid))
+              new-entry (if (:uuid entry)
+                          fixed-entry
+                          (entry-res/->entry conn board-uuid fixed-entry user))]
           (timbre/info "Upserting entry for new board:" board-uuid)
-          (let [entry-result (entry-res/upsert-entry! conn
-                 (entry-res/->entry conn board-uuid new-entry user) user)]
+          (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
             (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result)))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
