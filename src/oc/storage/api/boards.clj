@@ -93,7 +93,7 @@
   [conn entry author]
   (if-let* [entry-uuid (:uuid entry)
            found-entry (entry-res/get-entry conn entry-uuid)]
-    found-entry
+    entry
     (entry-res/->entry conn entry-res/temp-uuid entry author)))
 
 (defn- valid-new-board? [conn org-slug {board-map :data author :user}]
