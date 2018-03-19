@@ -12,6 +12,7 @@
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
+            [oc.storage.api.entries :as entries-api]
             [oc.storage.async.change :as change]
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
@@ -179,12 +180,20 @@
         (let [fixed-entry (-> entry
                               (assoc :status "published")
                               (assoc :board-uuid board-uuid))
-              new-entry (if (entry-res/get-entry conn (:uuid entry))
+              entry-action (if (entry-res/get-entry conn (:uuid entry))
+                             :update
+                             :add)
+              new-entry (if (= entry-action :update)
                           fixed-entry
                           (entry-res/->entry conn board-uuid fixed-entry user))]
           (timbre/info "Upserting entry for new board:" board-uuid)
           (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
-            (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result)))))
+            (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
+            (when (= (:status entry-result) "published")
+              (when (= :add entry-action)
+                (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
+              (change/send-trigger! (change/->trigger entry-action entry-result))
+              (notification/send-trigger! (notification/->trigger entry-action org board-result {:new entry-result} (:user ctx)))))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
                             board-result
