@@ -179,7 +179,7 @@
         (let [fixed-entry (-> entry
                               (assoc :status "published")
                               (assoc :board-uuid board-uuid))
-              new-entry (if (:uuid entry)
+              new-entry (if (entry-res/get-entry conn (:uuid entry))
                           fixed-entry
                           (entry-res/->entry conn board-uuid fixed-entry user))]
           (timbre/info "Upserting entry for new board:" board-uuid)
