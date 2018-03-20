@@ -50,6 +50,18 @@
         nil))
     org))
 
+(defn interactions-link [org access-level user-id]
+  (if (or (= access-level :author) (= access-level :viewer))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "interactions"
+        "GET"
+        (str config/interaction-server-ws-url
+             "/interaction-socket/user/"
+             user-id)
+        nil))
+    org))
+
 (defn- whats-new-link [whats-new-url]
   (hateoas/link-map "whats-new" hateoas/GET whats-new-url {:accept mt/board-media-type}))
 
@@ -84,6 +96,7 @@
       (-> org
         (org-links access-level)
         (change-link access-level user-id)
+        (interactions-link access-level user-id)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
