@@ -21,6 +21,13 @@
 
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
+(def Attachment {
+  :file-name lib-schema/NonBlankStr
+  :file-type lib-schema/NonBlankStr
+  :file-size schema/Num
+  :file-url lib-schema/NonBlankStr
+  :created-at lib-schema/ISO8601})
+
 (def ContributingAuthor
   "An author in a sequence of Authors involved in creating content."
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
@@ -28,7 +35,7 @@
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
 (def Board
-  "An entry container."
+  "An container of entries."
   {
   :uuid lib-schema/UniqueID
   :slug Slug
@@ -88,6 +95,9 @@
   :headline schema/Str
   :body schema/Str
   
+  ;; Attachments
+  (schema/optional-key :attachments) [Attachment]
+
   ;; Comment sync
   (schema/optional-key :slack-thread) lib-schema/SlackThread
 
@@ -99,6 +109,11 @@
 
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
+
+(def NewBoard
+  "A new board for creation, can have new or existing entries already."
+  (merge Board {
+    :entries [Entry]}))
 
 (def User
   "User info to notify via email/slack"

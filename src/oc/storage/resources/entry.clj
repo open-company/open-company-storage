@@ -10,6 +10,8 @@
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
+(def temp-uuid "9999-9999-9999")
+
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
@@ -46,6 +48,13 @@
       (assoc :publisher author))
     entry))
 
+(defn timestamp-attachments
+  "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
+  ([attachments] (timestamp-attachments attachments (db-common/current-timestamp)))
+ 
+  ([attachments timestamp]
+  (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
+
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -58,7 +67,9 @@
   [conn board-uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (if-let [board (board-res/get-board conn board-uuid)]
+  (if-let [board (if (= board-uuid temp-uuid) 
+                    {:org-uuid temp-uuid} ; board doesn't exist yet, we're checking if this entry will be valid
+                    (board-res/get-board conn board-uuid))]
     (let [topic-name (:topic-name entry-props)
           topic-slug (when topic-name (slugify/slugify topic-name))
           ts (db-common/current-timestamp)
@@ -73,6 +84,7 @@
           (update :topic-name #(or % nil))
           (update :headline #(or % ""))
           (update :body #(or % ""))
+          (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc author :updated-at ts)])
@@ -155,7 +167,9 @@
           slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
           updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-          updated-entry (assoc slugged-entry :author updated-authors)]
+          attachments (:attachments merged-entry)
+          updated-attachments (assoc slugged-entry :attachments (timestamp-attachments attachments ts))
+          updated-entry (assoc updated-attachments :author updated-authors)]
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 

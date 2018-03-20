@@ -33,7 +33,7 @@
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.0"]
     ;; HTTP client https://github.com/dakrone/clj-http
-    [clj-http "3.7.0"]
+    [clj-http "3.8.0"]
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
