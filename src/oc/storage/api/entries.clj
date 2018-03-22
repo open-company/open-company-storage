@@ -108,7 +108,7 @@
     (do
       (timbre/error "Failed sharing entry:" entry-for) false)))
 
-(defn- auto-share-on-publish
+(defn auto-share-on-publish
   [conn ctx entry-result]
   (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
     (let [share-request {:medium "slack"
