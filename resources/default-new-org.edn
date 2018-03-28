@@ -8,7 +8,7 @@
         {
           :time-offset 30 ; 30 minutes ago
           :author {
-            :avatar-url "/img/ML/happy_face_red.svg",
+            :avatar-url "https://d1wc0stj82keig.cloudfront.net/img/ML/happy_face_red.svg",
             :name "Alia Atreidis",
             :user-id "0000-0000-0000"
           }
@@ -19,7 +19,7 @@
               :time-offset 12 ; 12 minutes ago
               :body "<p>Welcome to Carrot! Super excited to have you on board.</p>"
               :author {
-                :avatar-url "/img/ML/happy_face_green.svg",
+                :avatar-url "https://d1wc0stj82keig.cloudfront.net/img/ML/happy_face_green.svg",
                 :name "Duncan Idaho",
                 :user-id "0000-0000-0000"
               }
@@ -30,7 +30,7 @@
               :time-offset 11 ; 11 minutes ago
               :reaction "👌"
               :author {
-                :avatar-url "/img/ML/happy_face_yellow.svg",
+                :avatar-url "https://d1wc0stj82keig.cloudfront.net/img/ML/happy_face_yellow.svg",
                 :name "Gurney Halleck",
                 :user-id "0000-0000-0000"
               }
