@@ -40,7 +40,7 @@
     [zprint "0.4.7"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.2"]
+    [open-company/lib "0.16.3"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -61,7 +61,7 @@
   ;; All profile plugins
   :plugins [
     ;; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-ring "0.12.3"]
+    [lein-ring "0.12.4"]
     ;; Get environment settings from different sources https://github.com/weavejester/environ
     [lein-environ "1.1.0"]
   ]
