@@ -38,7 +38,7 @@
   ;; Email share
   ([org board entry user share-request :guard #(= "email" (:medium %)) ]
   (timbre/info "Triggering share: email for" (:uuid entry) "of" (:slug org))
-  (email/send-trigger! (email/->trigger org entry share-request user)))
+  (email/send-trigger! (email/->trigger org board entry share-request user)))
 
   ;; Slack share
   ([org board entry user share-request :guard #(= "slack" (:medium %))]
