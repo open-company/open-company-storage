@@ -165,6 +165,7 @@
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
       (timbre/info "Published entry for:" (:uuid updated-entry))
+      (auto-share-on-publish conn ctx publish-result)
       (change/send-trigger! (change/->trigger :add publish-result))
       (timbre/info "Published entry:" entry-for)
       (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user))
