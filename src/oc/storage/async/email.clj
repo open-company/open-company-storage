@@ -13,6 +13,7 @@
    :note (schema/maybe schema/Str)
    :reply-to (schema/maybe schema/Str)
    :sharer-name (schema/maybe schema/Str)
+   :sharer-avatar-url (schema/maybe schema/Str)
    :org-slug lib-schema/NonBlankStr
    :org-name (schema/maybe schema/Str)
    :org-logo-url (schema/maybe schema/Str)
@@ -33,6 +34,7 @@
    :note (:note share-request)
    :reply-to (:email user)
    :sharer-name (:name user)
+   :sharer-avatar-url (:avatar-url user)
    :org-slug (:slug org)
    :org-name (:name org)
    :org-logo-url (:logo-url org)
