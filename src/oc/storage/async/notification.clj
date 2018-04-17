@@ -101,12 +101,14 @@
 ;; ----- Notification triggering -----
 
 (defn ->trigger 
-  ([notification-type content user] (->trigger notification-type nil nil content user))
-  ([notification-type org content user] (->trigger notification-type org nil content user))
-  ([notification-type org board content user]
+  ([notification-type content user] (->trigger notification-type nil nil content nil user))
+  ([notification-type org content user] (->trigger notification-type org nil content nil user))
+  ([notification-type org content note user] (->trigger notification-type org nil content nil user))
+  ([notification-type org board content note user]
   (let [notice {:notification-type notification-type
                 :resource-type (resource-type (or (:old content) (:new content)))
                 :content content
+                :note note
                 :user user
                 :notification-at (oc-time/current-timestamp)}
         org-notice (if org (assoc notice :org org) notice)
