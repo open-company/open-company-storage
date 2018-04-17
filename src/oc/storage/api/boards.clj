@@ -104,7 +104,7 @@
             entry-data (map #(valid-entry-with-board?
                                conn (assoc % :status "published") author) (:entries board-map))
             board-data (-> board-map
-                        (dissoc :private-notifications)
+                        (dissoc :private-notifications :note)
                         (assoc :entries entry-data))]
         {:new-board (board-res/->board (:uuid org) board-data author)
          :existing-org org
@@ -117,7 +117,7 @@
 (defn- valid-board-update? [conn org-slug slug board-props]
   (if-let* [org (org-res/get-org conn org-slug)
             board (board-res/get-board conn (:uuid org) slug)
-            board-data (dissoc board-props :private-notifications)]
+            board-data (dissoc board-props :private-notifications :note)]
     (let [updated-board (merge board (board-res/clean board-data))]
       (if (lib-schema/valid? common-res/Board updated-board)
         {:existing-org org
@@ -168,6 +168,7 @@
     (let [board-uuid (:uuid board-result)
           authors (-> ctx :data :authors)
           viewers (-> ctx :data :viewers)
+          invitation-note (-> ctx :data :note)
           entries (:entries new-board)
           notifications (:notifications ctx)]
       (timbre/info "Created board:" board-uuid "for org:" org-slug)
@@ -200,7 +201,7 @@
                             ;; retrieve the board again to get final list of members
                             (board-res/get-board conn (:uuid board-result)))]
         (change/send-trigger! (change/->trigger :add created-board))
-        (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user))
+        (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
         {:created-board created-board}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false)))
@@ -217,7 +218,8 @@
           current-authors (set (:authors updated-result))
           current-viewers (set (:viewers updated-result))
           new-authors (-> ctx :data :authors)
-          new-viewers (-> ctx :data :viewers)]
+          new-viewers (-> ctx :data :viewers)
+          invitation-note  (-> ctx :data :note)]
       (timbre/info "Updated board:" slug "of org:" org-slug)
       (when (= "private" (:access updated-board)) ; board is being set private
         ;; Ensure current user is author
@@ -237,7 +239,7 @@
             (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
         (change/send-trigger! (change/->trigger :update final-result))
-        (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user))
+        (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user invitation-note))
         {:updated-board final-result}))
 
     (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))

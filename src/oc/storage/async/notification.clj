@@ -60,6 +60,7 @@
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)}
    :user lib-schema/User
+   :note (schema/maybe schema/Str)
    :notification-at lib-schema/ISO8601})
 
 ;; ----- Event handling -----
@@ -101,10 +102,10 @@
 ;; ----- Notification triggering -----
 
 (defn ->trigger 
-  ([notification-type content user] (->trigger notification-type nil nil content nil user))
-  ([notification-type org content user] (->trigger notification-type org nil content nil user))
-  ([notification-type org content note user] (->trigger notification-type org nil content nil user))
-  ([notification-type org board content note user]
+  ([notification-type content user] (->trigger notification-type nil nil content user nil))
+  ([notification-type org content user] (->trigger notification-type org nil content user nil))
+  ([notification-type org content user note] (->trigger notification-type org nil content user note))
+  ([notification-type org board content user note]
   (let [notice {:notification-type notification-type
                 :resource-type (resource-type (or (:old content) (:new content)))
                 :content content
