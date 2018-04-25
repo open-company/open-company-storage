@@ -16,7 +16,7 @@
     ;; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/clojure "1.9.0"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
-    [org.clojure/tools.cli "0.3.5"]
+    [org.clojure/tools.cli "0.3.6"]
     ;; Web application library https://github.com/ring-clojure/ring
     [ring/ring-devel "1.6.3"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -31,7 +31,7 @@
     ;; NB: com.taoensso/timbre pulled in by oc.lib
     [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore com.taoensso/timbre]] 
     ;; Web routing https://github.com/weavejester/compojure
-    [compojure "1.6.0"]
+    [compojure "1.6.1"]
     ;; HTTP client https://github.com/dakrone/clj-http
     [clj-http "3.8.0"]
     ;; Utility functions https://github.com/weavejester/medley
@@ -40,7 +40,7 @@
     [zprint "0.4.7"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.3"]
+    [open-company/lib "0.16.4"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
