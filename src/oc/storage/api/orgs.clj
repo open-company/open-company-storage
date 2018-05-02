@@ -130,7 +130,7 @@
 ;; ----- Validations -----
 
 (defn- is-first-org? [conn user]
-  {:pre (db-common/conn? conn)}
+  {:pre [(db-common/conn? conn)]}
   (let [authed-orgs (org-res/list-orgs-by-teams conn (:teams user))]
     (zero? (count authed-orgs))))
 
