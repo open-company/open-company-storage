@@ -106,9 +106,11 @@
             board-data (-> board-map
                         (dissoc :private-notifications :note)
                         (assoc :entries entry-data))]
-        {:new-board (board-res/->board (:uuid org) board-data author)
-         :existing-org org
-         :notifications notifications})
+        (if (> 3 (count (:name board-data)))
+          [false, {:reason "Name too short. It must be over 3 characters."}]
+          {:new-board (board-res/->board (:uuid org) board-data author)
+           :existing-org org
+           :notifications notifications}))
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
