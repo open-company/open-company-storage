@@ -194,7 +194,7 @@
               (when (= :add entry-action)
                 (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
               (change/send-trigger! (change/->trigger entry-action entry-result))
-              (notification/send-trigger! (notification/->trigger entry-action org board-result {:new entry-result} (:user ctx)))))))
+              (notification/send-trigger! (notification/->trigger entry-action org board-result {:new entry-result} (:user ctx) nil))))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
                             board-result
