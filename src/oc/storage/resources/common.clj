@@ -23,7 +23,7 @@
 
 (def Attachment {
   :file-name lib-schema/NonBlankStr
-  :file-type lib-schema/NonBlankStr
+  :file-type (schema/maybe schema/Str)
   :file-size schema/Num
   :file-url lib-schema/NonBlankStr
   :created-at lib-schema/ISO8601})
