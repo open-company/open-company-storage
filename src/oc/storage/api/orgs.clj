@@ -129,6 +129,11 @@
 
 ;; ----- Validations -----
 
+(defn- is-first-org? [conn user]
+  {:pre [(db-common/conn? conn)]}
+  (let [authed-orgs (org-res/list-orgs-by-teams conn (:teams user))]
+    (zero? (count authed-orgs))))
+
 (defn- valid-new-org? [conn ctx]
   (try
     ;; Create the new org from the data provided
@@ -287,6 +292,8 @@
   :processable? (by-method {
     :options true
     :post (fn [ctx] (valid-new-org? conn ctx))})
+
+  :conflict? (fn [ctx] (not (is-first-org? conn (:user ctx))))
 
   ;; Actions
   :post! (fn [ctx] (create-org conn ctx))
