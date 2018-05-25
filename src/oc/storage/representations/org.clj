@@ -62,9 +62,6 @@
         nil))
     org))
 
-(defn- whats-new-link [whats-new-url]
-  (hateoas/link-map "whats-new" hateoas/GET whats-new-url {:accept mt/board-media-type}))
-
 (defn- org-links [org access-level]
   (let [links [(self-link org)]
         activity-links (if (or (= access-level :author) (= access-level :viewer))
@@ -104,13 +101,10 @@
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
   [orgs authed?]
   (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type}) auth-link]
-        whats-new-links (if (clojure.string/blank? config/whats-new-board)
-                          links
-                          (conj links (whats-new-link config/whats-new-board)))
         full-links (if authed?
-                      (conj whats-new-links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
-                                                                          :accept mt/org-media-type}))
-                      whats-new-links)]
+                      (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
+                                                                 :accept mt/org-media-type}))
+                      links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href "/"

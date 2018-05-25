@@ -96,5 +96,3 @@
 (defonce inline-comment-count 10)
 
 (defonce default-activity-limit 10)
-
-(defonce whats-new-board (env :whats-new-board))

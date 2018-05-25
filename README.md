@@ -168,7 +168,6 @@ Make sure you update the section in `project.clj` that looks like this to contai
         :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-        :whats-new-board "/orgs/carrot-support/boards/what-s-new"
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
@@ -200,12 +199,6 @@ Both of these settings take the string `true` or `false`.
 [AWS SQS](https://aws.amazon.com/sqs/)  queues are used to pass messages from the Storage Service to other OpenCompany services. Setup an SQS Queue and key/secret access to the queue using the AWS Web Console or API and update the corresponding `aws-` configuration properties with the key, secret and queue names.
 
 An optional [AWS SNS](https://aws.amazon.com/sns/) pub/sub topic is used to push notifications of content changes to interested listeners. If you want to take advantage of this capability, configure the `aws-sns-storage-topic-arn` with the ARN (Amazon Resource Name) of the SNS topic you setup in AWS.
-
-##### What's New
-
-The What's New feature of the [Web UI](https://github.com/open-company/open-company-web) is powered by entries from a public board specified by `whats-new-board`. These entries can be created on the specified board using the Storage service APIs or with the Web UI.
-
-If `whats-new-board` is removed or left blank, no What's New feature will be provided.
 
 ## Technical Design
 
