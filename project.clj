@@ -37,7 +37,7 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.7"]
+    [zprint "0.4.9"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
     [open-company/lib "0.16.4"]
@@ -90,7 +90,7 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.1"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.2.6-beta2"]
+        [jonase/eastwood "0.2.6"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-kibit "0.1.6" :exclusions [org.clojure/clojure]]
       ]
@@ -103,7 +103,7 @@
         :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-        :whats-new-board "/orgs/carrot/boards/what-s-new"
+        :whats-new-board "/orgs/carrot-support/boards/what-s-new"
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
@@ -126,7 +126,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.8" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.9" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {

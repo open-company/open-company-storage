@@ -168,7 +168,7 @@ Make sure you update the section in `project.clj` that looks like this to contai
         :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-        :whats-new-board "/orgs/carrot/boards/what-s-new"
+        :whats-new-board "/orgs/carrot-support/boards/what-s-new"
         :aws-access-key-id "CHANGE-ME"
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
