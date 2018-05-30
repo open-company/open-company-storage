@@ -30,6 +30,8 @@
     :org-logo-url (schema/maybe schema/Str)
     :board-name (schema/maybe schema/Str)
     :headline (schema/maybe schema/Str)
+    :body (schema/maybe schema/Str)
+    :comment-count (schema/maybe schema/Str)
     :publisher lib-schema/Author
     :secure-uuid lib-schema/UniqueID
     :published-at lib-schema/ISO8601
@@ -51,7 +53,9 @@
 (schema/defn ^:always-validate ->share-entry-trigger :- ShareEntryTrigger
   "Given an entry for an org and a share request, create the share trigger."
   [org board entry share-request user]
-  (let [slack-org-id (-> share-request :channel :slack-org-id)]
+  (let [slack-org-id (-> share-request :channel :slack-org-id)
+        comments (:existing-comments entry)
+        comment-count (str (count comments))]
     {
       :type "share-entry"
       :receiver {
@@ -66,6 +70,8 @@
       :board-name (:name board)
       :org-logo-url (:logo-url org)
       :headline (:headline entry)
+      :body (:body entry)
+      :comment-count comment-count
       :secure-uuid (:secure-uuid entry)
       :published-at (:published-at entry)
       :publisher (:publisher entry)
