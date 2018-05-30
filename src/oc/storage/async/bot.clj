@@ -4,17 +4,7 @@
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
-            [oc.storage.config :as config]
-            [oc.storage.resources.entry :as entry-res]))
-
-(defn- index-of
-  "Given a collection and a function return the index that make the function truely."
-  [s f]
-  (loop [idx 0 items s]
-    (cond
-      (empty? items) nil
-      (f (first items)) idx
-      :else (recur (inc idx) (rest items)))))
+            [oc.storage.config :as config]))
 
 (def BotTrigger 
   "All Slack bot triggers have the following properties."
