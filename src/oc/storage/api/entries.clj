@@ -73,7 +73,9 @@
           merged-entry (merge existing-entry (entry-res/ignore-props props))
           updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
-        {:existing-entry existing-entry :updated-entry updated-entry}
+        {:existing-entry existing-entry
+         :existing-board new-board
+         :updated-entry updated-entry}
         [false, {:updated-entry updated-entry}])) ; invalid update
     
     true)) ; no existing entry, so this will fail existence check later
@@ -366,7 +368,8 @@
                                org-uuid (:uuid org)
                                entry (or (:existing-entry ctx)
                                          (entry-res/get-entry conn entry-uuid))
-                               board (board-res/get-board conn (:board-uuid entry))
+                               board (or (:existing-board ctx)
+                                         (board-res/get-board conn (:board-uuid entry)))
                                _matches? (and (= org-uuid (:org-uuid entry))
                                               (= org-uuid (:org-uuid board))
                                               (= :draft (keyword (:status entry))))] ; sanity check
