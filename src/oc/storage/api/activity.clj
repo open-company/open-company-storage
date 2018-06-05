@@ -87,20 +87,6 @@
                                                         :board-name (:name (board-by-uuid (:board-uuid activity)))}))
                                     %))))
 
-;; Calendar not used right now
-; (defn- assemble-calendar
-;   "
-;   Given a sequence of months, e.g. `[[2017 06] [2017 04] [2016 11] [2016 07] [2015 12]]`
-
-;   Return a map of the months by year, e.g. `{'2017' [[2017 06] [2017 04]]
-;                                              '2016' [[2016 11] [2016 07]]
-;                                              '2015' [[2015 12]]}`
-;   "
-;   [months]
-;   (let [years (distinct (map first months))
-;         months-by-year (map #(filter (fn [month] (= % (first month))) months) years)]
-;     (zipmap years months-by-year)))
-
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on the activity of a particular Org
@@ -154,41 +140,6 @@
                              activity (assemble-activity conn params org board-by-uuid allowed-boards)]
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
-;; Calendar not used right now
-;; A resource for operations on the calendar of activity for a particular Org
-; (defresource calendar [conn slug]
-;   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
-
-;   :allowed-methods [:options :get]
-
-;   ;; Media type client accepts
-;   :available-media-types [mt/activity-calendar-media-type]
-;   :handle-not-acceptable (api-common/only-accept 406 mt/activity-calendar-media-type)
-
-;   ;; Authorization
-;   :allowed? (by-method {
-;     :options true
-;     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
-
-;   ;; Existentialism
-;   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
-;                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
-;                         {:existing-org org}
-;                         false))
-
-;   ;; Responses
-;   :handle-ok (fn [ctx] (let [user (:user ctx)
-;                              user-id (:user-id user)
-;                              org (:existing-org ctx)
-;                              org-id (:uuid org)
-;                              ;; TODO filter by allowed boards
-;                              ;boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-;                              ;allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
-;                              ;board-uuids (map :uuid boards)
-;                              months (entry-res/entry-months-by-org conn org-id)
-;                              calendar-data (assemble-calendar months)]
-;                           (activity-rep/render-activity-calendar org calendar-data (:access-level ctx) user-id))))
-
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -198,11 +149,4 @@
       (OPTIONS "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (OPTIONS "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      ;; Calendar not used right now
-      ;; Calendar of activity operations
-      ; (OPTIONS "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      ; (OPTIONS "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      ; (GET "/orgs/:slug/activity/calendar" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      ; (GET "/orgs/:slug/activity/calendar/" [slug] (pool/with-pool [conn db-pool] (calendar conn slug)))
-      )))
+      (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug))))))
