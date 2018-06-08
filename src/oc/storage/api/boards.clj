@@ -13,7 +13,6 @@
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.api.entries :as entries-api]
-            [oc.storage.async.change :as change]
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
@@ -193,14 +192,12 @@
             (when (= (:status entry-result) "published")
               (when (= :add entry-action)
                 (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
-              (change/send-trigger! (change/->trigger entry-action entry-result))
               (notification/send-trigger! (notification/->trigger entry-action org board-result {:new entry-result} (:user ctx) nil))))))
       (let [created-board (if (and (empty? authors) (empty? viewers))
                             ;; no additional members added, so using the create response is good
                             board-result
                             ;; retrieve the board again to get final list of members
                             (board-res/get-board conn (:uuid board-result)))]
-        (change/send-trigger! (change/->trigger :add created-board))
         (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
         {:created-board created-board}))
     
@@ -238,7 +235,6 @@
           (doseq [viewer (clojure.set/difference current-viewers (set new-viewers))]
             (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
-        (change/send-trigger! (change/->trigger :update final-result))
         (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user invitation-note))
         {:updated-board final-result}))
 
@@ -251,7 +247,6 @@
             _delete-result (board-res/delete-board! conn (:uuid board))]
     (do 
       (timbre/info "Deleted board:" slug "of org:" org-slug)
-      (change/send-trigger! (change/->trigger :delete board))
       (notification/send-trigger! (notification/->trigger :delete org {:old board} (:user ctx)))
       true)
     (do (timbre/warn "Failed deleting board:" slug "of org:" org-slug) false)))

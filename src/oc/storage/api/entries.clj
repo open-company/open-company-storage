@@ -14,7 +14,6 @@
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]          
-            [oc.storage.async.change :as change]
             [oc.storage.async.notification :as notification]
             [oc.storage.async.email :as email]
             [oc.storage.async.bot :as bot]
@@ -134,8 +133,7 @@
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
-        (auto-share-on-publish conn ctx entry-result)
-        (change/send-trigger! (change/->trigger :add entry-result)))
+        (auto-share-on-publish conn ctx entry-result))
       (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
       {:created-entry entry-result})
 
@@ -151,8 +149,6 @@
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (do 
       (timbre/info "Updated entry for:" entry-for)
-      (when (= (:status updated-result) "published")
-        (change/send-trigger! (change/->trigger :update updated-result)))
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
       {:updated-entry updated-result})
 
@@ -169,7 +165,6 @@
     (do
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (auto-share-on-publish conn ctx publish-result)
-      (change/send-trigger! (change/->trigger :add publish-result))
       (timbre/info "Published entry:" entry-for)
       (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user nil))
       {:updated-entry publish-result})
@@ -183,8 +178,6 @@
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
       (timbre/info "Deleted entry for:" entry-for)
-      (when (= (:status entry) "published")
-        (change/send-trigger! (change/->trigger :delete entry)))
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx) nil))
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))

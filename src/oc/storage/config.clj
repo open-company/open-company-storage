@@ -61,7 +61,6 @@
 
 (defonce aws-sqs-bot-queue (env :aws-sqs-bot-queue))
 (defonce aws-sqs-email-queue (env :aws-sqs-email-queue))
-(defonce aws-sqs-change-queue (env :aws-sqs-change-queue))
 
 ;; Only used for bulk updates of the search service, normal real-time updates use SNS
 (defonce aws-sqs-search-index-queue (env :aws-sqs-search-index-queue))

@@ -16,14 +16,14 @@
     ;; Lisp on the JVM http://clojure.org/documentation
     [org.clojure/clojure "1.9.0"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
-    [org.clojure/tools.cli "0.3.6"]
+    [org.clojure/tools.cli "0.3.7"]
     ;; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-devel "1.6.3"]
+    [ring/ring-devel "1.7.0-RC1"]
     ;; Web application library https://github.com/ring-clojure/ring
     ;; NB: clj-time pulled in by oc.lib
     ;; NB: joda-time pulled in by oc.lib via clj-time
     ;; NB: commons-codec pulled in by oc.lib
-    [ring/ring-core "1.6.3" :exclusions [clj-time joda-time commons-codec]]
+    [ring/ring-core "1.7.0-RC1" :exclusions [clj-time joda-time commons-codec]]
     ;; CORS library https://github.com/jumblerg/ring.middleware.cors
     [jumblerg/ring.middleware.cors "1.0.1"]
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
@@ -33,14 +33,14 @@
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.1"]
     ;; HTTP client https://github.com/dakrone/clj-http
-    [clj-http "3.8.0"]
+    [clj-http "3.9.0"]
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.9"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.4"]
+    [open-company/lib "0.16.6"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -107,7 +107,6 @@
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
-        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the Change service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
       }
       :plugins [
