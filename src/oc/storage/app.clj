@@ -58,7 +58,6 @@
     "Database pool: " c/db-pool-size "\n"
     "AWS SQS bot queue: " c/aws-sqs-bot-queue "\n"
     "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
-    "AWS SQS change queue: " c/aws-sqs-change-queue "\n"
     "AWS SNS notification topic ARN: " c/aws-sns-storage-topic-arn "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
