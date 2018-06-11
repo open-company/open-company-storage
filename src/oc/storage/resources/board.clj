@@ -62,7 +62,7 @@
 
 ;; ----- Board Slug -----
 
-(def reserved-slugs #{"create-board" "settings" "boards" "all-posts" "drafts"})
+(def reserved-slugs #{"create-board" "settings" "boards" "all-posts" "drafts" "must-read"})
 
 (declare list-boards-by-org)
 (defn taken-slugs
