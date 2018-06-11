@@ -172,7 +172,6 @@ Make sure you update the section in `project.clj` that looks like this to contai
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
-        :aws-sqs-change-queue "CHANGE-ME" ; SQS queue to pass no requests to the Change service 
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
   }
 ```
@@ -210,7 +209,6 @@ The Storage service is composed of 7 main responsibilities:
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of share requests via SQS
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS
 - Notifying the [Email service](https://github.com/open-company/open-company-email) of password reset and email validation requests via SQS
-- Notifying the [Change service](https://github.com/open-company/open-company-change) of board and entry changes via SQS
 - Publishing org, board and entry change notifications to interested subscribers via SNS
 
 The Storage service provides a HATEOAS REST API:
