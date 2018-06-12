@@ -162,46 +162,49 @@
 
 (defn- create-board [conn {org :existing-org new-board :new-board user :user :as ctx} org-slug]
   (timbre/info "Creating board for org:" org-slug)
-  (if-let [board-result (board-res/create-board! conn new-board)] ; Add the board
+  (let [entries (:entries new-board)
+        draft-board? (every? #(-> % :status keyword (= :draft)) entries)
+        new-board-data (assoc new-board :draft draft-board?)]
+    (timbre/info "Crating board, is draft?" draft-board?)
+    (if-let [board-result (board-res/create-board! conn new-board-data)] ; Add the board
+
+      (let [board-uuid (:uuid board-result)
+            authors (-> ctx :data :authors)
+            viewers (-> ctx :data :viewers)
+            invitation-note (-> ctx :data :note)
+            notifications (:notifications ctx)]
+        (timbre/info "Created board:" board-uuid "for org:" org-slug)
+        ;; Add any authors specified in the request
+        (doseq [author authors] (add-member conn ctx (:slug org) (:slug board-result) :authors author))
+        ;; Add any viewers specified in the request
+        (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
+        ;; Add any entries specified in the request
+        (doseq [entry entries]
+          (let [fixed-entry (-> entry
+                                (assoc :status (or (:status entry) "published"))
+                                (assoc :board-uuid board-uuid))
+                entry-action (if (entry-res/get-entry conn (:uuid entry))
+                               :update
+                               :add)
+                new-entry (if (= entry-action :update)
+                            fixed-entry
+                            (entry-res/->entry conn board-uuid fixed-entry user))]
+            (timbre/info "Upserting entry for new board:" board-uuid)
+            (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
+              (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
+              (when (= (:status entry-result) "published")
+                (when (= :add entry-action)
+                  (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
+                (notification/send-trigger! (notification/->trigger entry-action org board-result {:new entry-result} (:user ctx) nil))))))
+        (let [created-board (if (and (empty? authors) (empty? viewers))
+                              ;; no additional members added, so using the create response is good
+                              board-result
+                              ;; retrieve the board again to get final list of members
+                              (board-res/get-board conn (:uuid board-result)))]
+          (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
+          {:created-board created-board}))
     
-    (let [board-uuid (:uuid board-result)
-          authors (-> ctx :data :authors)
-          viewers (-> ctx :data :viewers)
-          invitation-note (-> ctx :data :note)
-          entries (:entries new-board)
-          notifications (:notifications ctx)]
-      (timbre/info "Created board:" board-uuid "for org:" org-slug)
-      ;; Add any authors specified in the request
-      (doseq [author authors] (add-member conn ctx (:slug org) (:slug board-result) :authors author))
-      ;; Add any viewers specified in the request
-      (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
-      ;; Add any entries specified in the request
-      (doseq [entry entries]
-        (let [fixed-entry (-> entry
-                              (assoc :status (or (:status entry) "published"))
-                              (assoc :board-uuid board-uuid))
-              entry-action (if (entry-res/get-entry conn (:uuid entry))
-                             :update
-                             :add)
-              new-entry (if (= entry-action :update)
-                          fixed-entry
-                          (entry-res/->entry conn board-uuid fixed-entry user))]
-          (timbre/info "Upserting entry for new board:" board-uuid)
-          (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
-            (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
-            (when (= (:status entry-result) "published")
-              (when (= :add entry-action)
-                (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
-              (notification/send-trigger! (notification/->trigger entry-action org board-result {:new entry-result} (:user ctx) nil))))))
-      (let [created-board (if (and (empty? authors) (empty? viewers))
-                            ;; no additional members added, so using the create response is good
-                            board-result
-                            ;; retrieve the board again to get final list of members
-                            (board-res/get-board conn (:uuid board-result)))]
-        (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
-        {:created-board created-board}))
-    
-    (do (timbre/error "Failed creating board for org:" org-slug) false)))
+    (do (timbre/error "Failed creating board for org:" org-slug) false))))
 
 (defn- update-board [conn ctx org-slug slug]
   (timbre/info "Updating board:" slug "of org:" org-slug)
@@ -244,7 +247,8 @@
   (timbre/info "Deleting board:" slug "of org:" org-slug)
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
-            _delete-result (board-res/delete-board! conn (:uuid board))]
+            entries (entry-res/list-all-entries-by-board conn (:uuid board))
+            _delete-result (board-res/delete-board! conn (:uuid board) entries)]
     (do 
       (timbre/info "Deleted board:" slug "of org:" org-slug)
       (notification/send-trigger! (notification/->trigger :delete org {:old board} (:user ctx)))
