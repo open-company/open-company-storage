@@ -101,7 +101,7 @@
     (try
       (let [notifications (:private-notifications board-map)
             entry-data (map #(valid-entry-with-board?
-                               conn (assoc % :status "published") author) (:entries board-map))
+                               conn (assoc % :status (or (:status %) "published")) author) (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications :note)
                         (assoc :entries entry-data))]
@@ -178,7 +178,7 @@
       ;; Add any entries specified in the request
       (doseq [entry entries]
         (let [fixed-entry (-> entry
-                              (assoc :status "published")
+                              (assoc :status (or (:status entry) "published"))
                               (assoc :board-uuid board-uuid))
               entry-action (if (entry-res/get-entry conn (:uuid entry))
                              :update
