@@ -2,7 +2,7 @@
   "Liberator API for entry resources."
   (:require [clojure.string :as s]
             [defun.core :refer (defun-)]
-            [if-let.core :refer (if-let*)]
+            [if-let.core :refer (if-let* when-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY)]
             [liberator.core :refer (defresource by-method)]
@@ -123,6 +123,12 @@
                       (assoc :auto-share true))]
       (share-entry conn share-ctx (:uuid entry-result)))))
 
+(defn undraft-board [conn user org board]
+  (when (:draft board)
+    (let [updated-board (assoc board :draft false)]
+      (timbre/info "Unsetting draft for board:" (:slug board))
+      (board-res/update-board! conn (:uuid board) updated-board))))
+
 (defn- create-entry [conn ctx entry-for]
   (timbre/info "Creating entry for:" entry-for)
   (if-let* [org (:existing-org ctx)
@@ -133,6 +139,7 @@
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
+        (undraft-board conn (:user ctx) org board)
         (auto-share-on-publish conn ctx entry-result))
       (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
       {:created-entry entry-result})
@@ -163,6 +170,7 @@
             updated-entry (:updated-entry ctx)
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
+      (undraft-board conn user org board)
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (auto-share-on-publish conn ctx publish-result)
       (timbre/info "Published entry:" entry-for)
