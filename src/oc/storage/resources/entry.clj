@@ -269,6 +269,12 @@
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"]))
 
+(schema/defn ^:always-validate list-all-entries-by-board
+  "Given the UUID of the board, return all the entries for the board."
+  [conn board-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
+
 ;; ----- Data about entries -----
 
 (schema/defn ^:always-validate entry-months-by-org
