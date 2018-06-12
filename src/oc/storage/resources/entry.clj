@@ -1,6 +1,7 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let* when-let*)]
+            [taoensso.timbre :as timbre]
             [rethinkdb.query :as r]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -234,16 +235,28 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] must-read]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (db-common/read-resources-and-relations conn table-name :status-org-uuid [[:published org-uuid]]
-                                          "published-at" order start direction config/default-activity-limit
-                                          :board-uuid r/contains allowed-boards
-                                          :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author"
-                                           "published-at" "created-at" "updated-at"]))
+  (let [must-read-filter (if (nil? must-read)
+                           (r/fn [row]
+                             (r/contains allowed-boards (r/get-field row :board-uuid)))
+                           (r/fn [row]
+                             (r/and
+                              (r/contains allowed-boards
+                                          (r/get-field row :board-uuid))
+                              (r/eq
+                               (r/default (r/get-field row :must-read) false)
+                               (= must-read "true"))))
+                           )]
+  (db-common/read-resources-and-relations conn table-name
+    :status-org-uuid [[:published org-uuid]]
+    "published-at" order start direction config/default-activity-limit
+    must-read-filter
+    :interactions common/interaction-table-name :uuid :resource-uuid
+    ["uuid" "headline" "body" "reaction" "author"
+     "published-at" "created-at" "updated-at"])))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "

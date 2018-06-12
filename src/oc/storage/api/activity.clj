@@ -48,7 +48,7 @@
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction} org board-by-uuid allowed-boards]
+  [conn {start :start direction :direction must-read :must-read} org board-by-uuid allowed-boards]
   (let [order (if (= :after direction) :asc :desc)
         activities (cond
 
@@ -59,8 +59,8 @@
                   (let [start-stamp (f/parse db-common/timestamp-format start)
                         around-stamp (t/minus start-stamp (t/millis 1))
                         around-start (f/unparse db-common/timestamp-format around-stamp)
-                        previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards)
-                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards)
+                        previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards must-read)
+                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards must-read)
                         previous-activity (merge-activity previous-entries [] :asc)
                         next-activity (merge-activity next-entries [] :desc)]
                     {:direction :around
@@ -69,14 +69,14 @@
                      :activity (concat (reverse previous-activity) next-activity)})
                   
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
+                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards must-read)
                         previous-activity (merge-activity previous-entries [] :asc)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards)
+                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards must-read)
                         next-activity (merge-activity next-entries [] :desc)]
                     {:direction :next
                      :next-count (count next-activity)
