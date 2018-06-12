@@ -3,6 +3,7 @@
             [if-let.core :refer (when-let*)]
             [defun.core :refer (defun)]
             [schema.core :as schema]
+            [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
@@ -168,20 +169,31 @@
   Given the uuid of the org, and slug of the board, delete the board and all its entries, and updates,
   and return `true` on success.
   "
-  ([conn :guard db-common/conn? board :guard map?]
-  (delete-board! conn (:uuid board)))
-
-  ([conn :guard db-common/conn? org-uuid :guard #(schema/validate lib-schema/UniqueID %) slug :guard slug/valid-slug?]
-  (if-let [uuid (:uuid (get-board conn org-uuid slug))]
-    (delete-board! conn uuid)))
-
-  ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %)]
+  ([conn :guard db-common/conn? board :guard map? entries :guard sequential?]
   ;; Delete interactions
-  (db-common/delete-resource conn common/interaction-table-name :board-uuid uuid)
-  ;; Delete entries
-  (db-common/delete-resource conn common/entry-table-name :board-uuid uuid)
-  ;; Delete the board itself
-  (db-common/delete-resource conn table-name uuid)))
+  (db-common/delete-resource conn common/interaction-table-name :board-uuid (:uuid board))
+  (let [published-entries (filterv #(= (keyword (:status %)) :published) entries)]
+    ;; Delete all published entries
+    (doseq [entry published-entries]
+      (timbre/info "Delete entry:" (:uuid entry))
+      (db-common/delete-resource conn common/entry-table-name :uuid (:uuid entry)))
+    (if (= (count entries) (count published-entries))
+      ;; Delete the board itself
+      (do
+        (timbre/info "Actually deleting board" (:uuid board))
+        (db-common/delete-resource conn table-name (:uuid board)))
+      ;; Set back the draft on the board
+      (do
+        (timbre/info "Updating to draft board" (:uuid board))
+        (update-board! conn (:uuid board) (assoc board :draft true))))))
+
+  ([conn :guard db-common/conn? org-uuid :guard #(schema/validate lib-schema/UniqueID %) slug :guard slug/valid-slug? entries :guard sequential?]
+  (if-let [board (get-board conn org-uuid slug)]
+    (delete-board! conn board entries)))
+
+  ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %) entries :guard sequential?]
+  (if-let [board (get-board conn uuid)]
+    (delete-board! conn board entries))))
 
 ;; ----- Board's set operations -----
 
@@ -273,7 +285,7 @@
          (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name] additional-keys)
+  (->> (into [primary-key :slug :name :draft] additional-keys)
     (db-common/read-resources conn table-name :org-uuid org-uuid)
     (sort-by :slug)
     vec)))
