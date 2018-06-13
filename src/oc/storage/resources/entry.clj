@@ -239,24 +239,19 @@
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (let [must-read-filter (if (nil? must-read)
-                           (r/fn [row]
-                             (r/contains allowed-boards (r/get-field row :board-uuid)))
-                           (r/fn [row]
-                             (r/and
-                              (r/contains allowed-boards
-                                          (r/get-field row :board-uuid))
-                              (r/eq
-                               (r/default (r/get-field row :must-read) false)
-                               (= must-read "true"))))
-                           )]
-  (db-common/read-resources-and-relations conn table-name
-    :status-org-uuid [[:published org-uuid]]
-    "published-at" order start direction config/default-activity-limit
-    must-read-filter
-    :interactions common/interaction-table-name :uuid :resource-uuid
-    ["uuid" "headline" "body" "reaction" "author"
-     "published-at" "created-at" "updated-at"])))
+  (let [filter-map (if (nil? must-read)
+                     [{:fn :contains :value allowed-boards :field :board-uuid}]
+                     [{:fn :contains :value allowed-boards :field :board-uuid}
+                      {:fn :eq :field :must-read :value (= must-read "true")}]
+                     )]
+    (timbre/debug filter-map)
+    (db-common/read-resources-and-relations conn table-name
+      :status-org-uuid [[:published org-uuid]]
+      "published-at" order start direction config/default-activity-limit
+      filter-map
+      :interactions common/interaction-table-name :uuid :resource-uuid
+      ["uuid" "headline" "body" "reaction" "author"
+       "published-at" "created-at" "updated-at"])))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "
