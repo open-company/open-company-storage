@@ -101,7 +101,7 @@
     (try
       (let [notifications (:private-notifications board-map)
             entry-data (map #(valid-entry-with-board?
-                               conn (update-in % [:status] or "published") author) (:entries board-map))
+                               conn (assoc % :status (or (:status %) "published")) author) (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications :note)
                         (assoc :entries entry-data))]
