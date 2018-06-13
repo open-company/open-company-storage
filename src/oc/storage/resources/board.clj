@@ -8,7 +8,8 @@
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.org :as org-res]))
+            [oc.storage.resources.org :as org-res]
+            [oc.storage.async.notification :as notification]))
 
 ;; ----- RethinkDB metadata -----
 
@@ -250,6 +251,22 @@
          (slug/valid-slug? slug)]}
   (when-let* [board (get-board conn org-uuid slug)]
     (db-common/remove-from-set conn table-name (:uuid board) "viewers" user-id)))
+
+;; ----- Draft board delete on emptyness ------
+
+(defn maybe-delete-draft-board
+  "Check if a board is actually a draft board and if it has no more entries remove it."
+  [conn org board remaining-entries user]
+  (timbre/info "maybe-delete-draft-board" (:uuid board) "draft?" (:draft board) "entries" (count remaining-entries))
+  (when (and ;; if it's a draft board
+             (:draft board)
+             ;; and has no more entries
+             (zero? (count remaining-entries)))
+    (timbre/info "Deleting board:" (:uuid board) "because last draft was removed.")
+    ;; Remove also the board
+    (delete-board! conn (:uuid board) remaining-entries)
+    (timbre/info "Deleted board:" (:uuid board))
+    (notification/send-trigger! (notification/->trigger :delete org {:old board} user))));)
 
 ;; ----- Collection of boards -----
 
