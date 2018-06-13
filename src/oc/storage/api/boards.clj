@@ -163,7 +163,7 @@
 (defn- create-board [conn {org :existing-org new-board :new-board user :user :as ctx} org-slug]
   (timbre/info "Creating board for org:" org-slug)
   (let [entries (:entries new-board)
-        draft-board? (every? #(-> % :status keyword (= :draft)) entries)
+        draft-board? (and (pos? (count entries)) (every? #(-> % :status keyword (= :draft)) entries))
         new-board-data (assoc new-board :draft draft-board?)]
     (timbre/info "Crating board, is draft?" draft-board?)
     (if-let [board-result (board-res/create-board! conn new-board-data)] ; Add the board
@@ -192,6 +192,10 @@
             (timbre/info "Upserting entry for new board:" board-uuid)
             (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
               (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
+              ;; If we are updating an existing draft check if we need to remove the old board
+              (let [old-board (board-res/get-board conn (:board-uuid entry))
+                    remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+                (board-res/maybe-delete-draft-board conn org old-board remaining-entries user))
               (when (= (:status entry-result) "published")
                 (when (= :add entry-action)
                   (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
