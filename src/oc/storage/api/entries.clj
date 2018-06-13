@@ -185,6 +185,17 @@
             entry (:existing-entry ctx)
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
+      ;; If deleting a draft on a draft board
+      (when (and (= (keyword (:status entry)) :draft) (:draft board))
+        ;; check how many entries the section still have
+        (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid board))]
+          ;; if we are deleting the last draft
+          (when (zero? (count remaining-entries))
+            (timbre/info "Deleting board:" (:uuid board) "because last draft was removed.")
+            ;; Remove also the board
+            (board-res/delete-board! conn (:uuid board) remaining-entries)
+            (timbre/info "Deleted board:" (:uuid board))
+            (notification/send-trigger! (notification/->trigger :delete org {:old board} (:user ctx))))))
       (timbre/info "Deleted entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx) nil))
       true)
