@@ -65,6 +65,8 @@
     (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
           new-board (when new-board-slug ; look up the board it's being moved to
                           (board-res/get-board conn (:org-uuid existing-entry) new-board-slug))
+          old-board (when new-board
+                      (board-res/get-board conn (:board-uuid existing-entry)))
           new-board-uuid (:uuid new-board)
           props (if new-board-uuid
                   (assoc entry-props :board-uuid new-board-uuid)
@@ -74,6 +76,7 @@
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry existing-entry
          :existing-board new-board
+         :moving-board old-board
          :updated-entry updated-entry}
         [false, {:updated-entry updated-entry}])) ; invalid update
     
@@ -150,11 +153,16 @@
   (timbre/info "Updating entry for:" entry-for)
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
+            old-board (:moving-board ctx)
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
-    (do 
+    (do
+      ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
+      (when old-board
+        (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+          (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
       {:updated-entry updated-result})
@@ -166,11 +174,16 @@
   (if-let* [user (:user ctx)
             org (:existing-org ctx)
             board (:existing-board ctx)
+            old-board (:moving-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
     (do
       (undraft-board conn user org board)
+      ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
+      (when old-board
+        (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+          (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (auto-share-on-publish conn ctx publish-result)
       (timbre/info "Published entry:" entry-for)
@@ -186,16 +199,9 @@
             _delete-result (entry-res/delete-entry! conn (:uuid entry))]
     (do
       ;; If deleting a draft on a draft board
-      (when (and (= (keyword (:status entry)) :draft) (:draft board))
-        ;; check how many entries the section still have
+      (when (= (keyword (:status entry)) :draft)
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid board))]
-          ;; if we are deleting the last draft
-          (when (zero? (count remaining-entries))
-            (timbre/info "Deleting board:" (:uuid board) "because last draft was removed.")
-            ;; Remove also the board
-            (board-res/delete-board! conn (:uuid board) remaining-entries)
-            (timbre/info "Deleted board:" (:uuid board))
-            (notification/send-trigger! (notification/->trigger :delete org {:old board} (:user ctx))))))
+          (board-res/maybe-delete-draft-board conn org board remaining-entries (:user ctx))))
       (timbre/info "Deleted entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx) nil))
       true)
