@@ -195,9 +195,10 @@
             (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
               (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
               ;; If we are updating an existing draft check if we need to remove the old board
-              (let [old-board (board-res/get-board conn (:board-uuid entry))
-                    remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
-                (board-res/maybe-delete-draft-board conn org old-board remaining-entries user))
+              (when (not= (:board-uuid entry) entry-res/temp-uuid)
+                (let [old-board (board-res/get-board conn (:board-uuid entry))
+                      remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+                  (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
               (when (= (:status entry-result) "published")
                 (when (= :add entry-action)
                   (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
