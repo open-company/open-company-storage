@@ -89,19 +89,21 @@
       (assoc :entries entry-reps)))))
 
 ;; ----- Validations -----
+
 (defn- valid-entry-with-board?
   [conn entry author]
-  (if-let* [entry-uuid (:uuid entry)
-           found-entry (entry-res/get-entry conn entry-uuid)]
-    (merge found-entry entry)
+  (if-let* [status (or (:status entry) "published")
+            entry-uuid (:uuid entry)
+            found-entry (entry-res/get-entry conn entry-uuid)]
+    (merge found-entry (assoc entry :status status))
     (entry-res/->entry conn entry-res/temp-uuid entry author)))
 
 (defn- valid-new-board? [conn org-slug {board-map :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
       (let [notifications (:private-notifications board-map)
-            entry-data (map #(valid-entry-with-board?
-                               conn (assoc % :status (or (:status %) "published")) author) (:entries board-map))
+            entry-data (map #(valid-entry-with-board? conn % author)
+                          (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications :note)
                         (assoc :entries entry-data))]
