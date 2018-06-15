@@ -148,9 +148,8 @@
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (do 
-      (timbre/info "Updated entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
-      {:updated-entry updated-result})
+      {:updated-entry (assoc updated-result :board-name (:name board))})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
