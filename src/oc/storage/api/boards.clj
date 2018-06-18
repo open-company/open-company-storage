@@ -92,7 +92,7 @@
 
 (defn- valid-entry-with-board?
   [conn entry author]
-  (if-let* [status (or (:status entry) "published")
+  (if-let* [status (:status entry)
             entry-uuid (:uuid entry)
             found-entry (entry-res/get-entry conn entry-uuid)]
     (merge found-entry (assoc entry :status status))
@@ -183,7 +183,7 @@
         ;; Add any entries specified in the request
         (doseq [entry entries]
           (let [fixed-entry (-> entry
-                                (assoc :status (or (:status entry) "published"))
+                                (assoc :status (:status entry))
                                 (assoc :board-uuid board-uuid))
                 entry-action (if (entry-res/get-entry conn (:uuid entry))
                                :update
