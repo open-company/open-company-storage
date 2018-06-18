@@ -167,7 +167,7 @@
   (let [entries (:entries new-board)
         draft-board? (and (pos? (count entries)) (every? #(-> % :status keyword (= :draft)) entries))
         new-board-data (assoc new-board :draft draft-board?)]
-    (timbre/info "Crating board, is draft?" draft-board?)
+    (timbre/info "Creating board, is draft?" draft-board?)
     (if-let [board-result (board-res/create-board! conn new-board-data)] ; Add the board
 
       (let [board-uuid (:uuid board-result)
