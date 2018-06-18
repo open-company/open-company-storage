@@ -46,6 +46,7 @@
   :viewers [lib-schema/UniqueID]
   (schema/optional-key :slack-mirror) (schema/maybe lib-schema/SlackChannel)
   :author lib-schema/Author
+  (schema/optional-key :draft) schema/Bool
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
