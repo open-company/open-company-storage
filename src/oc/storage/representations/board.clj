@@ -9,7 +9,7 @@
             [oc.storage.resources.board :as board-res]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :topics :entries :created-at :updated-at])
-(def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers]))
+(def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft]))
 
 (defun url
   ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))
