@@ -50,7 +50,7 @@
       (let [boards (board-res/list-boards-by-org conn (:uuid org) [:access :viewers :authors])
             allowed-boards (vec (map :uuid boards))]
         (doseq [board boards]
-          (let [entries (entry-res/list-entries-by-board conn (:uuid board))]
+          (let [entries (entry-res/list-entries-by-board conn (:uuid board) {})]
             (doseq [entry entries]
               (send-trigger! (->trigger "entry" entry org board)))))))))
 

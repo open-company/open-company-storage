@@ -328,7 +328,7 @@
                                org-uuid (:uuid org)
                                board (board-res/get-board conn org-uuid board-slug)
                                board-uuid (:uuid board)
-                               entries (entry-res/list-entries-by-board conn board-uuid)]
+                               entries (entry-res/list-entries-by-board conn board-uuid {})]
                         {:existing-org org :existing-board board :existing-entries entries}
                         false))
 

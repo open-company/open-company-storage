@@ -235,7 +235,7 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] must-read]
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-read count] :or {must-read nil count false}}]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
@@ -244,14 +244,13 @@
                      [{:fn :contains :value allowed-boards :field :board-uuid}
                       {:fn :eq :field :must-read :value (= must-read "true")}]
                      )]
-    (timbre/debug filter-map)
     (db-common/read-resources-and-relations conn table-name
       :status-org-uuid [[:published org-uuid]]
       "published-at" order start direction config/default-activity-limit
       filter-map
       :interactions common/interaction-table-name :uuid :resource-uuid
       ["uuid" "headline" "body" "reaction" "author"
-       "published-at" "created-at" "updated-at"])))
+       "published-at" "created-at" "updated-at"] {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "
@@ -259,23 +258,23 @@
   and a direction, one of `:before` or `:after`, and an optional status of `:draft` or `:published` (the default)
   return the entries by the author with any interactions.
   "
-  ([conn org-uuid :- lib-schema/UniqueID user-id]
-    (list-entries-by-org-author conn org-uuid user-id :published))
+  ([conn org-uuid :- lib-schema/UniqueID user-id {:keys [count] :or {count false}}]
+    (list-entries-by-org-author conn org-uuid user-id :published {:count count}))
 
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID status]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID status {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:published :draft} status)]}
   (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[status org-uuid user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"])))
+                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"] {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  [conn board-uuid :- lib-schema/UniqueID]
+  [conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"]))
+                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"] {:count count}))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."

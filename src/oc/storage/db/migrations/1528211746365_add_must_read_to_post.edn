@@ -15,7 +15,7 @@
           (r/update (r/fn [resource]
                           {:must-read false}))
           (r/run conn))))
-  
+
   (println "Adding indexes...")
 
   (println (m/create-index conn entry/table-name "must-read"))

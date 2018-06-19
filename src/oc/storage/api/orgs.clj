@@ -200,8 +200,8 @@
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
                              show-draft-board (seq user-id)
-                             draft-entries (when show-draft-board (entry-res/list-entries-by-org-author conn org-id user-id :draft))
-                             draft-entry-count (if show-draft-board (count draft-entries) 0)
+                             draft-entry-count (if show-draft-board (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
+                             must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :after (map :uuid allowed-boards) {:must-read true :count true})
                              full-boards (if show-draft-board
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
@@ -209,11 +209,11 @@
                                           full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
-                          (org-rep/render-org (-> org
-                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
-                                                (assoc :authors author-reps))
-                                              (:access-level ctx)
-                                              user-id)))
+                         (org-rep/render-org (-> org
+                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
+                                                 (assoc :authors author-reps))
+                                             (:access-level ctx)
+                                             user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 

@@ -59,7 +59,7 @@
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
-        entries (entry-res/list-entries-by-board conn (:uuid board)) ; all entries for the board
+        entries (entry-res/list-entries-by-board conn (:uuid board) {}) ; all entries for the board
         board-topics (->> entries
                         (map #(select-keys % [:topic-slug :topic-name]))
                         (filter :topic-slug) ; remove entries w/ no topic
