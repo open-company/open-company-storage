@@ -199,9 +199,10 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
-                             draft-entries (when user-id (entry-res/list-entries-by-org-author conn org-id user-id :draft))
-                             draft-entry-count (count draft-entries)
-                             full-boards (if (pos? draft-entry-count)
+                             show-draft-board (seq user-id)
+                             draft-entries (when show-draft-board (entry-res/list-entries-by-org-author conn org-id user-id :draft))
+                             draft-entry-count (if show-draft-board (count draft-entries) 0)
+                             full-boards (if show-draft-board
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
                              board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count)
