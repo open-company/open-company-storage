@@ -211,6 +211,7 @@
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
+                                                 (assoc :must-see-count must-see-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
                                              user-id)))
