@@ -239,10 +239,10 @@
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (let [filter-map (if (nil? must-read)
+  (let [filter-map (if-not must-read
                      [{:fn :contains :value allowed-boards :field :board-uuid}]
                      [{:fn :contains :value allowed-boards :field :board-uuid}
-                      {:fn :eq :field :must-read :value (= must-read "true")}]
+                      {:fn :eq :field :must-read :value (#{true "true"} must-read)}]
                      )]
     (db-common/read-resources-and-relations conn table-name
       :status-org-uuid [[:published org-uuid]]
