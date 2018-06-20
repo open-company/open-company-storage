@@ -235,14 +235,14 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
   and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-read count] :or {must-read nil count false}}]
+  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-read count] :or {must-read false count false}}]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
   (let [filter-map (if-not must-read
                      [{:fn :contains :value allowed-boards :field :board-uuid}]
                      [{:fn :contains :value allowed-boards :field :board-uuid}
-                      {:fn :eq :field :must-read :value (#{true "true"} must-read)}]
+                      {:fn :eq :field :must-read :value (boolean (#{true "true"} must-read))}]
                      )]
     (db-common/read-resources-and-relations conn table-name
       :status-org-uuid [[:published org-uuid]]
