@@ -303,8 +303,8 @@
                                org-uuid (:uuid org)
                                user (:user ctx)
                                board (or (:existing-board ctx)
-                                         (if (and (= slug (:slug board-res/default-drafts-board)
-                                                  (lib-schema/valid? lib-schema/User user)))
+                                         (if (and (= slug (:slug board-res/default-drafts-board))
+                                                  (lib-schema/valid? lib-schema/User user))
                                             ;; Draft board for the user
                                             (board-res/drafts-board org-uuid user)
                                             ;; Regular board by slug
