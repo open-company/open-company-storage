@@ -301,9 +301,13 @@
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug) (slugify/valid-slug? slug))
                                org (or (:existing-org ctx) (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
+                               user (:user ctx)
                                board (or (:existing-board ctx)
-                                         (if (= slug (:slug board-res/default-drafts-board))
-                                            (board-res/drafts-board org-uuid (:user ctx))
+                                         (if (and (= slug (:slug board-res/default-drafts-board)
+                                                  (lib-schema/valid? lib-schema/User user)))
+                                            ;; Draft board for the user
+                                            (board-res/drafts-board org-uuid user)
+                                            ;; Regular board by slug
                                             (board-res/get-board conn org-uuid slug)))]
                         {:existing-org org :existing-board board}
                         false))
