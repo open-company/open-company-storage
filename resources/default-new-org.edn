@@ -10,7 +10,7 @@
           :author {
             :avatar-url "https://d1wc0stj82keig.cloudfront.net/img/ML/happy_face_red.svg",
             :name "Alia Atreidis",
-            :user-id "0000-0000-0000"
+            :user-id "1111-1111-1111"
           }
           :headline "Carrot keeps us aligned! 🚀"
           :body "<p>It’s a struggle to keep everyone on the same page. Important information often gets missed or lost in fast moving conversations, and so everyone has a different idea of what’s important.</p><p>Carrot is a company digest that makes key information visible and easy to find, so everyone stays informed and aligned.</p>"
@@ -21,7 +21,7 @@
               :author {
                 :avatar-url "https://d1wc0stj82keig.cloudfront.net/img/ML/happy_face_green.svg",
                 :name "Duncan Idaho",
-                :user-id "0000-0000-0000"
+                :user-id "1111-1111-2222"
               }
             }
           ]
@@ -32,7 +32,7 @@
               :author {
                 :avatar-url "https://d1wc0stj82keig.cloudfront.net/img/ML/happy_face_yellow.svg",
                 :name "Gurney Halleck",
-                :user-id "0000-0000-0000"
+                :user-id "1111-1111-3333"
               }
             }
           ]
