@@ -162,8 +162,7 @@
             (clojure.set/rename-keys  {:slug :org-slug})
             (merge full-entry)
             (assoc :board-slug board-slug))
-          ;; don't need the extra props
-          (dissoc full-entry :board-uuid))
+          full-entry)
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (clean-blank-topic)
