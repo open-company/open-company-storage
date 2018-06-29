@@ -173,11 +173,10 @@
   (if-let* [user (:user ctx)
             org (:existing-org ctx)
             board (:existing-board ctx)
-            old-board (:moving-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
-    (do
+    (let [old-board (:moving-board ctx)]
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
