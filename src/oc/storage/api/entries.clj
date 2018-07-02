@@ -153,12 +153,11 @@
   (timbre/info "Updating entry for:" entry-for)
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
-            old-board (:moving-board ctx)
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
-    (do
+    (let [old-board (:moving-board ctx)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
@@ -174,11 +173,10 @@
   (if-let* [user (:user ctx)
             org (:existing-org ctx)
             board (:existing-board ctx)
-            old-board (:moving-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             publish-result (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
-    (do
+    (let [old-board (:moving-board ctx)]
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
