@@ -1,8 +1,6 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let* when-let*)]
-            [taoensso.timbre :as timbre]
-            [rethinkdb.query :as r]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
