@@ -105,7 +105,7 @@
   :author [ContributingAuthor]
   (schema/optional-key :published-at) lib-schema/ISO8601
   (schema/optional-key :publisher) lib-schema/Author
-  (schema/optional-key :must-read) schema/Bool
+  (schema/optional-key :must-see) schema/Bool
   (schema/optional-key :shared) [ShareRequest]
 
   :created-at lib-schema/ISO8601
