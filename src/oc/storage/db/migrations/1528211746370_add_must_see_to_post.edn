@@ -7,16 +7,8 @@
 
 (defn up [conn]
   (println "Add new property (must-see) to existing entries...")
-  (let [entries (db-common/read-resources conn entry/table-name)]
-    (println "Updating" (count entries) "existing entries...")
-    (doseq [entry entries]
-      (-> (r/table entry/table-name)
-          (r/get (entry/primary-key entry))
-          (r/update (r/fn [resource]
-                          {:must-see false}))
-          (r/run conn))))
+  (-> (r/table entry/table-name)
+      (r/update (r/fn [e] {:must-see false}))
+      (r/run conn))
 
-  (println "Adding indexes...")
-
-  (println (m/create-index conn entry/table-name "must-see"))
   true) ; return true on success
