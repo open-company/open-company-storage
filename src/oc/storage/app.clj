@@ -61,6 +61,7 @@
     "AWS SNS notification topic ARN: " c/aws-sns-storage-topic-arn "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
+    "Log level: " c/log-level "\n"
     "Sentry: " c/dsn "\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
