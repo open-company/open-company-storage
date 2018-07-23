@@ -173,6 +173,7 @@ Make sure you update the section in `project.clj` that looks like this to contai
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
+        :log-level "debug"
   }
 ```
 
