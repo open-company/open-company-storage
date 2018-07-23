@@ -36,8 +36,8 @@
   "
   A trigger for one of the various types of notifications that are published:
 
-  add - the content in  newly created, this happens when a board or entry is added
-  update - the content-id should be refreshed, this happens when a board or entry is updated
+  add - the content is newly created, this happens when a board or entry is added
+  update - the content should be refreshed, this happens when a board or entry is updated
   delete - the specified content-id is deleted, this happens when a board or entry is removed
 
   The notification trigger contains the type of resource as `resource-type` and the content as `new` and/or
