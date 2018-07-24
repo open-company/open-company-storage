@@ -8,7 +8,8 @@
             [oc.storage.config :as config]))
 
 (defn- handle-video-webhook [conn ctx]
-  (timbre/debug ctx))
+  (let [body (:data ctx)]
+    (timbre/debug body)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
