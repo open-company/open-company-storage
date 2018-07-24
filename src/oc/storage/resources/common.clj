@@ -10,6 +10,7 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def interaction-table-name "interactions")
+(def video-table-name "videos")
 
 ;; ----- Properties common to all resources -----
 
