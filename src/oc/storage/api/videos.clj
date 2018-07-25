@@ -22,10 +22,6 @@
       (let [video-processed (= (:state video) 5)
             video-transcript (:transcription video)]
         (timbre/debug video-processed video-transcript)))))
-        ;; Update entry with video data
-        ;;(entry-res/update-entry! conn (-> entry
-        ;;                             (assoc :video-processed video-processed)
-        ;;                             (assoc :video-transcript video-transcript)))))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

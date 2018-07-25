@@ -17,6 +17,7 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.async.email :as email]
             [oc.storage.async.bot :as bot]
+            [oc.storage.util.ziggeo :as ziggeo]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
@@ -44,6 +45,9 @@
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
 
+(defn- handle-video-data [entry user]
+  (when (:video-id entry)
+    (ziggeo/get (fn [video] (entry-res/update-video-data video entry user)))))
 ;; ----- Validations -----
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]
@@ -140,6 +144,7 @@
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     
     (do
+      (handle-video-data entry-result (:user ctx))
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
         (undraft-board conn (:user ctx) org board)
@@ -163,6 +168,7 @@
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
+      (handle-video-data update-result user)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
       {:updated-entry (assoc updated-result :board-name (:name board))})
 
