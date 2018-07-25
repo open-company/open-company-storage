@@ -6,14 +6,26 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.util.ziggeo :as ziggeo]
+            [oc.storage.resources.entry :as entry-res]
             [oc.storage.config :as config]))
 
 (defn- handle-video-webhook [conn ctx]
   (let [body (:data ctx)
-        token (get-in body [:data :video :token])]
+        video (get-in body [:data :video])
+        token (:token video)]
+    (try
+        ;; find entry by video token
+      (timbre/debug (entry-res/get-entry-by-video conn token))
+      (catch Exception e (str "caught exception: " (.getMessage e))))
     (timbre/debug body)
-    (timbre/debug token)
-    (ziggeo/get token)))
+    (when true
+      (let [video-processed (= (:state video) 5)
+            video-transcript (:transcription video)]
+        (timbre/debug video-processed video-transcript)))))
+        ;; Update entry with video data
+        ;;(entry-res/update-entry! conn (-> entry
+        ;;                             (assoc :video-processed video-processed)
+        ;;                             (assoc :video-transcript video-transcript)))))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
