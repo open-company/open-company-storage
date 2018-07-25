@@ -10,7 +10,6 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def interaction-table-name "interactions")
-(def video-table-name "videos")
 
 ;; ----- Properties common to all resources -----
 
@@ -109,6 +108,9 @@
   (schema/optional-key :must-see) schema/Bool
   (schema/optional-key :shared) [ShareRequest]
 
+  (schema/optional-key :video-id) schema/Str
+  (schema/optional-key :video-transcript) schema/Str
+  (schema/optional-key :video-processed) schema/Bool
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
