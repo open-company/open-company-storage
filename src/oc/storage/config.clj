@@ -97,4 +97,4 @@
 (defonce default-activity-limit 10)
 
 (defonce ziggeo-api-token (env :open-company-ziggeo-api-token))
-(defonce ziggeo-api-key (enve :open-company-ziggeo-api-key))
+(defonce ziggeo-api-key (env :open-company-ziggeo-api-key))

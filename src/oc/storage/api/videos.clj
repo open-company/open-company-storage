@@ -5,11 +5,15 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.storage.util.ziggeo :as ziggeo]
             [oc.storage.config :as config]))
 
 (defn- handle-video-webhook [conn ctx]
-  (let [body (:data ctx)]
-    (timbre/debug body)))
+  (let [body (:data ctx)
+        token (get-in body [:data :video :token])]
+    (timbre/debug body)
+    (timbre/debug token)
+    (ziggeo/get token)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
