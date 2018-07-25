@@ -192,11 +192,11 @@
     (create-entry! conn entry)))
 
 (defn update-video-data [conn video entry user]
-  (timbre/debug video entry user)
   (when (not (:video-processed entry))
     (let [video-processed (> (:state video) 4)
           video-transcript (:transcription video)]
       (update-entry! conn
+                     (:uuid entry)
                      (-> entry
                          (assoc :video-processed video-processed)
                          (assoc :video-transcript video-transcript))

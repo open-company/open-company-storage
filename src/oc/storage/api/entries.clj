@@ -47,7 +47,8 @@
 
 (defn- handle-video-data [conn entry user]
   (when (:video-id entry)
-    (ziggeo/get (fn [video] (entry-res/update-video-data conn video entry user)))))
+    (ziggeo/video (:video-id entry)
+      (fn [video] (entry-res/update-video-data conn video entry user)))))
 ;; ----- Validations -----
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]

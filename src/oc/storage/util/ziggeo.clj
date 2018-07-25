@@ -8,6 +8,7 @@
   (:require [org.httpkit.client :as http]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
+            [clojure.walk :refer (keywordize-keys)]
             [oc.storage.config :as config]))
 
 (defonce ziggeo-api-url "https://srvapi.ziggeo.com/v1")
@@ -21,9 +22,11 @@
              }
    :basic-auth [(:username auth) (:password auth)]})
 
-(defn get [token cb]
+(defn video [token cb]
   (http/get (str ziggeo-api-url "/videos/" token) (auth-options auth)
     (fn [{:keys [status headers body error] :as resp}]
       (timbre/debug status error)
       (when (and (> status 199) (< status 500))
-        (cb (json/parse-string body))))))
+        (cb (-> body
+                json/parse-string
+                keywordize-keys))))))
