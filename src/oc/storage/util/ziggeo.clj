@@ -21,9 +21,9 @@
              }
    :basic-auth [(:username auth) (:password auth)]})
 
-(defn get [token]
-  (let [{:keys [status headers body error] :as resp}
-          @(http/get (str ziggeo-api-url "/videos/" token) (auth-options auth))]
-    (timbre/debug status error)
-    (when (and (> status 199) (< status 500))
-      (json/parse-string body))))
+(defn get [token cb]
+  (http/get (str ziggeo-api-url "/videos/" token) (auth-options auth)
+    (fn [{:keys [status headers body error] :as resp}
+         (timbre/debug status error)
+         (when (and (> status 199) (< status 500))
+           (cb (json/parse-string body)))))))

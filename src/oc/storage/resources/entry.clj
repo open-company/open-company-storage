@@ -150,6 +150,7 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :video-id video-id))))
 
+
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
   Given the UUID of the entry, an updated entry property map, and a user (as the author), update the entry and
@@ -188,6 +189,16 @@
   (if-let [original-entry (get-entry conn (:uuid entry))]
     (update-entry! conn (:uuid entry) entry user)
     (create-entry! conn entry)))
+
+(defn update-video-data [video entry user]
+  (when (not (:video-processed entry))
+    (let [video-processed (> (:state video) 4)
+          video-transcript (:transcription video)]
+      (update-entry! conn
+                     (-> entry
+                         (assoc :video-processed video-processed)
+                         (assoc :video-transcript video-transcript))
+                     user))))
 
 (schema/defn ^:always-validate publish-entry! :- (schema/maybe common/Entry)
   "
