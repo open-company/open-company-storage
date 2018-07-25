@@ -95,3 +95,6 @@
 (defonce inline-comment-count 10)
 
 (defonce default-activity-limit 10)
+
+(defonce ziggeo-api-token (env :open-company-ziggeo-api-token))
+(defonce ziggeo-api-key (enve :open-company-ziggeo-api-key))
