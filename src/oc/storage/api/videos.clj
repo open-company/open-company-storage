@@ -12,13 +12,12 @@
 (defn- handle-video-webhook [conn ctx]
   (let [body (:data ctx)
         video (get-in body [:data :video])
-        token (:token video)]
-    (try
-        ;; find entry by video token
-      (timbre/debug (entry-res/get-entry-by-video conn token))
-      (catch Exception e (str "caught exception: " (.getMessage e))))
-    (timbre/debug body)
-    (when true
+        token (:token video)
+        entry (if token
+                (entry-res/get-entry-by-video conn token)
+                false)]
+    (timbre/debug entry)
+    (when entry
       (let [video-processed (= (:state video) 5)
             video-transcript (:transcription video)]
         (timbre/debug video-processed video-transcript)))))
