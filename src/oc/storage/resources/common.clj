@@ -108,7 +108,7 @@
   (schema/optional-key :must-see) schema/Bool
   (schema/optional-key :shared) [ShareRequest]
 
-  (schema/optional-key :video-id) schema/Str
+  (schema/optional-key :video-id) (schema/maybe lib-schema/NonBlankStr)
   (schema/optional-key :video-transcript) schema/Str
   (schema/optional-key :video-processed) schema/Bool
   :created-at lib-schema/ISO8601
