@@ -142,6 +142,14 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :secure-uuid-org-uuid [[secure-uuid org-uuid]]))))
 
+(schema/defn ^:always-validate get-entry-by-video :- (schema/maybe common/Entry)
+  "
+  Given the video token in the entry, retrieve the entry, or return nil if it doesn't exist.
+  "
+  ([conn video-id :- schema/Str]
+  {:pre [(db-common/conn? conn)]}
+  (first (db-common/read-resources conn table-name :video-id video-id))))
+
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
   Given the UUID of the entry, an updated entry property map, and a user (as the author), update the entry and

@@ -7,6 +7,7 @@
   "
   (:require [org.httpkit.client :as http]
             [taoensso.timbre :as timbre]
+            [cheshire.core :as json]
             [oc.storage.config :as config]))
 
 (defonce ziggeo-api-url "https://srvapi.ziggeo.com/v1")
@@ -21,11 +22,8 @@
    :basic-auth [(:username auth) (:password auth)]})
 
 (defn get [token]
-  (timbre/debug "Making ziggeo request:")
-  (timbre/debug auth-options)
-  (timbre/debug (str ziggeo-api-url "/videos/" token))
   (let [{:keys [status headers body error] :as resp}
           @(http/get (str ziggeo-api-url "/videos/" token) (auth-options auth))]
     (timbre/debug status error)
     (when (and (> status 199) (< status 500))
-      (timbre/debug body))))
+      (json/parse-string body))))
