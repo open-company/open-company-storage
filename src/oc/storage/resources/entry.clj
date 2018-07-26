@@ -214,7 +214,7 @@
 (defn update-video-data [conn video entry]
   (when (not (:video-processed entry))
     (let [video-processed (> (:state video) 4)
-          video-transcript (:transcription video)]
+          video-transcript (:audio_transcription (:default_stream video))]
       (update-entry-no-user! conn
                              (:uuid entry)
                              (-> entry
