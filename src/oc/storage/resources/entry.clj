@@ -151,6 +151,38 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :video-id video-id))))
 
+(defn- new-topic-name [entry original-entry]
+  (let [new-topic-name (:topic-name entry)]
+    (if (clojure.string/blank? new-topic-name)
+      (when-not (contains? entry :topic-name)
+        (:topic-name original-entry)) ;; keep prior topic name
+      ;; new topic name provided
+      new-topic-name)))
+
+(defn- update-entry [conn entry original-entry ts]
+  (let [topic-name (new-topic-name entry original-entry)
+        topic-slug (when topic-name (slugify/slugify topic-name))
+        merged-entry (merge original-entry (ignore-props entry))
+        topic-named-entry (assoc merged-entry :topic-name topic-name)
+        slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
+        attachments (:attachments merged-entry)
+        updated-entry (assoc slugged-entry :attachments (timestamp-attachments attachments ts))]
+    (schema/validate common/Entry updated-entry)
+    (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
+
+(schema/defn ^:always-validate update-entry-no-user! :- (schema/maybe common/Entry)
+  "
+  Given the UUID of the entry, an updated entry property map, update the entry
+  and return the updated entry on success.
+
+  Throws an exception if the merge of the prior entry and the updated entry property map doesn't conform
+  to the common/Entry schema.
+  "
+  [conn uuid :- lib-schema/UniqueID entry]
+  {:pre [(db-common/conn? conn)
+         (map? entry)]}
+  (if-let [original-entry (get-entry conn uuid)]
+    (update-entry conn entry original-entry (db-common/current-timestamp))))
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
   "
@@ -165,22 +197,10 @@
          (map? entry)]}
   (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
-          new-topic-name (:topic-name entry)
-          topic-name (if (clojure.string/blank? new-topic-name)
-                      (when-not (contains? entry :topic-name)
-                        (:topic-name original-entry)) ; keep prior topic name
-                      new-topic-name) ; new topic name provided
-          topic-slug (when topic-name (slugify/slugify topic-name))
-          merged-entry (merge original-entry (ignore-props entry))
-          topic-named-entry (assoc merged-entry :topic-name topic-name)
-          slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
           ts (db-common/current-timestamp)
           updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-          attachments (:attachments merged-entry)
-          updated-attachments (assoc slugged-entry :attachments (timestamp-attachments attachments ts))
-          updated-entry (assoc updated-attachments :author updated-authors)]
-      (schema/validate common/Entry updated-entry)
-      (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
+          updated-entry (assoc entry :author updated-authors)]
+      (update-entry conn updated-entry original-entry ts))))
 
 (defn upsert-entry!
   "
@@ -191,16 +211,15 @@
     (update-entry! conn (:uuid entry) entry user)
     (create-entry! conn entry)))
 
-(defn update-video-data [conn video entry user]
+(defn update-video-data [conn video entry]
   (when (not (:video-processed entry))
     (let [video-processed (> (:state video) 4)
           video-transcript (:transcription video)]
-      (update-entry! conn
-                     (:uuid entry)
-                     (-> entry
-                         (assoc :video-processed video-processed)
-                         (assoc :video-transcript video-transcript))
-                     user))))
+      (update-entry-no-user! conn
+                             (:uuid entry)
+                             (-> entry
+                                 (assoc :video-processed video-processed)
+                                 (assoc :video-transcript video-transcript))))))
 
 (schema/defn ^:always-validate publish-entry! :- (schema/maybe common/Entry)
   "

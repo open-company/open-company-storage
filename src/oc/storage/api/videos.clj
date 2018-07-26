@@ -20,11 +20,11 @@
     (when entry
       (let [video-processed (= (:state video) 5)
             video-transcript (:transcription video)]
-        (timbre/debug video-processed video-transcript)))))
+        (entry-res/update-video-data conn video entry)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-;; A resource for operations on a zigge video
+;; A resource for operations on a ziggeo video
 (defresource video [conn]
   (api-common/open-company-anonymous-resource config/passphrase)
 
