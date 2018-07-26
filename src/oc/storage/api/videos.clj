@@ -16,11 +16,9 @@
         entry (if token
                 (entry-res/get-entry-by-video conn token)
                 false)]
-    (timbre/debug entry)
+    (timbre/debug video entry)
     (when entry
-      (let [video-processed (= (:state video) 5)
-            video-transcript (:transcription video)]
-        (entry-res/update-video-data conn video entry)))))
+      (entry-res/update-video-data conn video entry))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
