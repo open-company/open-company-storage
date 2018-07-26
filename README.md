@@ -157,6 +157,18 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
+#### Ziggeo Webhooks
+In order for the video posts to function properly you will need to handle
+webhooks from ziggeo.
+
+The steps to do this are to go to the ziggeo web app at https:/ziggeo.com.
+On the left nav bar there is a 'Manage' option.
+Click that and then choose the 'Webhooks' item in the middle of the page.
+Add your ngrok url and choose 'JSON encoding' for the template option.
+
+To start ngrok run `ngrok http 3001` in the storage service directory.
+The ngrok url will be printed out.
+
 #### Configuration
 
 Make sure you update the section in `project.clj` that looks like this to contain your specific configuration:
@@ -173,6 +185,8 @@ Make sure you update the section in `project.clj` that looks like this to contai
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
+        :open-company-ziggeo-api-key "" ; Get this key from ziggeo.com
+        :open-company-ziggeo-api-token "" ; Get this token from ziggeo.com
         :log-level "debug"
   }
 ```
