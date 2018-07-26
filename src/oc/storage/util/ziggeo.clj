@@ -25,7 +25,6 @@
 (defn video [token cb]
   (http/get (str ziggeo-api-url "/videos/" token) (auth-options auth)
     (fn [{:keys [status headers body error] :as resp}]
-      (timbre/debug status error)
       (when (and (> status 199) (< status 500))
         (cb (-> body
                 json/parse-string
