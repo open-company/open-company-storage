@@ -6,6 +6,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.util.ziggeo :as ziggeo]
+            [oc.storage.async.notification :as notification]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.config :as config]))
 
@@ -15,10 +16,16 @@
         token (:token video)
         entry (if token
                 (entry-res/get-entry-by-video conn token)
-                false)]
+                false)
+        video-changed (:video-processed entry)]
     (timbre/debug video entry)
     (when entry
-      (entry-res/update-video-data conn video entry))))
+      (let [updated-result (entry-res/update-video-data conn video entry)]
+        (when (not= (:video-processed updated-result) video-changed)
+          (notification/send-trigger!
+           (notification/->trigger :update
+                                   {:old entry :new updated-result}
+                                   nil)))))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

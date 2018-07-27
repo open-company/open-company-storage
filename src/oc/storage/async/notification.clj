@@ -59,7 +59,7 @@
     (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)}
-   :user lib-schema/User
+   :user (schema/maybe lib-schema/User)
    :note (schema/maybe schema/Str)
    :notification-at lib-schema/ISO8601})
 
