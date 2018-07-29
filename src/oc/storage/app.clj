@@ -70,7 +70,7 @@
   (cond-> (routes sys)
     c/prod?           api-common/wrap-500 ; important that this is first
     c/dsn             (sentry-mw/wrap-sentry c/dsn) ; important that this is second
-    c/prod?           wrap-with-logger
+    true              wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
     true              (wrap-cors #".*")

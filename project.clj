@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.9.0"]
+    [org.clojure/clojure "1.10.0-alpha6"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.3.7"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -37,7 +37,7 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.9"]
+    [zprint "0.4.10"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
     [open-company/lib "0.16.10"]
@@ -100,7 +100,7 @@
     :dev [:qa {
       :env ^:replace {
         :db-name "open_company_storage_dev"
-        :liberator-trace "true" ; liberator debug data in HTTP response headers
+        :liberator-trace "false" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
         :aws-access-key-id "CHANGE-ME"
@@ -125,7 +125,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.9" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.10" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {
