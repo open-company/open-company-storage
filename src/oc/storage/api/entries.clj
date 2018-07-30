@@ -46,7 +46,9 @@
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
 
 (defn- handle-video-data [conn entry]
-  (when (:video-id entry)
+  (when (and (:video-id entry)
+             (or (nil? (:video-processed entry))
+                 (nil? (:video-transcript entry))))
     (ziggeo/video (:video-id entry)
       (fn [video] (entry-res/update-video-data conn video entry)))))
 ;; ----- Validations -----
