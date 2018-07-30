@@ -171,7 +171,8 @@
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (handle-video-data conn updated-result)
+      (when (not= (:video-id updated-entry) (:video-id entry))
+        (handle-video-data conn updated-result))
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
       {:updated-entry (assoc updated-result :board-name (:name board))})
 
