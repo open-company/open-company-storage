@@ -164,15 +164,19 @@
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
+            updated-video (if (not= (:video-id updated-entry) (:video-id entry))
+                            (-> updated-entry
+                                (dissoc :video-processed)
+                                (dissoc :video-transcript))
+                            updated-entry)
+            updated-result (entry-res/update-entry! conn (:uuid updated-video) updated-video user)]
     (let [old-board (:moving-board ctx)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (when (not= (:video-id updated-entry) (:video-id entry))
-        (handle-video-data conn updated-result))
+      (handle-video-data conn updated-result)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
       {:updated-entry (assoc updated-result :board-name (:name board))})
 
