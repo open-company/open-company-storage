@@ -8,6 +8,8 @@
             [oc.storage.util.ziggeo :as ziggeo]
             [oc.storage.async.notification :as notification]
             [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.org :as org-res]
+            [oc.storage.resources.board :as board-res]
             [oc.storage.config :as config]))
 
 (defn- handle-video-webhook [conn ctx]
@@ -20,12 +22,16 @@
         video-changed (:video-processed entry)]
     (timbre/debug video entry)
     (when entry
-      (let [updated-result (entry-res/update-video-data conn video entry)]
+      (let [updated-result (entry-res/update-video-data conn video entry)
+            ;; find org
+            org (org-res/get-org conn (:org-uuid entry))
+            ;; find board
+            board (board-res/get-board conn (:board-uuid entry))]
         (when (not= (:video-processed updated-result) video-changed)
           (notification/send-trigger!
-           (notification/->trigger :update
+           (notification/->trigger :update org board
                                    {:old entry :new updated-result}
-                                   nil)))))))
+                                   nil nil)))))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
