@@ -166,8 +166,8 @@
             updated-entry (:updated-entry ctx)
             updated-video (if (not= (:video-id updated-entry) (:video-id entry))
                             (-> updated-entry
-                                (dissoc :video-processed)
-                                (dissoc :video-transcript))
+                                (assoc :video-processed nil)
+                                (assoc :video-transcript nil))
                             updated-entry)
             updated-result (entry-res/update-entry! conn (:uuid updated-video) updated-video user)]
     (let [old-board (:moving-board ctx)]
