@@ -5,7 +5,6 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
-            [oc.storage.util.ziggeo :as ziggeo]
             [oc.storage.async.notification :as notification]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.resources.org :as org-res]

@@ -6,7 +6,6 @@
    TODO: Maybe in the future we can create a full clojure SDK.
   "
   (:require [org.httpkit.client :as http]
-            [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [clojure.walk :refer (keywordize-keys)]
             [oc.storage.config :as config]))
