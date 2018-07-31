@@ -211,7 +211,9 @@
     (create-entry! conn entry)))
 
 (defn update-video-data [conn video entry]
-  (let [video-processed (> (:state video) 4)
+  (let [video-processed (if (:video-processed entry)
+                          true
+                          (> (:state video) 4))
         video-transcript-data (get-in video [:original_stream :audio_transcription :text])
         video-transcript (or video-transcript-data
                              (:video-transcript entry))]
