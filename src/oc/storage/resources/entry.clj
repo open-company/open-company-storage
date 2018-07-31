@@ -1,7 +1,6 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let* when-let*)]
-            [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
@@ -214,9 +213,8 @@
 (defn update-video-data [conn video entry]
   (let [video-processed (> (:state video) 4)
         video-transcript-data (get-in video [:original_stream :audio_transcription :text])
-        video-transcript (if video-transcript-data
-                           video-transcript-data
-                           (:video-transcript entry))]
+        video-transcript (or video-transcript-data
+                             (:video-transcript entry))]
     (update-entry-no-user! conn
                            (:uuid entry)
                            (-> entry
