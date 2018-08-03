@@ -21,7 +21,7 @@
         video-changed (:video-processed entry)]
     (timbre/debug (:state_string video) video entry)
     (when entry
-      (let [error (contains? ["EMPTY" "ERROR"] (:state_string video))
+      (let [error (some #(= (:state_string video) %) ["EMPTY", "ERROR"])
             updated-result (if-not error
                              (entry-res/update-video-data conn video entry)
                              (entry-res/error-video-data conn entry))
