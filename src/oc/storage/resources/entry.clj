@@ -210,6 +210,14 @@
     (update-entry! conn (:uuid entry) entry user)
     (create-entry! conn entry)))
 
+(defn error-video-data [conn entry]
+  (update-entry-no-user! conn
+                         (:uuid entry)
+                         (-> entry
+                             (assoc :video-processed nil)
+                             (assoc :video-transcript nil)
+                             (assoc :video-error true))))
+
 (defn update-video-data [conn video entry]
   (let [video-processed (if (:video-processed entry)
                           true

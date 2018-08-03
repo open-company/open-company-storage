@@ -19,9 +19,12 @@
                 (entry-res/get-entry-by-video conn token)
                 false)
         video-changed (:video-processed entry)]
-    (timbre/debug video entry)
+    (timbre/debug (:state_string video) video entry)
     (when entry
-      (let [updated-result (entry-res/update-video-data conn video entry)
+      (let [error (contains? ["EMPTY" "ERROR"] (:state_string video))
+            updated-result (if-not error
+                             (entry-res/update-video-data conn video entry)
+                             (entry-res/error-video-data conn entry))
             ;; find org
             org (org-res/get-org conn (:org-uuid entry))
             ;; find board
