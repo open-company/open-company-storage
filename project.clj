@@ -33,14 +33,14 @@
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.1"]
     ;; HTTP client https://github.com/dakrone/clj-http
-    [clj-http "3.9.0"]
+    [clj-http "3.9.1"]
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.10"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.10"]
+    [open-company/lib "0.16.12-alpha3"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - Web server http://http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
