@@ -224,10 +224,14 @@
                           (> (:state video) 4))
         video-transcript-data (get-in video [:original_stream :audio_transcription :text])
         video-transcript (or video-transcript-data
-                             (:video-transcript entry))]
+                             (:video-transcript entry))
+        video-error (if video-processed
+                      false
+                      (:video-error entry))]
     (update-entry-no-user! conn
                            (:uuid entry)
                            (-> entry
+                               (assoc :video-error video-error)
                                (assoc :video-processed video-processed)
                                (assoc :video-transcript video-transcript)))))
 
