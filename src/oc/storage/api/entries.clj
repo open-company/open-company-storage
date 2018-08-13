@@ -51,6 +51,7 @@
                  (nil? (:video-transcript entry))))
     (ziggeo/video (:video-id entry)
       (fn [video] (entry-res/update-video-data conn video entry)))))
+
 ;; ----- Validations -----
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]

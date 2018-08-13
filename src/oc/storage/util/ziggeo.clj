@@ -21,7 +21,7 @@
              }
    :basic-auth [(:username auth) (:password auth)]})
 
-(defn video [token cb]
+(defn video
   "
     https://ziggeo.com/docs/api/resources/video The data structure returned
     from the api call.
@@ -32,6 +32,7 @@
     ':original_stream { :audio_transcription { :text "" }}' Will contain the
     transcription data for the video.
   "
+  [token cb]
   (http/get (str ziggeo-api-url "/videos/" token) (auth-options auth)
     (fn [{:keys [status headers body error] :as resp}]
       (when (and (> status 199) (< status 500))
