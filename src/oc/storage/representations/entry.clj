@@ -14,10 +14,13 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:uuid :topic-name :topic-slug :headline :body :attachments :status :must-see
-                           :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
-                           :board-uuid :board-slug :board-name
-                           :team-id :author :publisher :published-at :created-at :updated-at])
+(def representation-props [:uuid :topic-name :topic-slug :headline :body
+                           :attachments :status :must-see :org-name :org-slug
+                           :org-logo-url :org-logo-width :org-logo-height
+                           :board-uuid :board-slug :board-name :video-id
+                           :team-id :author :publisher :published-at :created-at
+                           :video-transcript :video-processed :video-error
+                           :updated-at])
 
 (defun url
 
