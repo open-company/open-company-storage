@@ -67,6 +67,11 @@
 
 (defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn))
 
+;; ----- Ziggeo Video Processing -----
+
+(defonce ziggeo-api-token (env :open-company-ziggeo-api-token))
+(defonce ziggeo-api-key (env :open-company-ziggeo-api-key))
+
 ;; ----- JWT -----
 
 (defonce passphrase (env :open-company-auth-passphrase))
