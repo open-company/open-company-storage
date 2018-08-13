@@ -23,14 +23,14 @@
 
 (defn video
   "
-    https://ziggeo.com/docs/api/resources/video The data structure returned
-    from the api call.
+  https://ziggeo.com/docs/api/resources/video The data structure returned
+  from the api call.
 
-    Info we are interested in ':state' if this is greater than 4 , then the
-    video is processed.
+  Info we are interested in ':state' if this is greater than 4 , then the
+  video is processed.
 
-    ':original_stream { :audio_transcription { :text "" }}' Will contain the
-    transcription data for the video.
+  `:original_stream { :audio_transcription { :text '' }}` Will contain the
+  transcription data for the video.
   "
   [token cb]
   (http/get (str ziggeo-api-url "/videos/" token) (auth-options auth)
