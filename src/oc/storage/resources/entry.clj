@@ -221,7 +221,7 @@
 (defn update-video-data [conn video entry]
   (let [video-processed (if (:video-processed entry)
                           true
-                          (> (:state video) 4))
+                          (> (:state video) 4)) ;; is video processed?
         video-transcript-data (get-in video [:original_stream :audio_transcription :text])
         video-transcript (or video-transcript-data
                              (:video-transcript entry))
