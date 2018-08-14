@@ -40,7 +40,7 @@
 ; (defn- calendar-link [org]
 ;   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
-(defn change-link [org access-level user-id]
+(defn- change-link [org access-level user-id]
   (if (or (= access-level :author) (= access-level :viewer))
     (update-in org [:links] conj
       (hateoas/link-map
@@ -50,7 +50,17 @@
         nil))
     org))
 
-(defn interactions-link [org access-level user-id]
+(defn- notify-link [org access-level user-id]
+  (if (or (= access-level :author) (= access-level :viewer))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "notifications"
+        "GET"
+        (str config/notify-server-ws-url "/notify-socket/user/" user-id)
+        nil))
+    org))
+
+(defn- interactions-link [org access-level user-id]
   (if (or (= access-level :author) (= access-level :viewer))
     (update-in org [:links] conj
       (hateoas/link-map
@@ -93,6 +103,7 @@
       (-> org
         (org-links access-level)
         (change-link access-level user-id)
+        (notify-link access-level user-id)
         (interactions-link access-level user-id)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
