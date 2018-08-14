@@ -5,7 +5,8 @@
             [oc.storage.config :as c]
             [oc.storage.util.search :as search]
             [oc.storage.app :as app]
-            [oc.storage.components :as components]))
+            [oc.storage.components :as components]
+            [oc.storage.async.auth-notification :as auth]))
 
 (defonce system nil)
 (defonce conn nil)
@@ -13,8 +14,13 @@
 (defn init
   ([] (init c/storage-server-port))
   ([port]
-  (alter-var-root #'system (constantly (components/storage-system {:handler-fn app/app
-                                                                   :port port})))))
+     (alter-var-root #'system (constantly (components/storage-system
+                                           {:handler-fn app/app
+                                            :port port
+                                            :sqs-queue c/aws-sqs-auth-queue
+                                            :auth-sqs-msg-handler auth/sqs-handler
+                                            :sqs-creds {:access-key c/aws-access-key-id
+                                                        :secret-key c/aws-secret-access-key}})))))
 
 (defn bind-conn! []
   (alter-var-root #'conn (constantly (pool/claim (get-in system [:db-pool :pool])))))
