@@ -7,7 +7,9 @@
    [clojure.core.async :as async :refer (<!! >!!)]
    [cheshire.core :as json]
    [oc.lib.sqs :as sqs]
+   [oc.lib.db.pool :as pool]
    [oc.storage.config :as config]
+   [oc.storage.resources.org :as org-res]
    [taoensso.timbre :as timbre]))
 
 ;; ----- core.async -----
@@ -20,7 +22,17 @@
 
 (defn new-user-event
   [db-pool body]
-  (timbre/debug body))
+  (let [user (:new (:content body))
+        teams (:teams user)]
+    ;; This event is only for newly created users. Invites will create
+    ;; a user.
+    (pool/with-pool [conn db-pool]
+      ;; if there are no orgs , then it is the first user
+      (doseq [team teams]
+        (doseq [org (org-res/list-orgs-by-team conn team)]
+          ;; A new user will not be created for invites (viewers)
+          ;; make a new user a contributor
+          (org-res/add-author conn (:slug org) (:user-id user)))))))
 
 (defn- read-message-body
   "
