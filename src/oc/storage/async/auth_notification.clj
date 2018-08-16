@@ -8,7 +8,6 @@
    [cheshire.core :as json]
    [oc.lib.sqs :as sqs]
    [oc.lib.db.pool :as pool]
-   [oc.storage.config :as config]
    [oc.storage.resources.org :as org-res]
    [taoensso.timbre :as timbre]))
 
