@@ -17,6 +17,7 @@
     [oc.lib.api.common :as api-common]
     [oc.storage.components :as components]
     [oc.storage.config :as c]
+    [oc.storage.async.auth-notification :as auth]
     [oc.storage.api.entry-point :as entry-point-api]
     [oc.storage.api.orgs :as orgs-api]
     [oc.storage.api.boards :as boards-api]
@@ -60,6 +61,7 @@
     "Database pool: " c/db-pool-size "\n"
     "AWS SQS bot queue: " c/aws-sqs-bot-queue "\n"
     "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
+    "AWS SQS auth queue: " c/aws-sqs-auth-queue "\n"
     "AWS SNS notification topic ARN: " c/aws-sns-storage-topic-arn "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
@@ -90,7 +92,12 @@
     (timbre/merge-config! {:level (keyword c/log-level)}))
 
   ;; Start the system
-  (-> {:handler-fn app :port port}
+  (-> {:handler-fn app
+       :port port
+       :sqs-queue c/aws-sqs-auth-queue
+       :auth-sqs-msg-handler auth/sqs-handler
+       :sqs-creds {:access-key c/aws-access-key-id
+                   :secret-key c/aws-secret-access-key}}
     components/storage-system
     component/start)
 

@@ -3,7 +3,9 @@
             [taoensso.timbre :as timbre]
             [org.httpkit.server :as httpkit]
             [oc.lib.db.pool :as pool]
+            [oc.lib.sqs :as sqs]
             [oc.storage.async.notification :as notification]
+            [oc.storage.async.auth-notification :as auth]
             [oc.storage.config :as c]))
 
 (defrecord HttpKit [options handler]
@@ -71,12 +73,34 @@
     (timbre/info "[handler] stopped")
     (dissoc component :handler)))
 
-(defn storage-system [{:keys [host port handler-fn] :as opts}]
+(defrecord AuthNotification [auth-notification-fn]
+  component/Lifecycle
+
+  (start [component]
+    (timbre/info "[auth-notifcation] starting...")
+    (auth/start component)
+    (timbre/info "[auth-notification] started")
+    (assoc component :auth-notification true))
+
+  (stop [{:keys [auth-notification] :as component}]
+    (if auth-notification
+      (do
+        (timbre/info "[auth-notification] stopping...")
+        (auth/stop)
+        (timbre/info "[auth-notification] stopped")
+        (dissoc component :auth-notification))
+      component)))
+
+(defn storage-system [{:keys [host port handler-fn sqs-creds sqs-queue auth-sqs-msg-handler] :as opts}]
   (component/system-map
     :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
     :async-consumers (component/using
                         (map->AsyncConsumers {})
                         [])
+    :auth-notification (component/using
+                  (map->AuthNotification {:auth-notification-fn auth-sqs-msg-handler})
+                  [:db-pool])
+    :sqs (sqs/sqs-listener sqs-creds sqs-queue auth-sqs-msg-handler)
     :handler (component/using
                 (map->Handler {:handler-fn handler-fn})
                 [:db-pool])
