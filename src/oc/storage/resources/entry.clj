@@ -14,6 +14,7 @@
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
+(def versions-table-name (str "versions_" common/entry-table-name))
 (def primary-key :uuid)
 
 ;; ----- Metadata -----
@@ -91,6 +92,7 @@
           (assoc :updated-at ts)
           (publish-props ts author)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
+(declare update-entry)
 
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
   "
@@ -109,7 +111,10 @@
                               (assoc entry :published-at ts)
                               entry)
           author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
-      (db-common/create-resource conn table-name (assoc stamped-entry :author [author]) ts)) ; create the entry
+      ;; create the entry
+      (let [new-entry (db-common/create-resource conn table-name (assoc stamped-entry :author [author]) ts)]
+           ;; first version
+           (update-entry conn (assoc new-entry :revision-id 0) new-entry ts)))
     (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid entry)}))))) ; no board
 
 (schema/defn ^:always-validate get-entry :- (schema/maybe common/Entry)
@@ -167,6 +172,7 @@
         attachments (:attachments merged-entry)
         updated-entry (assoc slugged-entry :attachments (timestamp-attachments attachments ts))]
     (schema/validate common/Entry updated-entry)
+    ;; copy current version to versions table, increment revision uuid
     (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
 
 (schema/defn ^:always-validate update-entry-no-user! :- (schema/maybe common/Entry)
@@ -256,6 +262,7 @@
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
+        ;; copy old version to versions table, increment revision id
       (let [updated-entry (db-common/update-resource conn table-name primary-key original-entry entry-update ts)]
         ;; Delete the draft entry's interactions
         (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
@@ -265,6 +272,7 @@
   "Given the UUID of the entry, delete the entry and all its interactions. Return `true` on success."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
+  ;; update versions table as deleted (logical delete)
   (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
   (db-common/delete-resource conn table-name uuid))
 

@@ -112,6 +112,7 @@
   (schema/optional-key :video-transcript) (schema/maybe schema/Str)
   (schema/optional-key :video-processed) (schema/maybe schema/Bool)
   (schema/optional-key :video-error) (schema/maybe schema/Bool)
+  (schema/optional-key :revision-id) schema/Int
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
