@@ -15,6 +15,7 @@
 
 (def table-name common/entry-table-name)
 (def versions-table-name (str "versions_" common/entry-table-name))
+(def versions-primary-key :version-uuid)
 (def primary-key :uuid)
 
 ;; ----- Metadata -----
@@ -92,7 +93,33 @@
           (assoc :updated-at ts)
           (publish-props ts author)))
     (throw (ex-info "Invalid board uuid." {:board-uuid board-uuid})))) ; no board
+
 (declare update-entry)
+
+(defn- create-version [conn updated-entry original-entry]
+  (let [ts (db-common/current-timestamp)
+        revision-id (:revision-id original-entry)
+        revision-id-new (inc revision-id)
+        revision (-> original-entry
+                     (assoc :version-uuid (str (:uuid original-entry)
+                                               "-v" revision-id))
+                     (assoc :revision-date ts)
+                     (assoc :revision-author (first (:author original-entry))))]
+    (when-not (:deleted original-entry)
+      (update-entry conn
+                    (assoc updated-entry :revision-id revision-id-new)
+                    updated-entry
+                    ts))
+    (db-common/create-resource conn versions-table-name revision ts)))
+
+(declare get-entry)
+
+(defn- delete-version [conn uuid]
+  (let [entry (get-entry conn uuid)]
+    (create-version conn entry (-> entry
+                                   (assoc :revision-id
+                                          (inc (:revision-id entry)))
+                                   (assoc :deleted true)))))
 
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
   "
@@ -172,7 +199,6 @@
         attachments (:attachments merged-entry)
         updated-entry (assoc slugged-entry :attachments (timestamp-attachments attachments ts))]
     (schema/validate common/Entry updated-entry)
-    ;; copy current version to versions table, increment revision uuid
     (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
 
 (schema/defn ^:always-validate update-entry-no-user! :- (schema/maybe common/Entry)
@@ -205,7 +231,10 @@
           ts (db-common/current-timestamp)
           updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
           updated-entry (assoc entry :author updated-authors)]
-      (update-entry conn updated-entry original-entry ts))))
+      (let [updated-entry (update-entry conn updated-entry original-entry ts)]
+        ;; copy current version to versions table, increment revision uuid
+        (create-version conn updated-entry original-entry)
+        updated-entry))))
 
 (defn upsert-entry!
   "
@@ -262,8 +291,9 @@
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
-        ;; copy old version to versions table, increment revision id
       (let [updated-entry (db-common/update-resource conn table-name primary-key original-entry entry-update ts)]
+        ;; copy current version to versions table, increment revision uuid
+        (create-version conn updated-entry entry-update)
         ;; Delete the draft entry's interactions
         (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
         updated-entry)))))
@@ -272,8 +302,9 @@
   "Given the UUID of the entry, delete the entry and all its interactions. Return `true` on success."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  ;; update versions table as deleted (logical delete)
   (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+  ;; update versions table as deleted (logical delete)
+  (delete-version conn uuid)
   (db-common/delete-resource conn table-name uuid))
 
 (schema/defn ^:always-validate list-comments-for-entry
@@ -366,4 +397,5 @@
   {:pre [(db-common/conn? conn)]}
   ;; Delete all interactions and entries
   (db-common/delete-all-resources! conn common/interaction-table-name)
+  (db-common/delete-all-resources! conn versions-table-name)
   (db-common/delete-all-resources! conn table-name))
