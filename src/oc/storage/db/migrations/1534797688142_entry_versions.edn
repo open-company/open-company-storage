@@ -9,7 +9,6 @@
   (println "Creating table: " entry/versions-table-name)
   (println (m/create-table conn config/db-name entry/versions-table-name entry/versions-primary-key))
   (println (m/create-index conn entry/versions-table-name "revision-id"))
-  (println (m/create-index conn entry/versions-table-name "topic-slug"))
   (println (m/create-index conn entry/versions-table-name "board-uuid"))
   (println (m/create-index conn entry/versions-table-name "org-uuid"))
 
