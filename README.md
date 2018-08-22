@@ -190,28 +190,26 @@ On the left nav bar there is a 'Manage' option. Click that and then choose the '
 
 An AWS SQS queue is used to pass messages to the OpenCompany Storage service from the OpenCompany Authentication service. Setup SQS Queues and key/secret access to the queue using the AWS Web Console or API.
 
-You will also need to subscribe the SQS `aws-sqs-auth-queue` queue to the Authentication service SNS topic. To do this you will need to go to the AWS console and follow these instruction:
+You will also need to subscribe the `aws-sqs-auth-queue` SQS queue to the Authentication service SNS topic:
 
-Go to the AWS SQS Console and select the SQS queue configured above. From the 'Queue Actions' dropdown, select 'Subscribe Queue to SNS Topic'. Select the SNS topic you've configured your Slack Router service instance to publish to, and click the 'Subscribe' button.
+Go to the AWS SQS Console and select the `aws-sqs-auth-queue` SQS queue configured above. From the 'Queue Actions' dropdown, select 'Subscribe Queue to SNS Topic'. Select the SNS topic you've configured your Authentication service instance to publish to, and click the 'Subscribe' button.
 
 Make sure you update the section in `project.clj` that looks like this to contain your specific configuration:
 
 ```clojure
 :dev [:qa {
   :env ^:replace {
-        :db-name "open_company_storage_dev"
-        :liberator-trace "true" ; liberator debug data in HTTP response headers
-        :hot-reload "true" ; reload code when changed on the file system
-        :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-        :aws-access-key-id "CHANGE-ME"
-        :aws-secret-access-key "CHANGE-ME"
-        :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
-        :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
-        :aws-sqs-auth-queue "CHANGE-ME" ; SNS messages from the auth service
-        :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
-        :open-company-ziggeo-api-key "" ; Get this key from ziggeo.com
-        :open-company-ziggeo-api-token "" ; Get this token from ziggeo.com
-        :log-level "debug"
+    :db-name "open_company_storage_dev"
+    :liberator-trace "false" ; liberator debug data in HTTP response headers
+    :hot-reload "true" ; reload code when changed on the file system
+    :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
+    :aws-access-key-id "CHANGE-ME"
+    :aws-secret-access-key "CHANGE-ME"
+    :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
+    :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
+    :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
+    :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
+    :log-level "debug"
   }
 ```
 
