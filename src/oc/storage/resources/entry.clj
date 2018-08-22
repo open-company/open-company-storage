@@ -89,6 +89,7 @@
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
           (assoc :author [(assoc author :updated-at ts)])
+          (assoc :revision-id 0)
           (assoc :created-at ts)
           (assoc :updated-at ts)
           (publish-props ts author)))
@@ -141,9 +142,7 @@
                               entry)
           author (assoc (first (:author entry)) :updated-at ts)] ; update initial author timestamp
       ;; create the entry
-      (let [new-entry (db-common/create-resource conn table-name (assoc stamped-entry :author [author]) ts)]
-           ;; first version
-           (update-entry conn (assoc new-entry :revision-id 0) new-entry ts)))
+      (db-common/create-resource conn table-name (assoc stamped-entry :author [author]) ts))
     (throw (ex-info "Invalid board uuid." {:board-uuid (:board-uuid entry)}))))) ; no board
 
 (schema/defn ^:always-validate get-entry :- (schema/maybe common/Entry)
