@@ -115,10 +115,12 @@
 (declare get-entry)
 
 (defn- delete-version [conn uuid]
-  (let [entry (get-entry conn uuid)]
+  (let [entry (get-entry conn uuid)
+        revision-id (if (zero? (:revision-id entry))
+                      (inc (:revision-id entry))
+                      (:revision-id entry))]
     (create-version conn entry (-> entry
-                                   (assoc :revision-id
-                                          (inc (:revision-id entry)))
+                                   (assoc :revision-id revision-id)
                                    (assoc :deleted true)))))
 
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
