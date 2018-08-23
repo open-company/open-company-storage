@@ -90,6 +90,11 @@
     
     true)) ; no existing entry, so this will fail existence check later
 
+(defn- valid-entry-revert? [entry-props]
+  (if (:revision-id entry-props)
+    true
+    false))
+
 (defn- valid-share-requests? [conn entry-uuid share-props]
   (if-let* [existing-entry (entry-res/get-entry conn entry-uuid)
             ts (db-common/current-timestamp)
@@ -220,6 +225,19 @@
       true)
     (do (timbre/error "Failed deleting entry for:" entry-for) false)))
 
+(defn- revert-entry-version [conn ctx entry-for]
+  (timbre/info "Reverting entry for:" entry-for)
+  (if-let* [user (:user ctx)
+            org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            entry-version (:existing-version ctx)
+            revert-result (entry-res/revert-entry! conn entry entry-version user)]
+  (do
+    (timbre/info "Reverted entry for:" (:uuid entry))
+    {:updated-entry revert-result})
+  (do (timbre/error "Failed reverting entry:" entry-for) false)))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular entry
@@ -272,7 +290,7 @@
                         {:existing-org org :existing-board board :existing-entry entry
                          :existing-comments comments :existing-reactions reactions}
                         false))
-  
+
   ;; Actions
   :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
   :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
@@ -360,6 +378,69 @@
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
+
+;; A resource for reverting to a specific revision number.
+(defresource revert-version [conn org-slug board-slug entry-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Possibly no data to handle
+  :malformed? (by-method {
+    :options false
+    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (let [entry-props (:data ctx)]
+                      (valid-entry-revert? entry-props)))})
+  :new? false
+  :respond-with-entity? true
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx]
+             (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                    (slugify/valid-slug? board-slug))
+                       org (org-res/get-org conn org-slug)
+                       org-uuid (:uuid org)
+                       entry (entry-res/get-entry conn entry-uuid)
+                       existing-version (if (zero? (:revision-id (:data ctx)))
+                                          entry
+                                          (entry-res/get-version
+                                           conn
+                                           entry-uuid
+                                           (:revision-id (:data ctx))))
+                       board (board-res/get-board conn (:board-uuid entry))
+                      _matches? (and (= org-uuid (:org-uuid entry))
+                                     (= org-uuid (:org-uuid board)))]
+                      {:existing-org org
+                       :existing-board board
+                       :existing-entry entry
+                       :existing-version existing-version}
+                      false))
+
+  ;; Actions
+  :post! (fn [ctx] (revert-entry-version conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               [] ; no comments
+                                               [] ; no reactions
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id))))
 
 ;; A resource for operations to publish a particular entry
 (defresource publish [conn org-slug board-slug entry-uuid]
@@ -576,6 +657,14 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (revert-version conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert/"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (revert-version conn org-slug board-slug entry-uuid)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
