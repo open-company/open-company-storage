@@ -1,6 +1,5 @@
 # [OpenCompany](https://github.com/open-company) Storage Service
 
-[![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
 [![Dependencies Status](https://versions.deps.co/open-company/open-company-storage/status.svg)](https://versions.deps.co/open-company/open-company-storage)
 
@@ -12,7 +11,7 @@
 
 Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps, but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution - **focused conversations that build transparency and alignment**.
 
-OpenCompany is the open source platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
+OpenCompany is the source-available platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
 
 Transparency expectations are changing. Organizations need to change as well if they are going to attract and retain savvy teams. Just as open source changed the way we build software, transparency changes how we build successful companies with information that is open, interactive, and always accessible. **Carrot turns transparency into a competitive advantage**.
 
@@ -397,6 +396,8 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 ## License
 
-Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).
-
 Copyright © 2015-2018 OpenCompany, LLC.
+
+Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/) with the [Commons Clause](https://commonsclause.com/).
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [Commons Clause](https://commonsclause.com/) and the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/) for more details.
