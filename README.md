@@ -1,6 +1,5 @@
 # [OpenCompany](https://github.com/open-company) Storage Service
 
-[![MPL License](http://img.shields.io/badge/license-MPL-blue.svg?style=flat)](https://www.mozilla.org/MPL/2.0/)
 [![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
 [![Dependencies Status](https://versions.deps.co/open-company/open-company-storage/status.svg)](https://versions.deps.co/open-company/open-company-storage)
 
@@ -12,7 +11,7 @@
 
 Companies struggle to keep everyone on the same page. People are hyper-connected in the moment with chat apps, but as teams grow chat gets noisy and people miss key information. Chat might be ideal for spontaneous conversations, but it’s terrible for the more substantial discussions that aren’t meant to be urgent. The solution - **focused conversations that build transparency and alignment**.
 
-OpenCompany is the open source platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
+OpenCompany is the source-available platform that powers [Carrot](https://carrot.io), a SaaS app for building transparency and alignment. With Carrot, important company updates, announcements, stories, and strategic plans create focused, topic-based conversations that keep everyone aligned without interruptions.
 
 Transparency expectations are changing. Organizations need to change as well if they are going to attract and retain savvy teams. Just as open source changed the way we build software, transparency changes how we build successful companies with information that is open, interactive, and always accessible. **Carrot turns transparency into a competitive advantage**.
 
@@ -190,28 +189,26 @@ On the left nav bar there is a 'Manage' option. Click that and then choose the '
 
 An AWS SQS queue is used to pass messages to the OpenCompany Storage service from the OpenCompany Authentication service. Setup SQS Queues and key/secret access to the queue using the AWS Web Console or API.
 
-You will also need to subscribe the SQS `aws-sqs-auth-queue` queue to the Authentication service SNS topic. To do this you will need to go to the AWS console and follow these instruction:
+You will also need to subscribe the `aws-sqs-auth-queue` SQS queue to the Authentication service SNS topic:
 
-Go to the AWS SQS Console and select the SQS queue configured above. From the 'Queue Actions' dropdown, select 'Subscribe Queue to SNS Topic'. Select the SNS topic you've configured your Slack Router service instance to publish to, and click the 'Subscribe' button.
+Go to the AWS SQS Console and select the `aws-sqs-auth-queue` SQS queue configured above. From the 'Queue Actions' dropdown, select 'Subscribe Queue to SNS Topic'. Select the SNS topic you've configured your Authentication service instance to publish to, and click the 'Subscribe' button.
 
 Make sure you update the section in `project.clj` that looks like this to contain your specific configuration:
 
 ```clojure
 :dev [:qa {
   :env ^:replace {
-        :db-name "open_company_storage_dev"
-        :liberator-trace "true" ; liberator debug data in HTTP response headers
-        :hot-reload "true" ; reload code when changed on the file system
-        :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
-        :aws-access-key-id "CHANGE-ME"
-        :aws-secret-access-key "CHANGE-ME"
-        :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
-        :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
-        :aws-sqs-auth-queue "CHANGE-ME" ; SNS messages from the auth service
-        :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
-        :open-company-ziggeo-api-key "" ; Get this key from ziggeo.com
-        :open-company-ziggeo-api-token "" ; Get this token from ziggeo.com
-        :log-level "debug"
+    :db-name "open_company_storage_dev"
+    :liberator-trace "false" ; liberator debug data in HTTP response headers
+    :hot-reload "true" ; reload code when changed on the file system
+    :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
+    :aws-access-key-id "CHANGE-ME"
+    :aws-secret-access-key "CHANGE-ME"
+    :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
+    :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
+    :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
+    :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
+    :log-level "debug"
   }
 ```
 
@@ -399,6 +396,8 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 ## License
 
-Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/).
-
 Copyright © 2015-2018 OpenCompany, LLC.
+
+Distributed under the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/) with the [Commons Clause](https://commonsclause.com/).
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [Commons Clause](https://commonsclause.com/) and the [Mozilla Public License v2.0](http://www.mozilla.org/MPL/2.0/) for more details.

@@ -20,7 +20,7 @@
                            :board-uuid :board-slug :board-name :video-id
                            :team-id :author :publisher :published-at :created-at
                            :video-transcript :video-processed :video-error
-                           :updated-at])
+                           :updated-at :revision-id])
 
 (defun url
 

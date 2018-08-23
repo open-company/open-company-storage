@@ -2,8 +2,8 @@
   :description "OpenCompany Storage Service"
   :url "https://github.com/open-company/open-company-storage"
   :license {
-    :name "Mozilla Public License v2.0"
-    :url "http://www.mozilla.org/MPL/2.0/"
+    :name "Mozilla Public License v2.0 with the Common Clause"
+    :url "https://github.com/open-company/open-company-storage/blob/mainline/LICENSE"
   }
 
   :min-lein-version "2.7.1"
@@ -107,6 +107,7 @@
         :aws-secret-access-key "CHANGE-ME"
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
+        :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
         :log-level "debug"
       }
