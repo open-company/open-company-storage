@@ -91,9 +91,7 @@
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- valid-entry-revert? [entry-props]
-  (if (:revision-id entry-props)
-    true
-    false))
+  (lib-schema/valid? schema/Int (:revision-id entry-props)))
 
 (defn- valid-share-requests? [conn entry-uuid share-props]
   (if-let* [existing-entry (entry-res/get-entry conn entry-uuid)
@@ -274,9 +272,7 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (or (:existing-org ctx)
+  :exists? (fn [ctx] (if-let* [org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
