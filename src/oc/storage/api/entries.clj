@@ -155,6 +155,7 @@
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
         (undraft-board conn (:user ctx) org board)
+        (entry-res/delete-versions conn entry-result)
         (auto-share-on-publish conn ctx entry-result))
       (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
       {:created-entry entry-result})
@@ -200,6 +201,7 @@
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
+      (entry-res/delete-versions conn publish-result)
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (auto-share-on-publish conn ctx publish-result)
       (timbre/info "Published entry:" entry-for)

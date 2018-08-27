@@ -113,6 +113,11 @@
                     ts))
     (db-common/create-resource conn versions-table-name revision ts)))
 
+(defn delete-versions [conn entry]
+  (doseq [version (range (inc (:revision-id entry)))]
+    (let [version-uuid (str (:uuid entry) "-v" version)]
+      (db-common/delete-resource conn versions-table-name version-uuid))))
+
 (declare get-entry)
 
 (defn- delete-version [conn uuid]
