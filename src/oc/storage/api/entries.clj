@@ -414,7 +414,7 @@
                        org-uuid (:uuid org)
                        entry (entry-res/get-entry conn entry-uuid)
                        existing-version (if (zero? (:revision-id (:data ctx)))
-                                          entry
+                                          (assoc entry :revision-id 0)
                                           (entry-res/get-version
                                            conn
                                            entry-uuid
