@@ -333,7 +333,7 @@
                           :revision-date
                           :revision-author)]
     ;; if version number is 0 delete the actual entry
-    (if (zero? (:revision-id entry-version))
+    (if (= -1 (:revision-id entry-version))
       (do
         (delete-entry! conn (:uuid entry-version))
         {:uuid (:uuid entry-version) :deleted true})

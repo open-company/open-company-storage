@@ -413,8 +413,8 @@
                        org (org-res/get-org conn org-slug)
                        org-uuid (:uuid org)
                        entry (entry-res/get-entry conn entry-uuid)
-                       existing-version (if (zero? (:revision-id (:data ctx)))
-                                          (assoc entry :revision-id 0)
+                       existing-version (if (= -1 (:revision-id (:data ctx)))
+                                          (assoc entry :revision-id -1)
                                           (entry-res/get-version
                                            conn
                                            entry-uuid
