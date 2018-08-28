@@ -106,12 +106,14 @@
                                                "-v" revision-id))
                      (assoc :revision-date ts)
                      (assoc :revision-author (first (:author original-entry))))]
-    (when-not (:deleted original-entry)
-      (update-entry conn
-                    (assoc updated-entry :revision-id revision-id-new)
-                    updated-entry
-                    ts))
-    (db-common/create-resource conn versions-table-name revision ts)))
+    (let [updated-entry (if-not (:deleted original-entry)
+                          (update-entry conn
+                            (assoc updated-entry :revision-id revision-id-new)
+                            updated-entry
+                            ts)
+                          updated-entry)]
+      (db-common/create-resource conn versions-table-name revision ts)
+      updated-entry)))
 
 (defn delete-versions [conn entry]
   (doseq [version (range (inc (:revision-id entry)))]
@@ -249,8 +251,7 @@
           updated-entry (assoc entry :author updated-authors)]
       (let [updated-entry (update-entry conn updated-entry original-entry ts)]
         ;; copy current version to versions table, increment revision uuid
-        (create-version conn updated-entry original-entry)
-        updated-entry))))
+        (create-version conn updated-entry original-entry)))))
 
 (defn upsert-entry!
   "
@@ -307,12 +308,12 @@
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
-      (let [updated-entry (db-common/update-resource conn table-name primary-key original-entry entry-update ts)]
-        ;; copy current version to versions table, increment revision uuid
-        (create-version conn updated-entry entry-update)
+      (let [updated-entry (db-common/update-resource conn table-name primary-key original-entry entry-update ts)
+            ;; copy current version to versions table, increment revision uuid
+            versioned-entry (create-version conn updated-entry entry-update)]
         ;; Delete the draft entry's interactions
         (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
-        updated-entry)))))
+        versioned-entry)))))
 
 (schema/defn ^:always-validate delete-entry!
   "Given the UUID of the entry, delete the entry and all its interactions. Return `true` on success."
