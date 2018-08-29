@@ -116,9 +116,10 @@
       updated-entry)))
 
 (defn delete-versions [conn entry]
-  (doseq [version (range (inc (:revision-id entry)))]
-    (let [version-uuid (str (:uuid entry) "-v" version)]
-      (db-common/delete-resource conn versions-table-name version-uuid))))
+  (when (pos? (:revision-id entry))
+    (doseq [version (range (:revision-id entry))]
+      (let [version-uuid (str (:uuid entry) "-v" version)]
+        (db-common/delete-resource conn versions-table-name version-uuid)))))
 
 (declare get-entry)
 
