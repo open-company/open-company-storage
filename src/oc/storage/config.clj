@@ -79,9 +79,7 @@
 
 ;; ----- OpenCompany -----
 
-(defonce default-new-org (read-string (slurp (clojure.java.io/resource "default-new-org.edn"))))
-
-(defonce sections #{
+(defonce default-board-names #{
   "All-hands"
   "CEO Update"
   "Competition"
@@ -103,7 +101,8 @@
   "Team and Hiring"
   "Week in review"})
 
-(defonce default-sections #{
+(defonce new-org-board-names #{
+  "General"
   "All-hands"
   "Decisions"
   "Lessons Learned"

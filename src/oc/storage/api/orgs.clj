@@ -87,7 +87,7 @@
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
       (notification/send-trigger! (notification/->trigger :add {:new org-result} (:user ctx)))
-      (doseq [board (:boards config/default-new-org)]
+      (doseq [board config/new-org-board-names]
         (create-board conn org-result board author))
       {:created-org org-result})
   
