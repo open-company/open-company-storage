@@ -81,21 +81,6 @@
 
 (defonce default-new-org (read-string (slurp (clojure.java.io/resource "default-new-org.edn"))))
 
-(defonce topics #{
-  "CEO Update"
-  "Competition"
-  "Customers"
-  "Finances"
-  "Key Challenges"
-  "Key Metrics"
-  "Lessons Learned"
-  "Team and Hiring"
-  "Press"
-  "Sales"})
-
-;; Sequence of 1 unicode char strings that provide the default reactions available to the user (if any)
-(defonce default-reactions [])
-
 (defonce max-reaction-count 5) 
 
 (defonce inline-comment-count 10)

@@ -14,7 +14,6 @@
 (def board-collection-media-type "application/vnd.collection+vnd.open-company.board+json;version=1")
 (def board-author-media-type "application/vnd.open-company.board.author.v1")
 (def board-viewer-media-type "application/vnd.open-company.board.viewer.v1")
-(def topic-list-media-type "application/vnd.open-company.topic-list.v1+json")
 
 ;; Entry media types
 (def entry-media-type "application/vnd.open-company.entry.v1+json")

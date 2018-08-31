@@ -88,8 +88,6 @@
   :secure-uuid lib-schema/UniqueID
   :org-uuid lib-schema/UniqueID
   :board-uuid lib-schema/UniqueID
-  :topic-slug (schema/maybe Slug)
-  :topic-name (schema/maybe lib-schema/NonBlankStr)
   
   :status Status
 

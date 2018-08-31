@@ -4,44 +4,44 @@
             [oc.storage.config :as config]
             [oc.storage.representations.entry :as entry-rep]))
 
-;; this is the function we're testing in this namespace
-(testable-privates oc.storage.representations.content reactions-and-links)
+; ;; this is the function we're testing in this namespace
+; (testable-privates oc.storage.representations.content reactions-and-links)
 
-(def uuid "1234-abcd-1234") ; dummy uuid, not important to what we're testing
+; (def uuid "1234-abcd-1234") ; dummy uuid, not important to what we're testing
 
-;; ----- Utility Functions -----
+; ;; ----- Utility Functions -----
 
-(defn fake-reactions
-  "
-  Create as many fake reactions as specified by the counter.
+; (defn fake-reactions
+;   "
+;   Create as many fake reactions as specified by the counter.
 
-  For the purposes of this test, the only thing a reaction map needs is the `:reaction` key.
-  "
-  [unicode counter]
-  (repeat counter {:reaction unicode}))
+;   For the purposes of this test, the only thing a reaction map needs is the `:reaction` key.
+;   "
+;   [unicode counter]
+;   (repeat counter {:reaction unicode}))
 
-(defn- fake-reaction-data 
-  "Given counts of the 5 test reactions, return fake data pretending to be from the DB."
-  [👌-count 👀-count 🇫🇰-count 😎-count 🙉-count]
-  (flatten [(fake-reactions "👌" (Integer. 👌-count))
-            (fake-reactions "👀" (Integer. 👀-count))
-            (fake-reactions "🇫🇰" (Integer. 🇫🇰-count))
-            (fake-reactions "😎" (Integer. 😎-count))
-            (fake-reactions "🙉" (Integer. 🙉-count))]))
+; (defn- fake-reaction-data 
+;   "Given counts of the 5 test reactions, return fake data pretending to be from the DB."
+;   [👌-count 👀-count 🇫🇰-count 😎-count 🙉-count]
+;   (flatten [(fake-reactions "👌" (Integer. 👌-count))
+;             (fake-reactions "👀" (Integer. 👀-count))
+;             (fake-reactions "🇫🇰" (Integer. 🇫🇰-count))
+;             (fake-reactions "😎" (Integer. 😎-count))
+;             (fake-reactions "🙉" (Integer. 🙉-count))]))
 
-(defn- correct-selection-and-order? [👌 👌-count 👀 👀-count 🇫🇰 🇫🇰-count 😎 😎-count 🙉 🙉-count]
-  (let [inputs (zipmap [👌 👀 🇫🇰 😎 🙉] ["👌" "👀" "🇫🇰" "😎" "🙉"]) ; just looking for 1st, 2nd, 3rd
-        reaction-data (fake-reaction-data 👌-count 👀-count 🇫🇰-count 😎-count 🙉-count)]
-    ;; "stub" the config var for default reactions to match the test case
-    (intern 'oc.storage.config 'default-reactions [(get inputs "first") (get inputs "second") (get inputs "third")])
-    ;; setup the data from the "DB" to match this test case
-    (let [test-output (reactions-and-links uuid uuid uuid reaction-data uuid)
-          unicode-only (map :reaction test-output)]
-      [(inc (.indexOf unicode-only "👌"))
-       (inc (.indexOf unicode-only "👀"))
-       (inc (.indexOf unicode-only "🇫🇰"))
-       (inc (.indexOf unicode-only "😎"))
-       (inc (.indexOf unicode-only "🙉"))])))
+; (defn- correct-selection-and-order? [👌 👌-count 👀 👀-count 🇫🇰 🇫🇰-count 😎 😎-count 🙉 🙉-count]
+;   (let [inputs (zipmap [👌 👀 🇫🇰 😎 🙉] ["👌" "👀" "🇫🇰" "😎" "🙉"]) ; just looking for 1st, 2nd, 3rd
+;         reaction-data (fake-reaction-data 👌-count 👀-count 🇫🇰-count 😎-count 🙉-count)]
+;     ;; "stub" the config var for default reactions to match the test case
+;     (intern 'oc.storage.config 'default-reactions [(get inputs "first") (get inputs "second") (get inputs "third")])
+;     ;; setup the data from the "DB" to match this test case
+;     (let [test-output (reactions-and-links uuid uuid uuid reaction-data uuid)
+;           unicode-only (map :reaction test-output)]
+;       [(inc (.indexOf unicode-only "👌"))
+;        (inc (.indexOf unicode-only "👀"))
+;        (inc (.indexOf unicode-only "🇫🇰"))
+;        (inc (.indexOf unicode-only "😎"))
+;        (inc (.indexOf unicode-only "🙉"))])))
 
 ;; ----- Combinatorial Tests -----
 

@@ -22,7 +22,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  (clojure.set/union common/reserved-properties #{:board-slug :topic-slug :published-at :publisher :secure-uuid}))
+  (clojure.set/union common/reserved-properties #{:board-slug :published-at :publisher :secure-uuid}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
@@ -71,9 +71,7 @@
   (if-let [board (if (= board-uuid temp-uuid) 
                     {:org-uuid temp-uuid} ; board doesn't exist yet, we're checking if this entry will be valid
                     (board-res/get-board conn board-uuid))]
-    (let [topic-name (:topic-name entry-props)
-          topic-slug (when topic-name (slugify/slugify topic-name))
-          ts (db-common/current-timestamp)
+    (let [ts (db-common/current-timestamp)
           author (lib-schema/author-for-user user)]
       (-> entry-props
           keywordize-keys
@@ -81,8 +79,6 @@
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (assoc :topic-slug topic-slug)
-          (update :topic-name #(or % nil))
           (update :headline #(or % ""))
           (update :body #(or % ""))
           (update :attachments #(timestamp-attachments % ts))
@@ -183,22 +179,10 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :video-id video-id))))
 
-(defn- new-topic-name [entry original-entry]
-  (let [new-topic-name (:topic-name entry)]
-    (if (clojure.string/blank? new-topic-name)
-      (when-not (contains? entry :topic-name)
-        (:topic-name original-entry)) ;; keep prior topic name
-      ;; new topic name provided
-      new-topic-name)))
-
 (defn- update-entry [conn entry original-entry ts]
-  (let [topic-name (new-topic-name entry original-entry)
-        topic-slug (when topic-name (slugify/slugify topic-name))
-        merged-entry (merge original-entry (ignore-props entry))
-        topic-named-entry (assoc merged-entry :topic-name topic-name)
-        slugged-entry (assoc topic-named-entry :topic-slug topic-slug)
+  (let [merged-entry (merge original-entry (ignore-props entry))
         attachments (:attachments merged-entry)
-        updated-entry (assoc slugged-entry :attachments (timestamp-attachments attachments ts))]
+        updated-entry (assoc merged-entry :attachments (timestamp-attachments attachments ts))]
     (schema/validate common/Entry updated-entry)
     (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
 

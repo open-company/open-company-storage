@@ -49,7 +49,7 @@
                       "investor" "investors" "invite" "ios" "jobs" "login" "logout"
                       "news" "newsletter" "press" "pricing" "privacy" "profile" "register" "reset"
                       "section" "sections" "signin" "signout" "signup" "sign-up"
-                      "subscription-completed" "team" "terms" "topic" "topics"
+                      "subscription-completed" "team" "terms"
                       "update" "updates" "stuart" "sean" "iacopo" "nathan"})
 
 (declare list-orgs)
