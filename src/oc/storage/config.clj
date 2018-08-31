@@ -81,6 +81,35 @@
 
 (defonce default-new-org (read-string (slurp (clojure.java.io/resource "default-new-org.edn"))))
 
+(defonce sections #{
+  "All-hands"
+  "CEO Update"
+  "Competition"
+  "Customer Wins"
+  "Decisions"
+  "Design"
+  "Engineering"
+  "Events"
+  "Finances"
+  "Key Metrics"
+  "Kudos"
+  "Lessons Learned"
+  "Marketing"
+  "People"
+  "Playbooks"
+  "Press"
+  "Product Updates"
+  "Sales"
+  "Team and Hiring"
+  "Week in review"})
+
+(defonce default-sections #{
+  "All-hands"
+  "Decisions"
+  "Lessons Learned"
+  "People"
+  "Week in review"})
+
 (defonce max-reaction-count 5) 
 
 (defonce inline-comment-count 10)
