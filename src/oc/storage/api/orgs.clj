@@ -95,12 +95,31 @@
 
 (defn- update-org [conn ctx slug]
   (timbre/info "Updating org:" slug)
-  (if-let* [updated-org (:updated-org ctx)
-            update-result (org-res/update-org! conn slug updated-org)]
+  (if-let* [author (:user ctx)
+            updated-org (:updated-org ctx)
+            update-result (org-res/update-org! conn slug updated-org)
+            org-uuid (:uuid updated-org)]
     (do
+      (when (:samples ctx) ; are we PATCH'ing boards from NUX?
+        ;; Sync the boards the org has w/ the boards PATCH'd from the NUX by creating and deleting boards
+        (let [existing-boards (board-res/list-boards-by-org conn org-uuid)
+              existing-board-names (set (map :name existing-boards))
+              existing-boards-by-name (zipmap (map :name existing-boards) existing-boards)
+              desired-board-names (set (conj (:boards ctx) config/forced-board-name))
+              delete-board-names (clojure.set/difference existing-board-names desired-board-names)
+              create-board-names (clojure.set/difference desired-board-names existing-board-names)]
+          (doall (pmap (fn [delete-board-name]
+            (timbre/info "Samples sync - Deleting board:" delete-board-name "for org:" org-uuid)
+            (board-res/delete-board! conn org-uuid (:slug (get existing-boards-by-name delete-board-name)) []))
+            delete-board-names))
+          (doall (pmap (fn [create-board-name]
+            (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
+            (create-board conn updated-org {:name create-board-name} author))
+            create-board-names))))
+
       (timbre/info "Updated org:" slug)
       (notification/send-trigger! (notification/->trigger :update {:old (:existing-org ctx) :new update-result}
-                                                          (:user ctx)))
+                                                          author))
       {:updated-org update-result})
 
     (do (timbre/error "Failed updating org:" slug) false)))
@@ -146,9 +165,11 @@
 
 (defn- valid-org-update? [conn slug org-props]
   (if-let [org (org-res/get-org conn slug)]
-    (let [updated-org (merge org (org-res/ignore-props org-props))]
+    (let [samples? (:samples org-props)
+          updated-props (dissoc org-props :samples :boards)
+          updated-org (merge org (org-res/ignore-props updated-props))]
       (if (lib-schema/valid? common-res/Org updated-org)
-        {:existing-org org :updated-org updated-org}
+        {:existing-org org :updated-org updated-org :samples samples? :boards (:boards org-props)}
         [false, {:updated-org updated-org}])) ; invalid update
     true)) ; No org for this slug, so this will fail existence check later
 

@@ -109,6 +109,8 @@
   "People"
   "Week in review"})
 
+(defonce forced-board-name "General")
+
 (defonce max-reaction-count 5) 
 
 (defonce inline-comment-count 10)

@@ -100,7 +100,7 @@
     :dev [:qa {
       :env ^:replace {
         :db-name "open_company_storage_dev"
-        :liberator-trace "false" ; liberator debug data in HTTP response headers
+        :liberator-trace "true" ; liberator debug data in HTTP response headers
         :hot-reload "true" ; reload code when changed on the file system
         :open-company-auth-passphrase "this_is_a_dev_secret" ; JWT secret
         :aws-access-key-id "CHANGE-ME"
