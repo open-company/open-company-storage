@@ -25,9 +25,6 @@
 
 ;; ----- Utility functions -----
 
-(defn- topic-for-name [topic-name]
-  {:name topic-name :slug (slugify/slugify topic-name)})
-
 (defn- comments
   "Return a sequence of just the comments for an entry."
   [{interactions :interactions}]
