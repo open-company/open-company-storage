@@ -2,6 +2,7 @@
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let* when-let*)]
             [schema.core :as schema]
+            [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.slugify :as slugify]
@@ -115,11 +116,24 @@
       (db-common/create-resource conn versions-table-name revision ts)
       updated-entry)))
 
-(defn delete-versions [conn entry]
-  (when (pos? (:revision-id entry))
-    (doseq [version (range (:revision-id entry))]
-      (let [version-uuid (str (:uuid entry) "-v" version)]
-        (db-common/delete-resource conn versions-table-name version-uuid)))))
+(defn- remove-version [conn entry version]
+  (let [version-uuid (str (:uuid entry) "-v" version)]
+    (try
+      (when (db-common/read-resource conn versions-table-name version-uuid)
+        (db-common/delete-resource conn versions-table-name version-uuid))
+      (catch Exception e (timbre/error e)))))
+
+(defn delete-versions [conn entry-data]
+  (let [entry (if (:delete-entry entry-data)
+                ;; increment one to remove all versions when deleting a draft
+                (assoc entry-data :revision-id (inc (:revision-id entry-data)))
+                entry-data)]
+    (if (and (= 1 (:revision-id entry))
+             (:delete-entry entry))
+      (remove-version conn entry 1) ;; single entry with deleted draft
+      (when (pos? (:revision-id entry))
+        (doseq [version (range (:revision-id entry))]
+          (remove-version conn entry version))))))
 
 (declare get-entry)
 

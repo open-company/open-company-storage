@@ -220,6 +220,8 @@
       (when (= (keyword (:status entry)) :draft)
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid board))]
           (board-res/maybe-delete-draft-board conn org board remaining-entries (:user ctx))))
+      (when (not= (:status entry) "published")
+        (entry-res/delete-versions conn (assoc entry :delete-entry true)))
       (timbre/info "Deleted entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx) nil))
       true)
