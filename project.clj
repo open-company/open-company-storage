@@ -124,7 +124,7 @@
         ;; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-spell "0.1.0"]
         ;; Dead code finder https://github.com/venantius/yagni
-        [venantius/yagni "0.1.4" :exclusions [org.clojure/clojure]]
+        [venantius/yagni "0.1.6" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
         [lein-zprint "0.3.10" :exclusions [org.clojure/clojure]]
       ]  

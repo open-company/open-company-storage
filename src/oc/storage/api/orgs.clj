@@ -37,6 +37,12 @@
         clean-board (if public? (dissoc board :authors :viewers) board)]
     (if level (merge clean-board level) clean-board)))
 
+(defn- default-entries-for [board-slug]
+  (try
+    (read-string (slurp (clojure.java.io/resource (str "samples/" board-slug ".edn"))))
+    (catch Exception e
+      [])))
+
 (defn- create-interaction
   "Create any default interactions (from config) for a new default entry."
   [conn org-uuid interaction resource]
@@ -53,6 +59,7 @@
 (defn- create-entry
   "Create any default entries (from config) for a new default board."
   [conn entry board]
+  (timbre/info "Creating entry:" (:headline entry))
   (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
         entry-res (db-common/create-resource conn common-res/entry-table-name 
                     (-> (entry-res/->entry conn (:uuid board)
@@ -71,8 +78,10 @@
 (defn- create-board
   "Create any default boards (from config) and their contents for a new org."
   [conn org board author]
-  (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
-    (doall (pmap #(create-entry conn % board-result) (:entries board))))) ; create any board entries in parallel
+  (let [board-slug (slugify/slugify (:name board))
+        entries (map #(assoc % :author author) (default-entries-for board-slug))
+        board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
+    (doall (pmap #(create-entry conn % board-result) entries)))) ; create any board entries in parallel
 
 ;; ----- Actions -----
 
@@ -110,7 +119,9 @@
               create-board-names (clojure.set/difference desired-board-names existing-board-names)]
           (doall (pmap (fn [delete-board-name]
             (timbre/info "Samples sync - Deleting board:" delete-board-name "for org:" org-uuid)
-            (board-res/delete-board! conn org-uuid (:slug (get existing-boards-by-name delete-board-name)) []))
+            (let [board (get existing-boards-by-name delete-board-name)
+                  entries (entry-res/list-all-entries-by-board conn (:uuid board))]
+              (board-res/delete-board! conn org-uuid (:slug board) entries)))
             delete-board-names))
           (doall (pmap (fn [create-board-name]
             (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
