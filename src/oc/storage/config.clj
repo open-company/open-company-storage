@@ -81,24 +81,24 @@
 
 (defonce default-board-names #{
   "All-hands"
-  "CEO Update"
+  "CEO update"
   "Competition"
-  "Customer Wins"
+  "Customer wins"
   "Decisions"
   "Design"
   "Engineering"
   "Events"
   "Finances"
-  "Key Metrics"
+  "Key metrics"
   "Kudos"
-  "Lessons Learned"
+  "Lessons learned"
   "Marketing"
   "People"
   "Playbooks"
   "Press"
-  "Product Updates"
+  "Product updates"
   "Sales"
-  "Team and Hiring"
+  "Team and hiring"
   "Week in review"})
 
 (defonce new-org-board-names #{
