@@ -166,7 +166,7 @@
 (defn- valid-org-update? [conn slug org-props]
   (if-let [org (org-res/get-org conn slug)]
     (let [samples? (:samples org-props)
-          updated-props (dissoc org-props :samples :boards)
+          updated-props (if samples? (dissoc org-props :samples :boards) org-props)
           updated-org (merge org (org-res/ignore-props updated-props))]
       (if (lib-schema/valid? common-res/Org updated-org)
         {:existing-org org :updated-org updated-org :samples samples? :boards (:boards org-props)}
