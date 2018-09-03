@@ -39,8 +39,14 @@
 
 (defn- default-entries-for [board-slug]
   (try
-    (read-string (slurp (clojure.java.io/resource (str "samples/" board-slug ".edn"))))
+    (->
+      (str "samples/" board-slug ".edn")
+      (clojure.java.io/resource)
+      (slurp)
+      (clojure.string/replace #"\\n" "")
+      (read-string))
     (catch Exception e
+      (println e)
       [])))
 
 (defn- create-interaction
@@ -79,7 +85,7 @@
   "Create any default boards (from config) and their contents for a new org."
   [conn org board author]
   (let [board-slug (slugify/slugify (:name board))
-        entries (map #(assoc % :author author) (default-entries-for board-slug))
+        entries (map #(assoc % :author (lib-schema/author-for-user author)) (default-entries-for board-slug))
         board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
     (doall (pmap #(create-entry conn % board-result) entries)))) ; create any board entries in parallel
 

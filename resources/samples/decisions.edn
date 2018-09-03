@@ -2,6 +2,27 @@
   {
     :time-offset 9398 ; ~6 days ago
     :headline "[Sample] Discontinuing “Email to Get Started” Growth Experiment"
-    :body ""
+    :body "<p>The growth team decided to not put any further effort into the “Email to Get Started” growth experiment. <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Julie'
+        data-last-name='Johnson'
+        data-slack-username='Julie'
+        data-user-id='9797-9797-9797'
+        data-email='julie@madeup.com'
+        data-avatar-url='https://cdn.filestackcontent.com/tJcQBrGOSOiMf8YowwtG'
+        data-found='true'>@Julie</span> made the final decision as head of Growth, with data support from <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Danielle'
+        data-last-name='Robertson'
+        data-slack-username='Danielle'
+        data-user-id='9797-9797-9797'
+        data-email='danielle@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/4Xoz3CuzTgiVFdbWCSIw'
+        data-found='true'>@Danielle</span> and product support from <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Adrian'
+        data-last-name='Tomei'
+        data-slack-username='Adrian'
+        data-user-id='9797-9797-9797'
+        data-email='adrian@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/wXZpWBPHQwKvSy8R13gG'
+        data-found='true'>@Adrian</span>.</p><p>We now have just over a month worth of data around the 2 sprints of product development on this and have seen no statistically significant increases in activation as a result (data shows a very slight decrease). Anyone that wants a deep dive on the results should check with Danielle.</p><p>It was a <i>great</i> idea from the engineering team, and I really appreciate the enthusiasm for it and the hard work it took to make it happen so quickly. This shows our team at its best.  We know going into it that most of these growth experiment ideas won’t pan out,  but we just have to embrace that and fail fast when we fail.</p>" 
   }
 ]
