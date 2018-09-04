@@ -126,7 +126,7 @@
 (defn delete-versions [conn entry-data]
   (let [entry (if (:delete-entry entry-data)
                 ;; increment one to remove all versions when deleting a draft
-                (assoc entry-data :revision-id (inc (:revision-id entry-data)))
+                (update-in entry-data [:revision-id] inc)
                 entry-data)]
     (if (and (= 1 (:revision-id entry))
              (:delete-entry entry))
