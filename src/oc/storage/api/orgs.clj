@@ -43,10 +43,8 @@
       (str "samples/" board-slug ".edn")
       (clojure.java.io/resource)
       (slurp)
-      (clojure.string/replace #"\\n" "")
       (read-string))
     (catch Exception e
-      (println e)
       [])))
 
 (defn- create-interaction
