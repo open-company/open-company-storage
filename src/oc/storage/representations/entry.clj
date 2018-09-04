@@ -14,7 +14,7 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:uuid :headline :body :attachments :status :must-see
+(def representation-props [:uuid :headline :body :attachments :status :must-see :sample
                            :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name 
                            :team-id :author :publisher :published-at

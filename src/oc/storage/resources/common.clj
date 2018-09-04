@@ -100,6 +100,9 @@
   ;; Comment sync
   (schema/optional-key :slack-thread) lib-schema/SlackThread
 
+  ;; NUX samples
+  (schema/optional-key :sample) schema/Bool
+
   :author [ContributingAuthor]
   (schema/optional-key :published-at) lib-schema/ISO8601
   (schema/optional-key :publisher) lib-schema/Author

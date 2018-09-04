@@ -71,6 +71,7 @@
                     (-> (entry-res/->entry conn (:uuid board)
                                                 (dissoc entry :author :time-offset :comments :reactions)
                                                 (:author entry))
+                      (assoc :sample true)
                       (assoc :status :published)
                       (assoc :created-at ts)
                       (assoc :updated-at ts)
