@@ -185,7 +185,7 @@ Note the HTTPS URL ngrok provides. It will look like: `https://6ae20d9b.ngrok.io
 
 To configure Ziggeo to use the ngrok tunnel, go to the ziggeo web app at [https://ziggeo.com/](https://ziggeo.com/) and log in.
 
-On the left nav bar there is a 'Manage' option. Click that and then choose the 'Webhooks' item in the middle of the page. Add your ngrok URL and choose 'JSON encoding' for the template option.
+On the left nav bar there is a 'Manage' option. Click that and then choose the 'Webhooks' item in the middle of the page. Add your ngrok URL appended with `/ziggeo/videos` (e.g. `https://da0d29b0.ngrok.io/ziggeo/videos`) and choose 'JSON encoding' for the template option.
 
 Set the `project.clj` or environment variables for the Ziggeo API token and key (see below).
 
