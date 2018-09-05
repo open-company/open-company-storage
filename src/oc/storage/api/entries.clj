@@ -396,6 +396,11 @@
   :handle-not-acceptable (by-method {
                             :post (api-common/only-accept 406 mt/entry-media-type)})
 
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/revert-request-media-type))})
+
   ;; Possibly no data to handle
   :malformed? (by-method {
     :options false
@@ -437,8 +442,8 @@
   :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
                                                (:existing-board ctx)
                                                (:updated-entry ctx)
-                                               [] ; no comments
-                                               [] ; no reactions
+                                               [] ; no comments since it's always a draft
+                                               [] ; no reactions since it's always a draft
                                                (:access-level ctx)
                                                (-> ctx :user :user-id))))
 
