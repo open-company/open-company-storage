@@ -1,7 +1,7 @@
 [
   {
     :time-offset 4842 ; ~3 days ago
-    :headline "[Sample] Admin dashboard beta FTW"
+    :headline "[SAMPLE] Admin dashboard beta FTW"
     :body "<p>We’ve concluded the Admin dashboard sprint, and the whole product team attended the Annual billing sprint kickoff with the usual reps from data, and sales. This sprint includes the secondary user story around non-admin billing contacts.</p><p>Kudos to <span class='medium-editor-mention-at oc-mention'
         data-first-name='Lane'
         data-last-name='Kennedy'
