@@ -63,6 +63,8 @@
     "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
     "AWS SQS auth queue: " c/aws-sqs-auth-queue "\n"
     "AWS SNS notification topic ARN: " c/aws-sns-storage-topic-arn "\n"
+    "Ziggeo API token: " c/ziggeo-api-token "\n"
+    "Ziggeo API key: " c/ziggeo-api-key "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
     "Log level: " c/log-level "\n"
