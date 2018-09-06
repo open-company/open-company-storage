@@ -116,22 +116,25 @@
     (do
       (when (:samples ctx) ; are we PATCH'ing boards from NUX?
         ;; Sync the boards the org has w/ the boards PATCH'd from the NUX by creating and deleting boards
+        (timbre/info "Syncing samples for:" org-uuid)
         (let [existing-boards (board-res/list-boards-by-org conn org-uuid)
               existing-board-names (set (map :name existing-boards))
               existing-boards-by-name (zipmap (map :name existing-boards) existing-boards)
               desired-board-names (set (conj (:boards ctx) config/forced-board-name))
               delete-board-names (clojure.set/difference existing-board-names desired-board-names)
-              create-board-names (clojure.set/difference desired-board-names existing-board-names)]
-          (doall (pmap (fn [delete-board-name]
-            (timbre/info "Samples sync - Deleting board:" delete-board-name "for org:" org-uuid)
-            (let [board (get existing-boards-by-name delete-board-name)
-                  entries (entry-res/list-all-entries-by-board conn (:uuid board))]
-              (board-res/delete-board! conn org-uuid (:slug board) entries)))
-            delete-board-names))
-          (doall (pmap (fn [create-board-name]
-            (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
-            (create-board conn updated-org {:name create-board-name} author))
-            create-board-names))))
+              create-board-names (clojure.set/difference desired-board-names existing-board-names)
+              ;; including these next 2 in the let to prevent Eastwood from having a tizzy about the doall
+              _deleted-boards (doall (pmap (fn [delete-board-name]
+                (timbre/info "Samples sync - Deleting board:" delete-board-name "for org:" org-uuid)
+                (let [board (get existing-boards-by-name delete-board-name)
+                      entries (entry-res/list-all-entries-by-board conn (:uuid board))]
+                  (board-res/delete-board! conn org-uuid (:slug board) entries)))
+                delete-board-names))
+              _created-boards (doall (pmap (fn [create-board-name]
+                (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
+                (create-board conn updated-org {:name create-board-name} author))
+                create-board-names))]
+            (timbre/info "Syncing samples for:" org-uuid "complete.")))
 
       (timbre/info "Updated org:" slug)
       (notification/send-trigger! (notification/->trigger :update {:old (:existing-org ctx) :new update-result}

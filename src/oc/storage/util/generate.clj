@@ -1,29 +1,30 @@
-; (ns oc.storage.util.generate
-;   "
-;   Commandline client to generate data, in a date range, into an existing OpenCompany org, according to a configuration
-;   file.
+(ns oc.storage.util.generate
+  "
+  Commandline client to generate data, in a date range, into an existing OpenCompany org, according to a configuration
+  file.
 
-;   Usage:
+  Usage:
 
-;   lein run -m oc.storage.util.generate -- <org-slug> <config-file> <start-date> <end-date>
+  lein run -m oc.storage.util.generate -- <org-slug> <config-file> <start-date> <end-date>
 
-;   lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-06-31
-;   "
-;   (:require [clojure.string :as s]
-;             [clojure.walk :refer (keywordize-keys)]
-;             [clojure.tools.cli :refer (parse-opts)]
-;             [defun.core :refer (defun-)]
-;             [clj-http.client :as http]
-;             [cheshire.core :as json]
-;             [clj-time.core :as t]
-;             [clj-time.format :as f]
-;             [oc.lib.db.pool :as db]
-;             [oc.lib.db.common :as db-common]
-;             [oc.storage.resources.org :as org-res]
-;             [oc.storage.resources.board :as board-res]
-;             [oc.storage.resources.entry :as entry-res]
-;             [oc.storage.config :as c])
-;   (:gen-class))
+  lein run -m oc.storage.util.generate -- 18f ./opt/generate.edn 2017-01-01 2017-06-31
+  "
+  )
+  ; (:require [clojure.string :as s]
+  ;           [clojure.walk :refer (keywordize-keys)]
+  ;           [clojure.tools.cli :refer (parse-opts)]
+  ;           [defun.core :refer (defun-)]
+  ;           [clj-http.client :as http]
+  ;           [cheshire.core :as json]
+  ;           [clj-time.core :as t]
+  ;           [clj-time.format :as f]
+  ;           [oc.lib.db.pool :as db]
+  ;           [oc.lib.db.common :as db-common]
+  ;           [oc.storage.resources.org :as org-res]
+  ;           [oc.storage.resources.board :as board-res]
+  ;           [oc.storage.resources.entry :as entry-res]
+  ;           [oc.storage.config :as c])
+  ; (:gen-class))
 
 ; (def date-parser (f/formatter "YYYY-MM-dd"))
 
