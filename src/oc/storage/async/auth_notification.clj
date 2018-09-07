@@ -34,9 +34,7 @@
           (org-res/add-author conn (:slug org) (:user-id user)))))))
 
 (defn- read-message-body
-  "
-  Try to parse as json, otherwise use read-string.
-  "
+  "Try to parse as json, otherwise use read-string."
   [msg]
   (try
     (json/parse-string msg true)

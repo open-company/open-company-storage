@@ -26,6 +26,12 @@
 
 ;; ----- Utility functions -----
 
+(defn- sub-name
+  "Replace the marker `%name%` in the target string with the user's name."
+  [target user]
+  (let [user-name (or (:name user) (:first-name user) (:last-name user))]
+    (clojure.string/replace target #"%name%" user-name)))
+
 (defn- board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and
@@ -60,10 +66,25 @@
       :resource-uuid (:uuid resource)
       :author (:author interaction)} ts)))
 
+(defn- create-drafts
+  "Create any default draft entries (from config) for a new user."
+  [conn org-result author]
+  (let [drafts (default-entries-for "drafts")
+        people-board-uuid (when (seq drafts)
+                            (or (board-res/uuid-for conn (:slug org-result) "people")
+                                (board-res/create-board! (board-res/->board (:uuid org-result)
+                                                            {:name "People" :draft true}
+                                                            author))))]
+    (doall (pmap #(let [headline (sub-name (:headline %) author)]
+                    (timbre/info "Creating draft entry:" headline "for user:" (:user-id author))
+                    (entry-res/create-entry! conn
+                      (entry-res/->entry conn people-board-uuid (assoc % :headline headline) author)))
+              drafts))))
+
 (defn- create-entry
   "Create any default entries (from config) for a new default board."
   [conn entry board]
-  (timbre/info "Creating entry:" (:headline entry))
+  (timbre/info "Creating sample entry:" (:headline entry) "for board:" (:uuid board))
   (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
         entry-res (db-common/create-resource conn common-res/entry-table-name 
                     (-> (entry-res/->entry conn (:uuid board)
@@ -103,6 +124,8 @@
       (notification/send-trigger! (notification/->trigger :add {:new org-result} (:user ctx)))
       (doseq [board (map #(hash-map :name %) config/new-org-board-names)]
         (create-board conn org-result board author))
+      (timbre/info "Creating initial drafts for user:" (:user-id author) "of org:" uuid)
+      (create-drafts conn org-result author)
       {:created-org org-result})
   
     (do (timbre/error "Failed creating org.") false)))
