@@ -43,7 +43,9 @@
         clean-board (if public? (dissoc board :authors :viewers) board)]
     (if level (merge clean-board level) clean-board)))
 
-(defn- default-entries-for [board-slug]
+(defn- default-entries-for
+  "Return any sample posts for a specific board slug."
+  [board-slug]
   (try
     (->
       (str "samples/" board-slug ".edn")
@@ -83,7 +85,7 @@
 
 (defn- create-entry
   "Create any default entries (from config) for a new default board."
-  [conn entry board]
+  [conn org board entry user]
   (timbre/info "Creating sample entry:" (:headline entry) "for board:" (:uuid board))
   (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
         entry-res (db-common/create-resource conn common-res/entry-table-name 
@@ -97,6 +99,8 @@
                       (assoc :published-at ts)
                       (assoc :publisher (:author entry))) ts)
         interaction-resource (merge entry entry-res)]
+    ;; notify of new entry
+    (notification/send-trigger! (notification/->trigger :add org board {:new entry-res} user nil))  
     ;; create any entry interactions (comments and/or reactions) in parallel
     (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
               (concat (:comments interaction-resource) (:reactions interaction-resource))))))
@@ -107,7 +111,7 @@
   (let [board-slug (slugify/slugify (:name board))
         entries (map #(assoc % :author (lib-schema/author-for-user author)) (default-entries-for board-slug))
         board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
-    (doall (pmap #(create-entry conn % board-result) entries)))) ; create any board entries in parallel
+    (doall (pmap #(create-entry conn org board-result % author) entries)))) ; create any board entries in parallel
 
 ;; ----- Actions -----
 
@@ -149,9 +153,10 @@
               ;; including these next 2 in the let to prevent Eastwood from having a tizzy about the doall
               _deleted-boards (doall (pmap (fn [delete-board-name]
                 (timbre/info "Samples sync - Deleting board:" delete-board-name "for org:" org-uuid)
-                (let [board (get existing-boards-by-name delete-board-name)
+                (let [board (board-res/get-board conn (:uuid (get existing-boards-by-name delete-board-name)))
                       entries (entry-res/list-all-entries-by-board conn (:uuid board))]
-                  (board-res/delete-board! conn org-uuid (:slug board) entries)))
+                  (board-res/delete-board! conn org-uuid (:slug board) entries)
+                  (notification/send-trigger! (notification/->trigger :delete update-result {:old board} (:user ctx)))))
                 delete-board-names))
               _created-boards (doall (pmap (fn [create-board-name]
                 (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
