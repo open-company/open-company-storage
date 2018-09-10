@@ -176,6 +176,8 @@
   (if-let [updated-org (org-res/add-author conn slug user-id)]
     (do
       (timbre/info "Added author:" user-id "to org:" slug)
+      (timbre/info "Creating initial drafts for user:" user-id "of org:" slug)
+      (create-drafts conn updated-org {:user-id user-id :name "me" :avatar-url nil})
       {:updated-org updated-org})
     
     (do
