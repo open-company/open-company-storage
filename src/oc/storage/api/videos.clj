@@ -23,7 +23,8 @@
                :existing-board board
                :existing-entry entry}
           updated-entry (entry-res/update-video-data conn video entry)]
-      (when (= (:status updated-entry) "published")
+      (when (and (= (:status updated-entry) "published")
+                 (= (:event_type video) "video_ready"))
         (try
           (entries-api/auto-share-on-publish conn ctx updated-entry)
           (catch Exception e (timbre/error "caught exception: " (.getMessage e)))))
@@ -32,8 +33,10 @@
 
 (defn- handle-video-webhook [conn ctx]
   (let [body (:data ctx)
-        video (get-in body [:data :video])
-        token (:token video)
+        video-data (get-in body [:data :video])
+        token (:token video-data)
+        event_type (:event_type body)
+        video (assoc video-data :event_type event_type)
         entry (if token
                 (entry-res/get-entry-by-video conn token)
                 false)
