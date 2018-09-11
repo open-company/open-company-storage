@@ -45,12 +45,20 @@
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
 
-(defn- handle-video-data [conn entry]
-  (when (and (:video-id entry)
-             (or (nil? (:video-processed entry))
-                 (nil? (:video-transcript entry))))
-    (ziggeo/video (:video-id entry)
-      (fn [video] (entry-res/update-video-data conn video entry)))))
+(declare auto-share-on-publish)
+
+(defn- handle-video-data
+  ([conn entry] (handle-video-data conn entry nil))
+  ([conn entry ctx]
+     (when (and (:video-id entry)
+                (or (nil? (:video-processed entry))
+                    (nil? (:video-transcript entry))))
+       (ziggeo/video (:video-id entry)
+         (fn [video]
+           (let [updated-entry (entry-res/update-video-data conn video entry)]
+             (when (and (some? ctx)
+                        (= (:status updated-entry) "published"))
+               (auto-share-on-publish conn ctx updated-entry))))))))
 
 ;; ----- Validations -----
 
@@ -126,16 +134,18 @@
 
 (defn auto-share-on-publish
   [conn ctx entry-result]
-  (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
-    (let [share-request {:medium "slack"
-                         :note ""
-                         :shared-at (db-common/current-timestamp)
-                         :channel slack-channel}
-          share-ctx (-> ctx 
-                      (assoc :share-requests (list share-request))
-                      (assoc :existing-entry entry-result)
-                      (assoc :auto-share true))]
-      (share-entry conn share-ctx (:uuid entry-result)))))
+  (when (or (nil? (:video-id entry-result))
+            (true? (:video-processed entry-result)))
+    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
+      (let [share-request {:medium "slack"
+                           :note ""
+                           :shared-at (db-common/current-timestamp)
+                           :channel slack-channel}
+            share-ctx (-> ctx
+                          (assoc :share-requests (list share-request))
+                          (assoc :existing-entry entry-result)
+                          (assoc :auto-share true))]
+        (share-entry conn share-ctx (:uuid entry-result))))))
 
 (defn undraft-board [conn user org board]
   (when (:draft board)
@@ -151,7 +161,7 @@
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     
     (do
-      (handle-video-data conn entry-result)
+      (handle-video-data conn entry-result ctx)
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
         (undraft-board conn (:user ctx) org board)

@@ -105,7 +105,7 @@
             entry-data (map #(valid-entry-with-board? conn % author)
                           (:entries board-map))
             board-data (-> board-map
-                        (dissoc :private-notifications :note)
+                        (dissoc :private-notifications :note :pre-flight)
                         (assoc :entries entry-data))]
         {:new-board (board-res/->board (:uuid org) board-data author)
          :existing-org org
@@ -351,15 +351,20 @@
   :conflict? (fn [ctx] (not (board-res/slug-available? conn (org-res/uuid-for conn org-slug) (-> ctx :new-board :slug))))
 
   ;; Actions
-  :post! (fn [ctx] (create-board conn ctx org-slug))
+  :post! (fn [ctx] (if (-> ctx :data :pre-flight)
+                        true ; we were just checking if this would work
+                        (create-board conn ctx org-slug)))
 
   ;; Responses
-  :handle-created (fn [ctx] (let [new-board (:created-board ctx)
+  :handle-created (fn [ctx] (let [pre-flight? (-> ctx :data :pre-flight)
+                                  new-board (:created-board ctx)
                                   board-slug (:slug new-board)]
-                              (api-common/location-response
-                                (board-rep/url org-slug board-slug)
-                                (board-rep/render-board org-slug new-board (:access-level ctx))
-                                mt/board-media-type)))
+                              (if pre-flight?
+                                (api-common/blank-response)
+                                (api-common/location-response
+                                  (board-rep/url org-slug board-slug)
+                                  (board-rep/render-board org-slug new-board (:access-level ctx))
+                                  mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
