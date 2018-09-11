@@ -269,7 +269,7 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
-                             show-draft-board? (and (seq user-id) (lib-schema/valid? lib-schema/User user))
+                             show-draft-board? (and (seq user-id) (access/allow-authors conn slug (:user ctx)))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
                              full-boards (if show-draft-board?

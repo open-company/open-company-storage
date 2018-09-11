@@ -26,7 +26,7 @@
     ;; This event is only for newly created users. Invites will create
     ;; a user.
     (pool/with-pool [conn db-pool]
-      ;; if there are no orgs , then it is the first user
+      ;; if there are no orgs, then it is the first user
       (doseq [team teams]
         (doseq [org (org-res/list-orgs-by-team conn team)]
           ;; A new user will not be created for invites (viewers)
