@@ -24,6 +24,8 @@
 (defn- board-create-link [org] (hateoas/create-link (str (url org) "/boards/") {:content-type mt/board-media-type
                                                                                 :accept mt/board-media-type}))
 
+(defn- board-pre-flight-create-link [org] (dissoc (assoc (board-create-link org) :rel "pre-flight-create") :accept))
+
 (defn- add-author-link [org] 
   (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type}))
 
@@ -79,6 +81,7 @@
                           links)
         full-links (if (= access-level :author) 
                       (concat activity-links [(board-create-link org)
+                                              (board-pre-flight-create-link org)
                                               (partial-update-link org)
                                               (add-author-link org)])
                       activity-links)]
