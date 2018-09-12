@@ -14,13 +14,12 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:uuid :topic-name :topic-slug :headline :body
-                           :attachments :status :must-see :org-name :org-slug
-                           :org-logo-url :org-logo-width :org-logo-height
-                           :board-uuid :board-slug :board-name :video-id
-                           :team-id :author :publisher :published-at :created-at
-                           :video-transcript :video-processed :video-error
-                           :updated-at :revision-id])
+(def representation-props [:uuid :headline :body :attachments :status :must-see :sample
+                           :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
+                           :board-uuid :board-slug :board-name 
+                           :team-id :author :publisher :published-at
+                           :video-id :video-transcript :video-processed :video-error
+                           :created-at :updated-at :revision-id])
 
 (defun url
 
@@ -78,17 +77,6 @@
   (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
-
-(defun- clean-blank-topic
-  "Remove a blank topic slug/name from an entry representation."
-
-  ([entry :guard #(and (contains? % :topic-slug) (clojure.string/blank? (:topic-slug %)))]
-    (clean-blank-topic (dissoc entry :topic-slug)))
-
-  ([entry :guard #(and (contains? % :topic-name) (clojure.string/blank? (:topic-name %)))]
-    (clean-blank-topic (dissoc entry :topic-name)))
-
-  ([entry] entry))
 
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
@@ -173,7 +161,6 @@
           full-entry)
       (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
-      (clean-blank-topic)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)

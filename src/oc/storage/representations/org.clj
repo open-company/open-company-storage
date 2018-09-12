@@ -8,7 +8,7 @@
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                            :boards :created-at :updated-at])
-(def representation-props (concat public-representation-props [:author :authors :must-see-count]))
+(def representation-props (concat public-representation-props [:author :authors :must-see-count :default-board-names]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -104,6 +104,7 @@
                     public-representation-props)]
     (json/generate-string
       (-> org
+        (assoc :default-board-names (vec (sort config/default-board-names)))
         (org-links access-level)
         (change-link access-level user-id)
         (notify-link access-level user-id)

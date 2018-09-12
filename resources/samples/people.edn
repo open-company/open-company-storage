@@ -1,0 +1,28 @@
+[
+  {
+    :time-offset 4002 ; ~2 days ago
+    :headline "[SAMPLE] New faces in new places!"
+    :body "<p>Welcome to our new hires in the Product, Design and Engineering groups. I’m also particularly excited to announce that <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Adrian'
+        data-last-name='Tomei'
+        data-slack-username='Adrian'
+        data-user-id='9797-9797-9797'
+        data-email='adrian@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/wXZpWBPHQwKvSy8R13gG'
+        data-found='true'>@Adrian</span> has been promoted to VP, Customer Experience. <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Dimitri'
+        data-last-name='Payet'
+        data-slack-username='Dimitri'
+        data-user-id='9797-9797-9797'
+        data-email='dimitri@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/eXKbQZjzQE6RuEpeiqwx'
+        data-found='true'>@Dimitri</span> will continue to lead engineering. Congrats you two!</p><p>As for the new faces:</p><ul><li>Shelley Legg is a senior designer that comes to us from Apple where she led the Apple maps experience team.</li><li>Rebecca Kim is a junior developer. She’s been focused on numerous open source projects while traveling the world. She’ll be working on the new product launch and QA.</li><li>Scott James is also a junior developer who recently graduated from WPI. He’s a speed chess player (look out <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Preta'
+        data-last-name='Simms'
+        data-slack-username='preta'
+        data-user-id='9797-9797-9797'
+        data-email='preta@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/X6trgyiORay3dAHH4B2y'
+        data-found='true'>@Preta Simms</span>!) and will join Rebecca on the QA team.</li></ul><p>Give a big shout out to the these three new hires that joined us this past week, and help get them feeling at home!</p>"
+  }
+]

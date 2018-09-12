@@ -25,9 +25,6 @@
 
 ;; ----- Utility functions -----
 
-(defn- topic-for-name [topic-name]
-  {:name topic-name :slug (slugify/slugify topic-name)})
-
 (defn- comments
   "Return a sequence of just the comments for an entry."
   [{interactions :interactions}]
@@ -60,21 +57,12 @@
   (let [org-slug (:slug org)
         slug (:slug board)
         entries (entry-res/list-entries-by-board conn (:uuid board) {}) ; all entries for the board
-        board-topics (->> entries
-                        (map #(select-keys % [:topic-slug :topic-name]))
-                        (filter :topic-slug) ; remove entries w/ no topic
-                        (map #(clojure.set/rename-keys % {:topic-slug :slug :topic-name :name}))
-                        set) ; distinct topics for the board
-        all-topics (distinct (concat board-topics (map topic-for-name config/topics))) ; board's topics and default
-        topics (if (> (- (count all-topics) (count config/topics)) 3) ; more than 3 non-default?
-                    board-topics ; just the board's topics
-                    all-topics) ; board's and default
         entry-reps (map #(entry-rep/render-entry-for-collection org board %
                             (comments %)
                             (reaction-res/aggregate-reactions (reactions %))
                             (:access-level ctx) (-> ctx :user :user-id))
                       entries)]
-    (assemble-board org-slug (assoc board :topics topics) entry-reps ctx)))
+    (assemble-board org-slug board entry-reps ctx)))
 
   ;; Recursion to finish up both kinds of boards
   ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]

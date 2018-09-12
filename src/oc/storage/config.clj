@@ -79,22 +79,37 @@
 
 ;; ----- OpenCompany -----
 
-(defonce default-new-org (read-string (slurp (clojure.java.io/resource "default-new-org.edn"))))
-
-(defonce topics #{
-  "CEO Update"
+(defonce default-board-names #{
+  "All-hands"
+  "CEO update"
   "Competition"
-  "Customers"
+  "Customer wins"
+  "Decisions"
+  "Design"
+  "Engineering"
+  "Events"
   "Finances"
-  "Key Challenges"
-  "Key Metrics"
-  "Lessons Learned"
-  "Team and Hiring"
+  "Key metrics"
+  "Kudos"
+  "Lessons learned"
+  "Marketing"
+  "People"
+  "Playbooks"
   "Press"
-  "Sales"})
+  "Product updates"
+  "Sales"
+  "Team and hiring"
+  "Week in review"})
 
-;; Sequence of 1 unicode char strings that provide the default reactions available to the user (if any)
-(defonce default-reactions [])
+(defonce new-org-board-names #{
+  "General"
+  "All-hands"
+  "Decisions"
+  "Lessons Learned"
+  "People"
+  "Week in review"})
+
+(defonce forced-board-name "General")
 
 (defonce max-reaction-count 5) 
 

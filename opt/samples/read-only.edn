@@ -21,7 +21,6 @@
       :entries [
 
         {
-          :topic-name "Key Challenges"
           :headline "Recruiting; maintaining growth are focus areas"
           :body "<img src='https://cdn.filestackcontent.com/b80F13kRte5FLyGIPFFN'><p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>"
           :author [
@@ -36,7 +35,6 @@
         }
 
         {
-          :topic-name "How You Can Help"
           :headline "New Office Space, Key Hires"
           :body "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>"        
           :author [

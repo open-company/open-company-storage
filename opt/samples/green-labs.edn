@@ -19,14 +19,12 @@
       :entries [
 
         {
-          :topic-name "Key Challenges"
           :headline "Recruiting; maintaining growth are focus areas"
           :body "<img src='https://open-company-sample-data.s3.amazonaws.com/recruting.jpg'><p>We've done a relatively good job onboarding 7 new hires so far this year; but just as many roles haven't been filled yet. Among them is the Chief Designer, and that's affecting our ability to iterate quickly. We're turning to recruiters to help us with at least that position.</p><p>Word of mouth has helped us to grow, but we have to find ways to build virality into the product, as well. In the meantime, we're testing a new campaign to drive growth.</p>"
           :created-at "2017-06-28T17:55:36.642Z"
         }
 
         {
-         :topic-name "KPI's"
          :headline "June is Done"
          :body "<ul><li>Total Revenue $75K<br></li><li>MRR: $74K</li><li>MRR Bookings $10.5K (goal $12K)</li><li>Revenue Churn: 4.1% (goal 3%)</li></ul>"
          :created-at "2017-05-29T18:05:09.308Z"
@@ -34,7 +32,6 @@
 
         {
 
-          :topic-name "KPI's"
           :headline "July 2016"
           :body "<ul><li>Total Revenue $83K<br></li><li>MRR: $79K</li><li>MRR Bookings $12.5K (goal $12K)</li><li>Revenue Churn: 4.2% (goal 3%)</li></ul>"
           :created-at "2017-06-28T18:05:09.308Z"
@@ -42,7 +39,6 @@
 
         {
 
-          :topic-name "Finances"
           :headline "Revenue rising, expenses steady&nbsp;⚖"
           :body "<p>Though monthly expenses have been kept in check, we expect to ramp up marketing expenses in the fall to pursue a higher rate of growth.</p><p>Our cash runway is growing because of the revenue, but we are still planning a capital raise in early 2017 so we can grow the team more quickly.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1033950253&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' src='/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1033950253&amp;format=interactive' class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
           :created-at "2017-07-16T16:20:11.411Z"
@@ -50,49 +46,42 @@
 
         {
     
-          :topic-name "Growth"
           :headline "Automated Lab Work Tops 20%"
           :body "<p>The past two years have seen the greatest increase in lab work assigned to robots, but this is the first time the 20% threshold has been breached.</p><p>Automation is expected to handle up to 80% within five years.</p><p><iframe data-thumbnail='https://docs.google.com/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/embed/oimg?id=1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc&amp;oid=1340351038&amp;disposition=ATTACHMENT&amp;bo=false&amp;zx=sohupy30u1p' data-media-type='chart' data-chart-id='1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc' src='/_/sheets-proxy/spreadsheets/d/1X5Ar6_JJ3IviO64-cJ0DeklFuS42BSdXxZV6x5W0qOc/pubchart?oid=1340351038&amp;format=interactive' class='carrot-no-preview' width='560' height='315' frameborder='0' webkitallowfullscreen='' mozallowfullscreen='' allowfullscreen=''></iframe></p>"
           :created-at "2017-07-16T16:44:10.331Z"
         }
 
         {
-          :topic-name "How You Can Help"
           :headline "New Office Space, Key Hires"
           :body "<p>Please introduce us to designers and anyone that might eventually lead us to a new Chief Designer. This is holding us back, and we need everyone's help!</p><p>We've outgrown our SF office. If you know of a sublease or reasonable deal for 5k square ft please let Rebekah know.</p>"
           :created-at "2017-06-28T18:07:42.845Z"
         }
 
         {
-          :topic-name "Highlights"
           :headline "GreenLabs featured in Slate!"
           :body "<img src='https://open-company-sample-data.s3.amazonaws.com/press.jpg'><p><b>Can Robots Help Solve the Reproducibility Crisis? <i>Automating lab work can make results more reliable and easier to reproduce.</i></b></p><p>This was a great&nbsp;<a href=\"http://www.slate.com/articles/technology/future_tense/2016/06/automating_lab_research_could_help_resolve_the_reproducibility_crisis.html\" style=\"background-color: rgb(252, 252, 252);\">article</a>&nbsp;that helped drive a ton of attention, including from new investors interested in our next round.</p>"  
           :created-at "2017-06-28T18:14:24.985Z"
         }
 
         {
-          :topic-name "Team & Hiring"
           :headline "Welcome!"
           :body "<p>With our latest three hires we're up to 25 across two offices. We're excited to have on board:</p><ul><li>Stacy Mills (dev ops)<br></li><li>Roger Arzberger (dev)</li><li>Eliza Klepsch (dev)</li></ul>\n          <p>Stacy Mills comes to us from Amazon where she spent 3 years in the dev-ops group for AWS. She's a major talent and a great edition to the team.</p><p>Roger is a recent graduate from UT and co-op'd at Google and Cisco in school. He's excited to join the team and already considers himself the office foosball, darts and ping-pong champion.</p><p>Eliza is joining the team out of CodeCamp where she was sponsored by us and was on the winning team for demo day.</p>"
           :created-at "2017-06-28T18:02:07.397Z"
         }
 
         {
-          :topic-name "CEO Update"
           :headline "Transparency FTW! 🔎",
           :body "<p>Super excited to be trying out OpenCompany for our team and investor updates.</p><p>Ping me on Slack and let me know what kind of things we should be providing more information about.</p>"
           :created-at "2017-05-17T18:25:03.085Z",
         }
 
         {
-         :topic-name "CEO Update"
          :headline "Big Hiring Push",
          :body "<p>We're looking for 5 new hires in engineering, a senior dev-ops engineer and 4 junior developers for dev and QA roles.</p>\n          <p>To help fill these roles, we've annouced a $5k referral bonus, payable 90 days after the new hires start date. If you\n          know people we should be recruiting, let Jennifer know immediately!</p>"
          :created-at "2017-06-28T18:25:03.085Z",
         }
 
         {
-          :topic-slug "CEO Update"
           :headline "Passing $1M in ARR ↗ 💸"
           :body "<p>We hit our targets and hit a new sales record, adding $125K in ARR so far this month!</p>"
           :created-at "2017-06-28T18:25:03.085Z"

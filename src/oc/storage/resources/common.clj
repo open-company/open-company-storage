@@ -88,8 +88,6 @@
   :secure-uuid lib-schema/UniqueID
   :org-uuid lib-schema/UniqueID
   :board-uuid lib-schema/UniqueID
-  :topic-slug (schema/maybe Slug)
-  :topic-name (schema/maybe lib-schema/NonBlankStr)
   
   :status Status
 
@@ -101,6 +99,9 @@
 
   ;; Comment sync
   (schema/optional-key :slack-thread) lib-schema/SlackThread
+
+  ;; NUX samples
+  (schema/optional-key :sample) schema/Bool
 
   :author [ContributingAuthor]
   (schema/optional-key :published-at) lib-schema/ISO8601

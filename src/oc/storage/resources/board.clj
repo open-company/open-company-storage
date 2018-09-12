@@ -51,9 +51,12 @@
   [board]
   (apply dissoc board ignored-properties))
 
-(schema/defn ^:always-validate drafts-board :- common/Board
+;; We don't validate that the board returned from this function because there's a NUX
+;; case where the user retrieving the org hasn't yet provided their name and so are not a valid
+;; user per the schema. For the same reason we don't validate the user argument here.
+(schema/defn ^:always-validate drafts-board
   "Return a draft board for the specified org and author."
-  [org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  [org-uuid :- lib-schema/UniqueID user]
   (let [now (db-common/current-timestamp)]
     (merge default-drafts-board {
       :org-uuid org-uuid

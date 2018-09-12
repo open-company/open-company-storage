@@ -26,6 +26,12 @@
 
 ;; ----- Utility functions -----
 
+(defn- sub-name
+  "Replace the marker `%name%` in the target string with the user's name."
+  [target user]
+  (let [user-name (or (:name user) (:first-name user) (:last-name user))]
+    (clojure.string/replace target #"%name%" user-name)))
+
 (defn- board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and
@@ -36,6 +42,18 @@
         public? (= :public (:access-level level))
         clean-board (if public? (dissoc board :authors :viewers) board)]
     (if level (merge clean-board level) clean-board)))
+
+(defn- default-entries-for
+  "Return any sample posts for a specific board slug."
+  [board-slug]
+  (try
+    (->
+      (str "samples/" board-slug ".edn")
+      (clojure.java.io/resource)
+      (slurp)
+      (read-string))
+    (catch Exception e
+      [])))
 
 (defn- create-interaction
   "Create any default interactions (from config) for a new default entry."
@@ -50,20 +68,39 @@
       :resource-uuid (:uuid resource)
       :author (:author interaction)} ts)))
 
+(defn- create-drafts
+  "Create any default draft entries (from config) for a new user."
+  [conn org-result author]
+  (let [drafts (default-entries-for "drafts")
+        people-board-uuid (when (seq drafts)
+                            (or (board-res/uuid-for conn (:slug org-result) "people")
+                                (board-res/create-board! (board-res/->board (:uuid org-result)
+                                                            {:name "People" :draft true}
+                                                            author))))]
+    (doall (pmap #(let [headline (sub-name (:headline %) author)]
+                    (timbre/info "Creating draft entry:" headline "for user:" (:user-id author))
+                    (entry-res/create-entry! conn
+                      (entry-res/->entry conn people-board-uuid (assoc % :headline headline) author)))
+              drafts))))
+
 (defn- create-entry
   "Create any default entries (from config) for a new default board."
-  [conn entry board]
+  [conn org board entry user]
+  (timbre/info "Creating sample entry:" (:headline entry) "for board:" (:uuid board))
   (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
         entry-res (db-common/create-resource conn common-res/entry-table-name 
                     (-> (entry-res/->entry conn (:uuid board)
                                                 (dissoc entry :author :time-offset :comments :reactions)
                                                 (:author entry))
+                      (assoc :sample true)
                       (assoc :status :published)
                       (assoc :created-at ts)
                       (assoc :updated-at ts)
                       (assoc :published-at ts)
                       (assoc :publisher (:author entry))) ts)
         interaction-resource (merge entry entry-res)]
+    ;; notify of new entry
+    (notification/send-trigger! (notification/->trigger :add org board {:new entry-res} user nil))  
     ;; create any entry interactions (comments and/or reactions) in parallel
     (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
               (concat (:comments interaction-resource) (:reactions interaction-resource))))))
@@ -71,8 +108,10 @@
 (defn- create-board
   "Create any default boards (from config) and their contents for a new org."
   [conn org board author]
-  (let [board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
-    (doall (pmap #(create-entry conn % board-result) (:entries board))))) ; create any board entries in parallel
+  (let [board-slug (slugify/slugify (:name board))
+        entries (map #(assoc % :author (lib-schema/author-for-user author)) (default-entries-for board-slug))
+        board-result (board-res/create-board! conn (board-res/->board (:uuid org) (assoc board :entries []) author))]
+    (doall (pmap #(create-entry conn org board-result % author) entries)))) ; create any board entries in parallel
 
 ;; ----- Actions -----
 
@@ -87,20 +126,47 @@
       (timbre/info "Created org:" uuid)
       (timbre/info "Creating default boards for org:" uuid)
       (notification/send-trigger! (notification/->trigger :add {:new org-result} (:user ctx)))
-      (doseq [board (:boards config/default-new-org)]
+      (doseq [board (map #(hash-map :name %) config/new-org-board-names)]
         (create-board conn org-result board author))
+      (timbre/info "Creating initial drafts for user:" (:user-id author) "of org:" uuid)
+      (create-drafts conn org-result author)
       {:created-org org-result})
   
     (do (timbre/error "Failed creating org.") false)))
 
 (defn- update-org [conn ctx slug]
   (timbre/info "Updating org:" slug)
-  (if-let* [updated-org (:updated-org ctx)
-            update-result (org-res/update-org! conn slug updated-org)]
+  (if-let* [author (:user ctx)
+            updated-org (:updated-org ctx)
+            update-result (org-res/update-org! conn slug updated-org)
+            org-uuid (:uuid updated-org)]
     (do
+      (when (:samples ctx) ; are we PATCH'ing boards from NUX?
+        ;; Sync the boards the org has w/ the boards PATCH'd from the NUX by creating and deleting boards
+        (timbre/info "Syncing samples for:" org-uuid)
+        (let [existing-boards (board-res/list-boards-by-org conn org-uuid)
+              existing-board-names (set (map :name existing-boards))
+              existing-boards-by-name (zipmap (map :name existing-boards) existing-boards)
+              desired-board-names (set (conj (:boards ctx) config/forced-board-name))
+              delete-board-names (clojure.set/difference existing-board-names desired-board-names)
+              create-board-names (clojure.set/difference desired-board-names existing-board-names)
+              ;; including these next 2 in the let to prevent Eastwood from having a tizzy about the doall
+              _deleted-boards (doall (pmap (fn [delete-board-name]
+                (timbre/info "Samples sync - Deleting board:" delete-board-name "for org:" org-uuid)
+                (let [board (board-res/get-board conn (:uuid (get existing-boards-by-name delete-board-name)))
+                      entries (entry-res/list-all-entries-by-board conn (:uuid board))]
+                  (board-res/delete-board! conn org-uuid (:slug board) entries)
+                  (notification/send-trigger! (notification/->trigger :delete update-result {:old board} (:user ctx)))))
+                delete-board-names))
+              _created-boards (doall (pmap (fn [create-board-name]
+                (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
+                (create-board conn updated-org {:name create-board-name} author))
+                create-board-names))]
+            (timbre/info "Syncing samples for:" org-uuid "complete.")))
+
       (timbre/info "Updated org:" slug)
       (notification/send-trigger! (notification/->trigger :update {:old (:existing-org ctx) :new update-result}
-                                                          (:user ctx)))
+                                                          author))
       {:updated-org update-result})
 
     (do (timbre/error "Failed updating org:" slug) false)))
@@ -110,6 +176,8 @@
   (if-let [updated-org (org-res/add-author conn slug user-id)]
     (do
       (timbre/info "Added author:" user-id "to org:" slug)
+      (timbre/info "Creating initial drafts for user:" user-id "of org:" slug)
+      (create-drafts conn updated-org {:user-id user-id :name "me" :avatar-url nil})
       {:updated-org updated-org})
     
     (do
@@ -146,9 +214,11 @@
 
 (defn- valid-org-update? [conn slug org-props]
   (if-let [org (org-res/get-org conn slug)]
-    (let [updated-org (merge org (org-res/ignore-props org-props))]
+    (let [samples? (:samples org-props)
+          updated-props (if samples? (dissoc org-props :samples :boards) org-props)
+          updated-org (merge org (org-res/ignore-props updated-props))]
       (if (lib-schema/valid? common-res/Org updated-org)
-        {:existing-org org :updated-org updated-org}
+        {:existing-org org :updated-org updated-org :samples samples? :boards (:boards org-props)}
         [false, {:updated-org updated-org}])) ; invalid update
     true)) ; No org for this slug, so this will fail existence check later
 
@@ -199,7 +269,7 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
-                             show-draft-board? (and (seq user-id) (lib-schema/valid? lib-schema/User user))
+                             show-draft-board? (and (seq user-id) (access/allow-authors conn slug (:user ctx)))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
                              full-boards (if show-draft-board?
