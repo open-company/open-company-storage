@@ -73,6 +73,11 @@
 (defn- up-link [org-slug board-slug]
   (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
 
+(defn- revert-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
+    {:content-type mt/revert-request-media-type
+     :accept mt/entry-media-type}))
+
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
@@ -120,7 +125,8 @@
                     (or (and draft? (not secure-access?)) (= access-level :author))
                     (concat links [(partial-update-link org-slug board-slug entry-uuid)
                                    (delete-link org-slug board-slug entry-uuid)
-                                   (secure-link org-slug secure-uuid)                                   
+                                   (secure-link org-slug secure-uuid)
+                                   (revert-link org-slug board-slug entry-uuid)
                                    (content/comment-link org-uuid board-uuid entry-uuid)
                                    (content/comments-link org-uuid board-uuid entry-uuid comments)])
                     ;; Access by viewers get comments
