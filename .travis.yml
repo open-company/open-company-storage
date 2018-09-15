@@ -4,7 +4,7 @@ jdk:
 - oraclejdk8
 lein: 2.7.1
 addons:
-  rethinkdb: '2.3.5'
+  rethinkdb: '2.3.6'
 cache:
   directories:
   - "$HOME/.m2"
