@@ -93,7 +93,7 @@
             entry-data (map #(valid-entry-with-board? conn % author)
                           (:entries board-map))
             board-data (-> board-map
-                        (dissoc :private-notifications :note :pre-flight)
+                        (dissoc :private-notifications :note :pre-flight :exclude)
                         (assoc :entries entry-data))]
         {:new-board (board-res/->board (:uuid org) board-data author)
          :existing-org org
@@ -336,7 +336,14 @@
     :options true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
                          (valid-new-board? conn org-slug ctx)))})
-  :conflict? (fn [ctx] (not (board-res/slug-available? conn (org-res/uuid-for conn org-slug) (-> ctx :new-board :slug))))
+  :conflict? (fn [ctx] (let [data (:data ctx)
+                             new-slug (-> ctx :new-board :slug) ; proposed new slug
+                             ;; some new slugs can be excluded from being checked during a pre-flight check only
+                             ;; right now, these prevent us from denying the UI a name update back to the current name
+                             exclude-slugs (when (:pre-flight data) (set (map slugify/slugify (:exclude data))))
+                             excluded? (exclude-slugs new-slug)] ; excluded slugs don't need checked
+                        (not (or excluded?
+                                 (board-res/slug-available? conn (org-res/uuid-for conn org-slug) new-slug)))))
 
   ;; Actions
   :post! (fn [ctx] (if (-> ctx :data :pre-flight)
