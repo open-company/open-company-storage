@@ -3,6 +3,7 @@
   Async publish of notification events to AWS SNS.
   "
   (:require [clojure.core.async :as async :refer (<! >!!)]
+            [defun.core :refer (defun)]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
@@ -28,7 +29,7 @@
 
 ;; ----- Data schema -----
 
-(defn- notification-type? [notification-type] (#{:add :update :delete} notification-type))
+(defn- notification-type? [notification-type] (#{:add :update :delete :nux} notification-type))
 
 (defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
 
@@ -58,9 +59,10 @@
     (schema/optional-key :notifications) (schema/maybe [common-res/User])
     (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
-                                                   :else common-res/Org)}
+                                                   :else common-res/Org)
+    (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
    :user (schema/maybe lib-schema/User) ; occassionaly we have a non-user updating an entry, such as the Ziggeo callback
-   :note (schema/maybe schema/Str)
+   (schema/optional-key :note) (schema/maybe schema/Str)
    :notification-at lib-schema/ISO8601})
 
 ;; ----- Event handling -----
@@ -101,7 +103,13 @@
 
 ;; ----- Notification triggering -----
 
-(defn ->trigger 
+(defun ->trigger 
+  ([:nux org nux-content user]
+    {:notification-type :nux
+     :resource-type :org
+     :user user
+     :content nux-content
+     :notification-at (oc-time/current-timestamp)})
   ([notification-type content user] (->trigger notification-type nil nil content user nil))
   ([notification-type org content user] (->trigger notification-type org nil content user nil))
   ([notification-type org content user note] (->trigger notification-type org nil content user note))
@@ -109,10 +117,10 @@
   (let [notice {:notification-type notification-type
                 :resource-type (resource-type (or (:old content) (:new content)))
                 :content content
-                :note note
                 :user user
                 :notification-at (oc-time/current-timestamp)}
-        org-notice (if org (assoc notice :org org) notice)
+        note-notice (if note (assoc notice :note note) notice)
+        org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))
 

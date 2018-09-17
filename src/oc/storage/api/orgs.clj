@@ -162,6 +162,8 @@
                 (timbre/info "Samples sync - Creating board:" create-board-name "for org:" org-uuid)
                 (create-board conn updated-org {:name create-board-name} author))
                 create-board-names))]
+            (notification/send-trigger!
+              (notification/->trigger :nux updated-org {:nux-boards (vec desired-board-names)} author))
             (timbre/info "Syncing samples for:" org-uuid "complete.")))
 
       (timbre/info "Updated org:" slug)
