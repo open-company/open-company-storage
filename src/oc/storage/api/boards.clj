@@ -341,7 +341,7 @@
                              ;; some new slugs can be excluded from being checked during a pre-flight check only
                              ;; right now, these prevent us from denying the UI a name update back to the current name
                              exclude-slugs (when (:pre-flight data) (set (map slugify/slugify (:exclude data))))
-                             excluded? (exclude-slugs new-slug)] ; excluded slugs don't need checked
+                             excluded? (when exclude-slugs (exclude-slugs new-slug))] ; excluded slugs don't need checked
                         (not (or excluded?
                                  (board-res/slug-available? conn (org-res/uuid-for conn org-slug) new-slug)))))
 
