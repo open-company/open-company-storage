@@ -39,7 +39,7 @@
   "Assemble the entry, author, and viewer data needed for a board response."
 
   ;; Draft board
-  ([conn org :guard map? board :guard #(= (:slug %) (:slug board-res/default-drafts-board)) ctx]
+  ([conn org :guard map? board :guard #(or (:draft %) (= (:slug %) (:slug board-res/default-drafts-board))) ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
         entries (entry-res/list-entries-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft {})
@@ -49,7 +49,7 @@
         entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
                             [] []
                             (:access-level ctx) (-> ctx :user :user-id))
-                      entries)]
+                        entries)]
     (assemble-board org-slug board entry-reps ctx)))
 
   ;; Regular board
@@ -197,7 +197,7 @@
                               ;; retrieve the board again to get final list of members
                               (board-res/get-board conn (:uuid board-result)))]
           (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
-          {:created-board created-board}))
+          {:created-board (assemble-board conn org created-board ctx)}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false))))
 
