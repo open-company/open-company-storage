@@ -74,13 +74,14 @@
   (let [drafts (default-entries-for "drafts")
         people-board-uuid (when (seq drafts)
                             (or (board-res/uuid-for conn (:slug org-result) "people")
-                                (board-res/create-board! (board-res/->board (:uuid org-result)
-                                                            {:name "People" :draft true}
-                                                            author))))]
+                                (board-res/create-board! conn (board-res/->board (:uuid org-result)
+                                                              {:name "People" :draft true :entries []}
+                                                              author))))]
     (doall (pmap #(let [headline (sub-name (:headline %) author)]
-                    (timbre/info "Creating draft entry:" headline "for user:" (:user-id author))
+                    (timbre/info "Creating draft entry:" headline "in:" people-board-uuid "for user:" (:user-id author))
                     (entry-res/create-entry! conn
-                      (entry-res/->entry conn people-board-uuid (assoc % :headline headline) author)))
+                      (entry-res/->entry conn people-board-uuid (assoc % :headline headline) author))
+                    (timbre/info "Created draft entry:" headline "in:" people-board-uuid "for user:" (:user-id author)))
               drafts))))
 
 (defn- create-entry
