@@ -42,7 +42,10 @@
   ([conn org :guard map? board :guard #(or (:draft %) (= (:slug %) (:slug board-res/default-drafts-board))) ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
-        entries (entry-res/list-entries-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft {})
+        all-drafts (entry-res/list-entries-by-org-author conn (:uuid org) (-> ctx :user :user-id) :draft {})
+        entries (if (:draft board)
+                  (filterv #(= (:board-uuid %) (:uuid board)) all-drafts)
+                  all-drafts)
         board-uuids (distinct (map :board-uuid entries))
         boards (filter map? (map #(board-res/get-board conn %) board-uuids))
         board-map (zipmap (map :uuid boards) boards)
