@@ -364,6 +364,7 @@
   (let [filter-map (if-not must-see
                      [{:fn :contains :value allowed-boards :field :board-uuid}]
                      [{:fn :contains :value allowed-boards :field :board-uuid}
+                      {:fn :ne :field :status :value "draft"}
                       {:fn :eq :field :must-see :value (boolean (#{true "true"} must-see))}]
                      )]
     (db-common/read-resources-and-relations conn table-name
