@@ -39,6 +39,4 @@
         (cb (-> body
                 json/parse-string
                 keywordize-keys) error)
-        (cb {} (if-not error
-                 true
-                 error))))))
+        (cb {} true)))))
