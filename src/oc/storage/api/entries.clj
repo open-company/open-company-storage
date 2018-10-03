@@ -54,11 +54,13 @@
                 (or (nil? (:video-processed entry))
                     (nil? (:video-transcript entry))))
        (ziggeo/video (:video-id entry)
-         (fn [video]
-           (let [updated-entry (entry-res/update-video-data conn video entry)]
-             (when (and (some? ctx)
-                        (= (:status updated-entry) "published"))
-               (auto-share-on-publish conn ctx updated-entry))))))))
+         (fn [video error]
+           (if-not error
+             (let [updated-entry (entry-res/update-video-data conn video entry)]
+               (when (and (some? ctx)
+                          (= (:status updated-entry) "published"))
+                 (auto-share-on-publish conn ctx updated-entry)))
+             (entry-res/error-video-data conn entry)))))))
 
 ;; ----- Validations -----
 
