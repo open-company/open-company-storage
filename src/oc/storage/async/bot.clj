@@ -23,7 +23,6 @@
 (def ShareEntryTrigger 
   "A Slack bot trigger to share an Entry."
   (merge BotTrigger {
-    :type (schema/enum "share-entry")  
     :note (schema/maybe schema/Str)
     :org-slug lib-schema/NonBlankStr
     :org-name (schema/maybe schema/Str)

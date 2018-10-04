@@ -1,6 +1,7 @@
 [
   {
     :time-offset 11792 ; ~8 days ago
+    :board-slug "product-updates"
     :headline "[Sample] Annual planning and beyond"
     :body "<p>Yesterday during out all hands call, I promised to share more information about our annual roadmap and today I’d like to share that plan with you! <br></p><p>Taking valuable lessons from the leadership summit, data from our research team, and input from product, I’ve broken our strategy into five principles. But before we get into that, I’d like to say thanks to a few people around the office for their help in getting this report together!</p>"
     :attachments [{

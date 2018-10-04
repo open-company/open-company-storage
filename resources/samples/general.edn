@@ -1,7 +1,33 @@
 [
   {
     :time-offset 10 ; 10 minutes ago
-    :headline "[SAMPLE] Carrot keeps us aligned! 🚀"
-    :body "<p>It’s a struggle to keep everyone on the same page. Important information often gets missed or lost in fast moving conversations, and so everyone has a different idea of what’s important.</p><p>Carrot is a company digest that makes key information visible and easy to find, so everyone stays informed and aligned.</p>"
+    :board-slug "general"
+    :headline "[SAMPLE] Let’s use Carrot to stay aligned! 🚀"
+    :body "<p>In the team survey last week, you overwhelmingly said it’s getting harder to know what’s happening across the company. I hear you! Growing quickly has been awesome, but it’s also gotten super noisy.</p><p>We’re going to use Carrot to make sure leadership updates stay more visible. Here’s a quick video to show you how it works.</p><p><iframe class='carrot-no-preview' data-media-type='video' webkitallowfullscreen='true' mozallowfullscreen='true' allowfullscreen='true' data-thumbnail='https://img.youtube.com/vi/dMWpnHxQMP4/0.jpg' data-video-type='youtube' data-video-id='dMWpnHxQMP4' src='https://www.youtube.com/embed/dMWpnHxQMP4' width='560' height='315' frameborder='0'></iframe></p><p>It’ll also tie into Slack, so you can see and comment on posts from Slack. But now if you miss it, don’t worry. Carrot keeps everything organized so you can get caught up anytime.</p><p>So keep using Slack for back and forth chatter, and we’ll use Carrot for key announcements, updates, and decisions. Thanks to <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Danielle'
+        data-last-name='Robertson'
+        data-slack-username='Danielle'
+        data-user-id='9797-9797-9797'
+        data-email='danielle@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/4Xoz3CuzTgiVFdbWCSIw'
+        data-found='true'>@Danielle</span> for finding Carrot, it’s been super easy to use and we think it’ll make a huge difference.</p>"
+  }
+  {
+    :time-offset 1477 ; ~1 day ago
+    :board-slug "general"
+    :headline "[SAMPLE] All-hands, with follow-up details"
+    :body "<p>Thanks again everyone for a great month! Cash on hand is <b>$3.1M</b> and the exec. team started weekly meetings to put together the strategy for next years financing. 💰 More to come soon.</p><p>We saw very positive results in one of our growth experiments, “Reward the user”, and no effect in our other experiment, “Email to Get Started”. The growth team is brainstorming how to double down on the positive results, and is discontinuing the “Email to get started” experiment.</p><p>On the product side, we’re moving towards a limited release of the admin dashboard to select customers next week. Let me know if you know of a customer that should be added to the list.</p><p><img src='https://cdn.filestackcontent.com/VTOajSpIRbCDiuIErSks' class='carrot-no-preview' data-media-type='image' data-thumbnail='https://cdn.filestackcontent.com/ZxEKWp3SHKB1c60RnCby' width='494' height='567'></p><p>Major support wins at Bradley Squared and CCNYC!</p><p>In Sales we received word that we are no longer being considered for the Florida deal, but we made the final cut for HIDTA and State Credit. Both deals should close this month.</p><p>Our <b>monthly recurring revenue is up 1.9%</b> for the month against our <b>goal of 3%</b>, but <b>churn spiked by 1.7%</b> 👎 compared to our <b>goal of down 1%</b>. Let’s focus on increasing touch in those first 60 days to expand feature use 🤞.</p>"
+  }
+  {
+    :time-offset 4431 ; ~3 days ago
+    :board-slug "general"
+    :headline "[SAMPLE] Annual planning and beyond"
+    :body "<p>Yesterday during out all hands call, I promised to share more information about our annual roadmap and today I’d like to share that plan with you! <br></p><p>Taking valuable lessons from the leadership summit, data from our research team, and input from product, I’ve broken our strategy into five principles. But before we get into that, I’d like to say thanks to a few people around the office for their help in getting this report together!</p>"
+    :attachments [{
+        :file-name "Product Strategy.pdf"
+        :file-size 18890
+        :file-type "application/pdf"
+        :file-url "https://cdn.filestackcontent.com/uAC2Y0UuR0iKLX3BK3hr"
+    }] 
   }
 ]
