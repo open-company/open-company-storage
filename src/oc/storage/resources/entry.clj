@@ -267,6 +267,7 @@
                              (assoc :video-processed nil)
                              (assoc :video-transcript nil)
                              (assoc :video-image "error")
+                             (assoc :video-duration "error")
                              (assoc :video-error true))))
 
 (defn update-video-data [conn video entry]
@@ -282,6 +283,7 @@
     (update-entry-no-user! conn
                            (:uuid entry)
                            (-> entry
+                               (assoc :video-duration (str (:duration video)))
                                (assoc :video-image (:embed_image_url video))
                                (assoc :video-error video-error)
                                (assoc :video-processed video-processed)
