@@ -1,6 +1,7 @@
 [
   {
     :time-offset 4002 ; ~2 days ago
+    :board-slug "people"
     :headline "[SAMPLE] New faces in new places!"
     :body "<p>Welcome to our new hires in the Product, Design and Engineering groups. I’m also particularly excited to announce that <span class='medium-editor-mention-at oc-mention'
         data-first-name='Adrian'

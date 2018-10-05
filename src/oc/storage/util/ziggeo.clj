@@ -35,7 +35,8 @@
   [token cb]
   (http/get (str ziggeo-api-url "/videos/" token) (auth-options auth)
     (fn [{:keys [status headers body error] :as resp}]
-      (when (and (> status 199) (< status 500))
+      (if (and (> status 199) (< status 500))
         (cb (-> body
                 json/parse-string
-                keywordize-keys))))))
+                keywordize-keys) error)
+        (cb {} true)))))

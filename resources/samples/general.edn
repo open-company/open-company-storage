@@ -1,7 +1,48 @@
 [
   {
     :time-offset 10 ; 10 minutes ago
-    :headline "[SAMPLE] Carrot keeps us aligned! 🚀"
-    :body "<p>It’s a struggle to keep everyone on the same page. Important information often gets missed or lost in fast moving conversations, and so everyone has a different idea of what’s important.</p><p>Carrot is a company digest that makes key information visible and easy to find, so everyone stays informed and aligned.</p>"
+    :board-slug "general"
+    :headline "[SAMPLE] Let’s use Carrot to stay aligned! 🚀"
+    :body "<p>In the team survey last week, you overwhelmingly said it’s getting harder to know what’s happening across the company. I hear you! Growing quickly has been awesome, but it’s also gotten super noisy.</p><p>We’re going to use Carrot to make sure leadership updates stay more visible. Here’s a quick video to show you how it works.</p><p><iframe class='carrot-no-preview' data-media-type='video' webkitallowfullscreen='true' mozallowfullscreen='true' allowfullscreen='true' data-thumbnail='https://img.youtube.com/vi/dMWpnHxQMP4/0.jpg' data-video-type='youtube' data-video-id='dMWpnHxQMP4' src='https://www.youtube.com/embed/dMWpnHxQMP4' width='560' height='315' frameborder='0'></iframe></p><p>It’ll also tie into Slack, so you can see and comment on posts from Slack. But now if you miss it, don’t worry. Carrot keeps everything organized so you can get caught up anytime.</p><p>So keep using Slack for back and forth chatter, and we’ll use Carrot for key announcements, updates, and decisions. Thanks to <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Danielle'
+        data-last-name='Robertson'
+        data-slack-username='Danielle'
+        data-user-id='9797-9797-9797'
+        data-email='danielle@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/4Xoz3CuzTgiVFdbWCSIw'
+        data-found='true'>@Danielle</span> for finding Carrot, it’s been super easy to use and we think it’ll make a huge difference.</p>"
+  }
+  {
+    :time-offset 11577 ; ~8 day ago
+    :board-slug "general"
+    :headline "[SAMPLE] All-hands, pushing forward in Europe"
+    :body "<p>Another month in the books! Cash on hand is <b>$2.9M</b>.</p><p>After a great brainstorming session, the growth team is staring two new growth experiments, “Reward the user”, and “Email to Get Started”. <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Adrian'
+        data-last-name='Tomei'
+        data-slack-username='Adrian'
+        data-user-id='9797-9797-9797'
+        data-email='adrian@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/wXZpWBPHQwKvSy8R13gG'
+        data-found='true'>@Adrian</span> has all the details!</p><p>Here's a first look at the new admin dashboard. We'd like everyone to submit a list of customers that should get early access.</p><p><img src='https://cdn.filestackcontent.com/VTOajSpIRbCDiuIErSks' class='carrot-no-preview' data-media-type='image' data-thumbnail='https://cdn.filestackcontent.com/ZxEKWp3SHKB1c60RnCby' width='494' height='567'></p><p>Major support wins at <b>United Chem</b>! Great job.</p><div>No new sales announcements right now. We're bringing the EU online this month so expect our first European deals to close next quarter. Send EU questions to <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Sam'
+        data-last-name='Darnell'
+        data-slack-username='Sam Darnell'
+        data-user-id='9797-9797-9797'
+        data-email='sam@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/zUHZ3nSoRhiazQ2yLLTL'
+        data-found='true'>@Sam Darnell</span>.</div><div><p>Our <b>monthly recurring revenue is up 1.6%</b> for the month against our <b>goal of 3%</b>, and <b>churn is down by 0.7%</b>  compared to our <b>goal of down 1%</b>.</p></div>"
+  }
+  {
+    :time-offset 4431 ; ~11 days ago
+    :board-slug "general"
+    :headline "[SAMPLE] Product annual planning... we need YOU!"
+    :body "<p>We're initiating our annual product planning and roadmap process. This will incorporate the valuable lessons from the leadership summit, data from our research team, and input from product. The <b>most important</b> input though comes from all of you! This won't work without all your help.</p><p>Please contact <span class='medium-editor-mention-at oc-mention'
+        data-first-name='Julie'
+        data-last-name='Johnson'
+        data-slack-username='Julie'
+        data-user-id='9797-9797-9797'
+        data-email='julie@sample.com'
+        data-avatar-url='https://cdn.filestackcontent.com/tJcQBrGOSOiMf8YowwtG'
+        data-found='true'>@Julie</span> as soon as you can with all your ideas.</p><p>I’ll share the plan with you in an all-hands and here in Carrot.</p>" 
   }
 ]

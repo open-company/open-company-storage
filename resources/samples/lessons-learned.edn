@@ -1,6 +1,7 @@
 [
   {
     :time-offset 7702 ; ~5 days ago
+    :board-slug "lessons-learned"
     :headline "[SAMPLE] Feature use as conversion and churn indicators"
     :body "<p><span class='medium-editor-mention-at oc-mention'
         data-first-name='Danielle'

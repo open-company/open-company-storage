@@ -264,7 +264,7 @@
   (update-entry-no-user! conn
                          (:uuid entry)
                          (-> entry
-                             (assoc :video-processed nil)
+                             (assoc :video-processed false)
                              (assoc :video-transcript nil)
                              (assoc :video-image "error")
                              (assoc :video-duration "error")

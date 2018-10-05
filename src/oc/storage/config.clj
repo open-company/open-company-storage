@@ -102,10 +102,9 @@
   "Week in review"})
 
 (defonce new-org-board-names #{
-  "General"
   "All-hands"
   "Decisions"
-  "Lessons Learned"
+  "Lessons learned"
   "People"
   "Week in review"})
 
