@@ -93,26 +93,25 @@
 (defn- create-entry
   "Create any default entries (from config) for a new default board."
   [conn org entry user]
-  (timbre/info "Creating sample entry:" (:headline entry) "for board:" (:board-slug entry))
-)
-  ; (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
-  ;       board (board-res/get-board conn (:uuid org) (:board-slug entry))
-  ;       entry-res (db-common/create-resource conn common-res/entry-table-name 
-  ;                   (-> (entry-res/->entry conn (:uuid board)
-  ;                                               (dissoc entry :board-slug :author :time-offset :comments :reactions)
-  ;                                               (:author entry))
-  ;                     (assoc :sample true)
-  ;                     (assoc :status :published)
-  ;                     (assoc :created-at ts)
-  ;                     (assoc :updated-at ts)
-  ;                     (assoc :published-at ts)
-  ;                     (assoc :publisher (:author entry))) ts)
-  ;       interaction-resource (merge entry entry-res)]
-  ;   ;; notify of new entry
-  ;   (notification/send-trigger! (notification/->trigger :add org board {:new entry-res} user nil))  
-  ;   ;; create any entry interactions (comments and/or reactions) in parallel
-  ;   (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
-  ;             (concat (:comments interaction-resource) (:reactions interaction-resource))))))
+  (timbre/info "Creating sample entry:" (:headline entry) "for board:" (:board-slug entry) "of org:" (:uuid org))
+  (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
+        board (board-res/get-board conn (:uuid org) (:board-slug entry))
+        entry-res (db-common/create-resource conn common-res/entry-table-name 
+                    (-> (entry-res/->entry conn (:uuid board)
+                                                (dissoc entry :board-slug :author :time-offset :comments :reactions)
+                                                (:author entry))
+                      (assoc :sample true)
+                      (assoc :status :published)
+                      (assoc :created-at ts)
+                      (assoc :updated-at ts)
+                      (assoc :published-at ts)
+                      (assoc :publisher (:author entry))) ts)
+        interaction-resource (merge entry entry-res)]
+    ;; notify of new entry
+    (notification/send-trigger! (notification/->trigger :add org board {:new entry-res} user nil))
+    ;; create any entry interactions (comments and/or reactions) in parallel
+    (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
+              (concat (:comments interaction-resource) (:reactions interaction-resource))))))
 
 (defn- create-board
   "Create a boards for a new org."
@@ -157,7 +156,8 @@
               desired-board-names (set (conj selected-board-names config/forced-board-name))
               delete-board-names (clojure.set/difference existing-board-names desired-board-names)
               create-board-names (clojure.set/difference desired-board-names existing-board-names)
-              ;; including these next 2 in the let to prevent Eastwood from having a tizzy about the doall
+              ;; including these doall/pmap in the let to prevent Eastwood from having a tizzy about the doall
+              ;; Sync the orgs boards w/ the NUX selected boards by deleting and adding as needed
               _deleted-boards (doall (pmap (fn [delete-board-name]
                 (timbre/info "NUX sync - Deleting board:" delete-board-name "for org:" org-uuid)
                 (let [board (board-res/get-board conn (:uuid (get existing-boards-by-name delete-board-name)))
@@ -169,12 +169,13 @@
                 (timbre/info "NUX sync - Creating board:" create-board-name "for org:" org-uuid)
                 (create-board conn updated-org {:name create-board-name} author))
                 create-board-names))
-              ;; min 3 / max 4 sample entries
+              ;; create a min of 3 / max of 4 sample entries, including at least 1 from the forced board
               selected-entries (take 3 (flatten (map #(default-entries-for %) selected-board-names)))
               forced-entries (default-entries-for config/forced-board-name)
+              total-entries (take 4 (concat selected-entries forced-entries))
               create-entries (map #(assoc % :author (lib-schema/author-for-user author))
-                              (take 4 (into selected-entries forced-entries)))
-              _created-entries (doall (pmap #(create-entry conn org % author) create-entries))]            
+                              (take 4 (concat selected-entries forced-entries)))
+              _created-entries (doall (pmap #(create-entry conn updated-org % author) create-entries))]
             (notification/send-trigger!
               (notification/->trigger :nux updated-org {:nux-boards (vec desired-board-names)} author))
             (timbre/info "Syncing samples for:" org-uuid "complete.")))
