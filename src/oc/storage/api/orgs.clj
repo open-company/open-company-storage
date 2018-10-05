@@ -170,7 +170,7 @@
                 (create-board conn updated-org {:name create-board-name} author))
                 create-board-names))
               ;; create a min of 3 / max of 4 sample entries, including at least 1 from the forced board
-              selected-entries (take 3 (flatten (map #(default-entries-for %) selected-board-names)))
+              selected-entries (take 3 (flatten (map default-entries-for selected-board-names)))
               forced-entries (default-entries-for config/forced-board-name)
               total-entries (take 4 (concat selected-entries forced-entries))
               create-entries (map #(assoc % :author (lib-schema/author-for-user author))
