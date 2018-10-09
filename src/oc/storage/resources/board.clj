@@ -4,6 +4,7 @@
             [defun.core :refer (defun)]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
+            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
@@ -106,6 +107,7 @@
         clean
         (assoc :uuid (db-common/unique-id))
         (assoc :slug slug)
+        (assoc :name #(str/strip-tags % ["script"]))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
         (assoc :authors [(:user-id user)])

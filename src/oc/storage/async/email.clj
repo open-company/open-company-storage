@@ -3,6 +3,7 @@
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
+            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]))
 
@@ -31,7 +32,7 @@
   {:type "share-entry"
    :to (vec (:to share-request))
    :subject (:subject share-request)
-   :note (:note share-request)
+   :note (str/strip-tags (:note share-request) ["script"])
    :reply-to (:email user)
    :sharer-name (:name user)
    :sharer-avatar-url (:avatar-url user)

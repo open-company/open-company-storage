@@ -3,6 +3,7 @@
             [if-let.core :refer (if-let* when-let*)]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
+            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.storage.config :as config]
@@ -79,8 +80,8 @@
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (update :headline #(or % ""))
-          (update :body #(or % ""))
+          (update :headline #(or (str/strip-tags % ["script"]) ""))
+          (update :body #(or (str/strip-tags % ["script"]) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)

@@ -3,6 +3,7 @@
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
+            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]))
 
@@ -63,7 +64,7 @@
         :id (-> share-request :channel :channel-id)
       }
       :bot (bot-for slack-org-id user)
-      :note (:note share-request)
+      :note (str/strip-tags (:note share-request) ["script"])
       :org-slug (:slug org)
       :org-name (:name org)
       :board-name (:name board)
