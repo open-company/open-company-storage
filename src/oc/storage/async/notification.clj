@@ -8,6 +8,7 @@
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
             [schema.core :as schema]
+            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
             [oc.storage.config :as config]
@@ -119,7 +120,7 @@
                 :content content
                 :user user
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note note) notice)
+        note-notice (if note (assoc notice :note (str/strip-tags note ["script"])) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))
