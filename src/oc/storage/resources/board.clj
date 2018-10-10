@@ -107,7 +107,7 @@
         clean
         (assoc :uuid (db-common/unique-id))
         (assoc :slug slug)
-        (update :name #(str/strip-tags % ["script"]))
+        (update :name #(str/strip-tags % ["script", "style"]))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
         (assoc :authors [(:user-id user)])
