@@ -45,10 +45,11 @@
 
 (defn- default-entries-for
   "Return any sample posts for a specific board slug."
-  [board-slug]
+  [board-name]
   (try
-    (->
-      (str "samples/" board-slug ".edn")
+    (->> board-name
+      (slugify/slugify)
+      (format "samples/%s.edn")
       (clojure.java.io/resource)
       (slurp)
       (read-string))
