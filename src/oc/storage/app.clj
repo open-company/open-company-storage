@@ -62,6 +62,7 @@
     "AWS SQS bot queue: " c/aws-sqs-bot-queue "\n"
     "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
     "AWS SQS auth queue: " c/aws-sqs-auth-queue "\n"
+    "AWS SQS storage queue: " c/aws-sqs-storage-queue "\n"
     "AWS SNS notification topic ARN: " c/aws-sns-storage-topic-arn "\n"
     "Ziggeo API token: " c/ziggeo-api-token "\n"
     "Ziggeo API key: " c/ziggeo-api-key "\n"

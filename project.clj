@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.0-alpha8"]
+    [org.clojure/clojure "1.10.0-beta2"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.4.1"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -82,7 +82,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.3-alpha2" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.9.3" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]
@@ -108,6 +108,7 @@
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
         :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
+        :aws-sqs-storage-queue "CHANGE-ME" ; SQS queue to read requests from the Bot service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
         :open-company-ziggeo-api-token "CHANGE-ME" ; Video processing API token
         :open-company-ziggeo-api-key "CHANGE-ME" ; Video processing API key

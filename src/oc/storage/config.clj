@@ -60,13 +60,15 @@
 (defonce aws-access-key-id (env :aws-access-key-id))
 (defonce aws-secret-access-key (env :aws-secret-access-key))
 
-(defonce aws-sqs-bot-queue (env :aws-sqs-bot-queue))
-(defonce aws-sqs-email-queue (env :aws-sqs-email-queue))
-(defonce aws-sqs-auth-queue (env :aws-sqs-auth-queue))
-;; Only used for bulk updates of the search service, normal real-time updates use SNS
-(defonce aws-sqs-search-index-queue (env :aws-sqs-search-index-queue))
+(defonce aws-sqs-bot-queue (env :aws-sqs-bot-queue)) ; out-bound to send Slack messages
+(defonce aws-sqs-email-queue (env :aws-sqs-email-queue)) ; out-bound to send Email
+(defonce aws-sqs-auth-queue (env :aws-sqs-auth-queue)) ; in-bound from Auth
+(defonce aws-sqs-storage-queue (env :aws-sqs-storage-queue)) ; in-bound posts from bot
 
-(defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn))
+;; Only used for bulk updates of the search service, normal real-time updates use SNS
+(defonce aws-sqs-search-index-queue (env :aws-sqs-search-index-queue)) ; out-bound to Search
+
+(defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn)) ; out-bound to listeners
 
 ;; ----- Ziggeo Video Processing -----
 
