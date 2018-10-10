@@ -6,7 +6,8 @@
             [oc.storage.util.search :as search]
             [oc.storage.app :as app]
             [oc.storage.components :as components]
-            [oc.storage.async.auth-notification :as auth]))
+            [oc.storage.async.auth-notification :as auth-notification]
+            [oc.storage.async.storage-notification :as storage-notification]))
 
 (defonce system nil)
 (defonce conn nil)
@@ -17,8 +18,10 @@
      (alter-var-root #'system (constantly (components/storage-system
                                            {:handler-fn app/app
                                             :port port
-                                            :sqs-queue c/aws-sqs-auth-queue
-                                            :auth-sqs-msg-handler auth/sqs-handler
+                                            :auth-sqs-queue c/aws-sqs-auth-queue
+                                            :auth-sqs-msg-handler auth-notification/sqs-handler
+                                            :storage-sqs-queue c/aws-sqs-storage-queue
+                                            :storage-sqs-msg-handler storage-notification/sqs-handler
                                             :sqs-creds {:access-key c/aws-access-key-id
                                                         :secret-key c/aws-secret-access-key}})))))
 

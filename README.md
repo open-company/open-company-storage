@@ -225,7 +225,7 @@ You can also override these settings with environmental variables in the form of
 
 ##### Shared Secrets
 
-A secret, `open-company-auth-passphrase`, is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the Storage Service for creating and validating [JSON Web Tokens](https://jwt.io/).
+A secret, `open-company-auth-passphrase`, is shared between the OpenCompany services for creating and validating [JSON Web Tokens](https://jwt.io/).
 
 ##### HTTP Behavior
 

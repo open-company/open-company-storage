@@ -5,7 +5,8 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.sqs :as sqs]
             [oc.storage.async.notification :as notification]
-            [oc.storage.async.auth-notification :as auth]
+            [oc.storage.async.auth-notification :as auth-notification]
+            [oc.storage.async.storage-notification :as storage-notification]
             [oc.storage.config :as c]))
 
 (defrecord HttpKit [options handler]
@@ -78,7 +79,7 @@
 
   (start [component]
     (timbre/info "[auth-notifcation] starting...")
-    (auth/start component)
+    (auth-notification/start component)
     (timbre/info "[auth-notification] started")
     (assoc component :auth-notification true))
 
@@ -86,12 +87,31 @@
     (if auth-notification
       (do
         (timbre/info "[auth-notification] stopping...")
-        (auth/stop)
+        (auth-notification/stop)
         (timbre/info "[auth-notification] stopped")
         (dissoc component :auth-notification))
       component)))
 
-(defn storage-system [{:keys [host port handler-fn sqs-creds sqs-queue auth-sqs-msg-handler] :as opts}]
+(defrecord StorageNotification [storage-notification-fn]
+  component/Lifecycle
+
+  (start [component]
+    (timbre/info "[storage-notification] starting...")
+    (storage-notification/start component)
+    (timbre/info "[storage-notification] started")
+    (assoc component :storage-notification true))
+
+  (stop [{:keys [auth-notification] :as component}]
+    (if auth-notification
+      (do
+        (timbre/info "[storage-notification] stopping...")
+        (storage-notification/stop)
+        (timbre/info "[storage-notification] stopped")
+        (dissoc component :storage-notification))
+      component)))
+
+(defn storage-system [{:keys [host port handler-fn sqs-creds auth-sqs-queue storage-sqs-queue
+                              auth-sqs-msg-handler storage-sqs-msg-handler] :as opts}]
   (component/system-map
     :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
     :async-consumers (component/using
@@ -100,7 +120,11 @@
     :auth-notification (component/using
                   (map->AuthNotification {:auth-notification-fn auth-sqs-msg-handler})
                   [:db-pool])
-    :sqs (sqs/sqs-listener sqs-creds sqs-queue auth-sqs-msg-handler)
+    :storage-notification (component/using
+                  (map->StorageNotification {:storage-notification-fn storage-sqs-msg-handler})
+                  [:db-pool])
+    :auth-sqs (sqs/sqs-listener sqs-creds auth-sqs-queue auth-sqs-msg-handler)
+    :storage-sqs (sqs/sqs-listener sqs-creds storage-sqs-queue storage-sqs-msg-handler)
     :handler (component/using
                 (map->Handler {:handler-fn handler-fn})
                 [:db-pool])
