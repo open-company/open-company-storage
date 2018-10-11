@@ -110,6 +110,8 @@
   (schema/optional-key :shared) [ShareRequest]
 
   (schema/optional-key :video-id) (schema/maybe lib-schema/NonBlankStr)
+  (schema/optional-key :video-image) (schema/maybe lib-schema/NonBlankStr)
+  (schema/optional-key :video-duration) (schema/maybe schema/Str)
   (schema/optional-key :video-transcript) (schema/maybe schema/Str)
   (schema/optional-key :video-processed) (schema/maybe schema/Bool)
   (schema/optional-key :video-error) (schema/maybe schema/Bool)

@@ -18,7 +18,7 @@
                            :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name 
                            :team-id :author :publisher :published-at
-                           :video-id :video-transcript :video-processed :video-error
+                           :video-id :video-transcript :video-processed :video-error :video-image :video-duration
                            :created-at :updated-at :revision-id])
 
 (defun url
