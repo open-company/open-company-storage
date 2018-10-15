@@ -120,7 +120,7 @@
                 :content content
                 :user user
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note (str/strip-tags note ["script" "style"])) notice)
+        note-notice (if note (assoc notice :note (str/strip-tags note ["script" "style" "input"])) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))

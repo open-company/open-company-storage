@@ -64,7 +64,7 @@
         :id (-> share-request :channel :channel-id)
       }
       :bot (bot-for slack-org-id user)
-      :note (str/strip-tags (:note share-request) ["script" "style"])
+      :note (str/strip-tags (:note share-request) ["script" "style" "input"])
       :org-slug (:slug org)
       :org-name (:name org)
       :board-name (:name board)

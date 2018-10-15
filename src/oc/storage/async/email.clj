@@ -32,7 +32,7 @@
   {:type "share-entry"
    :to (vec (:to share-request))
    :subject (:subject share-request)
-   :note (str/strip-tags (:note share-request) ["script" "style"])
+   :note (str/strip-tags (:note share-request) ["script" "style" "input"])
    :reply-to (:email user)
    :sharer-name (:name user)
    :sharer-avatar-url (:avatar-url user)
