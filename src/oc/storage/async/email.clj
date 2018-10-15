@@ -3,8 +3,8 @@
   (:require [amazonica.aws.sqs :as sqs]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
-            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
+            [oc.storage.util.strings :as str]
             [oc.storage.config :as config]))
 
 (def EmailTrigger
@@ -32,7 +32,7 @@
   {:type "share-entry"
    :to (vec (:to share-request))
    :subject (:subject share-request)
-   :note (str/strip-tags (:note share-request) ["script" "style" "input"])
+   :note (str/strip-tags (:note share-request))
    :reply-to (:email user)
    :sharer-name (:name user)
    :sharer-avatar-url (:avatar-url user)

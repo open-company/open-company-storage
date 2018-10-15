@@ -8,10 +8,10 @@
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
             [schema.core :as schema]
-            [cuerdas.core :as str]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
             [oc.storage.config :as config]
+            [oc.storage.util.strings :as str]
             [oc.storage.resources.common :as common-res]))
 
 ;; ----- core.async -----
@@ -120,7 +120,7 @@
                 :content content
                 :user user
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note (str/strip-tags note ["script" "style" "input"])) notice)
+        note-notice (if note (assoc notice :note (str/strip-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))
