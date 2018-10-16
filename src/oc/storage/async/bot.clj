@@ -4,7 +4,7 @@
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
-            [oc.storage.util.strings :as str]
+            [oc.lib.text :as str]
             [oc.storage.config :as config]))
 
 (def BotTrigger 
@@ -64,7 +64,7 @@
         :id (-> share-request :channel :channel-id)
       }
       :bot (bot-for slack-org-id user)
-      :note (str/strip-tags (:note share-request))
+      :note (str/strip-xss-tags (:note share-request))
       :org-slug (:slug org)
       :org-name (:name org)
       :board-name (:name board)

@@ -7,7 +7,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
-            [oc.storage.util.strings :as str]
+            [oc.lib.text :as str]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]
             [oc.storage.async.notification :as notification]))
@@ -107,7 +107,7 @@
         clean
         (assoc :uuid (db-common/unique-id))
         (assoc :slug slug)
-        (update :name #(str/strip-tags %))
+        (update :name #(str/strip-xss-tags %))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
         (assoc :authors [(:user-id user)])

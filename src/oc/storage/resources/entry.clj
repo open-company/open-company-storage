@@ -5,8 +5,8 @@
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
+            [oc.lib.text :as str]
             [oc.storage.config :as config]
-            [oc.storage.util.strings :as str]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -80,8 +80,8 @@
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (update :headline #(or (str/strip-tags %) ""))
-          (update :body #(or (str/strip-tags %) ""))
+          (update :headline #(or (str/strip-xss-tags %) ""))
+          (update :body #(or (str/strip-xss-tags %) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
