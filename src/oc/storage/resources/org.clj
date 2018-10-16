@@ -38,6 +38,12 @@
   [org]
   (apply dissoc org ignored-properties))
 
+(defn trunc
+  "
+  Truncate a string based on length
+  "
+  [s n]
+  (subs s 0 (min (count s) n)))
 ;; ----- Organization Slug -----
 
 ;; Excluded slugs due to existing and potential URL routing conflicts
@@ -83,7 +89,7 @@
     (-> org-props
         keywordize-keys
         clean
-        (assoc :slug slug)
+        (assoc :slug (trunc slug 126)) ;; primary key length is 127
         (assoc :uuid (db-common/unique-id))
         (assoc :authors [(:user-id user)])
         (update :promoted #(or % default-promoted))
