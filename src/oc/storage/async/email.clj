@@ -4,6 +4,7 @@
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
+            [oc.lib.text :as str]
             [oc.storage.config :as config]))
 
 (def EmailTrigger
@@ -31,7 +32,7 @@
   {:type "share-entry"
    :to (vec (:to share-request))
    :subject (:subject share-request)
-   :note (:note share-request)
+   :note (str/strip-xss-tags (:note share-request))
    :reply-to (:email user)
    :sharer-name (:name user)
    :sharer-avatar-url (:avatar-url user)

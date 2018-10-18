@@ -10,6 +10,7 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
+            [oc.lib.text :as str]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common-res]))
 
@@ -119,7 +120,7 @@
                 :content content
                 :user user
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note note) notice)
+        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))
