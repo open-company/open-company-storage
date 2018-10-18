@@ -5,6 +5,7 @@
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
+            [oc.lib.text :as str]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
@@ -79,8 +80,8 @@
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (update :headline #(or % ""))
-          (update :body #(or % ""))
+          (update :headline #(or (str/strip-xss-tags %) ""))
+          (update :body #(or (str/strip-xss-tags %) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
@@ -266,6 +267,8 @@
                          (-> entry
                              (assoc :video-processed false)
                              (assoc :video-transcript nil)
+                             (assoc :video-image "error")
+                             (assoc :video-duration "error")
                              (assoc :video-error true))))
 
 (defn update-video-data [conn video entry]
@@ -281,6 +284,8 @@
     (update-entry-no-user! conn
                            (:uuid entry)
                            (-> entry
+                               (assoc :video-duration (str (:duration video)))
+                               (assoc :video-image (:embed_image_url video))
                                (assoc :video-error video-error)
                                (assoc :video-processed video-processed)
                                (assoc :video-transcript video-transcript)))))
