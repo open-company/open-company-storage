@@ -93,19 +93,19 @@
   "Kudos"
   "Lessons learned"
   "Marketing"
+  "OKRs"
   "People"
   "Playbooks"
-  "Press"
   "Product updates"
   "Sales"
   "Team and hiring"
   "Week in review"})
 
 (defonce new-org-board-names #{
-  "All-hands"
   "Decisions"
   "Lessons learned"
   "People"
+  "Product Updates"
   "Week in review"})
 
 (defonce forced-board-name "General")
