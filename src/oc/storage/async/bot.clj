@@ -31,6 +31,8 @@
     :board-name (schema/maybe schema/Str)
     :headline (schema/maybe schema/Str)
     :body (schema/maybe schema/Str)
+    :must-see (schema/maybe schema/Bool)
+    :video-id (schema/maybe lib-schema/NonBlankStr)
     :comment-count (schema/maybe schema/Str)
     :publisher lib-schema/Author
     :secure-uuid lib-schema/UniqueID
@@ -71,6 +73,8 @@
       :org-logo-url (:logo-url org)
       :headline (:headline entry)
       :body (:body entry)
+      :must-see (:must-see entry)
+      :video-id (:video-id entry)
       :comment-count comment-count
       :secure-uuid (:secure-uuid entry)
       :published-at (:published-at entry)
