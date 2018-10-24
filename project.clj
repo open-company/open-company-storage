@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.0-alpha8"]
+    [org.clojure/clojure "1.10.0-RC1"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.4.1"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -39,7 +39,7 @@
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.10"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.17alpha"]
+    [open-company/lib "0.16.17"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -81,7 +81,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.3-alpha2" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.9.4" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]
