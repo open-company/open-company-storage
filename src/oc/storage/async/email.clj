@@ -23,6 +23,8 @@
    :board-name (schema/maybe schema/Str)
    :headline schema/Str
    :body (schema/maybe schema/Str)
+   :must-see (schema/maybe schema/Bool)
+   :video-id (schema/maybe lib-schema/NonBlankStr)
    :secure-uuid lib-schema/UniqueID
    :publisher lib-schema/Author
    :published-at lib-schema/ISO8601
@@ -44,6 +46,8 @@
    :board-name (:name board)
    :headline (:headline entry)
    :body (:body entry)
+   :must-see (:must-see entry)
+   :video-id (:video-id entry)
    :secure-uuid (:secure-uuid entry)
    :publisher (lib-schema/author-for-user (:publisher entry))
    :published-at (:published-at entry)
