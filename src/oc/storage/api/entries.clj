@@ -123,14 +123,12 @@
             entry (:existing-entry ctx)
             user (:user ctx)
             share-requests (:share-requests ctx)
-            shared {:shared (concat (or (:shared entry) []) share-requests)}
-            update-result (entry-res/update-entry! conn (:uuid entry) shared user)
             entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
     (do
       (when (and (seq? share-requests) (any? share-requests))
         (trigger-share-requests org board (assoc entry-with-comments :auto-share (:auto-share ctx)) user share-requests))
       (timbre/info "Shared entry:" entry-for)
-      {:updated-entry update-result})
+      {:updated-entry entry})
     (do
       (timbre/error "Failed sharing entry:" entry-for) false)))
 
