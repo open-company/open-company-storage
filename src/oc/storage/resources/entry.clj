@@ -223,7 +223,7 @@
   [original-entry entry user]
   (let [authors (:author original-entry)
         ts (db-common/current-timestamp)
-        updated-authors (into [] (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)]))]
+        updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])]
     (assoc entry :author updated-authors)))
 
 (schema/defn ^:always-validate update-entry-no-version! :- (schema/maybe common/Entry)
