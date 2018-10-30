@@ -214,9 +214,25 @@
 (defn- update-entry [conn entry original-entry ts]
   (let [merged-entry (merge original-entry (ignore-props entry))
         attachments (:attachments merged-entry)
-        updated-entry (assoc merged-entry :attachments (timestamp-attachments attachments ts))]
+        authors-entry (assoc merged-entry :author (:author entry))
+        updated-entry (assoc authors-entry :attachments (timestamp-attachments attachments ts))]
     (schema/validate common/Entry updated-entry)
     (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
+
+(defn- add-author-to-entry
+  [original-entry entry user]
+  (let [authors (:author original-entry)
+        ts (db-common/current-timestamp)
+        updated-authors (into [] (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)]))]
+    (assoc entry :author updated-authors)))
+
+(schema/defn ^:always-validate update-entry-no-version! :- (schema/maybe common/Entry)
+  [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)
+         (map? entry)]}
+  (if-let [original-entry (get-entry conn uuid)]
+   (let [updated-entry (add-author-to-entry original-entry entry user)]
+     (update-entry conn updated-entry original-entry (db-common/current-timestamp)))))
 
 (schema/defn ^:always-validate update-entry-no-user! :- (schema/maybe common/Entry)
   "
@@ -244,11 +260,9 @@
   {:pre [(db-common/conn? conn)         
          (map? entry)]}
   (if-let [original-entry (get-entry conn uuid)]
-    (let [authors (:author original-entry)
-          ts (db-common/current-timestamp)
-          updated-authors (concat authors [(assoc (lib-schema/author-for-user user) :updated-at ts)])
-          updated-entry (assoc entry :author updated-authors)]
-      (let [updated-entry (update-entry conn updated-entry original-entry ts)]
+    (let [ts (db-common/current-timestamp)
+          authors-entry (add-author-to-entry original-entry entry user)]
+      (let [updated-entry (update-entry conn authors-entry original-entry ts)]
         ;; copy current version to versions table, increment revision uuid
         (create-version conn updated-entry original-entry)))))
 
