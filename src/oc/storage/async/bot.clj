@@ -28,6 +28,7 @@
     :org-slug lib-schema/NonBlankStr
     :org-name (schema/maybe schema/Str)
     :org-logo-url (schema/maybe schema/Str)
+    :board-slug (schema/maybe schema/Str)
     :board-name (schema/maybe schema/Str)
     :headline (schema/maybe schema/Str)
     :body (schema/maybe schema/Str)
@@ -70,6 +71,7 @@
       :note (str/strip-xss-tags (:note share-request))
       :org-slug (:slug org)
       :org-name (:name org)
+      :board-slug (:slug board)
       :board-name (:name board)
       :org-logo-url (:logo-url org)
       :headline (:headline entry)
