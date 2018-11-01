@@ -35,6 +35,7 @@
     :video-id (schema/maybe lib-schema/NonBlankStr)
     :comment-count (schema/maybe schema/Str)
     :publisher lib-schema/Author
+    :uuid lib-schema/UniqueID
     :secure-uuid lib-schema/UniqueID
     :published-at lib-schema/ISO8601
     :auto-share schema/Bool
@@ -76,6 +77,7 @@
       :must-see (:must-see entry)
       :video-id (:video-id entry)
       :comment-count comment-count
+      :uuid (:uuid entry)
       :secure-uuid (:secure-uuid entry)
       :published-at (:published-at entry)
       :publisher (:publisher entry)
