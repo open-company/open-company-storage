@@ -124,7 +124,7 @@
             user (:user ctx)
             share-requests (:share-requests ctx)
             shared {:shared (concat (or (:shared entry) []) share-requests)}
-            update-result (entry-res/update-entry! conn (:uuid entry) shared user)
+            update-result (entry-res/update-entry-no-version! conn (:uuid entry) shared user)
             entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
     (do
       (when (and (seq? share-requests) (any? share-requests))
