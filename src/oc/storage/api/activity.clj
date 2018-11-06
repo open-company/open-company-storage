@@ -119,7 +119,7 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org org}
+                        {:existing-org (api-common/rep org)}
                         false))
 
   ;; Responses

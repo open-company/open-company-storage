@@ -71,7 +71,7 @@
       (let [entry-map (:data ctx)
             author (:user ctx)
             new-entry (entry-res/->entry conn (:uuid board) entry-map author)]
-        {:new-entry new-entry :existing-board board})
+        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)})
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
@@ -92,11 +92,11 @@
           merged-entry (merge existing-entry (entry-res/ignore-props props))
           updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
       (if (lib-schema/valid? common-res/Entry updated-entry)
-        {:existing-entry existing-entry
-         :existing-board new-board
-         :moving-board old-board
-         :updated-entry updated-entry}
-        [false, {:updated-entry updated-entry}])) ; invalid update
+        {:existing-entry (api-common/rep existing-entry)
+         :existing-board (api-common/rep new-board)
+         :moving-board (api-common/rep old-board)
+         :updated-entry (api-common/rep updated-entry)}
+        [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
     
     true)) ; no existing entry, so this will fail existence check later
 
@@ -109,8 +109,8 @@
             _seq? (seq? share-props)
             share-requests (map #(assoc % :shared-at ts) share-props)]
     (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-requests)
-        {:share-requests share-requests}
-        [false, {:share-requests share-requests}]) ; invalid share request
+        {:existing-entry (api-common/rep existing-entry) :share-requests (api-common/rep share-requests)}
+        [false, {:share-requests (api-common/rep share-requests)}]) ; invalid share request
     
     true)) ; no existing entry, so this will fail existence check later
 
@@ -130,7 +130,7 @@
       (when (and (seq? share-requests) (any? share-requests))
         (trigger-share-requests org board (assoc entry-with-comments :auto-share (:auto-share ctx)) user share-requests))
       (timbre/info "Shared entry:" entry-for)
-      {:updated-entry update-result})
+      {:updated-entry (api-common/rep update-result)})
     (do
       (timbre/error "Failed sharing entry:" entry-for) false)))
 
@@ -145,7 +145,7 @@
                            :channel slack-channel}
             share-ctx (-> ctx
                           (assoc :share-requests (list share-request))
-                          (assoc :existing-entry entry-result)
+                          (api-common/rep (assoc :existing-entry entry-result))
                           (assoc :auto-share true))]
         (share-entry conn share-ctx (:uuid entry-result))))))
 
@@ -170,7 +170,7 @@
         (entry-res/delete-versions conn entry-result)
         (auto-share-on-publish conn ctx entry-result))
       (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
-      {:created-entry entry-result})
+      {:created-entry (api-common/rep entry-result)})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
@@ -195,7 +195,7 @@
       (timbre/info "Updated entry for:" entry-for)
       (handle-video-data conn updated-result)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
-      {:updated-entry (assoc updated-result :board-name (:name board))})
+      {:updated-entry (api-common/rep (assoc updated-result :board-name (:name board)))})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
@@ -218,7 +218,7 @@
       (auto-share-on-publish conn ctx publish-result)
       (timbre/info "Published entry:" entry-for)
       (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user nil))
-      {:updated-entry publish-result})
+      {:updated-entry (api-common/rep publish-result)})
     (do (timbre/error "Failed publishing entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
@@ -249,7 +249,7 @@
             revert-result (entry-res/revert-entry! conn entry entry-version user)]
   (do
     (timbre/info "Reverted entry for:" (:uuid entry))
-    {:updated-entry revert-result})
+    {:updated-entry (api-common/rep revert-result)})
   (do (timbre/error "Failed reverting entry:" entry-for) false)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -299,8 +299,9 @@
                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
-                        {:existing-org org :existing-board board :existing-entry entry
-                         :existing-comments comments :existing-reactions reactions}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)}
                         false))
 
   ;; Actions
@@ -372,7 +373,8 @@
                                board (board-res/get-board conn org-uuid board-slug)
                                board-uuid (:uuid board)
                                entries (entry-res/list-entries-by-board conn board-uuid {})]
-                        {:existing-org org :existing-board board :existing-entries entries}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entries (api-common/rep entries)}
                         false))
 
   ;; Actions
@@ -441,10 +443,10 @@
                        board (board-res/get-board conn (:board-uuid entry))
                       _matches? (and (= org-uuid (:org-uuid entry))
                                      (= org-uuid (:org-uuid board)))]
-                      {:existing-org org
-                       :existing-board board
-                       :existing-entry entry
-                       :existing-version existing-version}
+                      {:existing-org (api-common/rep org)
+                       :existing-board (api-common/rep board)
+                       :existing-entry (api-common/rep entry)
+                       :existing-version (api-common/rep existing-version)}
                       false))
 
   ;; Actions
@@ -502,7 +504,8 @@
                                _matches? (and (= org-uuid (:org-uuid entry))
                                               (= org-uuid (:org-uuid board))
                                               (= :draft (keyword (:status entry))))] ; sanity check
-                        {:existing-org org :existing-board board :existing-entry entry}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry)}
                         false))
   
   ;; Actions
@@ -565,8 +568,9 @@
                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
                                              (entry-res/list-reactions-for-entry conn (:uuid entry)))] 
-                        {:existing-org org :existing-board board :existing-entry entry
-                         :existing-comments comments :existing-reactions reactions}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)}
                         false))
   
   ;; Actions
@@ -617,8 +621,10 @@
                                           (or (:existing-reactions ctx)
                                               (entry-res/list-reactions-for-entry conn (:uuid entry)))
                                           [])]
-                        {:existing-org org :existing-board board :existing-entry entry
-                         :existing-comments comments :existing-reactions reactions :access-level access-level}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)
+                         :access-level (api-common/rep access-level)}
                         false))
   
   ;; Responses

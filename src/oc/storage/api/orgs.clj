@@ -136,7 +136,7 @@
       (timbre/info "Creating default boards for org:" uuid)
       (doseq [board (map #(hash-map :name %) config/new-org-board-names)]
         (create-board conn org-result board author))
-      {:created-org org-result})
+      {:created-org (api-common/rep org-result)})
       
     (do (timbre/error "Failed creating org.") false)))
 
@@ -185,7 +185,7 @@
       (timbre/info "Updated org:" slug)
       (notification/send-trigger! (notification/->trigger :update {:old (:existing-org ctx) :new update-result}
                                                           author))
-      {:updated-org update-result})
+      {:updated-org (api-common/rep update-result)})
 
     (do (timbre/error "Failed updating org:" slug) false)))
 
@@ -196,7 +196,7 @@
       (timbre/info "Added author:" user-id "to org:" slug)
       (timbre/info "Creating initial drafts for user:" user-id "of org:" slug)
       (create-drafts conn updated-org {:user-id user-id :name "me" :avatar-url nil})
-      {:updated-org updated-org})
+      {:updated-org (api-common/rep updated-org)})
     
     (do
       (timbre/error "Failed adding author:" user-id "to org:" slug)
@@ -207,7 +207,7 @@
   (if-let [updated-org (org-res/remove-author conn slug user-id)]
     (do
       (timbre/info "Removed author:" user-id "from org:" slug)
-      {:updated-org updated-org})
+      {:updated-org (api-common/rep updated-org)})
     
     (do
       (timbre/error "Failed removing author:" user-id "to org:" slug)
@@ -225,7 +225,7 @@
     ;; Create the new org from the data provided
     (let [org-map (:data ctx)
           author (:user ctx)]
-      {:new-org (org-res/->org org-map author)})
+      {:new-org (api-common/rep (org-res/->org org-map author))})
 
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
@@ -236,8 +236,9 @@
           updated-props (if samples? (dissoc org-props :samples :boards) org-props)
           updated-org (merge org (org-res/ignore-props updated-props))]
       (if (lib-schema/valid? common-res/Org updated-org)
-        {:existing-org org :updated-org updated-org :samples samples? :boards (:boards org-props)}
-        [false, {:updated-org updated-org}])) ; invalid update
+        {:existing-org (api-common/rep org) :updated-org (api-common/rep updated-org)
+         :samples (api-common/rep samples?) :boards (api-common/rep (:boards org-props))}
+        [false, {:updated-org (api-common/rep updated-org)}])) ; invalid update
     true)) ; No org for this slug, so this will fail existence check later
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -273,7 +274,7 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org org}
+                        {:existing-org (api-common/rep org)}
                         false))
 
   ;; Actions
@@ -335,11 +336,12 @@
   ;; Existentialism
   :exists? (by-method {
     :post (fn [ctx] (if-let [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))]
-                        {:existing-org org :existing-author? ((set (:authors org)) (:data ctx))}
+                        {:existing-org (api-common/rep org)
+                         :existing-author? (api-common/rep ((set (:authors org)) (:data ctx)))}
                         false))
     :delete (fn [ctx] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
                                 exists? ((set (:authors org)) user-id)] ; short circuits the delete w/ a 404
-                        {:existing-org org :existing-author? true}
+                        {:existing-org (api-common/rep org) :existing-author? true}
                         false))}) ; org or author doesn't exist
 
   ;; Actions
