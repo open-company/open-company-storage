@@ -109,7 +109,7 @@
             _seq? (seq? share-props)
             share-requests (map #(assoc % :shared-at ts) share-props)]
     (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-requests)
-        {:existing-entry existing-entry :share-requests share-requests}
+        {:share-requests share-requests}
         [false, {:share-requests share-requests}]) ; invalid share request
     
     true)) ; no existing entry, so this will fail existence check later
