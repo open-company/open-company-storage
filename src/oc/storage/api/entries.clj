@@ -123,7 +123,7 @@
             entry (:existing-entry ctx)
             user (:user ctx)
             share-requests (:share-requests ctx)
-            shared {:shared (take 50 (sort-by :shared-at (concat (or (:shared entry) []) share-requests)))}
+            shared {:shared (take 50 (reverse (sort-by :shared-at (concat (or (:shared entry) []) share-requests))))}
             update-result (entry-res/update-entry-no-version! conn (:uuid entry) shared user)
             entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
     (do
