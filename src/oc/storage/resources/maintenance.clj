@@ -2,7 +2,6 @@
   "fns to maintain storage resources."
   (:require [schema.core :as schema]
             [taoensso.timbre :as timbre]
-            [clojure.pprint :as pp]
             [oc.lib.db.common :as db-common]
             [oc.lib.schema :as lib-schema]
             [oc.storage.resources.org :as org-res]
@@ -19,7 +18,7 @@
   [conn :- lib-schema/Conn entry :- common/Entry limit]
   (let [old-shared (:shared entry)
         grouped-shared (group-by :shared-at old-shared)
-        unique-shared (into [] (map first (vals grouped-shared)))
+        unique-shared (vec (map first (vals grouped-shared)))
         sorted-shared (reverse (sort-by :shared-at unique-shared))
         limited-shared (take limit sorted-shared)]
     (timbre/info "      Old shared" (count old-shared))
@@ -52,7 +51,7 @@
   (let [limit (or limit 50)]
     (timbre/info "Cut :shared lists for all entries to:" limit "(orgs from " (* batch-length batch-offset) "to" (* batch-length (inc batch-offset)) ")")
     (let [orgs (org-res/list-orgs conn)
-          batches (into [] (partition batch-length orgs))
-          batch (into [] (get batches batch-offset))]
+          batches (vec (partition batch-length orgs))
+          batch (vec (get batches batch-offset))]
       (for [org batch]
         (shared-limit-for-org! conn (:uuid org) limit)))))
