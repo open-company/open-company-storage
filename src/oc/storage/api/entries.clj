@@ -624,7 +624,7 @@
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
                          :existing-reactions (api-common/rep reactions)
-                         :access-level (api-common/rep access-level)}
+                         :access-level access-level}
                         false))
   
   ;; Responses
