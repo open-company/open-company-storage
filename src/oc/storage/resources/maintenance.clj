@@ -9,8 +9,8 @@
 
 (defn- update-entry [conn entry original-entry dry-run]
   (schema/validate common/Entry entry)
-  (timbre/info "--> Updating entry from" (count (:shared original-entry)) "to" (count (:shared entry)))
   (when-not dry-run
+    (timbre/info "--> Updating entry from" (count (:shared original-entry)) "to" (count (:shared entry)))
     (db-common/update-resource conn common/entry-table-name :uuid original-entry entry (db-common/current-timestamp))))
 
 (schema/defn ^:always-validate shared-dedup-and-limit-for-entry!
