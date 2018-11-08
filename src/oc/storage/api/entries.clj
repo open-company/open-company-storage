@@ -145,7 +145,7 @@
                            :channel slack-channel}
             share-ctx (-> ctx
                           (assoc :share-requests (list share-request))
-                          (api-common/rep (assoc :existing-entry entry-result))
+                          (assoc :existing-entry (api-common/rep entry-result))
                           (assoc :auto-share true))]
         (share-entry conn share-ctx (:uuid entry-result))))))
 
