@@ -45,8 +45,9 @@
           (shared-limit-for-entry! conn entry limit dry-run))))))
 
 (defn shared-limit!
-  "List all the present orgs, for each load all the entries that have more then 20 shared entries
-   and cut them to the 20 more recent values."
+  "Given a batch size and offset load the orgs of that batch and run the shared limit,
+  use :dry-run option to see the eventual output, to actually update you need to specify
+  :dry-run false."
   [conn {:keys [batch-length batch-offset limit dry-run]}]
   (let [batch-length (or batch-length 20)
         batch-offset (or batch-offset 0)
