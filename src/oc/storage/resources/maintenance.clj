@@ -37,7 +37,7 @@
    and call the shared-limit-for-entry on all that are exceeding the shared limit."
   [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID limit dry-run]
   (let [entries (list-all-entries-by-org! conn org-uuid)]
-    (timbre/info "  Entries count:" (count entries))
+    (timbre/info "    Entries count:" (count entries))
     (for [entry entries]
       (do
         (timbre/info "    Checking entry" (:uuid entry) "shared:" (count (:shared entry)))
@@ -47,7 +47,11 @@
 (defn shared-limit!
   "Given a batch size and offset load the orgs of that batch and run the shared limit,
   use :dry-run option to see the eventual output, to actually update you need to specify
-  :dry-run false."
+  :dry-run false.
+  :batch-length - how many org per batch
+  :batch-offset - the number of the batch: (tot-org / batch-length) * batch-offset
+  :dry-run - do not update, only print
+  :limit - number of shared to keep, default to 50"
   [conn {:keys [batch-length batch-offset limit dry-run]}]
   (let [batch-length (or batch-length 20)
         batch-offset (or batch-offset 0)
@@ -55,16 +59,16 @@
                   true
                   dry-run)
         limit (or limit 50)]
-    (timbre/info "Cut :shared lists for all entries to:" limit "(orgs from " (* batch-length batch-offset) "to" (* batch-length (inc batch-offset)) ")")
+    (timbre/info "Cut :shared lists for all entries to:" limit "(orgs from " (* batch-length batch-offset) "to" (dec (* batch-length (inc batch-offset))) ")")
     (when dry-run
       (timbre/info "---- Dry-run not updating ----"))
     (let [orgs (org-res/list-orgs conn)
           partition-length (min batch-length (count orgs))
-          batches (into [] (partition partition-length orgs))
+          batches (into [] (partition-all partition-length orgs))
           batch (into [] (get batches batch-offset))]
-      (timbre/info "Total orgs:" (count orgs) " batch: " (inc batch-offset) "/" (count batches))
-      (timbre/info "Current batch size:" (count batch))
+      (timbre/info "Total orgs:" (count orgs) " batch: " batch-offset "/" (count batches))
+      (timbre/info " Current batch size:" (count batch))
       (for [org batch]
         (do
-          (timbre/info "Checking:" (:slug org))
+          (timbre/info "  Checking:" (:slug org))
           (shared-limit-for-org! conn (:uuid org) limit dry-run))))))
