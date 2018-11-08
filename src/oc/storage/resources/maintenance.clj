@@ -41,7 +41,7 @@
     (for [entry entries]
       (do
         (timbre/info "    Checking entry" (:uuid entry) "shared:" (count (:shared entry)))
-        (when (> (count (:shared entry)) 0)
+        (when (pos? (count (:shared entry)))
           (shared-dedup-and-limit-for-entry! conn entry limit dry-run))))))
 
 (defn shared-limit!
@@ -64,8 +64,8 @@
       (timbre/info "---- Dry-run not updating ----"))
     (let [orgs (org-res/list-orgs conn)
           partition-length (min batch-length (count orgs))
-          batches (into [] (partition-all partition-length orgs))
-          batch (into [] (get batches batch-offset))]
+          batches (vec (partition-all partition-length orgs))
+          batch (vec (get batches batch-offset))]
       (timbre/info "Total orgs:" (count orgs) " batch: " batch-offset "/" (count batches))
       (timbre/info " Current batch size:" (count batch))
       (for [org batch]
