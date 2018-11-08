@@ -13,7 +13,7 @@
   (when-not dry-run
     (db-common/update-resource conn common/entry-table-name :uuid original-entry entry (db-common/current-timestamp))))
 
-(schema/defn ^:always-validate shared-limit-for-entry!
+(schema/defn ^:always-validate shared-dedup-and-limit-for-entry!
   "Given a RethinkDB connection, an entry map and a limit to apply to share cut the list of
    shared to the passed value keeping only the newest"
   [conn :- lib-schema/Conn entry :- common/Entry limit dry-run]
@@ -41,8 +41,8 @@
     (for [entry entries]
       (do
         (timbre/info "    Checking entry" (:uuid entry) "shared:" (count (:shared entry)))
-        (when (> (count (:shared entry)) limit)
-          (shared-limit-for-entry! conn entry limit dry-run))))))
+        (when (> (count (:shared entry)) 0)
+          (shared-dedup-and-limit-for-entry! conn entry limit dry-run))))))
 
 (defn shared-limit!
   "Given a batch size and offset load the orgs of that batch and run the shared limit,
