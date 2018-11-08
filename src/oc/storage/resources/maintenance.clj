@@ -41,7 +41,7 @@
     (for [entry entries]
       (do
         (timbre/info "    Checking entry" (:uuid entry) "shared:" (count (:shared entry)))
-        (when (pos? (count (:shared entry)))
+        (when (> (count (:shared entry)) 1)
           (shared-dedup-and-limit-for-entry! conn entry limit dry-run))))))
 
 (defn shared-limit!
