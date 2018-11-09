@@ -163,6 +163,7 @@
                  '[oc.storage.resources.reaction :as reaction]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
+                 '[oc.storage.resources.maintenance :as maint]
                  )
       ]
     }]

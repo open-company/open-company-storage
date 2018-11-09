@@ -53,7 +53,7 @@
                             [] []
                             (:access-level ctx) (-> ctx :user :user-id))
                         entries)]
-    (api-common/rep (assemble-board org-slug board entry-reps ctx))))
+    (assemble-board org-slug board entry-reps ctx)))
 
   ;; Regular board
   ([conn org :guard map? board :guard map? ctx]
@@ -200,7 +200,7 @@
                               ;; retrieve the board again to get final list of members
                               (board-res/get-board conn (:uuid board-result)))]
           (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
-          {:created-board (assemble-board conn org created-board ctx)}))
+          {:created-board (api-common/rep (assemble-board conn org created-board ctx))}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false))))
 
