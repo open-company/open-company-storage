@@ -98,9 +98,9 @@
             board-data (-> board-map
                         (dissoc :private-notifications :note :pre-flight :exclude)
                         (assoc :entries entry-data))]
-        {:new-board (board-res/->board (:uuid org) board-data author)
-         :existing-org org
-         :notifications notifications})
+        {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
+         :existing-org (api-common/rep org)
+         :notifications (api-common/rep notifications)})
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
@@ -112,11 +112,11 @@
             board-data (dissoc board-props :private-notifications :note)]
     (let [updated-board (merge board (board-res/clean board-data))]
       (if (lib-schema/valid? common-res/Board updated-board)
-        {:existing-org org
-         :existing-board board
-         :board-update updated-board
-         :notifications (:private-notifications board-props)}
-        [false, {:board-update updated-board}])) ; invalid update
+        {:existing-org (api-common/rep org)
+         :existing-board (api-common/rep board)
+         :board-update (api-common/rep updated-board)
+         :notifications (api-common/rep (:private-notifications board-props))}
+        [false, {:board-update (api-common/rep updated-board)}])) ; invalid update
     true)) ; No org or board, so this will fail existence check later
 
 ;; ----- Actions -----
@@ -131,7 +131,7 @@
             updated-board (member-fn conn (-> ctx :existing-org :uuid) slug user-id)]
     (do
       (timbre/info "Added" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
-      {:updated-board updated-board})
+      {:updated-board (api-common/rep updated-board)})
     
     (do
       (timbre/error "Failed adding" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
@@ -147,7 +147,7 @@
             updated-board (member-fn conn (-> ctx :existing-org :uuid) slug user-id)]
     (do
       (timbre/info "Removed" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
-      {:updated-board updated-board})
+      {:updated-board (api-common/rep updated-board)})
     
     (do
       (timbre/error "Failed removing" (str (name member-type) ":") user-id "to board:" slug "of org:" org-slug)
@@ -200,7 +200,7 @@
                               ;; retrieve the board again to get final list of members
                               (board-res/get-board conn (:uuid board-result)))]
           (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
-          {:created-board (assemble-board conn org created-board ctx)}))
+          {:created-board (api-common/rep (assemble-board conn org created-board ctx))}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false))))
 
@@ -237,7 +237,7 @@
             (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
         (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user invitation-note))
-        {:updated-board final-result}))
+        {:updated-board (api-common/rep final-result)}))
 
     (do (timbre/error "Failed updating board:" slug "of org:" org-slug) false)))
 
@@ -299,7 +299,7 @@
                                             (board-res/drafts-board org-uuid (:user ctx))
                                             ;; Regular board by slug
                                             (board-res/get-board conn org-uuid slug)))]
-                        {:existing-org org :existing-board board}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)}
                         false))
 
   ;; Actions
@@ -403,13 +403,13 @@
                               user-id (:data ctx)
                               org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
                               board (and (slugify/valid-slug? slug) (board-res/get-board conn (:uuid org) slug))]
-                        {:existing-org org :existing-board board 
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing? ((set (member-type board)) user-id)}
                         false))
     :delete (fn [ctx] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
                                 board (and (slugify/valid-slug? slug) (board-res/get-board conn (:uuid org) slug))
                                 exists? ((set (member-type board)) user-id)] ; short circuits the delete w/ a 404
-                        {:existing-org org :existing-board board :existing? true}
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board) :existing? true}
                         false))}) ; org or author doesn't exist
 
   ;; Actions
