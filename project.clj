@@ -14,16 +14,16 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.0-RC1"]
+    [org.clojure/clojure "1.10.0-beta5"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.4.1"]
     ;; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-devel "1.7.0"]
+    [ring/ring-devel "1.7.1"]
     ;; Web application library https://github.com/ring-clojure/ring
     ;; NB: clj-time pulled in by oc.lib
     ;; NB: joda-time pulled in by oc.lib via clj-time
     ;; NB: commons-codec pulled in by oc.lib
-    [ring/ring-core "1.7.0" :exclusions [clj-time joda-time commons-codec]]
+    [ring/ring-core "1.7.1" :exclusions [clj-time joda-time commons-codec]]
     ;; CORS library https://github.com/jumblerg/ring.middleware.cors
     [jumblerg/ring.middleware.cors "1.0.1"]
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
@@ -37,7 +37,7 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.10"]
+    [zprint "0.4.12"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
     [open-company/lib "0.16.21"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
@@ -89,7 +89,7 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.1"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.3.1"]
+        [jonase/eastwood "0.3.3"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-kibit "0.1.6" :exclusions [org.clojure/clojure]]
       ]
@@ -128,7 +128,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.6" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.10" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.12" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {
