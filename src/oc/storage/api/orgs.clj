@@ -26,12 +26,6 @@
 
 ;; ----- Utility functions -----
 
-(defn- sub-name
-  "Replace the marker `%name%` in the target string with the user's name."
-  [target user]
-  (let [user-name (or (:name user) (:first-name user) (:last-name user))]
-    (clojure.string/replace target #"%name%" user-name)))
-
 (defn- board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and
@@ -69,28 +63,6 @@
       :resource-uuid (:uuid resource)
       :author (:author interaction)} ts)))
 
-(defn- create-drafts
-  "Create any default draft entries (from config) for a new user."
-  [conn org author]
-  (timbre/info "Creating initial drafts for user:" (:user-id author))
-  (let [drafts (default-entries-for "drafts")
-        people-board (when (seq drafts)
-                        (or (board-res/get-board conn (:uuid org) "people")
-                            (board-res/create-board! conn (board-res/->board (:uuid org)
-                                                          {:name "People" :draft true :entries []}
-                                                          author))))
-        people-board-uuid (:uuid people-board)]
-    (doall (pmap #(let [headline (sub-name (:headline %) author)]
-                    (timbre/info "Creating draft entry:" headline "in:" people-board-uuid "for user:" (:user-id author))
-                    (let [entry-result (entry-res/create-entry! conn
-                                          (entry-res/->entry conn people-board-uuid
-                                                            (assoc % :headline headline) author))]
-                      ;; notify of new entry
-                      (notification/send-trigger!
-                        (notification/->trigger :add org people-board {:new entry-result} author nil)))
-                    (timbre/info "Created draft entry:" headline "in:" people-board-uuid "for user:" (:user-id author)))
-              drafts))))
-
 (defn- create-entry
   "Create any default entries (from config) for a new default board."
   [conn org entry user]
@@ -126,13 +98,11 @@
   (if-let* [new-org (:new-org ctx)
             org-result (org-res/create-org! conn new-org)] ; Add the org
 
-    ;; Org creation succeeded, so create the default boards and drafts
+    ;; Org creation succeeded, so create the default boards
     (let [uuid (:uuid org-result)
           author (:user ctx)]
       (timbre/info "Created org:" uuid)
       (notification/send-trigger! (notification/->trigger :add {:new org-result} (:user ctx)))
-      (timbre/info "Creating initial drafts for user:" (:user-id author) "of org:" uuid)
-      (create-drafts conn org-result author)
       (timbre/info "Creating default boards for org:" uuid)
       (doseq [board (map #(hash-map :name %) config/new-org-board-names)]
         (create-board conn org-result board author))
@@ -194,8 +164,6 @@
   (if-let [updated-org (org-res/add-author conn slug user-id)]
     (do
       (timbre/info "Added author:" user-id "to org:" slug)
-      (timbre/info "Creating initial drafts for user:" user-id "of org:" slug)
-      (create-drafts conn updated-org {:user-id user-id :name "me" :avatar-url nil})
       {:updated-org (api-common/rep updated-org)})
     
     (do
