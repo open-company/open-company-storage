@@ -107,7 +107,7 @@
   "Decisions"
   "Lessons learned"
   "People"
-  "Product Updates"
+  "Product updates"
   "Week in review"})
 
 (defonce forced-board-name "General")
