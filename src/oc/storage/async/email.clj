@@ -24,8 +24,8 @@
    :headline schema/Str
    :body (schema/maybe schema/Str)
    :must-see (schema/maybe schema/Bool)
-   :video-id (schema/maybe lib-schema/Str)
-   :video-image (schema/maybe lib-schema/Str)
+   :video-id (schema/maybe Schema/Str)
+   :video-image (schema/maybe Schema/Str)
    :video-duration (schema/maybe schema/Str)
    :secure-uuid lib-schema/UniqueID
    :publisher lib-schema/Author
