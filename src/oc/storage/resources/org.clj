@@ -116,8 +116,11 @@
   {:pre [(db-common/conn? conn)
          (or (lib-schema/unique-id? identifier)
              (slug/valid-slug? identifier))]}
-  (if (lib-schema/unique-id? identifier)
-    (first (db-common/read-resources conn table-name :uuid identifier))
+  ;; if it looks like a UUID try retrieval by UUID, but also fallback to retrieval by slug
+  ;; since we can have slugs that look like UUIDs
+  (if-let [org (and (lib-schema/unique-id? identifier)
+                    (first (db-common/read-resources conn table-name :uuid identifier)))]
+    org
     (db-common/read-resource conn table-name identifier)))
 
 (schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
