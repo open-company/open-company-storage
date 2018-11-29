@@ -6,6 +6,7 @@
   "
   (:require
    [clojure.core.async :as async :refer (<!! >!!)]
+   [defun.core :refer (defun-)]
    [cheshire.core :as json]
    [oc.lib.sqs :as sqs]
    [oc.lib.db.pool :as pool]
@@ -18,6 +19,12 @@
 (defonce storage-notification-go (atom nil))
 
 ;; ----- SQS handling -----
+
+(defun- slack-action-event
+  ([db-pool body :guard #(= (:callback_id %) "add_post")]
+  (timbre/info "Got message from Slack:" body))
+
+  ([_ body] (timbre/debug "Skipped message from Slack:" body)))
 
 (defn- read-message-body
   "Try to parse as json, otherwise use read-string."
@@ -32,7 +39,7 @@
   [msg done-channel]
   (let [msg-body (read-message-body (:body msg))
         error (if (:test-error msg-body) (/ 1 0) false)] ; a message testing Sentry error reporting
-    (timbre/infof "Received message from SQS: %s\n" msg-body)
+    (timbre/debugf "Received message from SQS (storage notification): %s\n" msg-body)
     (>!! storage-notification-chan msg-body))
   (sqs/ack done-channel msg))
 
@@ -49,6 +56,9 @@
         (if (:stop msg)
           (do (reset! storage-notification-go false) (timbre/info "Storage notification stopped."))
           (try
+            (when (:Message msg) ;; Slack action SNS message
+              (let [msg-parsed (json/parse-string (:Message msg) true)]
+                (slack-action-event db-pool msg-parsed)))
             (timbre/trace "Processing complete.")
             (catch Exception e
               (timbre/error e))))))))
