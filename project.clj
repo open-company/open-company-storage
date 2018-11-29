@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.0-beta5"]
+    [org.clojure/clojure "1.10.0-RC2"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.4.1"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -37,9 +37,9 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.12"]
+    [zprint "0.4.13"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.21"]
+    [open-company/lib "0.16.25.1"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -128,7 +128,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.6" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.12" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.13" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {
@@ -210,7 +210,7 @@
     ;; Disable some linters that are enabled by default
     ;; contant-test - just seems mostly ill-advised, logical constants are useful in something like a `->cond` 
     ;; wrong-arity - unfortunate, but it's failing on 3/arity of sqs/send-message
-    ;; implicit-dependencies - uhh, just seems broken
+    ;; implicit-dependencies - uhh, just seems dumb
     :exclude-linters [:constant-test :wrong-arity :implicit-dependencies]
     ;; Enable some linters that are disabled by default
     :add-linters [:unused-namespaces :unused-private-vars] ; :unused-locals]

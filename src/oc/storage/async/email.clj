@@ -24,7 +24,9 @@
    :headline schema/Str
    :body (schema/maybe schema/Str)
    :must-see (schema/maybe schema/Bool)
-   :video-id (schema/maybe lib-schema/NonBlankStr)
+   :video-id (schema/maybe schema/Str)
+   :video-image (schema/maybe schema/Str)
+   :video-duration (schema/maybe schema/Str)
    :secure-uuid lib-schema/UniqueID
    :publisher lib-schema/Author
    :published-at lib-schema/ISO8601
@@ -48,6 +50,8 @@
    :body (:body entry)
    :must-see (:must-see entry)
    :video-id (:video-id entry)
+   :video-image (or (:video-image entry) "")
+   :video-duration (or (:video-duration entry) "")
    :secure-uuid (:secure-uuid entry)
    :publisher (lib-schema/author-for-user (:publisher entry))
    :published-at (:published-at entry)
