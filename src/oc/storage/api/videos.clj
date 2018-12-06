@@ -5,7 +5,7 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
-            [oc.storage.auth :as auth]
+            [oc.lib.auth :as auth]
             [oc.storage.api.entries :as entries-api]
             [oc.storage.async.notification :as notification]
             [oc.storage.resources.entry :as entry-res]
@@ -16,7 +16,8 @@
 (defn- update-video-data
   [conn org board video entry]
   (if-not (= (:state_string video) "ERROR")
-    (let [user (auth/user-data (:user-id (first (:author entry))))
+    (let [user-map {:user-id (:user-id (first (:author entry)))}
+          user (auth/user-data user-map config/auth-server-url config/passphrase "Storage")
           ctx {:user (assoc user :name (str (:first-name user) " "
                                             (:last-name user)))
                :existing-org org
