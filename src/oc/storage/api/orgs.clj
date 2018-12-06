@@ -7,6 +7,7 @@
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
+            [oc.lib.jwt :as jwt]
             [oc.lib.time :as lib-time]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
@@ -25,6 +26,14 @@
             [oc.storage.resources.entry :as entry-res]))
 
 ;; ----- Utility functions -----
+
+(defn- user-from-context [ctx]
+  (if (:user ctx)
+    (:user ctx)
+    (let [id-token (get-in (:request ctx) [:params "id-token"])
+          decoded-token (jwt/decode-id-token id-token config/passphrase)]
+      {:user-id (get-in decoded-token [:claims :user_id])
+       :teams [(get-in decoded-token [:claims :team_id])]})))
 
 (defn- board-with-access-level
   "
@@ -230,7 +239,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn slug (:user ctx)))
+      :get (fn [ctx] (let [user (user-from-context ctx)]
+                       (access/access-level-for conn slug user)))
     :patch (fn [ctx] (access/allow-authors conn slug (:user ctx)))})
 
   ;; Validations
@@ -249,7 +259,7 @@
   :patch! (fn [ctx] (update-org conn ctx slug))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
+  :handle-ok (fn [ctx] (let [user (user-from-context ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)

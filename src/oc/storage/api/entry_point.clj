@@ -3,6 +3,8 @@
   (:require [if-let.core :refer (when-let*)]
             [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
             [liberator.core :refer (defresource by-method)]
+            [taoensso.timbre :as timbre]
+            [oc.lib.jwt :as jwt]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]
@@ -25,10 +27,15 @@
 ;; ----- Responses -----
 
 (defn- render-entry-point [conn {:keys [user request] :as _ctx}]
-
-  (let [authed-orgs (if user
+  (let [id-token (get-in request [:params "id-token"])
+        decoded-token (jwt/decode-id-token id-token config/passphrase)
+        teams (if user
+                (:teams user)
+                (when (:claims decoded-token)
+                  [(:team_id (:claims decoded-token))]))
+        authed-orgs (if (seq teams)
                 ;; Auth'd user
-                (org-res/list-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
+                (org-res/list-orgs-by-teams conn teams [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
                 ;; Not auth'd
                 [])
         org-slugs (set (map :slug authed-orgs)) ; set of the org slugs for this user
