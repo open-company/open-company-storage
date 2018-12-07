@@ -255,7 +255,7 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular entry
-(defresource entry [conn org-slug board-slug entry-uuid]
+(defresource entry [conn org-slug board-slug-or-uuid entry-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch :delete]
@@ -274,16 +274,16 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn org-slug board-slug (:user ctx)))
-    :patch (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))
-    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+    :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
+    :patch (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
     :options true
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
-                          (slugify/valid-slug? board-slug)
+                          (slugify/valid-slug? board-slug-or-uuid)
                           (valid-entry-update? conn entry-uuid (:data ctx))))
     :delete true})
 
@@ -292,7 +292,7 @@
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
-                                         (board-res/get-board conn org-uuid board-slug))
+                                         (board-res/get-board conn org-uuid board-slug-or-uuid))
                                entry (or (:existing-entry ctx)
                                          (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
                                comments (or (:existing-comments ctx)
@@ -305,8 +305,8 @@
                         false))
 
   ;; Actions
-  :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
-  :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+  :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug-or-uuid entry-uuid])))
+  :delete! (fn [ctx] (delete-entry conn ctx (s/join " " [org-slug board-slug-or-uuid entry-uuid])))
 
   ;; Responses
   :handle-ok (by-method {
@@ -330,7 +330,7 @@
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
 ;; A resource for operations on all entries of a particular board
-(defresource entry-list [conn org-slug board-slug]
+(defresource entry-list [conn org-slug board-slug-or-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :post]
@@ -353,24 +353,24 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn org-slug board-slug (:user ctx)))
-    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+    :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
     :options true
     :get true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
-                         (slugify/valid-slug? board-slug)
-                         (valid-new-entry? conn org-slug board-slug ctx)))})
+                         (slugify/valid-slug? board-slug-or-uuid)
+                         (valid-new-entry? conn org-slug board-slug-or-uuid ctx)))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
+                                            (slugify/valid-slug? board-slug-or-uuid))
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
-                               board (board-res/get-board conn org-uuid board-slug)
+                               board (board-res/get-board conn org-uuid board-slug-or-uuid)
                                board-uuid (:uuid board)
                                entries (entry-res/list-entries-by-board conn board-uuid {})]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
@@ -378,7 +378,7 @@
                         false))
 
   ;; Actions
-  :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug board-slug])))
+  :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug (:slug (:existing-board ctx))])))
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
@@ -386,7 +386,7 @@
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
-                                (entry-rep/url org-slug board-slug (:uuid new-entry))
+                                (entry-rep/url org-slug (:slug existing-board) (:uuid new-entry))
                                 (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] []
                                   :author (-> ctx :user :user-id))
                                 mt/entry-media-type)))
@@ -394,7 +394,7 @@
     (api-common/unprocessable-entity-response (:reason ctx))))
 
 ;; A resource for reverting to a specific revision number.
-(defresource revert-version [conn org-slug board-slug entry-uuid]
+(defresource revert-version [conn org-slug board-slug-or-uuid entry-uuid]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :post]
@@ -430,7 +430,7 @@
   :can-post-to-missing? false
   :exists? (fn [ctx]
              (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                    (slugify/valid-slug? board-slug))
+                                    (slugify/valid-slug? board-slug-or-uuid))
                        org (org-res/get-org conn org-slug)
                        org-uuid (:uuid org)
                        entry (entry-res/get-entry conn entry-uuid)
@@ -450,7 +450,7 @@
                       false))
 
   ;; Actions
-  :post! (fn [ctx] (revert-entry-version conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+  :post! (fn [ctx] (revert-entry-version conn ctx (s/join " " [org-slug (:slug (:existing-board ctx)) entry-uuid])))
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
