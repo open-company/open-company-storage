@@ -39,7 +39,7 @@
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.13"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.25.1"]
+    [open-company/lib "0.16.27"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
