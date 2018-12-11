@@ -92,10 +92,10 @@
     ;; Will fail existence checks later
     {:access-level :does-not-exist})
 
-  ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? board-slug :guard slugify/valid-slug?
+  ([conn :guard lib-schema/conn? org-slug :guard slugify/valid-slug? board-slug-or-uuid :guard slugify/valid-slug?
     user :guard #(or (map? %) (nil? %))]
   (if-let* [org (org-res/get-org conn org-slug)
-            board (board-res/get-board conn (:uuid org) board-slug)]
+            board (board-res/get-board conn (:uuid org) board-slug-or-uuid)]
     (access-level-for org board user)
     ;; Will fail existence checks later
     {:access-level :does-not-exist}))
@@ -164,8 +164,8 @@
       access
       false)))
 
-  ([conn org-slug board-slug user]
-  (let [access (access-level-for conn org-slug board-slug user)
+  ([conn org-slug board-slug-or-uuid user]
+  (let [access (access-level-for conn org-slug board-slug-or-uuid user)
         access-level (:access-level access)]
     (if (or (= access-level :author)
             (= access-level :does-not-exist))
