@@ -28,12 +28,11 @@
 ;; ----- Utility functions -----
 
 (defn- user-from-context [ctx]
-  (if (:user ctx)
-    (:user ctx)
-    (let [id-token (get-in (:request ctx) [:params "id-token"])
-          decoded-token (jwt/decode-id-token id-token config/passphrase)]
-      {:user-id (get-in decoded-token [:claims :user_id])
-       :teams [(get-in decoded-token [:claims :team_id])]})))
+    (or (:user ctx)
+        (let [id-token (get-in (:request ctx) [:params "id-token"])
+              decoded-token (jwt/decode-id-token id-token config/passphrase)]
+          {:user-id (get-in decoded-token [:claims :user_id])
+           :teams [(get-in decoded-token [:claims :team_id])]})))
 
 (defn- board-with-access-level
   "
