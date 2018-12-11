@@ -37,7 +37,7 @@
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.13"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.29alpha"]
+    [open-company/lib "0.16.29alpha1"]
 
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
