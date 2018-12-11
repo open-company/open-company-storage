@@ -32,14 +32,13 @@
     [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore com.taoensso/timbre]] 
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.1"]
-    ;; HTTP client https://github.com/dakrone/clj-http
-    [clj-http "3.9.1"]
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.0.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.13"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.28alpha4"]
+    [open-company/lib "0.16.29alpha"]
+
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
