@@ -3,7 +3,6 @@
   (:require [if-let.core :refer (when-let*)]
             [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
             [liberator.core :refer (defresource by-method)]
-            [taoensso.timbre :as timbre]
             [oc.lib.jwt :as jwt]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
