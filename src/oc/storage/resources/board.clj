@@ -137,10 +137,11 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resource conn table-name uuid))
 
-  ([conn org-uuid :- lib-schema/UniqueID slug]
+  ([conn org-uuid :- lib-schema/UniqueID slug-or-uuid]
   {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)]}
-  (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug org-uuid]]))))
+         (slug/valid-slug? slug-or-uuid)]}
+  (or (first (db-common/read-resources conn table-name "slug-org-uuid" [[slug-or-uuid org-uuid]]))
+      (db-common/read-resource conn table-name slug-or-uuid))))
 
 (schema/defn ^:always-validate uuid-for :- (schema/maybe lib-schema/UniqueID)
   "Given an org slug, and a board slug, return the UUID of the board, or nil if it doesn't exist."
