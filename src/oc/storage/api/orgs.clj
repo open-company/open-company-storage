@@ -237,7 +237,7 @@
   :allowed? (by-method {
     :options true
     :get (fn [ctx] (let [user (user-from-context ctx)]
-                       (access/access-level-for conn slug user)))
+                     (access/access-level-for conn slug user)))
     :patch (fn [ctx] (access/allow-authors conn slug (:user ctx)))})
 
   ;; Validations
