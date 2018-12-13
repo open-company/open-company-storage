@@ -7,7 +7,6 @@
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
-            [oc.lib.jwt :as jwt]
             [oc.lib.time :as lib-time]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
@@ -29,10 +28,9 @@
 
 (defn- user-from-context [ctx]
     (or (:user ctx)
-        (let [id-token (get-in (:request ctx) [:params "id-token"])
-              decoded-token (jwt/decode-id-token id-token config/passphrase)]
-          {:user-id (get-in decoded-token [:claims :user_id])
-           :teams [(get-in decoded-token [:claims :team_id])]})))
+        (let [decoded-token (:id-token ctx)]
+          {:user-id (get-in decoded-token [:claims :user-id])
+           :teams [(get-in decoded-token [:claims :team-id])]})))
 
 (defn- board-with-access-level
   "
@@ -221,7 +219,7 @@
 
 ;; A resource for operations on a particular Org
 (defresource org [conn slug]
-  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
+  (api-common/open-company-id-token-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch]
 
@@ -238,7 +236,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-      :get (fn [ctx] (let [user (user-from-context ctx)]
+    :get (fn [ctx] (let [user (user-from-context ctx)]
                        (access/access-level-for conn slug user)))
     :patch (fn [ctx] (access/allow-authors conn slug (:user ctx)))})
 
