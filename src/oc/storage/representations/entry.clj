@@ -154,7 +154,6 @@
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
-            ; (clojure.set/rename-keys  {:slug :org-slug})
             (clojure.set/rename-keys org-prop-mapping)
             (merge full-entry)
             (assoc :board-slug board-slug))
