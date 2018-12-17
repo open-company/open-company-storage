@@ -9,13 +9,15 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.representations.content :as content]))
 
-(def org-prop-mapping {:name :org-name
+(def org-prop-mapping {:uuid :org-uuid
+                       :name :org-name
+                       :slug :org-slug
                        :logo-url :org-logo-url
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
 (def representation-props [:uuid :headline :body :attachments :status :must-see :sample
-                           :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
+                           :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name 
                            :team-id :author :publisher :published-at
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
@@ -81,9 +83,7 @@
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
-  (if (= access-level :author)
-    (assoc entry :secure-uuid secure-uuid)
-    entry))
+  (assoc entry :secure-uuid secure-uuid))
 
 (defn- include-interactions
   "Include interactions only if we have some."
@@ -151,15 +151,14 @@
               (conj react-links (share-link org-slug board-slug entry-uuid))
               ;; Otherwise just the links they already have
               :else react-links)]
-
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
-            (clojure.set/rename-keys  {:slug :org-slug})
+            ; (clojure.set/rename-keys  {:slug :org-slug})
+            (clojure.set/rename-keys org-prop-mapping)
             (merge full-entry)
             (assoc :board-slug board-slug))
           full-entry)
-      (clojure.set/rename-keys org-prop-mapping)
       (select-keys representation-props)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
