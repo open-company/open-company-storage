@@ -26,12 +26,6 @@
 
 ;; ----- Utility functions -----
 
-(defn- user-from-context [ctx]
-    (or (:user ctx)
-        (let [decoded-token (:id-token ctx)]
-          {:user-id (get-in decoded-token [:claims :user-id])
-           :teams [(get-in decoded-token [:claims :team-id])]})))
-
 (defn- board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and
@@ -219,7 +213,7 @@
 
 ;; A resource for operations on a particular Org
 (defresource org [conn slug]
-  (api-common/open-company-id-token-resource config/passphrase) ; verify validity of optional JWToken
+  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch]
 
@@ -236,8 +230,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (let [user (user-from-context ctx)]
-                     (access/access-level-for conn slug user)))
+    :get (fn [ctx] (access/access-level-for conn slug (:user ctx)))
     :patch (fn [ctx] (access/allow-authors conn slug (:user ctx)))})
 
   ;; Validations
@@ -256,7 +249,7 @@
   :patch! (fn [ctx] (update-org conn ctx slug))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (user-from-context ctx)
+  :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
                              org-id (:uuid org)
