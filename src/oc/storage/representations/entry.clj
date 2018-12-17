@@ -83,9 +83,7 @@
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
-  (if (= access-level :author)
-    (assoc entry :secure-uuid secure-uuid)
-    entry))
+  (assoc entry :secure-uuid secure-uuid))
 
 (defn- include-interactions
   "Include interactions only if we have some."
