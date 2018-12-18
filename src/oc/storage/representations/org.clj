@@ -42,44 +42,45 @@
 ; (defn- calendar-link [org]
 ;   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
-(defn- change-link [org access-level user-id]
+(defn- change-link [org access-level user]
   (if (or (= access-level :author) (= access-level :viewer))
     (update-in org [:links] conj
       (hateoas/link-map
         "changes"
         "GET"
-        (str config/change-server-ws-url "/change-socket/user/" user-id)
+        (str config/change-server-ws-url "/change-socket/user/" (:user-id user))
         nil))
     org))
 
-(defn- notify-link [org access-level user-id]
-  (if (or (= access-level :author) (= access-level :viewer))
+(defn- notify-link [org access-level user]
+  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
     (update-in org [:links] conj
       (hateoas/link-map
         "notifications"
         "GET"
-        (str config/notify-server-ws-url "/notify-socket/user/" user-id)
+        (str config/notify-server-ws-url "/notify-socket/user/" (:user-id user))
         nil))
     org))
 
-(defn- interactions-link [org access-level user-id]
-  (if (or (= access-level :author) (= access-level :viewer))
+(defn- interactions-link [org access-level user]
+  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
     (update-in org [:links] conj
       (hateoas/link-map
         "interactions"
         "GET"
         (str config/interaction-server-ws-url
              "/interaction-socket/user/"
-             user-id)
+             (:user-id user))
         nil))
     org))
 
-(defn- org-links [org access-level]
+(defn- org-links [org access-level user]
   (let [links [(self-link org)]
-        activity-links (if (or (= access-level :author) (= access-level :viewer))
+        id-token (:id-token user)
+        activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
                           (concat links [(activity-link org)]) ; (calendar-link org) - not currently used
                           links)
-        full-links (if (= access-level :author) 
+        full-links (if (and (not id-token) (= access-level :author) )
                       (concat activity-links [(board-create-link org)
                                               (board-pre-flight-create-link org)
                                               (partial-update-link org)
@@ -97,18 +98,19 @@
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
-  [org access-level user-id]
+  [org access-level user]
   (let [slug (:slug org)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                     representation-props
-                    public-representation-props)]
+                    public-representation-props)
+        user-id (:user-id user)]
     (json/generate-string
       (-> org
         (assoc :default-board-names (vec (sort config/default-board-names)))
-        (org-links access-level)
-        (change-link access-level user-id)
-        (notify-link access-level user-id)
-        (interactions-link access-level user-id)
+        (org-links access-level user)
+        (change-link access-level user)
+        (notify-link access-level user)
+        (interactions-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
