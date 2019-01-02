@@ -7,6 +7,7 @@
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
+            [amazonica.aws.kinesisfirehose :as fh]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
@@ -75,6 +76,11 @@
   (timbre/trace "Notification request:" trigger)
   (schema/validate NotificationTrigger trigger)
   (timbre/info "Sending request to topic:" config/aws-sns-storage-topic-arn)
+  (fh/put-record config/aws-kinesis-stream-name
+                 { :subject (str (name (:notification-type trigger))
+                                 " on " (name (:resource-type trigger))
+                                 ": " (-> trigger :current :uuid))
+                  :message (json/generate-string trigger {:pretty true})})
   (sns/publish
     {:access-key config/aws-access-key-id
      :secret-key config/aws-secret-access-key}
