@@ -595,7 +595,10 @@
   :allowed-methods [:options :get]
 
   ;; Authorization
-  :allowed? true
+  :allowed? (fn [ctx]
+              (if (:id-token ctx)
+                (= secure-uuid (:secure-uuid (:user ctx)))
+                true))
 
   ;; Media type client accepts
   :available-media-types (by-method {
