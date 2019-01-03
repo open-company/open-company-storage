@@ -271,7 +271,7 @@
                                                  (assoc :must-see-count must-see-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
-                                             user-id)))
+                                             user)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
@@ -372,7 +372,7 @@
                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org org-for-rep :author (-> ctx :user :user-id))
+                                (org-rep/render-org org-for-rep :author (:user ctx))
                                   mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

@@ -25,7 +25,6 @@
 ;; ----- Responses -----
 
 (defn- render-entry-point [conn {:keys [user request] :as _ctx}]
-
   (let [authed-orgs (if user
                 ;; Auth'd user
                 (org-res/list-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
