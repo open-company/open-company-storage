@@ -81,14 +81,6 @@
                                  " on " (name (:resource-type trigger))
                                  ": " (-> trigger :current :uuid))
                   :message (json/generate-string trigger {:pretty true})})
-  (sns/publish
-    {:access-key config/aws-access-key-id
-     :secret-key config/aws-secret-access-key}
-     :topic-arn config/aws-sns-storage-topic-arn
-     :subject (str (name (:notification-type trigger))
-                   " on " (name (:resource-type trigger))
-                   ": " (-> trigger :current :uuid))
-     :message (json/generate-string trigger {:pretty true}))
   (timbre/info "Request sent to topic:" config/aws-sns-storage-topic-arn))
 
 ;; ----- Event loop -----
