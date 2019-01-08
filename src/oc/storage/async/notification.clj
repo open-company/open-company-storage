@@ -77,10 +77,10 @@
   (schema/validate NotificationTrigger trigger)
   (timbre/info "Sending request to topic:" config/aws-sns-storage-topic-arn)
   (fh/put-record config/aws-kinesis-stream-name
-                 { :subject (str (name (:notification-type trigger))
+                 {:subject (str (name (:notification-type trigger))
                                  " on " (name (:resource-type trigger))
                                  ": " (-> trigger :current :uuid))
-                  :message (json/generate-string trigger {:pretty true})})
+                  :Message (json/generate-string trigger {:pretty true})})
   (timbre/info "Request sent to topic:" config/aws-sns-storage-topic-arn))
 
 ;; ----- Event loop -----
