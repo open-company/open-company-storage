@@ -76,11 +76,23 @@
   (timbre/trace "Notification request:" trigger)
   (schema/validate NotificationTrigger trigger)
   (timbre/info "Sending request to topic:" config/aws-sns-storage-topic-arn)
-  (fh/put-record config/aws-kinesis-stream-name
-                 {:subject (str (name (:notification-type trigger))
-                                 " on " (name (:resource-type trigger))
-                                 ": " (-> trigger :current :uuid))
-                  :Message (json/generate-string trigger {:pretty true})})
+  (let [subject (str (name (:notification-type trigger))
+                     " on " (name (:resource-type trigger))
+                     ": " (-> trigger :current :uuid))]
+    (try
+      (sns/publish
+       {:access-key config/aws-access-key-id
+        :secret-key config/aws-secret-access-key}
+       :topic-arn config/aws-sns-storage-topic-arn
+       :subject subject
+       :message (json/generate-string trigger {:pretty true}))
+      (catch Exception e
+        (timbre/info "SNS failed with: " e)
+        ;; If an exception occurred write to the kinesis firehouse.
+        (fh/put-record
+          config/aws-kinesis-stream-name
+          {:subject subject
+           :Message (json/generate-string trigger {:pretty true})}))))
   (timbre/info "Request sent to topic:" config/aws-sns-storage-topic-arn))
 
 ;; ----- Event loop -----
