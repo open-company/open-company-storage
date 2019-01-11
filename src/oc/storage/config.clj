@@ -68,6 +68,7 @@
 
 (defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn))
 (defonce aws-kinesis-stream-name (env :aws-kinesis-stream-name))
+(defonce aws-kinesis-reindex-stream-name (env :aws-kinesis-reindex-stream-name))
 
 ;; ----- Ziggeo Video Processing -----
 

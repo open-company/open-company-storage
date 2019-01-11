@@ -8,6 +8,7 @@
   "
   (:require [clojure.string :as s]
             [amazonica.aws.sqs :as sqs]
+            [amazonica.aws.kinesisfirehose :as fh]
             [cheshire.core :as json]
             [clojure.tools.cli :refer (parse-opts)]
             [taoensso.timbre :as timbre]
@@ -37,12 +38,18 @@
 (defn send-trigger! [trigger]
   (timbre/debug "Search request:" trigger)
   (timbre/info "Sending request to queue:" config/aws-sqs-search-index-queue)
-  (sqs/send-message
-    {:access-key config/aws-access-key-id
-     :secret-key config/aws-secret-access-key}
-    config/aws-sqs-search-index-queue
-    (json/generate-string trigger {:pretty true}))
-  (timbre/info "Request sent to:" config/aws-sqs-search-index-queue))
+  (try
+    (sqs/send-message
+     {:access-key config/aws-access-key-id
+      :secret-key config/aws-secret-access-key}
+     config/aws-sqs-search-index-queue
+     (json/generate-string trigger {:pretty true}))
+    (catch Exception e
+      (timbre/info "SQS failed with: " e)
+      ;; If an exception occurred write to the kinesis firehouse.
+      (fh/put-record
+       config/aws-kinesis-reindex-stream-name
+       (json/generate-string trigger {:pretty true})))))
 
 (defn index-all-entries [conn]
   (let [now (db-common/current-timestamp)]
