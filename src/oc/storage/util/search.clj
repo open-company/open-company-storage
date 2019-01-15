@@ -38,18 +38,19 @@
 (defn send-trigger! [trigger]
   (timbre/debug "Search request:" trigger)
   (timbre/info "Sending request to queue:" config/aws-sqs-search-index-queue)
-  (try
-    (sqs/send-message
-     {:access-key config/aws-access-key-id
-      :secret-key config/aws-secret-access-key}
-     config/aws-sqs-search-index-queue
-     (json/generate-string trigger {:pretty true}))
-    (catch Exception e
-      (timbre/info "SQS failed with: " e)
-      ;; If an exception occurred write to the kinesis firehouse.
-      (fh/put-record
-       config/aws-kinesis-reindex-stream-name
-       (json/generate-string trigger {:pretty true})))))
+  (let [message (json/generate-string trigger {:pretty true})]
+    (try
+      (sqs/send-message
+       {:access-key config/aws-access-key-id
+        :secret-key config/aws-secret-access-key}
+       config/aws-sqs-search-index-queue
+       message)
+      (catch Exception e
+        (timbre/info "SQS failed with: " e)
+        ;; If an exception occurred write to the kinesis firehouse.
+        (fh/put-record
+         config/aws-kinesis-reindex-stream-name
+         message)))))
 
 (defn index-all-entries [conn]
   (let [now (db-common/current-timestamp)]
