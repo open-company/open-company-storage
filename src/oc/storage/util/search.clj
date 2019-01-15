@@ -47,6 +47,7 @@
        message)
       (catch Exception e
         (timbre/info "SQS failed with: " e)
+        (timbre/info "sending to " config/aws-kinesis-reindex-stream-name)
         ;; If an exception occurred write to the kinesis firehouse.
         (when config/aws-kinesis-reindex-stream-name
           (fh/put-record
