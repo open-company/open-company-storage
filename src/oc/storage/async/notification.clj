@@ -90,10 +90,11 @@
       (catch Exception e
         (timbre/info "SNS failed with: " e)
         ;; If an exception occurred write to the kinesis firehouse.
-        (fh/put-record
-          config/aws-kinesis-stream-name
-          {:subject subject
-           :Message message}))))
+        (when config/aws-kinesis-stream-name
+          (fh/put-record
+           config/aws-kinesis-stream-name
+           {:subject subject
+            :Message message})))))
   (timbre/info "Request sent to topic:" config/aws-sns-storage-topic-arn))
 
 ;; ----- Event loop -----

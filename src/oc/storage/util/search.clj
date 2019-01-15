@@ -48,9 +48,10 @@
       (catch Exception e
         (timbre/info "SQS failed with: " e)
         ;; If an exception occurred write to the kinesis firehouse.
-        (fh/put-record
-         config/aws-kinesis-reindex-stream-name
-         message)))))
+        (when config/aws-kinesis-reindex-stream-name
+          (fh/put-record
+           config/aws-kinesis-reindex-stream-name
+           message))))))
 
 (defn index-all-entries [conn]
   (let [now (db-common/current-timestamp)]
