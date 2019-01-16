@@ -48,6 +48,7 @@
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) "ws://localhost:3002"))
 (defonce change-server-ws-url (or (env :change-server-ws-url) "ws://localhost:3006"))
 (defonce notify-server-ws-url (or (env :notify-server-ws-url) "ws://localhost:3010"))
+(defonce reminder-server-url (or (env :reminder-server-url) "http://localhost:3011"))
 
 ;; ----- Liberator -----
 

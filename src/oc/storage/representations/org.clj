@@ -74,6 +74,18 @@
         nil))
     org))
 
+(defn- reminders-link [org access-level user]
+  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "reminders"
+        "GET"
+        (str config/reminder-server-url
+             "/orgs/"
+             (:uuid org))
+        nil))
+    org))
+
 (defn- org-links [org access-level user]
   (let [links [(self-link org)]
         id-token (:id-token user)
@@ -111,6 +123,7 @@
         (change-link access-level user)
         (notify-link access-level user)
         (interactions-link access-level user)
+        (reminders-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
