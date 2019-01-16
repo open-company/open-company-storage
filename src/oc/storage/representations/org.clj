@@ -82,7 +82,8 @@
         "GET"
         (str config/reminder-server-url
              "/orgs/"
-             (:uuid org))
+             (:uuid org)
+             "/reminders")
         nil))
     org))
 
