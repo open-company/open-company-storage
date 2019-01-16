@@ -84,7 +84,8 @@
              "/orgs/"
              (:uuid org)
              "/reminders")
-        nil))
+        {:content-type mt/reminders-list-media-type
+         :accept mt/reminders-list-media-type}))
     org))
 
 (defn- org-links [org access-level user]
