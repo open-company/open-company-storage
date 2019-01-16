@@ -68,6 +68,8 @@
 (defonce aws-sqs-search-index-queue (env :aws-sqs-search-index-queue))
 
 (defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn))
+(defonce aws-kinesis-stream-name (or (env :aws-kinesis-stream-name) false))
+(defonce aws-kinesis-reindex-stream-name (or (env :aws-kinesis-reindex-stream-name) false))
 
 ;; ----- Ziggeo Video Processing -----
 
