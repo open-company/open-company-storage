@@ -7,6 +7,7 @@
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
+            [amazonica.aws.kinesisfirehose :as fh]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
@@ -75,14 +76,25 @@
   (timbre/trace "Notification request:" trigger)
   (schema/validate NotificationTrigger trigger)
   (timbre/info "Sending request to topic:" config/aws-sns-storage-topic-arn)
-  (sns/publish
-    {:access-key config/aws-access-key-id
-     :secret-key config/aws-secret-access-key}
-     :topic-arn config/aws-sns-storage-topic-arn
-     :subject (str (name (:notification-type trigger))
-                   " on " (name (:resource-type trigger))
-                   ": " (-> trigger :current :uuid))
-     :message (json/generate-string trigger {:pretty true}))
+  (let [subject (str (name (:notification-type trigger))
+                     " on " (name (:resource-type trigger))
+                     ": " (-> trigger :current :uuid))
+        message (json/generate-string trigger {:pretty true})]
+    (try
+      (sns/publish
+       {:access-key config/aws-access-key-id
+        :secret-key config/aws-secret-access-key}
+       :topic-arn config/aws-sns-storage-topic-arn
+       :subject subject
+       :message message)
+      (catch Exception e
+        (timbre/info "SNS failed with: " e)
+        ;; If an exception occurred write to the kinesis firehouse.
+        (when config/aws-kinesis-stream-name
+          (fh/put-record
+           config/aws-kinesis-stream-name
+           {:subject subject
+            :Message message})))))
   (timbre/info "Request sent to topic:" config/aws-sns-storage-topic-arn))
 
 ;; ----- Event loop -----
