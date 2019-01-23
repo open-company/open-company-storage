@@ -261,10 +261,10 @@
          (map? entry)]}
   (when-let [original-entry (get-entry conn uuid)]
     (let [ts (db-common/current-timestamp)
-          authors-entry (add-author-to-entry original-entry entry user)]
-      (let [updated-entry (update-entry conn authors-entry original-entry ts)]
+          authors-entry (add-author-to-entry original-entry entry user)
+          updated-entry (update-entry conn authors-entry original-entry ts)]
         ;; copy current version to versions table, increment revision uuid
-        (create-version conn updated-entry original-entry)))))
+        (create-version conn updated-entry original-entry))))
 
 (defn upsert-entry!
   "
