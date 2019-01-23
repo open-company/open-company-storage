@@ -26,3 +26,6 @@
 (def comment-collection-media-type "application/vnd.collection+vnd.open-company.comment+json;version=1")
 (def reaction-media-type "application/vnd.open-company.reaction.v1+json")
 (def reaction-collection-media-type "application/vnd.collection+vnd.open-company.reaction+json;version=1")
+
+;; Reminder media types
+(def reminders-list-media-type "application/vnd.collection+vnd.open-company.reminder+json;version=1")

@@ -5,7 +5,7 @@
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.lib.text :as str]
+            [oc.lib.text :as oc-str]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
@@ -80,8 +80,8 @@
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (update :headline #(or (str/strip-xss-tags %) ""))
-          (update :body #(or (str/strip-xss-tags %) ""))
+          (update :headline #(or (oc-str/strip-xss-tags %) ""))
+          (update :body #(or (oc-str/strip-xss-tags %) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
@@ -259,12 +259,12 @@
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)         
          (map? entry)]}
-  (if-let [original-entry (get-entry conn uuid)]
+  (when-let [original-entry (get-entry conn uuid)]
     (let [ts (db-common/current-timestamp)
-          authors-entry (add-author-to-entry original-entry entry user)]
-      (let [updated-entry (update-entry conn authors-entry original-entry ts)]
+          authors-entry (add-author-to-entry original-entry entry user)
+          updated-entry (update-entry conn authors-entry original-entry ts)]
         ;; copy current version to versions table, increment revision uuid
-        (create-version conn updated-entry original-entry)))))
+        (create-version conn updated-entry original-entry))))
 
 (defn upsert-entry!
   "
