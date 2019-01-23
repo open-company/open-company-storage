@@ -37,7 +37,7 @@
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.15"]
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.32"]
+    [open-company/lib "0.16.33"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -79,7 +79,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.5" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.9.6" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]

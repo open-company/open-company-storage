@@ -259,7 +259,7 @@
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)         
          (map? entry)]}
-  (if-let [original-entry (get-entry conn uuid)]
+  (when-let [original-entry (get-entry conn uuid)]
     (let [ts (db-common/current-timestamp)
           authors-entry (add-author-to-entry original-entry entry user)]
       (let [updated-entry (update-entry conn authors-entry original-entry ts)]
