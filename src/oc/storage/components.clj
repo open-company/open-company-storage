@@ -91,7 +91,7 @@
         (dissoc component :auth-notification))
       component)))
 
-(defn db-only-auth-system [_opts]
+(defn db-only-storage-system [_opts]
   (component/system-map
    :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})))
 
