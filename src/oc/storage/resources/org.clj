@@ -157,6 +157,10 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
+      ;; Delete reminders
+      (try
+        (db-common/delete-resource conn "reminders" :org-uuid uuid)
+        (catch java.lang.RuntimeException e)) ; OK if no reminders
       ;; Delete interactions
       (try
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
@@ -265,7 +269,8 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions, entries, boards and orgs
+  ;; Delete all reminders, interactions, entries, boards and orgs
+  (db-common/delete-all-resources! conn "reminders")
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
