@@ -26,7 +26,7 @@
                                                         :secret-key c/aws-secret-access-key}})))))
 
 (defn init-db []
-  (alter-var-root #'system (constantly (components/db-only-auth-system {}))))
+  (alter-var-root #'system (constantly (components/db-only-storage-system {}))))
 
 (defn bind-conn! []
   (alter-var-root #'conn (constantly (pool/claim (get-in system [:db-pool :pool])))))

@@ -48,6 +48,7 @@
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) "ws://localhost:3002"))
 (defonce change-server-ws-url (or (env :change-server-ws-url) "ws://localhost:3006"))
 (defonce notify-server-ws-url (or (env :notify-server-ws-url) "ws://localhost:3010"))
+(defonce reminder-server-url (or (env :reminder-server-url) "http://localhost:3011"))
 
 ;; ----- Liberator -----
 
@@ -69,6 +70,8 @@
 (defonce aws-sqs-search-index-queue (env :aws-sqs-search-index-queue)) ; out-bound to Search
 
 (defonce aws-sns-storage-topic-arn (env :aws-sns-storage-topic-arn)) ; out-bound to listeners
+(defonce aws-kinesis-stream-name (or (env :aws-kinesis-stream-name) false))
+(defonce aws-kinesis-reindex-stream-name (or (env :aws-kinesis-reindex-stream-name) false))
 
 ;; ----- Ziggeo Video Processing -----
 

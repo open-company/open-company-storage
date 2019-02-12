@@ -86,14 +86,6 @@
       {:published-at "2017-10-27T19:12:40.644Z"}))
     (r/run c)))
 
-;; Provide a new slug for an org
-;; Insert a copy with the new slug
-(with-open [c (apply r/connect conn2)]
-  (-> (r/table "orgs")
-      (r/insert (assoc (org/get-org conn "old-slug") :slug "new-slug"))
-      (r/run c)))
-(org/delete-org! conn "old-slug")
-
 ;; for more RethinkDB help, see:
 ;; https://github.com/apa512/clj-rethinkdb
 ;; http://apa512.github.io/clj-rethinkdb/
