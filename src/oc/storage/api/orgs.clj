@@ -265,13 +265,15 @@
                              board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count)
                                           full-boards)
                              authors (:authors org)
-                             author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)]
+                             author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
+                             has-sample-content? (entry-res/sample-entries? conn (:uuid org))]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
                                                  (assoc :must-see-count must-see-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
-                                             user)))
+                                             user
+                                             has-sample-content?)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
@@ -369,10 +371,11 @@
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
-                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))]
+                                                (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))
+                                  has-sample-content? (entry-res/sample-entries? conn (:uuid org))]
                               (api-common/location-response
                                 (org-rep/url slug)
-                                (org-rep/render-org org-for-rep :author (:user ctx))
+                                (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)
                                   mt/org-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
