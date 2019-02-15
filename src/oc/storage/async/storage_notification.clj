@@ -31,11 +31,28 @@
   Callback from Bot (Slack dialog) to create a new post...
   
   {:type 'new-entry'
+   :sub-type 'add_post'
    :response {:channel {:id 'C06SBQ3FD' :name 'general'}
               :response_url 'https://hooks.slack.com/app/T06SBMH60/553636756630/NvLBGZUOTcyXUOoQRAzvc9ID'
               :token 'aLbD1VFXN31DEgpFIvxu32JV'}
    :entry-parts {:status 'post'
-                 :board-slug 'decisions',
+                 :board-slug 'decisions'
+                 :headline 'Foo'
+                 :body 'Bar'}
+   :team-id '6c05-43a8-949a'
+   :author {:name 'Sean Johnson'
+            :user-id 'f9aa-4d64-8b66'
+            :avatar-url 'https://secure.gravatar.com/avatar/866a6350e399e67e749c6f2aef0b96c0.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0020-512.png'}}
+
+  {:type 'new-entry'
+   :sub-type 'save_message'
+   :response {:channel {:id 'C06SBQ3FD' :name 'general'}
+              :response_url 'https://hooks.slack.com/app/T06SBMH60/553636756630/NvLBGZUOTcyXUOoQRAzvc9ID'
+              :token 'aLbD1VFXN31DEgpFIvxu32JV'}
+   :entry-parts {:status 'post'
+                 :board-slug 'decisions'
+                 :quote {:body 'Something profound in Slack.'
+                         :message_ts '1550069782.471208'}
                  :headline 'Foo'
                  :body 'Bar'}
    :team-id '6c05-43a8-949a'
