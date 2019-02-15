@@ -25,10 +25,10 @@
 
 ;; ----- SQS handling -----
 
-(defn- slack-action-event
+(defun- slack-action-event
 
   "
-  Callback from Bot to create a new post...
+  Callback from Bot (Slack dialog) to create a new post...
   
   {:type 'new-entry'
    :response {:channel {:id 'C06SBQ3FD' :name 'general'}
@@ -48,19 +48,32 @@
   ;; original Slack message author?
   ;; format the post
 
-  ; ([db-pool body :guard #(and (= (:type %) "new-entry")
-  ;                             (= (:callback_id %) "save_message_a"))]
-  ; (timbre/debug "Got 'save_message_a' message from Slack:" body))
-  ;             ; signpost (:signpost entry-parts)
-  ;             ; final-signpost (if signpost (str "<p><b>" signpost "</b>") "<p>")
-  ;             ;final-content (if (clojure.string/blank? note) content (str content "<br><br>" note))
+  ([db-pool body :guard #(and (= (:type %) "new-entry")
+                              (or (= (:sub-type %) "save_message_a") (= (:sub-type %) "save_message_b")))]
+  (timbre/debug "Got 'save_message_a' message from Slack:" body)
+  (pool/with-pool [conn db-pool]
+    (if-let* [org-uuid (:uuid (first (org-res/list-orgs-by-teams conn [(:team-id body)] [:uuid])))
+              org (org-res/get-org conn org-uuid)
+              author (:author body)
+              entry-parts (:entry-parts body)
+              board (board-res/get-board conn org-uuid (:board-slug entry-parts))
+              status (if (= (:status entry-parts) "draft") :draft :published)
+              content (str "<p>Said in Slack: \"" (-> entry-parts :quote :body) "\"</p>"
+                           "<p><b>" (:signpost entry-parts) ":</b> " (:body entry-parts) "</p>")
+              entry-map {:headline (:headline entry-parts)
+                         :body content
+                         :status status}
+              new-entry (entry-res/->entry conn (:uuid board) entry-map author)
+              entry-result (entry-res/create-entry! conn new-entry)]
+      (do
+        (timbre/info "Posted entry:" entry-result)
+        (when (= status :published)
+          (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} author nil)))
+          ;; send bot a message to respond back to the user ephemerally)
+      (timbre/error "Unable to post from Slack action for:" body)))))
 
-  ; ([db-pool body :guard #(and (= (:type %) "new-entry")
-  ;                             (= (:callback_id %) "save_message_b"))]
-  ; (timbre/debug "Got 'save_message_b' message from Slack:" body))
-
-  ;([db-pool body :guard #(= (:type %) "new-entry")]
-  [db-pool body]
+  ([db-pool body :guard #(and (= (:type %) "new-entry")
+                              (= (:sub-type %) "add_post"))]
   (timbre/debug "Got 'add_post' message from Slack:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [org-uuid (:uuid (first (org-res/list-orgs-by-teams conn [(:team-id body)] [:uuid])))
@@ -81,7 +94,7 @@
           ;; send bot a message to respond back to the user ephemerally)
       (timbre/error "Unable to post from Slack action for:" body)))))
 
-  ;([_ body] (timbre/debug "Skipped message from Slack:" body)))
+  ([_ body] (timbre/debug "Skipped message from Slack:" body)))
 
 (defn- read-message-body
   "Try to parse as json, otherwise use read-string."
