@@ -29,6 +29,8 @@
     :org-name (schema/maybe schema/Str)
     :org-logo-url (schema/maybe schema/Str)
     :board-name (schema/maybe schema/Str)
+    :board-slug lib-schema/NonBlankStr
+    :entry-uuid lib-schema/UniqueID
     :headline (schema/maybe schema/Str)
     :body (schema/maybe schema/Str)
     :must-see (schema/maybe schema/Bool)
@@ -70,7 +72,9 @@
       :org-slug (:slug org)
       :org-name (:name org)
       :board-name (:name board)
+      :board-slug (:slug board)
       :org-logo-url (:logo-url org)
+      :entry-uuid (:uuid entry)
       :headline (:headline entry)
       :body (:body entry)
       :must-see (:must-see entry)
