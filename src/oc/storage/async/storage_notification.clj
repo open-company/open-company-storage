@@ -25,54 +25,63 @@
 
 ;; ----- SQS handling -----
 
-(defun- slack-action-event
+(defn- slack-action-event
 
-  ([db-pool body :guard #(= (:callback_id %) "add_post")]
-  ;; Callback from Slack action to create a new post
-  ;;
-  ;; {:action_ts "1543514783.571999"
-  ;;  :callback_id "add_post"
-  ;;  :channel {:id "C0AEP1RS9" :name "design"}
-  ;;  :type "dialog_submission"
-  ;;  :state "Body of the message they want to create a post from in Slack MD format."
-  ;;  :token "aLbD1VFXN31DEgpFIvxu32JV"
-  ;;  :team {:id "T06SBMH60", :domain "opencompanyhq"}
-  ;;  :submission {:status "draft"
-  ;;               :section "general"
-  ;;               :title "Title of the new post"
-  ;;               :note "Body of the note they provided (optional)"}
-  ;;  :user {:id "U06SBTXJR", :name "sean"} ; user that added the post (not that created the message originally)
-  ;;  :response_url "https://hooks.slack.com/app/T06SBMH60/491682460629/jnKlMtH6AfT2VuprRqbTM5QI"}
-  ;;
-  ;; Open issues:
-  ;; org?
-  ;; action author's user-id
+  "
+  Callback from Bot to create a new post...
+  
+  {:type 'new-entry'
+   :response {:channel {:id 'C06SBQ3FD' :name 'general'}
+              :response_url 'https://hooks.slack.com/app/T06SBMH60/553636756630/NvLBGZUOTcyXUOoQRAzvc9ID'
+              :token 'aLbD1VFXN31DEgpFIvxu32JV'}
+   :entry-parts {:status 'post'
+                 :board-slug 'decisions',
+                 :headline 'Foo'
+                 :body 'Bar'}
+   :team-id '6c05-43a8-949a'
+   :author {:name 'Sean Johnson'
+            :user-id 'f9aa-4d64-8b66'
+            :avatar-url 'https://secure.gravatar.com/avatar/866a6350e399e67e749c6f2aef0b96c0.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F00b63%2Fimg%2Favatars%2Fava_0020-512.png'}}
+  "
+  ;; TODO:
+  ;; org for multiple teams
   ;; original Slack message author?
-  ;; how to format the post?
-  ;;   w/ note
-  ;;   w/o note
-  (timbre/debug "Got message from Slack:" body)
+  ;; format the post
+
+  ; ([db-pool body :guard #(and (= (:type %) "new-entry")
+  ;                             (= (:callback_id %) "save_message_a"))]
+  ; (timbre/debug "Got 'save_message_a' message from Slack:" body))
+  ;             ; signpost (:signpost entry-parts)
+  ;             ; final-signpost (if signpost (str "<p><b>" signpost "</b>") "<p>")
+  ;             ;final-content (if (clojure.string/blank? note) content (str content "<br><br>" note))
+
+  ; ([db-pool body :guard #(and (= (:type %) "new-entry")
+  ;                             (= (:callback_id %) "save_message_b"))]
+  ; (timbre/debug "Got 'save_message_b' message from Slack:" body))
+
+  ;([db-pool body :guard #(= (:type %) "new-entry")]
+  [db-pool body]
+  (timbre/debug "Got 'add_post' message from Slack:" body)
   (pool/with-pool [conn db-pool]
-    (if-let* [org (org-res/get-org conn "carrot")
-              post (:submission body)
-              board (board-res/get-board conn (:uuid org) (:section post))
-              content (:state body)
-              note (or (:note post) "")
-              status (if (= (:status post) "draft") :draft :published)
-              author {:avatar-url "https://secure.gravatar.com/avatar/866a6350e399e67e749c6f2aef0b96c0.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0020-512.png", :name "Sean Johnson", :user-id "564e-409b-b95c"}
-              final-content (if (clojure.string/blank? note) content (str content "<br><br>" note))
-              entry-map {:headline (:title post) :body final-content :status status}
+    (if-let* [org-uuid (:uuid (first (org-res/list-orgs-by-teams conn [(:team-id body)] [:uuid])))
+              org (org-res/get-org conn org-uuid)
+              author (:author body)
+              entry-parts (:entry-parts body)
+              board (board-res/get-board conn org-uuid (:board-slug entry-parts))
+              status (if (= (:status entry-parts) "draft") :draft :published)
+              entry-map {:headline (:headline entry-parts)
+                         :body (:body entry-parts)
+                         :status status}
               new-entry (entry-res/->entry conn (:uuid board) entry-map author)
               entry-result (entry-res/create-entry! conn new-entry)]
       (do
         (timbre/info "Posted entry:" entry-result)
         (when (= status :published)
-          ; TODO (auto-share-on-publish conn ctx entry-result)
           (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} author nil)))
-        ;; send bot a message to respond back to the user ephemerally)
+          ;; send bot a message to respond back to the user ephemerally)
       (timbre/error "Unable to post from Slack action for:" body)))))
 
-  ([_ body] (timbre/debug "Skipped message from Slack:" body)))
+  ;([_ body] (timbre/debug "Skipped message from Slack:" body)))
 
 (defn- read-message-body
   "Try to parse as json, otherwise use read-string."
@@ -104,9 +113,9 @@
         (if (:stop msg)
           (do (reset! storage-notification-go false) (timbre/info "Storage notification stopped."))
           (try
-            (when (:Message msg) ;; Slack action SNS message
-              (let [msg-parsed (json/parse-string (:Message msg) true)]
-                (slack-action-event db-pool msg-parsed)))
+            (when (= (:type msg) "new-entry")
+              (timbre/trace "Storage notification handling:" msg)
+              (slack-action-event db-pool msg))
             (timbre/trace "Processing complete.")
             (catch Exception e
               (timbre/error e))))))))
