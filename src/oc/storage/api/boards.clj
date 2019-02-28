@@ -174,7 +174,6 @@
         ;; Add any entries specified in the request
         (doseq [entry entries]
           (let [fixed-entry (-> entry
-                                (assoc :status (:status entry))
                                 (assoc :board-uuid board-uuid))
                 entry-action (if (entry-res/get-entry conn (:uuid entry))
                                :update
@@ -184,6 +183,11 @@
                             (entry-res/->entry conn board-uuid fixed-entry user))]
             (timbre/info "Upserting entry for new board:" board-uuid)
             (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
+              ;; Now publish all the entries that are not published already
+              (when (and (= entry-action :update)
+                         (= (keyword (:status new-entry)) :published)
+                         (not (:published-at new-entry)))
+                (entry-res/publish-entry! conn (:uuid new-entry) user))
               (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
               ;; If we are updating an existing draft check if we need to remove the old board
               (when (not= (:board-uuid entry) entry-res/temp-uuid)
