@@ -1,13 +1,13 @@
 [
   {
-    :time-offset 10 ; 10 minutes ago
+    :time-offset 1 ; 1 minutes ago
     :board-slug "general"
     :headline "[SAMPLE] Welcome to Carrot! 👋"
     :body "<p>We're glad you're here!</p><p>Lack of focus and clarity is a big problem in your workplace, right? With all the noise, it’s hard to know what everyone should know.</p><p>Carrot helps leaders rise above the noise to keep everyone on the same page around important information - such as key updates, announcements, and decisions.</p><p>Each day, your team will receive a morning digest that focuses their attention on what matters so everyone starts the day in sync. Each digest is personalized based on what they've already seen, and it's all automatic.</p><p>It’s never been easier to stay caught up. To get started, create a post and invite your team with email or Slack.
 </p>"
   }
   {
-    :time-offset 1477 ; ~1 day ago
+    :time-offset 17 ; 17 minutes ago
     :board-slug "general"
     :headline "[SAMPLE] How teams use Carrot to stay aligned"
     :body "<p>As teams grow, it’s increasingly difficult to stay on the same page. Use Carrot to communicate what matters to your team - and Carrot makes sure everyone sees it. 🚀</p><p>To help you get started, here are some common ways to use Carrot:</p><ul><li>CEO updates</li><li>Major announcements</li><li>Weekly reviews</li><li>New hires</li><li>Important decisions</li><li>Sales updates</li><li>Product releases</li><li>Key metrics and results</li><li>Events</li><li>Customer wins</li><li>Lessons learned</li></ul><p>Carrot gives you the space to say what’s important - and makes it easier for your team to see what you’ve said.</p>"
