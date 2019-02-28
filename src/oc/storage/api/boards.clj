@@ -173,9 +173,7 @@
         (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
         ;; Add any entries specified in the request
         (doseq [entry entries]
-          (let [fixed-entry (-> entry
-                                (assoc :status (:status entry))
-                                (assoc :board-uuid board-uuid))
+          (let [fixed-entry (assoc entry :board-uuid board-uuid)
                 entry-action (if (entry-res/get-entry conn (:uuid entry))
                                :update
                                :add)
@@ -184,12 +182,24 @@
                             (entry-res/->entry conn board-uuid fixed-entry user))]
             (timbre/info "Upserting entry for new board:" board-uuid)
             (let [entry-result (entry-res/upsert-entry! conn new-entry user)]
-              (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result))
+
+              ;; Now publish all the entries that are not published already
+              (if (and (= entry-action :update)
+                       (= (keyword (:status new-entry)) :published)
+                       (not (:published-at new-entry)))
+                
+                (do
+                  (entry-res/publish-entry! conn (:uuid new-entry) user)
+                  (timbre/info "Upserted and published entry for new board:" board-uuid "as" (:uuid entry-result)))
+                
+                (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result)))
+
               ;; If we are updating an existing draft check if we need to remove the old board
               (when (not= (:board-uuid entry) entry-res/temp-uuid)
                 (let [old-board (board-res/get-board conn (:board-uuid entry))
                       remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
                   (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
+
               (when (= (:status entry-result) "published")
                 (when (= :add entry-action)
                   (entries-api/auto-share-on-publish conn (assoc ctx :existing-board board-result) entry-result))
