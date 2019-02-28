@@ -173,8 +173,7 @@
         (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
         ;; Add any entries specified in the request
         (doseq [entry entries]
-          (let [fixed-entry (-> entry
-                                (assoc :board-uuid board-uuid))
+          (let [fixed-entry (assoc entry :board-uuid board-uuid)
                 entry-action (if (entry-res/get-entry conn (:uuid entry))
                                :update
                                :add)
