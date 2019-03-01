@@ -4,7 +4,7 @@
             [defun.core :refer (defun-)]
             [if-let.core :refer (if-let* when-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY)]
+            [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -113,6 +113,22 @@
         [false, {:share-requests (api-common/rep share-requests)}]) ; invalid share request
     
     true)) ; no existing entry, so this will fail existence check later
+
+(defn- entry-list-for-board
+  "Retrieve an entry list for the board, or false if the org or board doesn't exist."
+  [conn org-slug board-slug-or-uuid ctx]
+  (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                         (slugify/valid-slug? board-slug-or-uuid))
+            org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            board (board-res/get-board conn org-uuid board-slug-or-uuid)
+            board-uuid (:uuid board)
+            entries (entry-res/list-entries-by-board conn board-uuid {})]
+    {:existing-org (api-common/rep org)
+     :existing-board (api-common/rep board)
+     :existing-entries (api-common/rep entries)}
+    false))
 
 ;; ----- Actions -----
 
@@ -252,6 +268,16 @@
     {:updated-entry (api-common/rep revert-result)})
   (do (timbre/error "Failed reverting entry:" entry-for) false)))
 
+(defn- delete-sample-entries! [conn ctx]
+  (timbre/info "Remove all sample entries for org:" (:uuid (:existing-org ctx)))
+  (if-let* [org (:existing-org ctx)
+            samples (entry-res/get-sample-entries conn (:uuid org))]
+    (do
+      (doseq [sample samples]
+        (entry-res/delete-entry! conn (:uuid sample)))
+      {:deleted-samples (count samples)})
+    false))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular entry
@@ -333,15 +359,17 @@
 (defresource entry-list [conn org-slug board-slug-or-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
-  :allowed-methods [:options :get :post]
+  :allowed-methods [:options :get :post :delete]
 
   ;; Media type client accepts
   :available-media-types (by-method {
                             :get [mt/entry-collection-media-type]
-                            :post [mt/entry-media-type]})
+                            :post [mt/entry-media-type]
+                            :delete [mt/entry-collection-media-type]})
   :handle-not-acceptable (by-method {
                             :get (api-common/only-accept 406 mt/entry-collection-media-type)
-                            :post (api-common/only-accept 406 mt/entry-media-type)})
+                            :post (api-common/only-accept 406 mt/entry-media-type)
+                            :delete (api-common/only-accept 406 mt/entry-collection-media-type)})
 
   ;; Media type client sends
   :known-content-type? (by-method {
@@ -354,7 +382,8 @@
   :allowed? (by-method {
     :options true
     :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
-    :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -362,27 +391,31 @@
     :get true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
                          (slugify/valid-slug? board-slug-or-uuid)
-                         (valid-new-entry? conn org-slug board-slug-or-uuid ctx)))})
+                         (valid-new-entry? conn org-slug board-slug-or-uuid ctx)))
+    :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug-or-uuid))
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               board (board-res/get-board conn org-uuid board-slug-or-uuid)
-                               board-uuid (:uuid board)
-                               entries (entry-res/list-entries-by-board conn board-uuid {})]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-entries (api-common/rep entries)}
-                        false))
+  :exists? (by-method {
+    :options true
+    :post (partial entry-list-for-board conn org-slug board-slug-or-uuid)
+    :get (partial entry-list-for-board conn org-slug board-slug-or-uuid)
+    :delete (fn [ctx]
+              (if-let* [_slugs? (slugify/valid-slug? org-slug)
+                        org (or (:existing-org ctx)
+                                (org-res/get-org conn org-slug))]
+                {:existing-org (api-common/rep org)}
+                false))})
 
   ;; Actions
   :post! (fn [ctx] (create-entry conn ctx (s/join " " [org-slug (:slug (:existing-board ctx))])))
+  :delete! (fn [ctx] (delete-sample-entries! conn ctx))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
-                          (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
+  :handle-ok (by-method {
+    :get (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
+                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
+    :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
+                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))})
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
@@ -648,6 +681,23 @@
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
+      ;; Delete sample posts
+      (OPTIONS "/orgs/:org-slug/entries/samples"
+        [org-slug]
+        (pool/with-pool [conn db-pool]
+          (entry-list conn org-slug nil)))
+      (OPTIONS "/orgs/:org-slug/entries/samples/"
+        [org-slug]
+        (pool/with-pool [conn db-pool]
+          (entry-list conn org-slug nil)))
+      (DELETE "/orgs/:org-slug/entries/samples"
+        [org-slug]
+        (pool/with-pool [conn db-pool]
+          (entry-list conn org-slug nil)))
+      (DELETE "/orgs/:org-slug/entries/samples/"
+        [org-slug]
+        (pool/with-pool [conn db-pool]
+          (entry-list conn org-slug nil)))
       ;; Secure UUID access
       (ANY "/orgs/:org-slug/entries/:secure-uuid"
         [org-slug secure-uuid]

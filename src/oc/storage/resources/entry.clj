@@ -142,6 +142,14 @@
                                    (assoc :revision-id revision-id)
                                    (assoc :deleted true)))))
 
+;; Sample content handling
+
+(defn sample-entries? [conn org-uuid]
+  (pos? (count (db-common/read-resources conn table-name "org-uuid-sample" [[org-uuid true]]))))
+
+(defn get-sample-entries [conn org-uuid]
+  (db-common/read-resources conn table-name "org-uuid-sample" [[org-uuid true]]))
+
 (schema/defn ^:always-validate create-entry! :- (schema/maybe common/Entry)
   "
   Create an entry for the board. Returns the newly created entry.

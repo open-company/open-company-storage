@@ -24,6 +24,9 @@
 (defn- board-create-link [org] (hateoas/create-link (str (url org) "/boards/") {:content-type mt/board-media-type
                                                                                 :accept mt/board-media-type}))
 
+(defn- delete-samples-link [org]
+  (hateoas/link-map "delete-samples" hateoas/DELETE (str (url org) "/entries/samples") {:content-type mt/entry-collection-media-type}))
+
 (defn- board-pre-flight-create-link [org] (dissoc (assoc (board-create-link org) :rel "pre-flight-create") :accept))
 
 (defn- add-author-link [org] 
@@ -87,7 +90,7 @@
         {:accept mt/reminders-list-media-type}))
     org))
 
-(defn- org-links [org access-level user]
+(defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
@@ -98,8 +101,11 @@
                                               (board-pre-flight-create-link org)
                                               (partial-update-link org)
                                               (add-author-link org)])
-                      activity-links)]
-    (assoc org :links full-links)))
+                      activity-links)
+        with-remove-samples-link (if sample-content?
+                                   (concat full-links [(delete-samples-link org)])
+                                   full-links)]
+    (assoc org :links with-remove-samples-link)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
 
@@ -111,7 +117,7 @@
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
-  [org access-level user]
+  [org access-level user sample-content?]
   (let [slug (:slug org)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                     representation-props
@@ -120,7 +126,7 @@
     (json/generate-string
       (-> org
         (assoc :default-board-names (vec (sort config/default-board-names)))
-        (org-links access-level user)
+        (org-links access-level user sample-content?)
         (change-link access-level user)
         (notify-link access-level user)
         (interactions-link access-level user)

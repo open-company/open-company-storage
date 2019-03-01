@@ -1,0 +1,12 @@
+(ns oc.storage.db.migrations.create-sample-entries-org-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.entry :as entry]))
+
+(defn up [conn]
+  ;; Do great things
+  (println (m/create-compound-index conn entry/table-name "org-uuid-sample"
+    (r/fn [row] [(r/get-field row "org-uuid")
+                 (r/get-field row "sample")])))
+  true) ; return true on success
