@@ -36,8 +36,9 @@
     [medley "1.1.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.15"]
+    
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.16.33"]
+    [open-company/lib "0.16.37"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -58,7 +59,7 @@
   ;; All profile plugins
   :plugins [
     ;; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-ring "0.12.4"]
+    [lein-ring "0.12.5"]
     ;; Get environment settings from different sources https://github.com/weavejester/environ
     [lein-environ "1.1.0"]
   ]
