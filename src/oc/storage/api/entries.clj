@@ -4,7 +4,7 @@
             [defun.core :refer (defun-)]
             [if-let.core :refer (if-let* when-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY)]
+            [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
@@ -113,6 +113,22 @@
         [false, {:share-requests (api-common/rep share-requests)}]) ; invalid share request
     
     true)) ; no existing entry, so this will fail existence check later
+
+(defn- entry-list-for-board
+  "Retrieve an entry list for the board, or false if the org or board doesn't exist."
+  [conn org-slug board-slug-or-uuid ctx]
+  (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                         (slugify/valid-slug? board-slug-or-uuid))
+            org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            board (board-res/get-board conn org-uuid board-slug-or-uuid)
+            board-uuid (:uuid board)
+            entries (entry-res/list-entries-by-board conn board-uuid {})]
+    {:existing-org (api-common/rep org)
+     :existing-board (api-common/rep board)
+     :existing-entries (api-common/rep entries)}
+    false))
 
 ;; ----- Actions -----
 
@@ -339,19 +355,6 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
 
-(defn- entry-list-exists-with-board [conn org-slug board-slug-or-uuid ctx]
-  (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                         (slugify/valid-slug? board-slug-or-uuid))
-            org (or (:existing-org ctx)
-                    (org-res/get-org conn org-slug))
-            org-uuid (:uuid org)
-            board (board-res/get-board conn org-uuid board-slug-or-uuid)
-            board-uuid (:uuid board)
-            entries (entry-res/list-entries-by-board conn board-uuid {})]
-    {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-     :existing-entries (api-common/rep entries)}
-    false))
-
 ;; A resource for operations on all entries of a particular board
 (defresource entry-list [conn org-slug board-slug-or-uuid]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
@@ -394,8 +397,8 @@
   ;; Existentialism
   :exists? (by-method {
     :options true
-    :post (partial entry-list-exists-with-board conn org-slug board-slug-or-uuid)
-    :get (partial entry-list-exists-with-board conn org-slug board-slug-or-uuid)
+    :post (partial entry-list-for-board conn org-slug board-slug-or-uuid)
+    :get (partial entry-list-for-board conn org-slug board-slug-or-uuid)
     :delete (fn [ctx]
               (if-let* [_slugs? (slugify/valid-slug? org-slug)
                         org (or (:existing-org ctx)
@@ -679,11 +682,19 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Delete sample posts
-      (ANY "/orgs/:org-slug/entries/samples"
+      (OPTIONS "/orgs/:org-slug/entries/samples"
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (ANY "/orgs/:org-slug/entries/samples/"
+      (OPTIONS "/orgs/:org-slug/entries/samples/"
+        [org-slug]
+        (pool/with-pool [conn db-pool]
+          (entry-list conn org-slug nil)))
+      (DELETE "/orgs/:org-slug/entries/samples"
+        [org-slug]
+        (pool/with-pool [conn db-pool]
+          (entry-list conn org-slug nil)))
+      (DELETE "/orgs/:org-slug/entries/samples/"
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
