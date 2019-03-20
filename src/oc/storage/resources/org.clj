@@ -55,7 +55,7 @@
                       "investor" "investors" "invite" "ios" "jobs" "login" "logout"
                       "news" "newsletter" "press" "press-kit" "pricing" "privacy" "profile" "register" "reset"
                       "section" "sections" "signin" "signout" "signup" "sign-up"
-                      "subscription-completed" "team" "terms"
+                      "subscription-completed" "team" "terms" "500" "404"
                       "update" "updates" "stuart" "sean" "iacopo" "nathan"})
 
 (declare list-orgs)
