@@ -97,10 +97,15 @@
                           (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications :note :pre-flight :exclude)
-                        (assoc :entries entry-data))]
-        {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
-         :existing-org (api-common/rep org)
-         :notifications (api-common/rep notifications)})
+                        (assoc :entries entry-data))
+            org-visibility-settings (or (:visibility-settings org) {})
+            disallow-public-board-setting? (:disallow-public-board org-visibility-settings)]
+        (if (and (= (:access board-map) "public")
+                 disallow-public-board-setting?)
+          [false, {:reason :disallowed-public-board}]
+          {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
+           :existing-org (api-common/rep org)
+           :notifications (api-common/rep notifications)}))
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
@@ -109,14 +114,20 @@
 (defn- valid-board-update? [conn org-slug slug board-props]
   (if-let* [org (org-res/get-org conn org-slug)
             board (board-res/get-board conn (:uuid org) slug)
-            board-data (dissoc board-props :private-notifications :note)]
-    (let [updated-board (merge board (board-res/clean board-data))]
-      (if (lib-schema/valid? common-res/Board updated-board)
-        {:existing-org (api-common/rep org)
-         :existing-board (api-common/rep board)
-         :board-update (api-common/rep updated-board)
-         :notifications (api-common/rep (:private-notifications board-props))}
-        [false, {:board-update (api-common/rep updated-board)}])) ; invalid update
+            board-data (dissoc board-props :private-notifications :note)
+            org-visibility-settings (or (:visibility-settings org) {})
+            disallow-public-board-setting? (:disallow-public-board org-visibility-settings)]
+    (if (and disallow-public-board-setting?
+             (not= (:access board-data) "public")
+             (= (:access board-props) "public"))
+      [false, {:reason :disallowed-public-board}]
+      (let [updated-board (merge board (board-res/clean board-data))]
+        (if (lib-schema/valid? common-res/Board updated-board)
+          {:existing-org (api-common/rep org)
+           :existing-board (api-common/rep board)
+           :board-update (api-common/rep updated-board)
+           :notifications (api-common/rep (:private-notifications board-props))}
+          [false, {:board-update (api-common/rep updated-board)}]))) ; invalid update
     true)) ; No org or board, so this will fail existence check later
 
 ;; ----- Actions -----
