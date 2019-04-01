@@ -50,6 +50,11 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
+(def ContentVisibility {
+  (schema/optional-key :disallow-secure-links) schema/Bool
+  (schema/optional-key :disallow-public-board) schema/Bool
+  (schema/optional-key :disallow-public-share) schema/Bool})
+
 (def Org {
   :uuid lib-schema/UniqueID
   :name lib-schema/NonBlankStr
@@ -62,7 +67,8 @@
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
+  :updated-at lib-schema/ISO8601
+  (schema/optional-key :content-visibility) ContentVisibility})
 
 (def ShareMedium (schema/pred #(#{:email :slack} (keyword %))))
 
