@@ -97,11 +97,9 @@
                           (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications :note :pre-flight :exclude)
-                        (assoc :entries entry-data))
-            org-visibility-settings (or (:visibility-settings org) {})
-            disallow-public-board-setting? (:disallow-public-board org-visibility-settings)]
-        (if (and (= (:access board-map) "public")
-                 disallow-public-board-setting?)
+                        (assoc :entries entry-data))]
+        (if (and (:disallow-public-board (or (:content-visibility org) {}))
+                 (= (:access board-data) "public"))
           [false, {:reason :disallowed-public-board}]
           {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
            :existing-org (api-common/rep org)
@@ -114,12 +112,10 @@
 (defn- valid-board-update? [conn org-slug slug board-props]
   (if-let* [org (org-res/get-org conn org-slug)
             board (board-res/get-board conn (:uuid org) slug)
-            board-data (dissoc board-props :private-notifications :note)
-            org-visibility-settings (or (:visibility-settings org) {})
-            disallow-public-board-setting? (:disallow-public-board org-visibility-settings)]
-    (if (and disallow-public-board-setting?
-             (not= (:access board-data) "public")
-             (= (:access board-props) "public"))
+            board-data (dissoc board-props :private-notifications :note)]
+    (if (and (:disallow-public-board (or (:content-visibility org) {}))
+             (not= (:access board) "public")
+             (= (:access board-data) "public"))
       [false, {:reason :disallowed-public-board}]
       (let [updated-board (merge board (board-res/clean board-data))]
         (if (lib-schema/valid? common-res/Board updated-board)
