@@ -54,9 +54,9 @@
                       "faq" "features" "forum" "forums" "founder" "founders" "help" "home"
                       "investor" "investors" "invite" "ios" "jobs" "login" "logout"
                       "news" "newsletter" "press" "press-kit" "pricing" "privacy" "profile" "register" "reset"
-                      "section" "sections" "signin" "signout" "signup" "sign-up"
-                      "subscription-completed" "team" "terms" "500" "404"
-                      "update" "updates" "stuart" "sean" "iacopo" "nathan"})
+                      "section" "sections" "signin" "signout" "signup" "sign-up" "verify" "email-required" "login-wall"
+                      "subscription-completed" "team" "terms" "500" "404" "slack-lander" "slack" "google"
+                      "update" "updates" "stuart" "sean" "iacopo" "nathan" "ryan"})
 
 (declare list-orgs)
 (defn taken-slugs
