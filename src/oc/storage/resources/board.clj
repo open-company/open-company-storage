@@ -263,7 +263,6 @@
 (defn maybe-delete-draft-board
   "Check if a board is actually a draft board and if it has no more entries remove it."
   [conn org board remaining-entries user]
-  (timbre/info "maybe-delete-draft-board" (:uuid board) "draft?" (:draft board) "entries" (count remaining-entries))
   (when (and ;; if it's a draft board
              (:draft board)
              ;; and has no more entries
