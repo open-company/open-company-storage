@@ -629,9 +629,13 @@
 
   ;; Authorization
   :allowed? (fn [ctx]
-              (if (:id-token ctx)
-                (= secure-uuid (:secure-uuid (:user ctx)))
-                true))
+              (let [org (or (:existing-org ctx)
+                            (org-res/get-org conn org-slug))]
+                (if (-> org :content-visibility :disallow-secure-links)
+                  false ; org doesn't allow secure links
+                  (if (:id-token ctx) ; logged-in?
+                    (= secure-uuid (:secure-uuid (:user ctx))) ; ensure secured UUID is for the logged in user
+                    true)))) ; not logged in are allowed by using the secure link
 
   ;; Media type client accepts
   :available-media-types (by-method {

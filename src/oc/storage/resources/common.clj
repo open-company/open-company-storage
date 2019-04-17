@@ -64,11 +64,11 @@
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
+  (schema/optional-key :content-visibility) ContentVisibility
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601
-  (schema/optional-key :content-visibility) ContentVisibility})
+  :updated-at lib-schema/ISO8601})
 
 (def ShareMedium (schema/pred #(#{:email :slack} (keyword %))))
 
