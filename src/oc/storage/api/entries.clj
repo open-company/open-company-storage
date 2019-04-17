@@ -630,11 +630,11 @@
   ;; Authorization
   :allowed? (fn [ctx]
               (let [org (or (:existing-org ctx)
-                            (org-res/get-org conn org-slug))]
-                (if (-> org :content-visibility :disallow-secure-links)
-                  false ; org doesn't allow secure links
-                  (if (:id-token ctx) ; logged-in?
-                    (= secure-uuid (:secure-uuid (:user ctx))) ; ensure secured UUID is for the logged in user
+                            (org-res/get-org conn org-slug))]                
+                (if (:id-token ctx) ; access by secure link
+                  (= secure-uuid (:secure-uuid (:user ctx))) ; ensure secured UUID from secure link is for this entry
+                  (if (-> org :content-visibility :disallow-public-share)
+                    false ; org doesn't allow secure links                  
                     true)))) ; not logged in are allowed by using the secure link
 
   ;; Media type client accepts
