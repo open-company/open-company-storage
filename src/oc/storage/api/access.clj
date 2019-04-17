@@ -72,8 +72,10 @@
       ;; a team member of this org
       ((set teams) (:team-id org)) {:access-level :viewer}
       
-      ;; public access to orgs w/ at least 1 public board
-      (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
+      ;; public access to orgs w/ at least 1 public board AND that allow public boards
+      (and
+        (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
+        (not (-> org :content-visibility :disallow-public-board)))
         {:access-level :public}
       
       ;; no access
@@ -127,8 +129,9 @@
       ;; a team member on a non-private board
       (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
       
-      ;; anyone else on a public board
-      (= board-access :public) {:access-level :public}
+      ;; anyone else on a public board IF the org allows public boards
+      (and (= board-access :public) (not (-> org :content-visibility :disallow-public-board)))
+      {:access-level :public}
       
       ;; no access
       :else false))))

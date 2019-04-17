@@ -7,8 +7,8 @@
             [oc.storage.representations.media-types :as mt]))
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
-                           :boards :created-at :updated-at])
-(def representation-props (concat public-representation-props [:author :authors :must-see-count :default-board-names]))
+                                  :boards :created-at :updated-at ])
+(def representation-props (concat public-representation-props [:author :authors :must-see-count :default-board-names :content-visibility]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
