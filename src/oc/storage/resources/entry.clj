@@ -82,6 +82,7 @@
           (update :status #(or % "draft"))
           (update :headline #(or (oc-str/strip-xss-tags %) ""))
           (update :body #(or (oc-str/strip-xss-tags %) ""))
+          (update :abstract #(or (oc-str/strip-xss-tags %) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)

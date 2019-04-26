@@ -99,6 +99,7 @@
 
   :headline schema/Str
   :body schema/Str
+  (schema/optional-key :abstract) (schema/maybe schema/Str)
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
