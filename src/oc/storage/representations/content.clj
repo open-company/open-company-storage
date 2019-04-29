@@ -5,6 +5,10 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
+(defn- change-url
+  ([resource-uuid]
+   (str config/change-server-url "/change/read/post/" resource-uuid)))
+
 (defun- interaction-url
 
   ([org-uuid board-uuid resource-uuid]
@@ -34,6 +38,10 @@
     (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
                                                           {:count (count comments)
                                                            :authors (comment-authors comments)})))
+
+(defn mark-unread-link [resource-uuid]
+  (let [mark-unread-url (change-url resource-uuid)]
+    (hateoas/link-map "mark-unread" hateoas/DELETE mark-unread-url {})))
 
 (defn- react-link [org-uuid board-uuid resource-uuid reaction]
   (let [react-url (interaction-url org-uuid board-uuid resource-uuid reaction)]
