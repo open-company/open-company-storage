@@ -5,7 +5,8 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.text :as str]
-            [oc.storage.config :as config]))
+            [oc.storage.config :as config]
+            [clojure.string :as cstr]))
 
 (def BotTrigger 
   "All Slack bot triggers have the following properties."
@@ -58,14 +59,15 @@
   "Given an entry for an org and a share request, create the share trigger."
   [org board entry share-request user]
   (let [slack-org-id (-> share-request :channel :slack-org-id)
+        slack-channel-id (-> share-request :channel :channel-id)
         comments (:existing-comments entry)
         comment-count (str (count comments))]
     {
       :type "share-entry"
       :receiver {
-        :type :channel
+        :type (if (cstr/starts-with? slack-channel-id "U") :user :channel)
         :slack-org-id slack-org-id
-        :id (-> share-request :channel :channel-id)
+        :id slack-channel-id
       }
       :bot (bot-for slack-org-id user)
       :note (str/strip-xss-tags (:note share-request))

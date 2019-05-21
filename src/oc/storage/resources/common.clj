@@ -73,13 +73,17 @@
 (def ShareMedium (schema/pred #(#{:email :slack} (keyword %))))
 
 (def ShareRequest {
-  :medium ShareMedium
+  ;; Requesting client can specify :medium OR :user-id. In the
+  ;; latter case the target user's notification preferences
+  ;; will be queried and used as the medium
+  (schema/optional-key :medium) ShareMedium
+  (schema/optional-key :user-id) lib-schema/UniqueID
   (schema/optional-key :note) (schema/maybe schema/Str)
-  
+
   ;; Email medium
   (schema/optional-key :to) [lib-schema/EmailAddress]
   (schema/optional-key :subject) (schema/maybe schema/Str)
-  
+
   ;; Slack medium
   (schema/optional-key :channel) lib-schema/SlackChannel
 

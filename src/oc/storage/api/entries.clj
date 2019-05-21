@@ -7,6 +7,7 @@
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
+            [oc.lib.auth :as auth]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
@@ -44,6 +45,44 @@
   ([org board entry user share-request :guard #(= "slack" (:medium %))]
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
+
+(defn- route-share-request-to-slack-target
+  [share-request {:as target-user :keys [slack-users]}]
+  (letfn [(fan-out-requests [reqs [_org-key slack-data]]
+            (conj reqs
+                  (merge share-request
+                         {:medium  "slack"
+                          :channel {:slack-org-id (:slack-org-id slack-data)
+                                    :channel-id   (:id slack-data)
+                                    :channel-name (:display-name slack-data)}})))]
+    (reduce fan-out-requests [] slack-users)))
+
+(defn- route-share-request-to-email-target
+  [share-request {:as target-user :keys [email]}]
+  (merge share-request {:medium "email"
+                        :to [email]}))
+
+(defn- route-share-request
+  "Given a share request, routes the request via the proper medium.
+  If `:user-id` is present in the request map, this function will fetch the
+  target's reminder medium preference, and return a sequence of targeted share
+  requests for that specific user. Why a sequence? Because a slack user may have
+  connected more than one account, or may have more than one email address, etc.
+  If `:user-id` is not present however, then it is assumed that the caller has
+  already determined the proper medium, and so the request is returned unchanged
+  (still as a sequence for consistency)."
+  [share-request]
+  (if-let [user-id (:user-id share-request)]
+    (let [target-user-data (auth/user-data share-request config/auth-server-url config/passphrase "storage")
+          desired-medium   (:reminder-medium target-user-data)]
+      (case desired-medium
+        "slack" (route-share-request-to-slack-target share-request target-user-data)
+        "email" [(route-share-request-to-email-target share-request target-user-data)]
+        ;; TODO: add a "none" option
+        [share-request] ;; default: let share-request thru unrouted
+        ))
+    ;; Otherwise assume caller has routed the request themselves (e.g. auto-share)
+    [share-request]))
 
 (declare auto-share-on-publish)
 
@@ -138,17 +177,28 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             user (:user ctx)
-            share-requests (:share-requests ctx)
-            shared {:shared (take 50 (reverse (sort-by :shared-at (concat (or (:shared entry) []) share-requests))))}
-            update-result (entry-res/update-entry-no-version! conn (:uuid entry) shared user)
-            entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
-    (do
-      (when (and (seq? share-requests) (any? share-requests))
-        (trigger-share-requests org board (assoc entry-with-comments :auto-share (:auto-share ctx)) user share-requests))
-      (timbre/info "Shared entry:" entry-for)
-      {:updated-entry (api-common/rep update-result)})
-    (do
-      (timbre/error "Failed sharing entry:" entry-for) false)))
+
+            share-requests (doall (mapcat route-share-request (:share-requests ctx)))
+            _share-requests? (seq share-requests)
+
+            ;; Updated share history of entry
+            new-share-history {:shared (->> share-requests
+                                            (concat (or (:shared entry) []))
+                                            (sort-by :shared-at)
+                                            reverse
+                                            (take 50))}
+
+            ;; Include comment data in the trigger
+            existing-comments (entry-res/list-comments-for-entry conn (:uuid entry))
+            entry-with-comments (-> entry
+                                    (assoc :existing-comments existing-comments)
+                                    (assoc :auto-share (:auto-share ctx)))]
+    (do (trigger-share-requests org board entry-with-comments user share-requests)
+        (timbre/info "Shared entry:" entry-for)
+        {:updated-entry (-> (entry-res/update-entry-no-version! conn (:uuid entry) new-share-history user)
+                            api-common/rep)})
+    (do (timbre/error "Failed sharing entry:" entry-for)
+        false)))
 
 (defn auto-share-on-publish
   [conn ctx entry-result]
