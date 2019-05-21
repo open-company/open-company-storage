@@ -204,7 +204,8 @@
     (do (trigger-share-requests org board entry-with-comments user share-requests)
         (timbre/info "Shared entry:" entry-for)
         {:updated-entry (-> (entry-res/update-entry-no-version! conn (:uuid entry) new-share-history user)
-                            api-common/rep)})
+                            api-common/rep)
+         :sent-share-requests share-requests})
     (do (timbre/error "Failed sharing entry:" entry-for)
         false)))
 
@@ -658,23 +659,18 @@
                                comments (or (:existing-comments ctx)
                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))] 
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
                          :existing-reactions (api-common/rep reactions)}
                         false))
-  
+
   ;; Actions
   :post! (fn [ctx] (share-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
 
   ;; Responses
-  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
-                                               (:existing-board ctx)
-                                               (:updated-entry ctx)
-                                               (:existing-comments ctx)
-                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
-                                               (-> ctx :user :user-id)))
+  :handle-ok (fn [ctx] (api-common/json-response (:sent-share-requests ctx) 200))
+
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-requests ctx)))))
 
