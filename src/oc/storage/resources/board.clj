@@ -110,6 +110,7 @@
         (update :name #(str/strip-xss-tags %))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
+        (update :entries #(or % []))
         (assoc :authors [(:user-id user)])
         (assoc :viewers [])
         (assoc :author (lib-schema/author-for-user user))
