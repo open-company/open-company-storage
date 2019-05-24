@@ -105,9 +105,7 @@
         board-uuid (:uuid board)
         board-slug (:slug board)
         draft? (= :draft (keyword (:status entry)))
-        full-entry (if draft?
-                      (merge {:board-slug (:slug board) :board-name (:name board)} entry)
-                      entry)
+        full-entry (merge {:board-slug board-slug :board-name (:name board)} entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
@@ -157,8 +155,7 @@
           ;; "stand-alone", so include extra props
           (-> org
             (clojure.set/rename-keys org-prop-mapping)
-            (merge full-entry)
-            (assoc :board-slug board-slug))
+            (merge full-entry))
           full-entry)
       (select-keys representation-props)
       (include-secure-uuid secure-uuid access-level)
