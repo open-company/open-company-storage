@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.1-beta2"]
+    [org.clojure/clojure "1.10.1-RC1"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.4.2"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -33,12 +33,12 @@
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.1"]
     ;; Utility functions https://github.com/weavejester/medley
-    [medley "1.1.0"]
+    [medley "1.2.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.4.15"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.5"]
+    [open-company/lib "0.17.9"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
