@@ -58,12 +58,14 @@
   "Given an entry for an org and a share request, create the share trigger."
   [org board entry share-request user]
   (let [slack-org-id (-> share-request :channel :slack-org-id)
+        channel-type (or (-> share-request :channel :type keyword)
+                         :channel)
         comments (:existing-comments entry)
         comment-count (str (count comments))]
     {
       :type "share-entry"
       :receiver {
-        :type :channel
+        :type channel-type
         :slack-org-id slack-org-id
         :id (-> share-request :channel :channel-id)
       }
