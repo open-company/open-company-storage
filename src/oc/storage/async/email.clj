@@ -22,6 +22,7 @@
    :org-logo-height (schema/maybe schema/Int)
    :board-name (schema/maybe schema/Str)
    :headline schema/Str
+   :abstract (schema/maybe schema/Str)
    :body (schema/maybe schema/Str)
    :must-see (schema/maybe schema/Bool)
    :video-id (schema/maybe schema/Str)
@@ -47,6 +48,7 @@
    :org-logo-height (:logo-height org)
    :board-name (:name board)
    :headline (:headline entry)
+   :abstract (:abstract entry)
    :body (:body entry)
    :must-see (:must-see entry)
    :video-id (:video-id entry)
