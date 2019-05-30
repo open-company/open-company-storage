@@ -26,6 +26,10 @@
 
 (def default-promoted false)
 
+(def content-visibility {:disallow-secure-links false
+                         :disallow-public-board false
+                         :disallow-public-share false})
+
 ;; ----- Utility functions -----
 
 (defn clean
@@ -96,6 +100,7 @@
         (update :logo-width #(or % 0))
         (update :logo-height #(or % 0))
         (assoc :author (lib-schema/author-for-user user))
+        (assoc :content-visibility content-visibility)
         (assoc :created-at ts)
         (assoc :updated-at ts)))))
 

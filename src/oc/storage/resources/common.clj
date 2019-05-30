@@ -50,6 +50,11 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
+(def ContentVisibility {
+  (schema/optional-key :disallow-secure-links) schema/Bool
+  (schema/optional-key :disallow-public-board) schema/Bool
+  (schema/optional-key :disallow-public-share) schema/Bool})
+
 (def Org {
   :uuid lib-schema/UniqueID
   :name lib-schema/NonBlankStr
@@ -59,6 +64,7 @@
   (schema/optional-key :logo-width) schema/Int
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
+  (schema/optional-key :content-visibility) ContentVisibility
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
@@ -93,6 +99,7 @@
 
   :headline schema/Str
   :body schema/Str
+  (schema/optional-key :abstract) (schema/maybe schema/Str)
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]

@@ -16,7 +16,7 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:uuid :headline :body :attachments :status :must-see :sample
+(def representation-props [:uuid :headline :body :abstract :attachments :status :must-see :sample
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name 
                            :team-id :author :publisher :published-at
@@ -105,9 +105,7 @@
         board-uuid (:uuid board)
         board-slug (:slug board)
         draft? (= :draft (keyword (:status entry)))
-        full-entry (if draft?
-                      (merge {:board-slug (:slug board) :board-name (:name board)} entry)
-                      entry)
+        full-entry (merge {:board-slug board-slug :board-name (:name board)} entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
@@ -128,11 +126,13 @@
                                    (secure-link org-slug secure-uuid)
                                    (revert-link org-slug board-slug entry-uuid)
                                    (content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
+                                   (content/mark-unread-link entry-uuid)])
                     ;; Access by viewers get comments
                     (= access-level :viewer)
                     (concat links [(content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
+                                   (content/mark-unread-link entry-uuid)])
                     ;; Everyone else is read-only
                     :else links)
         react-links (if (and
@@ -155,8 +155,7 @@
           ;; "stand-alone", so include extra props
           (-> org
             (clojure.set/rename-keys org-prop-mapping)
-            (merge full-entry)
-            (assoc :board-slug board-slug))
+            (merge full-entry))
           full-entry)
       (select-keys representation-props)
       (include-secure-uuid secure-uuid access-level)

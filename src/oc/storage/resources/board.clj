@@ -110,6 +110,7 @@
         (update :name #(str/strip-xss-tags %))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
+        (update :entries #(or % []))
         (assoc :authors [(:user-id user)])
         (assoc :viewers [])
         (assoc :author (lib-schema/author-for-user user))
@@ -263,7 +264,6 @@
 (defn maybe-delete-draft-board
   "Check if a board is actually a draft board and if it has no more entries remove it."
   [conn org board remaining-entries user]
-  (timbre/info "maybe-delete-draft-board" (:uuid board) "draft?" (:draft board) "entries" (count remaining-entries))
   (when (and ;; if it's a draft board
              (:draft board)
              ;; and has no more entries
