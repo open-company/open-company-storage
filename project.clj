@@ -6,7 +6,7 @@
     :url "https://www.gnu.org/licenses/agpl-3.0.en.html"
   }
 
-  :min-lein-version "2.7.1"
+  :min-lein-version "2.9.1"
 
   ;; JVM memory
   :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
@@ -38,7 +38,7 @@
     [zprint "0.4.15"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.9"]
+    [open-company/lib "0.17.10"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
