@@ -18,7 +18,7 @@
 
 (def representation-props [:uuid :headline :body :abstract :attachments :status :must-see :sample
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
-                           :board-uuid :board-slug :board-name 
+                           :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
                            :created-at :updated-at :revision-id])
@@ -104,8 +104,11 @@
         org-slug (:slug org)
         board-uuid (:uuid board)
         board-slug (:slug board)
+        board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
-        full-entry (merge {:board-slug board-slug :board-name (:name board)} entry)
+        full-entry (merge {:board-slug board-slug
+                           :board-access board-access
+                           :board-name (:name board)} entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))

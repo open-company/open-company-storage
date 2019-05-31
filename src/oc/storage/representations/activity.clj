@@ -44,7 +44,9 @@
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org activity comments reactions access-level user-id]
-  (entry-rep/render-entry-for-collection org {:slug (:board-slug activity) :uuid (:board-uuid activity)}
+  (entry-rep/render-entry-for-collection org {:slug (:board-slug activity)
+                                              :access (:board-access activity)
+                                              :uuid (:board-uuid activity)}
     activity comments reactions access-level user-id))
 
 (defn render-activity-list
