@@ -1,9 +1,10 @@
 [
   {
-    :time-offset 1 ; 1 minutes ago
+    :time-offset 15 ; 15 minutes ago
     :board-slug "general"
     :headline "Welcome to Carrot 👋"
     :abstract ""
     :body "<p>Getting started with Carrot is easy. Check out our <a href='#''>Quick Start video</a> for tips, or go ahead and create a test post. <a href='#'' onclick='javascript:drift.api.startInteraction({interactionId: 42861});return false;''>Chat with us</a> if you have any questions.</p><p>We're thrilled you decided to give Carrot a try! Chat is great when everyone is working online at the same time, but it’s difficult to know what messages matter when working asynchronously. Carrot provides a calm space for distributed teams to have meaningful discussions.</p><p>Here are some common ways teams use Carrot:</p><ul><li>Announcements</li><li>Weekly reviews</li><li>HR and new hires</li><li>Decisions</li><li>CEO updates</li><li>Team updates</li><li>Product releases</li><li>Key metrics and results</li><li>Events</li></ul><p>To ensure your posts get read, we send out a Daily digest each morning so it’s easy to stay caught up. Unsure who’s read your post? Carrot tracks who’s read what and lets you know.</p><p>Using Slack for chat? Turn on our <a href='#' onclick='javascript:OCWebStaticOpenIntegrationsPanel();return false;'>Slack integration</a> to send Carrot posts into specific Slack channels.</p><p>Questions, ideas, or just feeling talkative? <a href=\"#\" onclick=\"drift.api.startInteraction({interactionId: 42861});return false;\">Chat with us!</a> In the meantime, create a test post and invite your team with email or Slack.</p>"
+    :author {:name "Carrot Bot" :avatar-url "/img/ML/happy_face_yellow.svg" :user-id "9999-9999-9999"}
   }
 ]
