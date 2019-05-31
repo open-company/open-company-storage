@@ -39,7 +39,7 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 
 #### Java
 
-Your system already has Java 12+ installed. You can verify this with:
+Your system may already have Java 12+ installed. You can verify this with:
 
 ```console
 java -version
@@ -50,7 +50,7 @@ If you do not have Java 12+ [download it](http://www.oracle.com/technetwork/java
 An option we recommend is [OpenJDK](https://openjdk.java.net/). There are [instructions for Linux](https://openjdk.java.net/install/index.html) and [Homebrew](https://brew.sh/) can be used to install OpenJDK on a Mac with:
 
 ```
-brew cask install adoptopenjdk
+brew update && brew cask install adoptopenjdk
 ```
 
 #### Leiningen
