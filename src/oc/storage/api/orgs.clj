@@ -26,7 +26,7 @@
 
 ;; ----- Utility functions -----
 
-(def org-name-min-length 50)
+(def org-name-min-length 3)
 (def org-name-max-length 50)
 
 (defn- board-with-access-level
