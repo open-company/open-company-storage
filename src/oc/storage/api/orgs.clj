@@ -200,7 +200,8 @@
       (if (and (<= (count org-name) org-name-max-length)
                (>= (count org-name) org-name-min-length))
         {:new-org (api-common/rep (org-res/->org org-map author))}
-        [false, {:reason (str "Org name too long. Max allowed length is " org-name-max-length)}]))
+        [false, {:reason (str "Org name length. Allowed length is " org-name-min-length
+                              " to " org-name-max-length ".")}]))
 
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
