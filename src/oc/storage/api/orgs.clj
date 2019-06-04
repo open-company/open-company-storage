@@ -145,7 +145,7 @@
                                                   (remove #(= % config/forced-board-name) selected-board-names))))
               forced-entries (default-entries-for config/forced-board-name)
               total-entries (take 4 (concat selected-entries forced-entries))
-              create-entries (map #(assoc % :author (lib-schema/author-for-user author))
+              create-entries (map #(update % :author (fn [val] (or val (lib-schema/author-for-user author))))
                               (take 4 (concat selected-entries forced-entries)))
               _created-entries (doall (pmap #(create-entry conn updated-org % author) create-entries))]
             (notification/send-trigger!
