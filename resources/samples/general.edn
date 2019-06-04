@@ -9,7 +9,7 @@
     :comments [
       {:time-offset 10 ; 10 minutes ago
        :body "This looks great! How do we make sure everyone knows about these posts?"
-       :author {:name "Red Jelly Head" :avatar-url "/img/ML/happy_face_red.svg" :user-id "9999-9999-9999"}}
+       :author {:name "Red Jelly Head" :avatar-url "/img/ML/happy_face_red.svg" :user-id "9999-9999-9998"}}
       {:time-offset 5 ; 5 minutes ago
        :body "Easy, just head over to team management in settings and invite people by email or Slack. Once invited, they’ll receive a daily digest with new Carrot posts."
        :author {:name "Green Jelly Head" :avatar-url "/img/ML/happy_face_green.svg" :user-id "9999-9999-9997"}}]
