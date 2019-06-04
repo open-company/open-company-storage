@@ -26,6 +26,9 @@
 
 ;; ----- Utility functions -----
 
+(def org-name-min-length 3)
+(def org-name-max-length 50)
+
 (defn- board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and
@@ -145,7 +148,7 @@
                                                   (remove #(= % config/forced-board-name) selected-board-names))))
               forced-entries (default-entries-for config/forced-board-name)
               total-entries (take 4 (concat selected-entries forced-entries))
-              create-entries (map #(assoc % :author (lib-schema/author-for-user author))
+              create-entries (map #(update % :author (fn [val] (or val (lib-schema/author-for-user author))))
                               (take 4 (concat selected-entries forced-entries)))
               _created-entries (doall (pmap #(create-entry conn updated-org % author) create-entries))]
             (notification/send-trigger!
@@ -192,8 +195,13 @@
   (try
     ;; Create the new org from the data provided
     (let [org-map (:data ctx)
+          org-name (:name org-map)
           author (:user ctx)]
-      {:new-org (api-common/rep (org-res/->org org-map author))})
+      (if (and (<= (count org-name) org-name-max-length)
+               (>= (count org-name) org-name-min-length))
+        {:new-org (api-common/rep (org-res/->org org-map author))}
+        [false, {:reason (str "Org name length. Allowed length is " org-name-min-length
+                              " to " org-name-max-length ".")}]))
 
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
@@ -202,8 +210,14 @@
   (if-let [org (org-res/get-org conn slug)]
     (let [samples? (:samples org-props)
           updated-props (if samples? (dissoc org-props :samples :boards) org-props)
-          updated-org (merge org (org-res/ignore-props updated-props))]
-      (if (lib-schema/valid? common-res/Org updated-org)
+          updated-org (merge org (org-res/ignore-props updated-props))
+          updating-org-name? (contains? org-props :name)
+          org-name (:name org-props)]
+      (if (and (lib-schema/valid? common-res/Org updated-org)
+               (or (not updating-org-name?)
+                   (and updating-org-name?
+                        (<= (count org-name) org-name-max-length)
+                        (>= (count org-name) org-name-min-length))))
         {:existing-org (api-common/rep org) :updated-org (api-common/rep updated-org)
          :samples (api-common/rep samples?) :boards (api-common/rep (:boards org-props))}
         [false, {:updated-org (api-common/rep updated-org)}])) ; invalid update
