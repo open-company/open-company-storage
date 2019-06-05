@@ -32,6 +32,7 @@
     :board-slug lib-schema/NonBlankStr
     :entry-uuid lib-schema/UniqueID
     :headline (schema/maybe schema/Str)
+    :abstract (schema/maybe schema/Str)
     :body (schema/maybe schema/Str)
     :must-see (schema/maybe schema/Bool)
     :video-id (schema/maybe lib-schema/NonBlankStr)
@@ -58,12 +59,14 @@
   "Given an entry for an org and a share request, create the share trigger."
   [org board entry share-request user]
   (let [slack-org-id (-> share-request :channel :slack-org-id)
+        channel-type (or (-> share-request :channel :type keyword)
+                         :channel)
         comments (:existing-comments entry)
         comment-count (str (count comments))]
     {
       :type "share-entry"
       :receiver {
-        :type :channel
+        :type channel-type
         :slack-org-id slack-org-id
         :id (-> share-request :channel :channel-id)
       }
@@ -76,6 +79,7 @@
       :org-logo-url (:logo-url org)
       :entry-uuid (:uuid entry)
       :headline (:headline entry)
+      :abstract (:abstract entry)
       :body (:body entry)
       :must-see (:must-see entry)
       :video-id (:video-id entry)
