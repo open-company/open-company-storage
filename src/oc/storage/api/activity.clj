@@ -16,7 +16,8 @@
             [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.util.sort :as sort]))
 
 ;; ----- Utility functions -----
 
@@ -30,21 +31,6 @@
 ;; TODO This activity stuff, `activity-sort`, `merge-activity` and `assemble-activity` is overly complicated
 ;; because it used to merge entries and stories. It no longer does so can be simplified. This also may entail some
 ;; changes to `entry/list-entries-by-org`
-
-(defn- activity-sort
-  "
-  Compare function to sort 2 entries and/or activity by their `created-at` or `published-at` order respectively,
-  in the order (:asc or :desc) provided.
-  "
-  [order x y]
-  (let [order-flip (if (= order :desc) -1 1)]
-    (* order-flip (compare (or (:published-at x) (:created-at x))
-                           (or (:published-at y) (:created-at y))))))
-
-(defn- merge-activity
-  "Given a set of entries and stories and a sort order, return up to the default limit of them, intermixed and sorted."
-  [entries stories order]
-  (take config/default-activity-limit (sort (partial activity-sort order) (concat entries stories))))
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
@@ -61,8 +47,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards {:must-see must-see})
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
-                        previous-activity (merge-activity previous-entries [] :asc)
-                        next-activity (merge-activity next-entries [] :desc)]
+                        previous-activity (sort/sort-activity previous-entries :asc config/default-activity-limit)
+                        next-activity (sort/sort-activity next-entries :desc config/default-activity-limit)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -70,14 +56,14 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        previous-activity (merge-activity previous-entries [] :asc)]
+                        previous-activity (sort/sort-activity previous-entries :asc config/default-activity-limit)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        next-activity (merge-activity next-entries [] :desc)]
+                        next-activity (sort/sort-activity next-entries :desc config/default-activity-limit)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
