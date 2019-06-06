@@ -45,12 +45,21 @@
     :shared-at lib-schema/ISO8601
     }))
 
-(defn- bot-for
-  "Extract the right bot from the JWToken for the specified Slack org ID."
-  [slack-org-id user]
+(defn- get-slack-bot-for [slack-org-id user]
   (let [slack-bots (flatten (vals (:slack-bots user)))
         slack-bots-by-slack-org (zipmap (map :slack-org-id slack-bots) slack-bots)
         slack-bot (get slack-bots-by-slack-org slack-org-id)]
+    slack-bot))
+
+(defn has-slack-bot-for [slack-org-id user]
+  (let [slack-bot (get-slack-bot-for slack-org-id user)]
+    (and (map? slack-bot)
+         (not (empty? slack-bot)))))
+
+(defn- bot-for
+  "Extract the right bot from the JWToken for the specified Slack org ID."
+  [slack-org-id user]
+  (let [slack-bot (get-slack-bot-for slack-org-id user)]
     (if slack-bot
       {:token (:token slack-bot) :id (:id slack-bot)}
       false)))
