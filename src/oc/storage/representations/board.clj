@@ -8,12 +8,15 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]))
 
-(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at])
+(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft]))
 
 (defun url
-  ([org-slug slug :guard string?] (str "/orgs/" org-slug "/boards/" slug))
-  ([org-slug board :guard map?] (url org-slug (:slug board))))
+  ([org-slug board-slug :guard string? params :guard map?]
+    (str (url org-slug board-slug) "?start=" (:start params) "&direction=" (name (:direction params))))
+  ([org-slug board :guard map?] (url org-slug (:slug board)))
+  ([org-slug slug :guard string?]
+    (str "/orgs/" org-slug "/boards/" slug)))
 
 (defn- self-link 
   ([org-slug slug] (hateoas/self-link (url org-slug slug) {:accept mt/board-media-type}))
@@ -46,6 +49,26 @@
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
+(defn- pagination-links
+  "Add `next` and/or `prior` links for pagination as needed."
+  [org board {:keys [start start? direction]} data]
+  (let [activity (:entries data)
+        activity? (not-empty activity)
+        last-activity (last activity)
+        first-activity (first activity)
+        last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
+        first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
+        next? (or (= (:direction data) :previous)
+                  (= (:next-count data) config/default-activity-limit))
+        next-url (when next? (url org board {:start last-activity-date :direction :before}))
+        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))
+        prior? (and start?
+                    (or (= (:direction data) :next)
+                        (= (:previous-count data) config/default-activity-limit)))
+        prior-url (when prior? (url org board {:start first-activity-date :direction :after}))
+        prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/board-media-type}))]
+    (remove nil? [next-link prior-link])))
+
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
@@ -59,10 +82,12 @@
     (assoc board :links full-links)))
 
 (defn- board-links
-  [board org-slug board-uuid access-level]
+  [board org-slug access-level params]
   (let [slug (:slug board)
+        is-drafts-board? (= slug "drafts")
+        pagination-links (if is-drafts-board? [] (pagination-links org-slug slug params board))
         ;; Everyone gets these
-        links [(self-link org-slug slug) (up-link org-slug)]
+        links (concat pagination-links [(self-link org-slug slug) (up-link org-slug)])
         ;; Authors get board management links
         full-links (if (= access-level :author)
                      (concat links [(create-entry-link org-slug slug)
@@ -98,12 +123,12 @@
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"
-  [org-slug board access-level]
+  [org-slug board access-level params]
   (let [rep-props (if (or (= :author access-level) (= :viemer access-level))
                       representation-props
                       public-representation-props)]
     (json/generate-string
       (-> board
-        (select-keys rep-props)
-        (board-links org-slug (:uuid board) access-level))
+        (board-links org-slug access-level params)
+        (select-keys rep-props))
       {:pretty config/pretty?})))

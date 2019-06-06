@@ -5,11 +5,15 @@
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
+            [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
+            [clj-time.core :as t]
+            [clj-time.format :as f]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
+            [oc.lib.db.common :as db-common]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.api.entries :as entries-api]
@@ -21,7 +25,8 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]))
+            [oc.storage.resources.reaction :as reaction-res]
+            [oc.storage.util.sort :as sort]))
 
 ;; ----- Utility functions -----
 
@@ -34,6 +39,48 @@
   "Return a sequence of just the reactions for an entry."
   [{interactions :interactions}]
   (filter :reaction interactions))
+
+(defn- assemble-paginated-board
+  "Assemble the requested activity (params) for the provided board."
+  [conn {start :start direction :direction must-see :must-see} board]
+  (let [order (if (= :after direction) :asc :desc)
+        activities (cond
+
+                  (= direction :around)
+                  ;; around is inclusive of the provided timestamp, so we offset the after timestamp by 1ms so as not
+                  ;; to exclude the provided timestamp (essentially with '> timestamp' and '< timestamp').
+                  ;; This means we actually have a 1ms overlap, but in practice, this is OK.
+                  (let [start-stamp (f/parse db-common/timestamp-format start)
+                        around-stamp (t/minus start-stamp (t/millis 1))
+                        around-start (f/unparse db-common/timestamp-format around-stamp)
+                        previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) :asc around-start :after {:must-see must-see})
+                        next-entries (entry-res/paginated-entries-by-board conn (:uuid board) :desc start :before {:must-see must-see})
+                        previous-activity (sort/sort-activity previous-entries :asc config/default-activity-limit)
+                        next-activity (sort/sort-activity next-entries :desc config/default-activity-limit)]
+                    {:direction :around
+                     :previous-count (count previous-activity)
+                     :next-count (count next-activity)
+                     :entries (concat (reverse previous-activity) next-activity)})
+
+                  (= order :asc)
+                  (let [previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
+                        previous-activity (sort/sort-activity previous-entries :asc config/default-activity-limit)]
+                    {:direction :previous
+                     :previous-count (count previous-activity)
+                     :entries (reverse previous-activity)})
+
+                  :else
+                  (let [next-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
+                        next-activity (sort/sort-activity next-entries :desc config/default-activity-limit)]
+                    {:direction :next
+                     :next-count (count next-activity)
+                     :entries next-activity}))
+        fixed-activities (update activities :entries #(map (fn [activity] (merge activity {
+                                                        :board-slug (:slug board)
+                                                        :board-name (:name board)}))
+                            %))]
+    ;; Give each activity its board name
+    (merge board fixed-activities)))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
@@ -324,9 +371,19 @@
   :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
   
   ;; Responses
-  :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))
-                             full-board (assemble-board conn (:existing-org ctx) board ctx)]
-                          (board-rep/render-board org-slug full-board (:access-level ctx))))
+  :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))]
+                          ;; For drafts board still use the full board
+                          (if (= (:slug board) (:slug board-res/default-drafts-board))
+                            (let[full-board (assemble-board conn (:existing-org ctx) board ctx)]
+                              (board-rep/render-board org-slug full-board (:access-level ctx) nil))
+                            ;; Render paginated board for all the rest
+                            (let[ctx-params (keywordize-keys (-> ctx :request :params))
+                                 start? (if (:start ctx-params) true false) ; flag if a start was specified
+                                 start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                                 direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
+                                 params (merge start-params {:direction direction :start? start?})
+                                 full-board (assemble-paginated-board conn params board)]
+                              (board-rep/render-board org-slug full-board (:access-level ctx) params)))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
 
