@@ -44,7 +44,7 @@
 
 (defn- assemble-paginated-board
   "Assemble the requested activity (params) for the provided board."
-  [conn {start :start direction :direction must-see :must-see} board]
+  [conn {start :start direction :direction must-see :must-see} board user-id]
   (let [order (if (= :after direction) :asc :desc)
         activities (cond
 
@@ -57,8 +57,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) :asc around-start :after {:must-see must-see})
                         next-entries (entry-res/paginated-entries-by-board conn (:uuid board) :desc start :before {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries :asc config/default-activity-limit)
-                        next-activity (sort/sort-activity next-entries :desc config/default-activity-limit)]
+                        previous-activity (sort/sort-activity previous-entries :most-recent :asc config/default-activity-limit  user-id)
+                        next-activity (sort/sort-activity next-entries :most-recent :desc config/default-activity-limit user-id)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -66,14 +66,14 @@
 
                   (= order :asc)
                   (let [previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries :asc config/default-activity-limit)]
+                        previous-activity (sort/sort-activity previous-entries :most-recent :asc config/default-activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :entries (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
-                        next-activity (sort/sort-activity next-entries :desc config/default-activity-limit)]
+                        next-activity (sort/sort-activity next-entries :most-recent :desc config/default-activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
                      :entries next-activity}))
@@ -400,7 +400,7 @@
                                  start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                                  direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
                                  params (merge start-params {:direction direction :start? start?})
-                                 full-board (assemble-paginated-board conn params board)]
+                                 full-board (assemble-paginated-board conn params board (:user-id (:user ctx)))]
                               (board-rep/render-board org full-board ctx params)))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
