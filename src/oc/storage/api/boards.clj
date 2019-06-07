@@ -26,7 +26,9 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.resources.reaction :as reaction-res]
-            [oc.storage.util.sort :as sort]))
+            [oc.storage.util.sort :as sort]
+            [oc.storage.util.timestamp :as ts]
+            [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----
 
@@ -343,6 +345,21 @@
     :patch (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))
     :delete (fn [ctx] (access/allow-authors conn org-slug slug (:user ctx)))})
 
+  :malformed? (by-method {
+    :options false
+    :get (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+                         start (:start ctx-params)
+                         valid-start? (if start (ts/valid-timestamp? start) true)
+                         direction (keyword (:direction ctx-params))
+                         ;; no direction is OK, but if specified it's from the allowed enumeration of options
+                         valid-direction? (if direction (#{:before :after :around} direction) true)
+                         ;; a specified start/direction must be together or ommitted
+                         pairing-allowed? (or (and start direction)
+                                              (and (not start) (not direction)))]
+                     (not (and valid-start? valid-direction? pairing-allowed?))))
+    :patch false
+    :delete false})
+
   ;; Validations
   :processable? (by-method {
     :options true
@@ -371,11 +388,12 @@
   :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
   
   ;; Responses
-  :handle-ok (fn [ctx] (let [board (or (:updated-board ctx) (:existing-board ctx))]
+  :handle-ok (fn [ctx] (let [org (:existing-org ctx)
+                             board (or (:updated-board ctx) (:existing-board ctx))]
                           ;; For drafts board still use the full board
                           (if (= (:slug board) (:slug board-res/default-drafts-board))
-                            (let[full-board (assemble-board conn (:existing-org ctx) board ctx)]
-                              (board-rep/render-board org-slug full-board (:access-level ctx) nil))
+                            (let[full-board (assemble-board conn org board ctx)]
+                              (board-rep/render-board org full-board ctx nil))
                             ;; Render paginated board for all the rest
                             (let[ctx-params (keywordize-keys (-> ctx :request :params))
                                  start? (if (:start ctx-params) true false) ; flag if a start was specified
@@ -383,7 +401,7 @@
                                  direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
                                  params (merge start-params {:direction direction :start? start?})
                                  full-board (assemble-paginated-board conn params board)]
-                              (board-rep/render-board org-slug full-board (:access-level ctx) params)))))
+                              (board-rep/render-board org full-board ctx params)))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
 
@@ -434,8 +452,8 @@
                               (if pre-flight?
                                 (api-common/blank-response)
                                 (api-common/location-response
-                                  (board-rep/url org-slug board-slug)
-                                  (board-rep/render-board org-slug new-board (:access-level ctx) nil)
+                                  (board-url/url org-slug board-slug)
+                                  (board-rep/render-board org-slug new-board ctx nil)
                                   mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
