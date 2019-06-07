@@ -51,10 +51,10 @@
         slack-bot (get slack-bots-by-slack-org slack-org-id)]
     slack-bot))
 
-(defn has-slack-bot-for [slack-org-id user]
+(defn has-slack-bot-for? [slack-org-id user]
   (let [slack-bot (get-slack-bot-for slack-org-id user)]
     (and (map? slack-bot)
-         (not (empty? slack-bot)))))
+         (seq (keys slack-bot)))))
 
 (defn- bot-for
   "Extract the right bot from the JWToken for the specified Slack org ID."
