@@ -6,7 +6,7 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
-            [oc.storage.representations.board :as board-rep]
+            [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]))
 
 (def org-prop-mapping {:uuid :org-uuid
@@ -26,7 +26,7 @@
 (defun url
 
   ([org-slug board-slug]
-  (str (board-rep/url org-slug board-slug) "/entries"))
+  (str (board-url/url org-slug board-slug) "/entries"))
   
   ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
 
@@ -73,7 +73,7 @@
      :accept mt/entry-media-type}))
 
 (defn- up-link [org-slug board-slug]
-  (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
+  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type}))
 
 (defn- revert-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
