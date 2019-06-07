@@ -394,9 +394,9 @@
                      [{:fn :contains :value allowed-boards :field :board-uuid}
                       {:fn :eq :field :must-see :value (boolean (#{true "true"} must-see))}]
                      )]
-    (db-common/read-resources-and-relations conn table-name
+    (db-common/read-all-resources-and-relations conn table-name
       :status-org-uuid [[:published org-uuid]]
-      "published-at" order start direction config/default-activity-limit
+      "published-at" order start direction
       filter-map
       :interactions common/interaction-table-name :uuid :resource-uuid
       ["uuid" "headline" "body" "reaction" "author"
@@ -412,9 +412,9 @@
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (db-common/read-resources-and-relations conn table-name
+  (db-common/read-all-resources-and-relations conn table-name
     :status-board-uuid [[:published board-uuid]]
-    "published-at" order start direction config/default-activity-limit
+    "published-at" order start direction
     :interactions common/interaction-table-name :uuid :resource-uuid
     ["uuid" "headline" "body" "reaction" "author"
      "published-at" "created-at" "updated-at"] {:count count}))
