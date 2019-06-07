@@ -17,16 +17,8 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.util.sort :as sort]))
-
-;; ----- Utility functions -----
-
-(defn- valid-timestamp? [ts]
-  (try
-    (f/parse db-common/timestamp-format ts)
-    true
-    (catch IllegalArgumentException e
-      false)))
+            [oc.storage.util.sort :as sort]
+            [oc.storage.util.timestamp :as ts]))
 
 ;; TODO This activity stuff, `activity-sort`, `merge-activity` and `assemble-activity` is overly complicated
 ;; because it used to merge entries and stories. It no longer does so can be simplified. This also may entail some
@@ -93,7 +85,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (valid-timestamp? start) true)
+                              valid-start? (if start (ts/valid-timestamp? start) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after :around} direction) true)
