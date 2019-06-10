@@ -15,8 +15,8 @@
   "Given a set of entries, return up to the default limit of them, intermixed and sorted."
   [entries sorting order limit user-id]
   (let [all-published-at (apply merge (map #(hash-map (:uuid %) (:published-at %)) entries))
-        sorting-by-most-recent? (= sorting :most-recent)
-        all-comments (if sorting-by-most-recent?
+        sorting-by-recent-activity? (= sorting :recent-activity)
+        all-comments (if sorting-by-recent-activity?
                        (apply merge (remove nil? (map (partial max-comment-timestamp user-id) entries)))
                        {})
         to-sort-map (merge all-published-at all-comments)

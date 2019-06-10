@@ -26,7 +26,7 @@
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org board-by-uuid allowed-boards user-id]
+  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid allowed-boards user-id]
   (let [order (if (= :after direction) :asc :desc)
         activities (cond
 
@@ -39,8 +39,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards {:must-see must-see})
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries :most-recent :asc config/default-activity-limit user-id)
-                        next-activity (sort/sort-activity next-entries :most-recent :desc config/default-activity-limit user-id)]
+                        previous-activity (sort/sort-activity previous-entries sort-type :asc config/default-activity-limit user-id)
+                        next-activity (sort/sort-activity next-entries sort-type :desc config/default-activity-limit user-id)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -48,14 +48,14 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries :most-recent :asc config/default-activity-limit user-id)]
+                        previous-activity (sort/sort-activity previous-entries sort-type :asc config/default-activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        next-activity (sort/sort-activity next-entries :most-recent :desc config/default-activity-limit user-id)]
+                        next-activity (sort/sort-activity next-entries sort-type :desc config/default-activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -68,7 +68,7 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on the activity of a particular Org
-(defresource activity [conn slug]
+(defresource activity [conn slug sort-type]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
@@ -115,7 +115,7 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-activity conn params org board-by-uuid allowed-boards user-id)]
+                             activity (assemble-activity conn params org sort-type board-by-uuid allowed-boards user-id)]
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
 
 ;; ----- Routes -----
@@ -124,7 +124,11 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; All activity operations
-      (OPTIONS "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (OPTIONS "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug))))))
+      (OPTIONS "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
+      (OPTIONS "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
+      (OPTIONS "/orgs/:slug/recent-activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity)))
+      (OPTIONS "/orgs/:slug/recent-activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity)))
+      (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
+      (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
+      (GET "/orgs/:slug/recent-activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity)))
+      (GET "/orgs/:slug/recent-activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity))))))
