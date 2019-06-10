@@ -9,7 +9,8 @@
             [oc.storage.config :as config]))
 
 (defn url [{slug :slug} sort-type {start :start direction :direction}]
-  (str "/orgs/" slug "/" sort-type "?start=" start "&direction=" (name direction)))
+  (let [sort-path (if (= sort-type "recent-activity") "recent-activity" "activity")]
+    (str "/orgs/" slug "/" sort-path "?start=" start "&direction=" (name direction))))
 
 (defn- comments
   "Return a sequence of just the comments for an entry."

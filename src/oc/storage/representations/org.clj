@@ -39,7 +39,7 @@
   (assoc org :links [(item-link org)]))
 
 (defn- activity-link [org]
-  (hateoas/link-map "recently-posted" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
 
 (defn- recent-activity-link [org]
   (hateoas/link-map "recent-activity" hateoas/GET (str (url org) "/recent-activity") {:accept mt/activity-collection-media-type}))
