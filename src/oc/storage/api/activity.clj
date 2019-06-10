@@ -39,8 +39,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards {:must-see must-see})
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type :asc config/default-activity-limit user-id)
-                        next-activity (sort/sort-activity next-entries sort-type :desc config/default-activity-limit user-id)]
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -48,14 +48,14 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type :asc config/default-activity-limit user-id)]
+                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        next-activity (sort/sort-activity next-entries sort-type :desc config/default-activity-limit user-id)]
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]

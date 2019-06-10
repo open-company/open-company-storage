@@ -5,7 +5,7 @@
 
 (defn- max-comment-timestamp
   "Return a map {entry-uuid most-recent-comment-timestap} excluding the user authored comments"
-  [user-id entry]
+  [user-id start order entry]
   (let [all-comments (filterv #(and (:body %) (not= (-> % :author :user-id) user-id)) (:interactions entry))
         sorted-comments (sort-by :updated-at all-comments)]
     (when (seq sorted-comments)
@@ -13,17 +13,25 @@
 
 (defn sort-activity
   "Given a set of entries, return up to the default limit of them, intermixed and sorted."
-  [entries sorting order limit user-id]
-  (let [all-published-at (apply merge (map #(hash-map (:uuid %) (:published-at %)) entries))
+  [entries sorting start order limit user-id]
+  (let [;; Get all the posts published at
+        all-published-at (apply merge (map #(hash-map (:uuid %) (:published-at %)) entries))
         sorting-by-recent-activity? (= sorting :recent-activity)
+        ;; if sorting by recent activity
         all-comments (if sorting-by-recent-activity?
-                       (apply merge (remove nil? (map (partial max-comment-timestamp user-id) entries)))
+                     ;; get the last comment timestamp for those that have one
+                       (apply merge (remove nil? (map (partial max-comment-timestamp user-id start order) entries)))
                        {})
+        ;; merge the published-at and the last comment timestamp results into a usique map
         to-sort-map (merge all-published-at all-comments)
         order-flip (if (= order :desc) -1 1)
+        ;; exclude the posts that have a timestamp exceeding the current start filter (depending on the direction)
+        filtered-to-sort-map (filter #(pos? (* order-flip (compare (second %) start))) to-sort-map)
+        ;; get a sorted map of the posts using the timestamp and the correct order/direction
         sorted-map (into (sorted-map-by (fn [key1 key2]
                           (* order-flip (compare [(get to-sort-map key1) key1]
                                                  [(get to-sort-map key2) key2]))))
-                    to-sort-map)
+                    filtered-to-sort-map)
+        ;; filter only the first limit results
         limited-uuids (take limit (keys sorted-map))]
     (remove nil? (map (fn [entry-uuid] (first (filter #(= (:uuid %) entry-uuid) entries))) limited-uuids))))
