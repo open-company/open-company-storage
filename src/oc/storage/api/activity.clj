@@ -116,7 +116,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-activity conn params org sort-type board-by-uuid allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))
+                          (activity-rep/render-activity-list params org (name sort-type) activity (:access-level ctx) user-id))))
 
 ;; ----- Routes -----
 
