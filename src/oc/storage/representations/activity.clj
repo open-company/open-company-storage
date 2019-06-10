@@ -55,7 +55,9 @@
   "
   [params org sort-type activity access-level user-id]
   (let [collection-url (url org sort-type params)
+        other-sort-url (url org (if (= sort-type :recent-activity) :recently-posted :recent-activity) params)
         links [(hateoas/self-link collection-url {:accept mt/activity-collection-media-type})
+               (hateoas/self-link other-sort-url {:accept mt/activity-collection-media-type})
                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
         full-links (concat links (pagination-links org sort-type params activity))]
     (json/generate-string
