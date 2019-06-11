@@ -33,5 +33,15 @@
                                                  [(get to-sort-map key2) key2]))))
                     filtered-to-sort-map)
         ;; filter only the first limit results
-        limited-uuids (take limit (keys sorted-map))]
-    (remove nil? (map (fn [entry-uuid] (first (filter #(= (:uuid %) entry-uuid) entries))) limited-uuids))))
+        limited-uuids (take limit (keys sorted-map))
+        ;; Create a map where each uuid correspond to the max btw published-at and the last comment updated-at
+        last-comment-timestamps (apply merge (map #(hash-map (:uuid %)
+                                                    (first (vals (max-comment-timestamp user-id start order %))))
+                                              entries))
+        ;; Add the new-at field used in the client to show the NEW comment badge
+        return-entries (map (fn [entry-uuid]
+                              (-> (filter #(= (:uuid %) entry-uuid) entries)
+                                first
+                                (assoc :new-at (last-comment-timestamps entry-uuid)))) limited-uuids)]
+    ;; Clean out empty results
+    (remove nil? return-entries)))

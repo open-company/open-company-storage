@@ -21,7 +21,7 @@
                            :board-uuid :board-slug :board-name 
                            :team-id :author :publisher :published-at
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
-                           :created-at :updated-at :revision-id])
+                           :created-at :updated-at :revision-id :new-at])
 
 (defun url
 
