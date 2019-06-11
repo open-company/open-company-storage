@@ -7,9 +7,9 @@
   "Return a map {entry-uuid most-recent-comment-timestap} excluding the user authored comments"
   [user-id start order entry]
   (let [all-comments (filterv #(and (:body %) (not= (-> % :author :user-id) user-id)) (:interactions entry))
-        sorted-comments (sort-by :updated-at all-comments)]
+        sorted-comments (sort-by :created-at all-comments)]
     (when (seq sorted-comments)
-      (hash-map (:uuid entry) (-> sorted-comments last :updated-at)))))
+      (hash-map (:uuid entry) (-> sorted-comments last :created-at)))))
 
 (defn sort-activity
   "Given a set of entries, return up to the default limit of them, intermixed and sorted."
