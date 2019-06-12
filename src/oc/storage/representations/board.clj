@@ -70,10 +70,12 @@
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
+        is-draft-board? (= board-slug "drafts")
         links [(self-link org-slug board-slug :recently-posted options)
-               (self-link org-slug board-slug :recent-activity options)]
+               (when-not is-draft-board?
+                 (self-link org-slug board-slug :recent-activity options))]
         full-links (if (or (= :author (:access-level board))
-                           (= board-slug "drafts"))
+                           is-draft-board?)
           ;; Author gets create link
           (conj links (create-entry-link org-slug board-slug))
           ;; No create link
@@ -86,9 +88,11 @@
         is-drafts-board? (= slug "drafts")
         pagination-links (if is-drafts-board? [] (pagination-links org-slug slug sort-type params board))
         ;; Everyone gets these
-        links (concat pagination-links [(self-link org-slug slug :recently-posted)
-                                        (self-link org-slug slug :recent-activity)
-                                        (up-link org-slug)])
+        links (remove nil?
+               (concat pagination-links [(self-link org-slug slug :recently-posted)
+                                         (when-not is-drafts-board?
+                                            (self-link org-slug slug :recent-activity))
+                                        (up-link org-slug)]))
         ;; Authors get board management links
         full-links (if (= access-level :author)
                      (concat links [(create-entry-link org-slug slug)
