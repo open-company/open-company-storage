@@ -453,7 +453,7 @@
                                 (api-common/blank-response)
                                 (api-common/location-response
                                   (board-url/url org-slug board-slug)
-                                  (board-rep/render-board org-slug nil new-board ctx nil)
+                                  (board-rep/render-board (:existing-org ctx) nil new-board ctx nil)
                                   mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
