@@ -394,7 +394,7 @@
                           (if (= (:slug board) (:slug board-res/default-drafts-board))
                             (let [full-board (assemble-board conn org board ctx)
                                  with-sorted-entries (assoc full-board :entries
-                                  (sort/sort-draft-board-posts (:entries full-board)))]
+                                  (sort/sort-draft-board-entries (:entries full-board)))]
                               (board-rep/render-board org sort-type with-sorted-entries ctx nil))
                             ;; Render paginated board for all the rest
                             (let[ctx-params (keywordize-keys (-> ctx :request :params))
