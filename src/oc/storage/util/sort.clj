@@ -42,3 +42,6 @@
                                 (assoc :new-at (last-comment-timestamps entry-uuid)))) limited-uuids)]
     ;; Clean out empty results
     (remove nil? return-entries)))
+
+(defn sort-draft-board-posts [drafts-board-entries]
+  (reverse (sort-by :updated-at drafts-board-entries)))
