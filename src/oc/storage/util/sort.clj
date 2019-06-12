@@ -1,7 +1,4 @@
-(ns oc.storage.util.sort
-  (:require [clojure.pprint :as pp]
-            [clj-time.core :as t]
-            [clj-time.format :as f]))
+(ns oc.storage.util.sort)
 
 (defn- max-comment-timestamp
   "Return a map {entry-uuid most-recent-comment-timestap} excluding the user authored comments"
