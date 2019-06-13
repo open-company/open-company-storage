@@ -357,7 +357,7 @@
                          pairing-allowed? (or (and start direction)
                                               (and (not start) (not direction)))]
                      (not (and valid-start? valid-direction? pairing-allowed?))))
-    :patch false
+    :patch (fn [ctx] (api-common/malformed-json? ctx))
     :delete false})
 
   ;; Validations
