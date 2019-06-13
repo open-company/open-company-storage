@@ -154,7 +154,8 @@
   [conn ctx entry-result]
   (when (or (nil? (:video-id entry-result))
             (true? (:video-processed entry-result)))
-    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
+    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
+              _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
       (let [share-request {:medium "slack"
                            :note ""
                            :shared-at (db-common/current-timestamp)
