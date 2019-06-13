@@ -1,7 +1,6 @@
 (ns oc.storage.representations.board
   "Resource representations for OpenCompany boards."
-  (:require [defun.core :refer (defun)]
-            [cheshire.core :as json]
+  (:require [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
