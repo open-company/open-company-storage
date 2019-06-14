@@ -145,8 +145,8 @@
 
 ;; Sample content handling
 
-(defn sample-entries? [conn org-uuid]
-  (pos? (count (db-common/read-resources conn table-name "org-uuid-sample" [[org-uuid true]]))))
+(defn sample-entries-count [conn org-uuid]
+  (count (db-common/read-resources conn table-name "org-uuid-sample" [[org-uuid true]])))
 
 (defn get-sample-entries [conn org-uuid]
   (db-common/read-resources conn table-name "org-uuid-sample" [[org-uuid true]]))

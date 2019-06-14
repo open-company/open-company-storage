@@ -35,7 +35,7 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.2.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.15"]
+    [zprint "0.4.16"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
     [open-company/lib "0.17.11"]
@@ -126,7 +126,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.7" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.15" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.3.16" :exclusions [org.clojure/clojure]]
       ]  
     }]
     :repl-config [:dev {

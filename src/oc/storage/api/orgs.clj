@@ -280,7 +280,7 @@
                                           full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
-                             has-sample-content? (entry-res/sample-entries? conn org-id)]
+                             has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
                                                  (assoc :must-see-count must-see-count)
@@ -386,7 +386,7 @@
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))
-                                  has-sample-content? (entry-res/sample-entries? conn org-id)]
+                                  has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                               (api-common/location-response
                                 (org-rep/url slug)
                                 (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)
