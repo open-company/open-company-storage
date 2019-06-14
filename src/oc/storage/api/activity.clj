@@ -82,9 +82,11 @@
                      :next-count (count next-activity)
                      :activity next-activity}))]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (merge activity {
-                                                        :board-slug (:slug (board-by-uuid (:board-uuid activity)))
-                                                        :board-name (:name (board-by-uuid (:board-uuid activity)))}))
+    (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
+                                                       (merge activity {
+                                                        :board-slug (:slug board)
+                                                        :board-access (:access board)
+                                                        :board-name (:name board)})))
                                     %))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -135,7 +137,7 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :name (:name %)) boards)
+                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-activity conn params org board-by-uuid allowed-boards)]
                           (activity-rep/render-activity-list params org activity (:access-level ctx) user-id))))

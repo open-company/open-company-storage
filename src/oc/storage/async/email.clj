@@ -21,6 +21,7 @@
    :org-logo-width (schema/maybe schema/Int)
    :org-logo-height (schema/maybe schema/Int)
    :board-name (schema/maybe schema/Str)
+   :board-access (schema/maybe schema/Str)
    :headline schema/Str
    :abstract (schema/maybe schema/Str)
    :body (schema/maybe schema/Str)
@@ -47,6 +48,7 @@
    :org-logo-width (:logo-width org)
    :org-logo-height (:logo-height org)
    :board-name (:name board)
+   :board-access (:access board)
    :headline (:headline entry)
    :abstract (:abstract entry)
    :body (:body entry)
