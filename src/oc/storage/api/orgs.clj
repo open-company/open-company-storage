@@ -270,7 +270,14 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
-                             show-draft-board? (and (seq user-id) (access/allow-authors conn slug (:user ctx)))
+                             author-access-boards (filter #(= (:access-level %) :author) board-access)
+                                               ;; Add the draft board
+                             show-draft-board? (and ;; if user is logged in and
+                                                    (seq user-id)
+                                                    ;; or is an author of the org
+                                                    (or (access/allow-authors conn slug (:user ctx))
+                                                        ;; or has at least one board with author access
+                                                        (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
                              full-boards (if show-draft-board?
@@ -280,7 +287,7 @@
                                           full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
-                             has-sample-content? (entry-res/sample-entries? conn org-id)]
+                             has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
                                                  (assoc :must-see-count must-see-count)
@@ -386,7 +393,7 @@
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))
-                                  has-sample-content? (entry-res/sample-entries? conn org-id)]
+                                  has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                               (api-common/location-response
                                 (org-rep/url slug)
                                 (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)

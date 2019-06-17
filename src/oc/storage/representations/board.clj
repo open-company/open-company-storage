@@ -144,7 +144,7 @@
   "Create a JSON representation of the board for the REST API"
   [org sort-type board ctx params]
   (let [access-level (:access-level ctx)
-        rep-props (if (or (= :author access-level) (= :viemer access-level))
+        rep-props (if (or (= :author access-level) (= :viewer access-level))
                       representation-props
                       public-representation-props)
         fixed-entries (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))

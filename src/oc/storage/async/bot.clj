@@ -29,6 +29,7 @@
     :org-name (schema/maybe schema/Str)
     :org-logo-url (schema/maybe schema/Str)
     :board-name (schema/maybe schema/Str)
+    :board-access (schema/maybe schema/Str)
     :board-slug lib-schema/NonBlankStr
     :entry-uuid lib-schema/UniqueID
     :headline (schema/maybe schema/Str)
@@ -84,6 +85,7 @@
       :org-slug (:slug org)
       :org-name (:name org)
       :board-name (:name board)
+      :board-access (:access board)
       :board-slug (:slug board)
       :org-logo-url (:logo-url org)
       :entry-uuid (:uuid entry)

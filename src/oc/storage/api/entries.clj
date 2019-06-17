@@ -384,7 +384,7 @@
     :options true
     :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
-    :delete (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -436,7 +436,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -504,7 +504,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -563,7 +563,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
   
   ;; Media type client accepts
   :available-media-types (by-method {
