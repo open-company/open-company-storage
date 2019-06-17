@@ -99,7 +99,7 @@
 (defn render-board
   "Create a JSON representation of the board for the REST API"
   [org-slug board access-level]
-  (let [rep-props (if (or (= :author access-level) (= :viemer access-level))
+  (let [rep-props (if (or (= :author access-level) (= :viewer access-level))
                       representation-props
                       public-representation-props)]
     (json/generate-string
