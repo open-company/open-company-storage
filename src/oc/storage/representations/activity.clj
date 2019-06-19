@@ -13,16 +13,6 @@
   (let [sort-path (if (= sort-type "recent-activity") "recent-activity" "activity")]
     (str "/orgs/" slug "/" sort-path "?start=" start "&direction=" (name direction))))
 
-(defn- comments
-  "Return a sequence of just the comments for an entry."
-  [{interactions :interactions}]
-  (filter :body interactions))
-
-(defn- reactions
-  "Return a sequence of just the reactions for an entry."
-  [{interactions :interactions}]
-  (filter :reaction interactions))
-
 (defn- pagination-links
   "Add `next` and/or `prior` links for pagination as needed."
   [org sort-type {:keys [start start? direction]} data]
@@ -71,7 +61,7 @@
                                   (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
                                         access-level (access/access-level-for org board user)]
                                    (render-activity-for-collection org entry
-                                     (comments entry)
-                                     (reaction-res/aggregate-reactions (reactions entry))
+                                     (entry-rep/comments entry)
+                                     (reaction-res/aggregate-reactions (entry-rep/reactions entry))
                                      (:access-level access-level) (:user-id user)))) (:activity activity))}}
       {:pretty config/pretty?})))

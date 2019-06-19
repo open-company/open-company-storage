@@ -24,6 +24,18 @@
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
                            :created-at :updated-at :revision-id :new-at])
 
+;; Utility functions
+
+(defn comments
+  "Return a sequence of just the comments for an entry."
+  [{interactions :interactions}]
+  (filter :body interactions))
+
+(defn reactions
+  "Return a sequence of just the reactions for an entry."
+  [{interactions :interactions}]
+  (filter :reaction interactions))
+
 (defun url
 
   ([org-slug board-slug]
