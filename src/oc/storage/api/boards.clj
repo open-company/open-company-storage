@@ -65,7 +65,7 @@
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
                      :entries (map #(entry-rep/render-entry-for-collection org board %
-                                     (board-rep/comments %) (board-rep/reactions %)
+                                     (entry-rep/comments %) (entry-rep/reactions %)
                                      access-level user-id)
                                (concat (reverse previous-activity) next-activity))})
 
@@ -75,7 +75,7 @@
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :entries (map #(entry-rep/render-entry-for-collection org board %
-                                     (board-rep/comments %) (board-rep/reactions %)
+                                     (entry-rep/comments %) (entry-rep/reactions %)
                                      access-level user-id)
                                 (reverse previous-activity))})
 
@@ -85,7 +85,7 @@
                     {:direction :next
                      :next-count (count next-activity)
                      :entries (map #(entry-rep/render-entry-for-collection org board %
-                                     (board-rep/comments %) (board-rep/reactions %)
+                                     (entry-rep/comments %) (entry-rep/reactions %)
                                      access-level user-id)
                                next-activity)}))
         fixed-activities (update activities :entries #(map (fn [activity] (merge activity {
