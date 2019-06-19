@@ -44,8 +44,10 @@
 
 (defn- assemble-paginated-board
   "Assemble the requested activity (params) for the provided board."
-  [conn sort-type {start :start direction :direction must-see :must-see} board user-id]
+  [conn sort-type {start :start direction :direction must-see :must-see} org board ctx]
   (let [order (if (= :after direction) :asc :desc)
+        access-level (:access-level ctx)
+        user-id (-> ctx :user :user-id)
         activities (cond
 
                   (= direction :around)
@@ -57,26 +59,35 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) :asc around-start :after {:must-see must-see})
                         next-entries (entry-res/paginated-entries-by-board conn (:uuid board) :desc start :before {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit  user-id)
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id)
                         next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
-                     :entries (concat (reverse previous-activity) next-activity)})
+                     :entries (map #(entry-rep/render-entry-for-collection org board %
+                                     (board-rep/comments %) (board-rep/reactions %)
+                                     access-level user-id)
+                               (concat (reverse previous-activity) next-activity))})
 
                   (= order :asc)
                   (let [previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
                         previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
-                     :entries (reverse previous-activity)})
+                     :entries (map #(entry-rep/render-entry-for-collection org board %
+                                     (board-rep/comments %) (board-rep/reactions %)
+                                     access-level user-id)
+                                (reverse previous-activity))})
 
                   :else
                   (let [next-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
                         next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
-                     :entries next-activity}))
+                     :entries (map #(entry-rep/render-entry-for-collection org board %
+                                     (board-rep/comments %) (board-rep/reactions %)
+                                     access-level user-id)
+                               next-activity)}))
         fixed-activities (update activities :entries #(map (fn [activity] (merge activity {
                                                         :board-slug (:slug board)
                                                         :board-name (:name board)}))
@@ -393,15 +404,15 @@
                           ;; For drafts board still use the full board
                           (if (= (:slug board) (:slug board-res/default-drafts-board))
                             (let [full-board (assemble-board conn org board ctx)
-                                 with-sorted-entries (update-in full-board [:entries] sort/sort-draft-board-entries)]
+                                  with-sorted-entries (update-in full-board [:entries] sort/sort-draft-board-entries)]
                               (board-rep/render-board org sort-type with-sorted-entries ctx nil))
                             ;; Render paginated board for all the rest
-                            (let[ctx-params (keywordize-keys (-> ctx :request :params))
+                            (let [ctx-params (keywordize-keys (-> ctx :request :params))
                                  start? (if (:start ctx-params) true false) ; flag if a start was specified
                                  start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                                  direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
                                  params (merge start-params {:direction direction :start? start?})
-                                 full-board (assemble-paginated-board conn sort-type params board (:user-id (:user ctx)))]
+                                 full-board (assemble-paginated-board conn sort-type params org board ctx)]
                               (board-rep/render-board org sort-type full-board ctx params)))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
