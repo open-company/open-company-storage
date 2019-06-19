@@ -7,7 +7,8 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.urls.board :as board-url]
-            [oc.storage.representations.content :as content]))
+            [oc.storage.representations.content :as content]
+            [oc.storage.util.sort :as sort]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -108,7 +109,10 @@
         draft? (= :draft (keyword (:status entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
-                           :board-name (:name board)} entry)
+                           :board-name (:name board)
+                           :new-at (-> (sort/max-comment-timestamp user-id entry comments)
+                                    vals
+                                    first)} entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))

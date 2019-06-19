@@ -1,12 +1,15 @@
 (ns oc.storage.util.sort)
 
-(defn- max-comment-timestamp
+(defn max-comment-timestamp
   "Return a map {entry-uuid most-recent-comment-timestap} excluding the user authored comments"
-  [user-id start order entry]
-  (let [all-comments (filterv #(and (:body %) (not= (-> % :author :user-id) user-id)) (:interactions entry))
-        sorted-comments (sort-by :created-at all-comments)]
+  [user-id entry comments]
+  (let [filtered-comments (filterv #(not= (-> % :author :user-id) user-id) comments)
+        sorted-comments (sort-by :created-at filtered-comments)]
     (when (seq sorted-comments)
       (hash-map (:uuid entry) (-> sorted-comments last :created-at)))))
+
+(defn- entry-new-at [user-id entry]
+  (max-comment-timestamp user-id entry (filterv :body (:interactions entry))))
 
 (defn sort-activity
   "Given a set of entries, return up to the default limit of them, intermixed and sorted."
@@ -17,7 +20,7 @@
         ;; if sorting by recent activity
         all-comments (if sorting-by-recent-activity?
                      ;; get the last comment timestamp for those that have one
-                       (apply merge (remove nil? (map (partial max-comment-timestamp user-id start order) entries)))
+                       (apply merge (remove nil? (map (partial entry-new-at user-id) entries)))
                        {})
         ;; merge the published-at and the last comment timestamp results into a usique map
         to-sort-map (merge all-published-at all-comments)
@@ -33,7 +36,7 @@
         limited-uuids (take limit (keys sorted-map))
         ;; Create a map where each uuid correspond to the max btw published-at and the last comment updated-at
         last-comment-timestamps (apply merge (map #(hash-map (:uuid %)
-                                                    (first (vals (max-comment-timestamp user-id start order %))))
+                                                    (first (vals (entry-new-at user-id %))))
                                               entries))
         ;; Add the new-at field used in the client to show the NEW comment badge
         return-entries (map (fn [entry-uuid]
