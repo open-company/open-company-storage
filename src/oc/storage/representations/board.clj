@@ -114,20 +114,10 @@
   {:user-id user-id
    :links (if (= access-level :author) [(remove-viewer-link org-slug slug user-id)] [])})
 
-(defn- comments
-  "Return a sequence of just the comments for an entry."
-  [{interactions :interactions}]
-  (filter :body interactions))
-
-(defn- reactions
-  "Return a sequence of just the reactions for an entry."
-  [{interactions :interactions}]
-  (filter :reaction interactions))
-
 (defn render-entry-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org board entry access-level user-id]
-  (entry-rep/render-entry-for-collection org board entry (comments entry) (reactions entry) access-level user-id))
+  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (entry-rep/reactions entry) access-level user-id))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
@@ -146,12 +136,9 @@
   (let [access-level (:access-level ctx)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                       representation-props
-                      public-representation-props)
-        fixed-entries (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
-                       (:entries board))]
+                      public-representation-props)]
     (json/generate-string
       (-> board
         (board-links (:slug org) sort-type access-level params)
-        (select-keys rep-props)
-        (assoc :entries fixed-entries))
+        (select-keys rep-props))
       {:pretty config/pretty?})))
