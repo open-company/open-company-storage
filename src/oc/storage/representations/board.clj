@@ -16,7 +16,7 @@
   ([org-slug slug sort-type]
     (self-link org-slug slug sort-type {}))
   ([org-slug slug sort-type options]
-  (let [rel (if (= sort-type :recent-activity) "recent-activity" "self")
+  (let [rel (if (= sort-type :recent-activity) "activity" "self")
         board-url (board-url/url org-slug slug sort-type)]
     (hateoas/link-map rel hateoas/GET board-url {:accept mt/board-media-type} options))))
 

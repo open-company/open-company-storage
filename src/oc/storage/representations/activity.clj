@@ -9,9 +9,13 @@
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.config :as config]))
 
-(defn url [{slug :slug} sort-type {start :start direction :direction}]
-  (let [sort-path (if (= sort-type "recent-activity") "recent-activity" "activity")]
-    (str "/orgs/" slug "/" sort-path "?start=" start "&direction=" (name direction))))
+(defn- url
+  ([{slug :slug} sort-type]
+  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
+    (str "/orgs/" slug "/entries" sort-path)))
+  ([{slug :slug :as org} sort-type {start :start direction :direction}]
+  (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
+    (str (url org sort-type) concat-str "start=" start "&direction=" (name direction)))))
 
 (defn- pagination-links
   "Add `next` and/or `prior` links for pagination as needed."
@@ -47,10 +51,13 @@
   activity for the API.
   "
   [params org sort-type activity boards user]
-  (let [collection-url (url org sort-type params)
-        other-sort-url (url org (if (= sort-type :recent-activity) :recently-posted :recent-activity) params)
-        links [(hateoas/self-link collection-url {:accept mt/activity-collection-media-type})
-               (hateoas/self-link other-sort-url {:accept mt/activity-collection-media-type})
+  (let [collection-url (url org sort-type)
+        recent-activity-sort? (= sort-type :recent-activity)
+        other-sort-url (url org (if recent-activity-sort? :recently-posted :recent-activity))
+        collection-rel (if recent-activity-sort? "activity" "self")
+        other-sort-rel (if recent-activity-sort? "self" "activity")
+        links [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/activity-collection-media-type} {})
+               (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {})
                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
         full-links (concat links (pagination-links org sort-type params activity))]
     (json/generate-string

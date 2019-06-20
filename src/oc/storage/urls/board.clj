@@ -3,11 +3,12 @@
 
 (defun url
   ([org-slug board-slug :guard string? sort-type :guard keyword? params :guard map?]
-    (str (url org-slug board-slug sort-type) "?start=" (:start params) "&direction=" (name (:direction params))))
+    (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
+      (str (url org-slug board-slug sort-type) concat-str "start=" (:start params) "&direction=" (name (:direction params)))))
   ([org-slug board :guard map?]
     (url org-slug (:slug board) :recently-posted))
   ([org-slug slug :guard string?]
     (url org-slug slug :recently-posted))
   ([org-slug slug :guard string? sort-type :guard keyword?]
-    (let [sort-path (if (= sort-type :recently-posted) "" "/recent")]
+    (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
       (str "/orgs/" org-slug "/boards/" slug sort-path))))

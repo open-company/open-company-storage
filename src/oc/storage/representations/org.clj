@@ -39,10 +39,10 @@
   (assoc org :links [(item-link org)]))
 
 (defn- activity-link [org]
-  (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/activity-collection-media-type}))
 
 (defn- recent-activity-link [org]
-  (hateoas/link-map "recent-activity" hateoas/GET (str (url org) "/recent-activity") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/activity-collection-media-type}))
 
 ;; Not currently used
 ; (defn- calendar-link [org]

@@ -70,7 +70,7 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on the activity of a particular Org
-(defresource activity [conn slug sort-type]
+(defresource activity [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
@@ -108,6 +108,8 @@
                              org (:existing-org ctx)
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
+                             sort (:sort ctx-params)
+                             sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
@@ -118,7 +120,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-activity conn params org sort-type board-by-uuid allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org (name sort-type) activity boards user))))
+                          (activity-rep/render-activity-list params org sort-type activity boards user))))
 
 ;; ----- Routes -----
 
@@ -126,11 +128,7 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; All activity operations
-      (OPTIONS "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
-      (OPTIONS "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
-      (OPTIONS "/orgs/:slug/recent-activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity)))
-      (OPTIONS "/orgs/:slug/recent-activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity)))
-      (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
-      (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recently-posted)))
-      (GET "/orgs/:slug/recent-activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity)))
-      (GET "/orgs/:slug/recent-activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug :recent-activity))))))
+      (OPTIONS "/orgs/:slug/entries" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
+      (OPTIONS "/orgs/:slug/entries/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
+      (GET "/orgs/:slug/entries" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
+      (GET "/orgs/:slug/entries/" [slug] (pool/with-pool [conn db-pool] (activity conn slug))))))

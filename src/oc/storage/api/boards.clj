@@ -333,7 +333,7 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular board
-(defresource board [conn org-slug slug sort-type]
+(defresource board [conn org-slug slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch :delete]
@@ -400,7 +400,10 @@
   
   ;; Responses
   :handle-ok (fn [ctx] (let [org (:existing-org ctx)
-                             board (or (:updated-board ctx) (:existing-board ctx))]
+                             board (or (:updated-board ctx) (:existing-board ctx))
+                             ctx-params (keywordize-keys (-> ctx :request :params))
+                             sort (:sort ctx-params)
+                             sort-type (if (= sort "activity") :recent-activity :recently-posted)]
                           ;; For drafts board still use the full board
                           (if (= (:slug board) (:slug board-res/default-drafts-board))
                             (let [full-board (assemble-board conn org board ctx)
@@ -536,10 +539,8 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Board operations
-      (ANY "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug :recently-posted)))
-      (ANY "/orgs/:org-slug/boards/:slug/" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug :recently-posted)))
-      (ANY "/orgs/:org-slug/boards/:slug/recent" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug :recent-activity)))
-      (ANY "/orgs/:org-slug/boards/:slug/recent/" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug :recent-activity)))
+      (ANY "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
+      (ANY "/orgs/:org-slug/boards/:slug/" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
       ;; Board creation
       (OPTIONS "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
       (POST "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
