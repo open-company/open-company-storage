@@ -20,7 +20,7 @@
             [oc.storage.lib.sort :as sort]
             [oc.storage.lib.timestamp :as ts]))
 
-;; TODO This a`assemble-activity` is overly complicated because it used to merge entries
+;; TODO This `assemble-activity` is overly complicated because it used to merge entries
 ;; and stories. It no longer does so can be simplified. This also may entail some
 ;; changes to `entry/list-entries-by-org`
 (defn- assemble-activity
