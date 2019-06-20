@@ -8,7 +8,7 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
-            [oc.storage.util.sort :as sort]))
+            [oc.storage.lib.sort :as sort]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name

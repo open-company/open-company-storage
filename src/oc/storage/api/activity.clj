@@ -17,13 +17,12 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.util.sort :as sort]
-            [oc.storage.util.timestamp :as ts]))
+            [oc.storage.lib.sort :as sort]
+            [oc.storage.lib.timestamp :as ts]))
 
-;; TODO This activity stuff, `activity-sort`, `merge-activity` and `assemble-activity` is overly complicated
-;; because it used to merge entries and stories. It no longer does so can be simplified. This also may entail some
+;; TODO This a`assemble-activity` is overly complicated because it used to merge entries
+;; and stories. It no longer does so can be simplified. This also may entail some
 ;; changes to `entry/list-entries-by-org`
-
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid allowed-boards user-id]
