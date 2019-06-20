@@ -29,6 +29,7 @@
     :org-name (schema/maybe schema/Str)
     :org-logo-url (schema/maybe schema/Str)
     :board-name (schema/maybe schema/Str)
+    :board-access (schema/maybe schema/Str)
     :board-slug lib-schema/NonBlankStr
     :entry-uuid lib-schema/UniqueID
     :headline (schema/maybe schema/Str)
@@ -45,12 +46,21 @@
     :shared-at lib-schema/ISO8601
     }))
 
-(defn- bot-for
-  "Extract the right bot from the JWToken for the specified Slack org ID."
-  [slack-org-id user]
+(defn- get-slack-bot-for [slack-org-id user]
   (let [slack-bots (flatten (vals (:slack-bots user)))
         slack-bots-by-slack-org (zipmap (map :slack-org-id slack-bots) slack-bots)
         slack-bot (get slack-bots-by-slack-org slack-org-id)]
+    slack-bot))
+
+(defn has-slack-bot-for? [slack-org-id user]
+  (let [slack-bot (get-slack-bot-for slack-org-id user)]
+    (and (map? slack-bot)
+         (seq (keys slack-bot)))))
+
+(defn- bot-for
+  "Extract the right bot from the JWToken for the specified Slack org ID."
+  [slack-org-id user]
+  (let [slack-bot (get-slack-bot-for slack-org-id user)]
     (if slack-bot
       {:token (:token slack-bot) :id (:id slack-bot)}
       false)))
@@ -75,6 +85,7 @@
       :org-slug (:slug org)
       :org-name (:name org)
       :board-name (:name board)
+      :board-access (:access board)
       :board-slug (:slug board)
       :org-logo-url (:logo-url org)
       :entry-uuid (:uuid entry)

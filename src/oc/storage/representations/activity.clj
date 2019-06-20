@@ -2,6 +2,7 @@
   "Resource representations for OpenCompany activity."
   (:require [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
+            [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
@@ -44,7 +45,9 @@
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org activity comments reactions access-level user-id]
-  (entry-rep/render-entry-for-collection org {:slug (:board-slug activity) :uuid (:board-uuid activity)}
+  (entry-rep/render-entry-for-collection org {:slug (:board-slug activity)
+                                              :access (:board-access activity)
+                                              :uuid (:board-uuid activity)}
     activity comments reactions access-level user-id))
 
 (defn render-activity-list
@@ -52,7 +55,7 @@
   Given an org and a sequence of entry maps, create a JSON representation of a list of
   activity for the API.
   "
-  [params org activity access-level user-id]
+  [params org activity boards user]
   (let [collection-url (url org params)
         links [(hateoas/self-link collection-url {:accept mt/activity-collection-media-type})
                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
@@ -61,8 +64,11 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(render-activity-for-collection org %
-                                    (comments %)
-                                    (reaction-res/aggregate-reactions (reactions %))
-                                    access-level user-id) (:activity activity))}}
+                    :items (map (fn [entry]
+                                  (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
+                                        access-level (access/access-level-for org board user)]
+                                   (render-activity-for-collection org entry
+                                     (comments entry)
+                                     (reaction-res/aggregate-reactions (reactions entry))
+                                     (:access-level access-level) (:user-id user)))) (:activity activity))}}
       {:pretty config/pretty?})))
