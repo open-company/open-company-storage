@@ -1,4 +1,4 @@
-(ns oc.storage.util.timestamp
+(ns oc.storage.lib.timestamp
   "Timestamp utility namespace"
   (:require [clj-time.format :as f]
             [oc.lib.db.common :as db-common]))

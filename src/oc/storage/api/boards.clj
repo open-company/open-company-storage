@@ -26,8 +26,8 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.resources.reaction :as reaction-res]
-            [oc.storage.util.sort :as sort]
-            [oc.storage.util.timestamp :as ts]
+            [oc.storage.lib.sort :as sort]
+            [oc.storage.lib.timestamp :as ts]
             [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----

@@ -1,4 +1,4 @@
-(ns oc.storage.util.sort)
+(ns oc.storage.lib.sort)
 
 (defn max-comment-timestamp
   "Return a map {entry-uuid most-recent-comment-timestap} excluding the user authored comments"
