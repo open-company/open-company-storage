@@ -6,7 +6,6 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.text :as oc-str]
-            [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -382,7 +381,7 @@
 
 (schema/defn ^:always-validate list-entries-by-org
   "
-  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
   "
   [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
@@ -394,17 +393,34 @@
                      [{:fn :contains :value allowed-boards :field :board-uuid}
                       {:fn :eq :field :must-see :value (boolean (#{true "true"} must-see))}]
                      )]
-    (db-common/read-resources-and-relations conn table-name
+    (db-common/read-all-resources-and-relations conn table-name
       :status-org-uuid [[:published org-uuid]]
-      "published-at" order start direction config/default-activity-limit
+      "published-at" order start direction
       filter-map
       :interactions common/interaction-table-name :uuid :resource-uuid
       ["uuid" "headline" "body" "reaction" "author"
        "published-at" "created-at" "updated-at"] {:count count})))
 
+
+(schema/defn ^:always-validate paginated-entries-by-board
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
+  and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
+  "
+  [conn board-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)]}
+  (db-common/read-all-resources-and-relations conn table-name
+    :status-board-uuid [[:published board-uuid]]
+    "published-at" order start direction
+    :interactions common/interaction-table-name :uuid :resource-uuid
+    ["uuid" "headline" "body" "reaction" "author"
+     "published-at" "created-at" "updated-at"] {:count count}))
+
 (schema/defn ^:always-validate list-entries-by-org-author
   "
-  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp, 
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a direction, one of `:before` or `:after`, and an optional status of `:draft` or `:published` (the default)
   return the entries by the author with any interactions.
   "

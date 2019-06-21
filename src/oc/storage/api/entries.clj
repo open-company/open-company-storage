@@ -315,7 +315,8 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [org (or (:existing-org ctx)
+  :exists? (fn [ctx] (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
+                               org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
