@@ -26,6 +26,9 @@
 
 ;; ----- Utility functions -----
 
+(def org-name-min-length 3)
+(def org-name-max-length 50)
+
 (defn- board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and
@@ -145,7 +148,7 @@
                                                   (remove #(= % config/forced-board-name) selected-board-names))))
               forced-entries (default-entries-for config/forced-board-name)
               total-entries (take 4 (concat selected-entries forced-entries))
-              create-entries (map #(assoc % :author (lib-schema/author-for-user author))
+              create-entries (map #(update % :author (fn [val] (or val (lib-schema/author-for-user author))))
                               (take 4 (concat selected-entries forced-entries)))
               _created-entries (doall (pmap #(create-entry conn updated-org % author) create-entries))]
             (notification/send-trigger!
@@ -192,8 +195,13 @@
   (try
     ;; Create the new org from the data provided
     (let [org-map (:data ctx)
+          org-name (:name org-map)
           author (:user ctx)]
-      {:new-org (api-common/rep (org-res/->org org-map author))})
+      (if (and (<= (count org-name) org-name-max-length)
+               (>= (count org-name) org-name-min-length))
+        {:new-org (api-common/rep (org-res/->org org-map author))}
+        [false, {:reason (str "Org name length. Allowed length is " org-name-min-length
+                              " to " org-name-max-length ".")}]))
 
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
@@ -202,8 +210,14 @@
   (if-let [org (org-res/get-org conn slug)]
     (let [samples? (:samples org-props)
           updated-props (if samples? (dissoc org-props :samples :boards) org-props)
-          updated-org (merge org (org-res/ignore-props updated-props))]
-      (if (lib-schema/valid? common-res/Org updated-org)
+          updated-org (merge org (org-res/ignore-props updated-props))
+          updating-org-name? (contains? org-props :name)
+          org-name (:name org-props)]
+      (if (and (lib-schema/valid? common-res/Org updated-org)
+               (or (not updating-org-name?)
+                   (and updating-org-name?
+                        (<= (count org-name) org-name-max-length)
+                        (>= (count org-name) org-name-min-length))))
         {:existing-org (api-common/rep org) :updated-org (api-common/rep updated-org)
          :samples (api-common/rep samples?) :boards (api-common/rep (:boards org-props))}
         [false, {:updated-org (api-common/rep updated-org)}])) ; invalid update
@@ -256,7 +270,14 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
-                             show-draft-board? (and (seq user-id) (access/allow-authors conn slug (:user ctx)))
+                             author-access-boards (filter #(= (:access-level %) :author) board-access)
+                                               ;; Add the draft board
+                             show-draft-board? (and ;; if user is logged in and
+                                                    (seq user-id)
+                                                    ;; or is an author of the org
+                                                    (or (access/allow-authors conn slug (:user ctx))
+                                                        ;; or has at least one board with author access
+                                                        (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
                              full-boards (if show-draft-board?
@@ -266,7 +287,7 @@
                                           full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
-                             has-sample-content? (entry-res/sample-entries? conn org-id)]
+                             has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
                                                  (assoc :must-see-count must-see-count)
@@ -372,7 +393,7 @@
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))
-                                  has-sample-content? (entry-res/sample-entries? conn org-id)]
+                                  has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                               (api-common/location-response
                                 (org-rep/url slug)
                                 (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)

@@ -6,8 +6,9 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
-            [oc.storage.representations.board :as board-rep]
-            [oc.storage.representations.content :as content]))
+            [oc.storage.urls.board :as board-url]
+            [oc.storage.representations.content :as content]
+            [oc.storage.lib.sort :as sort]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -18,15 +19,27 @@
 
 (def representation-props [:uuid :headline :body :abstract :attachments :status :must-see :sample
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
-                           :board-uuid :board-slug :board-name 
+                           :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
-                           :created-at :updated-at :revision-id])
+                           :created-at :updated-at :revision-id :new-at])
+
+;; Utility functions
+
+(defn comments
+  "Return a sequence of just the comments for an entry."
+  [{interactions :interactions}]
+  (filter :body interactions))
+
+(defn reactions
+  "Return a sequence of just the reactions for an entry."
+  [{interactions :interactions}]
+  (filter :reaction interactions))
 
 (defun url
 
   ([org-slug board-slug]
-  (str (board-rep/url org-slug board-slug) "/entries"))
+  (str (board-url/url org-slug board-slug) "/entries"))
   
   ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
 
@@ -73,7 +86,7 @@
      :accept mt/entry-media-type}))
 
 (defn- up-link [org-slug board-slug]
-  (hateoas/up-link (board-rep/url org-slug board-slug) {:accept mt/board-media-type}))
+  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type}))
 
 (defn- revert-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
@@ -104,8 +117,14 @@
         org-slug (:slug org)
         board-uuid (:uuid board)
         board-slug (:slug board)
+        board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
-        full-entry (merge {:board-slug board-slug :board-name (:name board)} entry)
+        full-entry (merge {:board-slug board-slug
+                           :board-access board-access
+                           :board-name (:name board)
+                           :new-at (-> (sort/max-comment-timestamp user-id entry comments)
+                                    vals
+                                    first)} entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))

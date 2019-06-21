@@ -154,7 +154,8 @@
   [conn ctx entry-result]
   (when (or (nil? (:video-id entry-result))
             (true? (:video-processed entry-result)))
-    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))]
+    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
+              _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
       (let [share-request {:medium "slack"
                            :note ""
                            :shared-at (db-common/current-timestamp)
@@ -314,7 +315,8 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [org (or (:existing-org ctx)
+  :exists? (fn [ctx] (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
+                               org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)
                                board (or (:existing-board ctx)
@@ -383,7 +385,7 @@
     :options true
     :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
-    :delete (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
   ;; Validations
   :processable? (by-method {
@@ -435,7 +437,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -503,7 +505,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -562,7 +564,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
   
   ;; Media type client accepts
   :available-media-types (by-method {
