@@ -16,39 +16,16 @@
             [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.lib.sort :as sort]
+            [oc.storage.lib.timestamp :as ts]))
 
-;; ----- Utility functions -----
-
-(defn- valid-timestamp? [ts]
-  (try
-    (f/parse db-common/timestamp-format ts)
-    true
-    (catch IllegalArgumentException e
-      false)))
-
-;; TODO This activity stuff, `activity-sort`, `merge-activity` and `assemble-activity` is overly complicated
-;; because it used to merge entries and stories. It no longer does so can be simplified. This also may entail some
+;; TODO This `assemble-activity` is overly complicated because it used to merge entries
+;; and stories. It no longer does so can be simplified. This also may entail some
 ;; changes to `entry/list-entries-by-org`
-
-(defn- activity-sort
-  "
-  Compare function to sort 2 entries and/or activity by their `created-at` or `published-at` order respectively,
-  in the order (:asc or :desc) provided.
-  "
-  [order x y]
-  (let [order-flip (if (= order :desc) -1 1)]
-    (* order-flip (compare (or (:published-at x) (:created-at x))
-                           (or (:published-at y) (:created-at y))))))
-
-(defn- merge-activity
-  "Given a set of entries and stories and a sort order, return up to the default limit of them, intermixed and sorted."
-  [entries stories order]
-  (take config/default-activity-limit (sort (partial activity-sort order) (concat entries stories))))
-
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org board-by-uuid allowed-boards]
+  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid allowed-boards user-id]
   (let [order (if (= :after direction) :asc :desc)
         activities (cond
 
@@ -61,8 +38,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards {:must-see must-see})
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
-                        previous-activity (merge-activity previous-entries [] :asc)
-                        next-activity (merge-activity next-entries [] :desc)]
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -70,14 +47,14 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        previous-activity (merge-activity previous-entries [] :asc)]
+                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        next-activity (merge-activity next-entries [] :desc)]
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -109,7 +86,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (valid-timestamp? start) true)
+                              valid-start? (if start (ts/valid-timestamp? start) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after :around} direction) true)
@@ -130,6 +107,8 @@
                              org (:existing-org ctx)
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
+                             sort (:sort ctx-params)
+                             sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
@@ -139,8 +118,8 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-activity conn params org board-by-uuid allowed-boards)]
-                          (activity-rep/render-activity-list params org activity boards user))))
+                             activity (assemble-activity conn params org sort-type board-by-uuid allowed-boards user-id)]
+                          (activity-rep/render-activity-list params org sort-type activity boards user))))
 
 ;; ----- Routes -----
 
@@ -148,7 +127,7 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; All activity operations
-      (OPTIONS "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (OPTIONS "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (GET "/orgs/:slug/activity" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
-      (GET "/orgs/:slug/activity/" [slug] (pool/with-pool [conn db-pool] (activity conn slug))))))
+      (OPTIONS "/orgs/:slug/entries" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
+      (OPTIONS "/orgs/:slug/entries/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
+      (GET "/orgs/:slug/entries" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
+      (GET "/orgs/:slug/entries/" [slug] (pool/with-pool [conn db-pool] (activity conn slug))))))
