@@ -39,7 +39,10 @@
   (assoc org :links [(item-link org)]))
 
 (defn- activity-link [org]
-  (hateoas/link-map "activity" hateoas/GET (str (url org) "/activity") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/activity-collection-media-type}))
+
+(defn- recent-activity-link [org]
+  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/activity-collection-media-type}))
 
 ;; Not currently used
 ; (defn- calendar-link [org]
@@ -94,7 +97,7 @@
   (let [links [(self-link org)]
         id-token (:id-token user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
-                          (concat links [(activity-link org)]) ; (calendar-link org) - not currently used
+                          (concat links [(activity-link org) (recent-activity-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
                       (concat activity-links [(board-create-link org)
