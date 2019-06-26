@@ -454,7 +454,7 @@
    {:pre [(db-common/conn? conn)]}
    (let [old-follow-ups (:follow-ups original-entry)
          all-follow-up-assignee (map #(-> % :assignee :user-id) follow-ups)
-         filtered-follow-ups (filterv #(not (#{(-> % :assignee :user-id)} (set all-follow-up-assignee))) old-follow-ups)
+         filtered-follow-ups (filterv #(not ((set all-follow-up-assignee) (-> % :assignee :user-id))) old-follow-ups)
          new-follow-ups (vec (concat filtered-follow-ups follow-ups))
          final-entry (assoc original-entry :follow-ups new-follow-ups)]
     (update-entry-no-version! conn (:uuid original-entry) final-entry user))))
@@ -468,7 +468,7 @@
         other-follow-ups (filterv #(not= (:uuid %) (:uuid follow-up)) (:follow-ups original-entry))
         final-follow-ups (vec (conj other-follow-ups completed-follow-up))
         updated-entry (assoc original-entry :follow-ups final-follow-ups)]
-    (update-entry-no-version! conn entry-uuid updated-entry user)))
+    (update-entry-no-version! conn (:uuid original-entry) updated-entry user)))
 
 ;; ----- Data about entries -----
 
