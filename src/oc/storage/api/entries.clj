@@ -6,6 +6,7 @@
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
+            [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
@@ -114,6 +115,28 @@
     
     true)) ; no existing entry, so this will fail existence check later
 
+(defn- valid-follow-up-request? [conn entry-uuid follow-up-map user]
+  (let [existing-entry (entry-res/get-entry conn entry-uuid)
+        ts (db-common/current-timestamp)
+        with-keys (keywordize-keys follow-up-map)
+        self? (:self with-keys)
+        assignees (if self?
+                    [(lib-schema/author-for-user user)]
+                    (:assignees with-keys))
+        follow-ups (map #(hash-map :assignee %
+                                  :uuid (db-common/unique-id)
+                                  :created-at ts
+                                  :author (lib-schema/author-for-user user)
+                                  :completed? false)
+                         assignees)]
+    (if existing-entry
+      (if (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)
+        {:existing-entry (api-common/rep existing-entry)
+         :self? self?
+         :follow-ups (api-common/rep follow-ups)}
+        [false, {:follow-ups (api-common/rep follow-ups)}]) ; invalid share request
+      true))) ;; wil fail existence later
+
 (defn- entry-list-for-board
   "Retrieve an entry list for the board, or false if the org or board doesn't exist."
   [conn org-slug board-slug-or-uuid ctx]
@@ -149,6 +172,39 @@
       {:updated-entry (api-common/rep update-result)})
     (do
       (timbre/error "Failed sharing entry:" entry-for) false)))
+
+(defn- create-follow-ups [conn ctx entry-for]
+  (timbre/info "Creating " (count (:follow-ups ctx)) " follow-ups for entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)
+            follow-ups (:follow-ups ctx)
+            updated-entry (entry-res/add-follow-ups! conn entry follow-ups user)
+            entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
+    (do
+      ;; TODO: Trigger notifications for created follow-ups
+      ;; (when (and (seq? follow-ups) (any? follow-ups)))
+      (timbre/info "Follow-ups created for entry:" entry-for)
+      {:updated-entry (api-common/rep updated-entry)})
+    (do
+      (timbre/error "Failed creating follow-ups for entry:" entry-for) false)))
+
+(defn- mark-complete-follow-up [conn ctx entry-for]
+  (timbre/info "Marking complete follow-up " (:uuid (:existing-follow-up ctx)) " for entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            follow-up (:existing-follow-up ctx)
+            user (:user ctx)
+            updated-entry (entry-res/complete-follow-up! conn entry follow-up user)
+            entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
+    (do
+      ;; TODO: Trigger notifications for completed follow-up
+      (timbre/info "Follow-up marked complete for entry:" entry-for)
+      {:updated-entry (api-common/rep updated-entry)})
+    (do
+      (timbre/error "Failed marking complete follow-up for entry:" entry-for) false)))
 
 (defn auto-share-on-publish
   [conn ctx entry-result]
@@ -379,7 +435,7 @@
                           :get true
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
                           :delete true})
-  
+
   ;; Authorization
   :allowed? (by-method {
     :options true
@@ -522,7 +578,7 @@
     :post (fn [ctx] (let [entry-props (:data ctx)]
                       (or (nil? entry-props) ; no updates during publish is fine
                           (valid-entry-update? conn entry-uuid entry-props))))})
-  :new? false 
+  :new? false
   :respond-with-entity? true
 
   ;; Existentialism
@@ -565,7 +621,7 @@
   :allowed? (by-method {
     :options true
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
-  
+
   ;; Media type client accepts
   :available-media-types (by-method {
                             :post [mt/entry-media-type]})
@@ -578,7 +634,7 @@
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/share-request-media-type))})
 
   ;; Data handling
-  :new? false 
+  :new? false
   :respond-with-entity? true
 
   ;; Validations
@@ -682,6 +738,132 @@
                                                   (-> ctx :user :user-id)
                                                   :secure))))
 
+(defresource follow-up-list [conn org-slug board-slug entry-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/follow-up-media-type))})
+
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (valid-follow-up-request? conn entry-uuid (:data ctx) (:user ctx)))})
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn entry-uuid))
+                               board (board-res/get-board conn (:board-uuid entry))
+                               _matches? (and (= org-uuid (:org-uuid entry))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :published (keyword (:status entry)))) ; sanity check
+                               comments (or (:existing-comments ctx)
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
+                               reactions (or (:existing-reactions ctx)
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)}
+                        false))
+
+  ;; Actions
+  :post! (fn [ctx] (create-follow-ups conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               (:existing-comments ctx)
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/FollowUp %) (:follow-ups ctx)))))
+
+(defresource follow-up [conn org-slug board-slug entry-uuid follow-up-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? true
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn entry-uuid))
+                               board (board-res/get-board conn (:board-uuid entry))
+                               follow-up (first (filter #(= (:uuid %) follow-up-uuid) (:follow-ups entry)))
+                               _matches? (and (= org-uuid (:org-uuid entry))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :published (keyword (:status entry)))) ; sanity check
+                               comments (or (:existing-comments ctx)
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
+                               reactions (or (:existing-reactions ctx)
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry)
+                         :existing-follow-up (api-common/rep follow-up)
+                         :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)}
+                        false))
+
+  ;; Actions
+  :post! (fn [ctx] (mark-complete-follow-up conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               (:existing-comments ctx)
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/FollowUp %) (:follow-ups ctx)))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -754,4 +936,12 @@
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
-          (share conn org-slug board-slug entry-uuid))))))
+          (share conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow-up"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (follow-up-list conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow-up/:follow-up-uuid/complete"
+        [org-slug board-slug entry-uuid follow-up-uuid]
+        (pool/with-pool [conn db-pool]
+          (follow-up conn org-slug board-slug entry-uuid follow-up-uuid))))))
