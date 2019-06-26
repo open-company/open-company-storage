@@ -756,7 +756,7 @@
   ;; Media type client sends
   :known-content-type? (by-method {
                           :options true
-                          :post (fn [ctx] (api-common/known-content-type? ctx mt/follow-up-media-type))})
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/follow-up-request-media-type))})
 
   ;; Data handling
   :new? false
@@ -824,6 +824,11 @@
 
   ;; Validations
   :processable? true
+
+  ;; Possibly no data to handle
+  :malformed? (by-method {
+    :options false
+    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
 
   ;; Existentialism
   :can-post-to-missing? false
