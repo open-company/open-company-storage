@@ -265,7 +265,7 @@
   to the common/Entry schema.
   "
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
-  {:pre [(db-common/conn? conn)         
+  {:pre [(db-common/conn? conn)
          (map? entry)]}
   (when-let [original-entry (get-entry conn uuid)]
     (let [ts (db-common/current-timestamp)
@@ -447,6 +447,28 @@
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
+
+(schema/defn ^:always-validate add-follow-ups! :- (schema/maybe common/Entry)
+  "Add a follow-up for the give entry uuid"
+  ([conn original-entry :- common/Entry follow-ups :- [common/FollowUp] user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [old-follow-ups (:follow-ups original-entry)
+         all-follow-up-assignee (map #(-> % :assignee :user-id) follow-ups)
+         filtered-follow-ups (filterv #(not (#{(-> % :assignee :user-id)} (set all-follow-up-assignee))) old-follow-ups)
+         new-follow-ups (vec (concat filtered-follow-ups follow-ups))
+         final-entry (assoc original-entry :follow-ups new-follow-ups)]
+    (update-entry-no-version! conn (:uuid original-entry) final-entry user))))
+
+(schema/defn ^:always-validate complete-follow-up!
+  "Complete a follow-up item"
+  [conn original-entry :- common/Entry follow-up :- common/FollowUp user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)]}
+  (let [completed-follow-up (merge follow-up {:completed? true
+                                              :completed-at (db-common/current-timestamp)})
+        other-follow-ups (filterv #(not= (:uuid %) (:uuid follow-up)) (:follow-ups original-entry))
+        final-follow-ups (vec (conj other-follow-ups completed-follow-up))
+        updated-entry (assoc original-entry :follow-ups final-follow-ups)]
+    (update-entry-no-version! conn entry-uuid updated-entry user)))
 
 ;; ----- Data about entries -----
 
