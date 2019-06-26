@@ -96,10 +96,10 @@
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
 
-(defn- create-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
-  (hateoas/link-map "follow-up" hateoas/POST (url org-slug board-slug entry-uuid follow-up-uuid)
+(defn- create-follow-up-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "follow-up" hateoas/POST (str (url org-slug board-slug entry-uuid) "/follow-up")
     {:accept mt/entry-media-type
-     :content-type mt/follow-up-media-type})
+     :content-type mt/follow-up-request-media-type}))
 
 (defn- complete-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
   (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
