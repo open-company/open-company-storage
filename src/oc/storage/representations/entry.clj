@@ -96,6 +96,11 @@
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
 
+(defn- create-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
+  (hateoas/link-map "follow-up" hateoas/POST (url org-slug board-slug entry-uuid follow-up-uuid)
+    {:accept mt/entry-media-type
+     :content-type mt/follow-up-media-type})
+
 (defn- complete-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
   (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
     {:accept mt/entry-media-type}))
@@ -180,7 +185,8 @@
               ;; Indirect access via the board, rather than direct access by the secure ID
               ;; needs a share link
               (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
-              (conj react-links (share-link org-slug board-slug entry-uuid))
+              (conj react-links (share-link org-slug board-slug entry-uuid)
+               (create-follow-up-link org-slug board-slug entry-uuid))
               ;; Otherwise just the links they already have
               :else react-links)]
     (-> (if secure-access?
