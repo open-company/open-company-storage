@@ -95,7 +95,7 @@
   :assignee lib-schema/Author
   :author lib-schema/Author
   :completed? schema/Bool
-  :completed-at lib-schema/ISO8601})
+  (schema/optional-key :completed-at) (schema/maybe lib-schema/ISO8601)})
 
 (def Entry 
   "An entry on a board."
