@@ -22,7 +22,7 @@
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
-                           :created-at :updated-at :revision-id :new-at])
+                           :created-at :updated-at :revision-id :new-at :follow-ups])
 
 ;; Utility functions
 
@@ -44,7 +44,10 @@
   ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
 
   ([org-slug board-slug entry-uuid]
-  (str (url org-slug board-slug) "/" entry-uuid)))
+  (str (url org-slug board-slug) "/" entry-uuid))
+
+  ([org-slug board-slug entry-uuid follow-up-uuid]
+  (str (url org-slug board-slug entry-uuid) "/follow-up/" follow-up-uuid)))
 
 (defn- self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
@@ -93,6 +96,10 @@
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
 
+(defn- complete-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
+  (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
+    {:accept mt/entry-media-type}))
+
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
@@ -131,6 +138,12 @@
         comment-list (if (= access-level :public)
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
+        follow-ups-list (if (= access-level :public)
+                          []
+                          (map #(if (= (-> % :assignee :user-id) user-id)
+                                  (assoc % :links [(complete-follow-up-link org-uuid board-uuid entry-uuid (:uuid %))])
+                                  %)
+                           (:follow-ups entry)))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
@@ -180,6 +193,7 @@
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
+      (assoc :follow-ups follow-ups-list)
       (assoc :links full-links))))
 
 (defn render-entry-for-collection
