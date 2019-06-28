@@ -35,7 +35,6 @@ Most of the dependencies are internal, meaning [Leiningen](https://github.com/te
 * [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) - a Java 8+ JRE is needed to run Clojure
 * [Leiningen](https://github.com/technomancy/leiningen) 2.9.1+ - Clojure's build and dependency management tool
 * [RethinkDB](http://rethinkdb.com/) v2.3.6+ - a multi-modal (document, key/value, relational) open source NoSQL database
-* [ngrok](https://ngrok.com/) - Secure web tunnel to localhost
 
 #### Java
 
@@ -166,36 +165,6 @@ If you run Linux on your development environment (good for you, hardcore!) you c
 
 RethinkDB [isn't supported on Windows](https://github.com/rethinkdb/rethinkdb/issues/1100) directly. If you are stuck on Windows, you can run Linux in a virtualized environment to host RethinkDB.
 
-#### Ziggeo Webhooks (ngrok)
-
-In order for the video posts to function properly you will need to handle
-webhooks from ziggeo.
-
-ngrok allows you to setup a secure web tunnel for HTTP/S requests to your localhost. You'll need this to utilize the Ziggeo webhook during local development so Ziggeo can communicate with your local development environment.
-
-ngrok is trivial to setup:
-
-1. [Download](https://ngrok.com/download) the version for your operating system.
-1. Unzip the download and put ngrok someplace handy for you (in your path is good!)
-1. Verify you can run ngrok with: `ngrok help`
-
-To use the webhook from Slack with local development, you need to run ngrok, then configure your Slack integration.
-
-First start the Slack Router service (see below), and start the ngrok tunnel:
-
-```console
-ngrok http 3001
-```
-
-Note the HTTPS URL ngrok provides. It will look like: `https://6ae20d9b.ngrok.io` -> localhost:3001
-
-To configure Ziggeo to use the ngrok tunnel, go to the ziggeo web app at [https://ziggeo.com/](https://ziggeo.com/) and log in.
-
-On the left nav bar there is a 'Manage' option. Click that and then choose the 'Webhooks' item in the middle of the page. Add your ngrok URL appended with `/ziggeo/videos` (e.g. `https://da0d29b0.ngrok.io/ziggeo/videos`) and choose 'JSON encoding' for the template option.
-
-Set the `project.clj` or environment variables for the Ziggeo API token and key (see below).
-
-
 #### Configuration
 
 An AWS SQS queue is used to pass messages to the OpenCompany Storage service from the OpenCompany Authentication service. Setup SQS Queues and key/secret access to the queue using the AWS Web Console or API.
@@ -219,8 +188,6 @@ Make sure you update the section in `project.clj` that looks like this to contai
     :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
     :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
     :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
-    :open-company-ziggeo-api-token "CHANGE-ME" ; Video processing API token
-    :open-company-ziggeo-api-key "CHANGE-ME" ; Video processing API key
     :log-level "debug"
   }
 ```
@@ -250,7 +217,7 @@ An optional [AWS SNS](https://aws.amazon.com/sns/) pub/sub topic is used to push
 
 ## Technical Design
 
-The Storage service is composed of 8 main responsibilities:
+The Storage service is composed of these main responsibilities:
 
 - CRUD of orgs, boards, and entries
 - Access control to orgs, boards, and entries
@@ -259,7 +226,6 @@ The Storage service is composed of 8 main responsibilities:
 - Notifying the [Bot service](https://github.com/open-company/open-company-bot) and [Email service](https://github.com/open-company/open-company-email) of new invites via SQS
 - Notifying the [Email service](https://github.com/open-company/open-company-email) of password reset and email validation requests via SQS
 - Publishing org, board and entry change notifications to interested subscribers via SNS
-- Handling call-backs from Ziggeo for video processing events
 
 The Storage service provides a HATEOAS REST API:
 

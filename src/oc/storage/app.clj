@@ -22,8 +22,7 @@
     [oc.storage.api.orgs :as orgs-api]
     [oc.storage.api.boards :as boards-api]
     [oc.storage.api.entries :as entries-api]
-    [oc.storage.api.activity :as activity-api]
-    [oc.storage.api.videos :as video-api]))
+    [oc.storage.api.activity :as activity-api]))
 
 ;; ----- Unhandled Exceptions -----
 
@@ -49,8 +48,7 @@
     (orgs-api/routes sys)
     (boards-api/routes sys)
     (entries-api/routes sys)
-    (activity-api/routes sys)
-    (video-api/routes sys)))
+    (activity-api/routes sys)))
 
 ;; ----- System Startup -----
 
@@ -63,8 +61,6 @@
     "AWS SQS email queue: " c/aws-sqs-email-queue "\n"
     "AWS SQS auth queue: " c/aws-sqs-auth-queue "\n"
     "AWS SNS notification topic ARN: " c/aws-sns-storage-topic-arn "\n"
-    "Ziggeo API token: " c/ziggeo-api-token "\n"
-    "Ziggeo API key: " c/ziggeo-api-key "\n"
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
     "Log level: " c/log-level "\n"

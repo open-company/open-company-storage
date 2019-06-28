@@ -17,7 +17,6 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.async.email :as email]
             [oc.storage.async.bot :as bot]
-            [oc.storage.util.ziggeo :as ziggeo]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
@@ -44,23 +43,6 @@
   ([org board entry user share-request :guard #(= "slack" (:medium %))]
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
-
-(declare auto-share-on-publish)
-
-(defn- handle-video-data
-  ([conn entry] (handle-video-data conn entry nil))
-  ([conn entry ctx]
-     (when (and (:video-id entry)
-                (or (nil? (:video-processed entry))
-                    (nil? (:video-transcript entry))))
-       (ziggeo/video (:video-id entry)
-         (fn [video error]
-           (if-not error
-             (let [updated-entry (entry-res/update-video-data conn video entry)]
-               (when (and (some? ctx)
-                          (= (:status updated-entry) "published"))
-                 (auto-share-on-publish conn ctx updated-entry)))
-             (entry-res/error-video-data conn entry)))))))
 
 ;; ----- Validations -----
 
@@ -152,19 +134,17 @@
 
 (defn auto-share-on-publish
   [conn ctx entry-result]
-  (when (or (nil? (:video-id entry-result))
-            (true? (:video-processed entry-result)))
-    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
-              _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
-      (let [share-request {:medium "slack"
-                           :note ""
-                           :shared-at (db-common/current-timestamp)
-                           :channel slack-channel}
-            share-ctx (-> ctx
-                          (assoc :share-requests (list share-request))
-                          (assoc :existing-entry (api-common/rep entry-result))
-                          (assoc :auto-share true))]
-        (share-entry conn share-ctx (:uuid entry-result))))))
+  (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
+            _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
+    (let [share-request {:medium "slack"
+                         :note ""
+                         :shared-at (db-common/current-timestamp)
+                         :channel slack-channel}
+          share-ctx (-> ctx
+                        (assoc :share-requests (list share-request))
+                        (assoc :existing-entry (api-common/rep entry-result))
+                        (assoc :auto-share true))]
+      (share-entry conn share-ctx (:uuid entry-result)))))
 
 (defn undraft-board [conn user org board]
   (when (:draft board)
@@ -180,7 +160,6 @@
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     
     (do
-      (handle-video-data conn entry-result ctx)
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
         (undraft-board conn (:user ctx) org board)
@@ -198,19 +177,13 @@
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            updated-video (if (not= (:video-id updated-entry) (:video-id entry))
-                            (-> updated-entry
-                                (assoc :video-processed nil)
-                                (assoc :video-transcript nil))
-                            updated-entry)
-            updated-result (entry-res/update-entry! conn (:uuid updated-video) updated-video user)]
+            updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (let [old-board (:moving-board ctx)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (handle-video-data conn updated-result)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
       {:updated-entry (api-common/rep (assoc updated-result :board-name (:name board)))})
 

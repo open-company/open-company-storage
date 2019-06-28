@@ -21,7 +21,7 @@
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
-                           :video-id :video-transcript :video-processed :video-error :video-image :video-duration
+                           :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id :new-at])
 
 ;; Utility functions
