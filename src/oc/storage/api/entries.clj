@@ -63,6 +63,15 @@
                  (auto-share-on-publish conn ctx updated-entry)))
              (entry-res/error-video-data conn entry)))))))
 
+(defn- fix-follow-up
+  "Given a subset of a follow-up coming from the client add the missing keys."
+  [follow-up user ts]
+  (hash-map :assignee (:assignee follow-up)
+            :uuid (or (:uuid follow-up) (db-common/unique-id))
+            :created-at (or (:created-at follow-up) ts (db-common/current-timestamp))
+            :author (lib-schema/author-for-user user)
+            :completed? (or (:completed? follow-up) false)))
+
 ;; ----- Validations -----
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]
@@ -71,14 +80,19 @@
       ;; Create the new entry from the URL and data provided
       (let [entry-map (:data ctx)
             author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) entry-map author)]
-        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)})
+            new-entry (entry-res/->entry conn (:uuid board) entry-map author)
+            new-entry-without-follow-ups (dissoc new-entry :follow-ups)
+            ts (db-common/current-timestamp)
+            follow-ups (map #(fix-follow-up % author ts) (:follow-ups entry-map))
+            valid-follow-ups? (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)]
+        {:new-entry (api-common/rep new-entry-without-follow-ups) :existing-board (api-common/rep board)
+         :new-follow-ups follow-ups})
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
-(defn- valid-entry-update? [conn entry-uuid entry-props]
+(defn- valid-entry-update? [conn entry-uuid entry-props user]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
     (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
@@ -91,12 +105,18 @@
                   (assoc entry-props :board-uuid new-board-uuid)
                   (dissoc entry-props :board-uuid))
           merged-entry (merge existing-entry (entry-res/ignore-props props))
-          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
-      (if (lib-schema/valid? common-res/Entry updated-entry)
+          updated-entry (-> merged-entry
+                          (update :attachments #(entry-res/timestamp-attachments %))
+                          (dissoc :follow-ups))
+          ts (db-common/current-timestamp)
+          follow-ups (map #(fix-follow-up % user ts) (:follow-ups entry-props))]
+      (if (and (lib-schema/valid? common-res/Entry updated-entry)
+               (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups))
         {:existing-entry (api-common/rep existing-entry)
          :existing-board (api-common/rep new-board)
          :moving-board (api-common/rep old-board)
-         :updated-entry (api-common/rep updated-entry)}
+         :updated-entry (api-common/rep updated-entry)
+         :updated-follow-ups (api-common/rep follow-ups)}
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
     
     true)) ; no existing entry, so this will fail existence check later
@@ -123,12 +143,7 @@
         assignees (if self?
                     [(lib-schema/author-for-user user)]
                     (:assignees with-keys))
-        follow-ups (map #(hash-map :assignee %
-                                  :uuid (db-common/unique-id)
-                                  :created-at ts
-                                  :author (lib-schema/author-for-user user)
-                                  :completed? false)
-                         assignees)]
+        follow-ups (map #(fix-follow-up {:assignee %} user ts) assignees)]
     (if existing-entry
       (if (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)
         {:existing-entry (api-common/rep existing-entry)
@@ -230,20 +245,27 @@
 
 (defn- create-entry [conn ctx entry-for]
   (timbre/info "Creating entry for:" entry-for)
-  (if-let* [org (:existing-org ctx)
+  (if-let* [user (:user ctx)
+            org (:existing-org ctx)
             board (:existing-board ctx)
             new-entry (:new-entry ctx)
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     
-    (do
-      (handle-video-data conn entry-result ctx)
-      (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (when (= (:status entry-result) "published")
-        (undraft-board conn (:user ctx) org board)
-        (entry-res/delete-versions conn entry-result)
-        (auto-share-on-publish conn ctx entry-result))
-      (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
-      {:created-entry (api-common/rep entry-result)})
+    (let [;; Create follow-ups if needed
+          updating-follow-ups? (pos? (count (:new-follow-ups ctx)))
+          updated-follow-ups (when updating-follow-ups?
+                               (entry-res/add-follow-ups! conn entry-result (:new-follow-ups ctx) user))
+          final-entry (if updating-follow-ups? updated-follow-ups entry-result)]
+      (handle-video-data conn final-entry ctx)
+      (timbre/info "Created entry for:" entry-for "as" (:uuid final-entry))
+      (when (= (:status final-entry) "published")
+        (undraft-board conn user org board)
+        (entry-res/delete-versions conn final-entry)
+        (auto-share-on-publish conn ctx final-entry)
+        ;; TODO: sent follow-up notifications
+        )
+      (notification/send-trigger! (notification/->trigger :add org board {:new final-entry} user nil))
+      {:created-entry (api-common/rep final-entry)})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
@@ -260,15 +282,20 @@
                                 (assoc :video-transcript nil))
                             updated-entry)
             updated-result (entry-res/update-entry! conn (:uuid updated-video) updated-video user)]
-    (let [old-board (:moving-board ctx)]
+    (let [old-board (:moving-board ctx)
+          updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
+          ;; Handle follow-ups
+          updated-follow-ups (when updating-follow-ups?
+                                (entry-res/add-follow-ups! conn updated-result (:updated-follow-ups ctx) user))
+          final-entry (if updating-follow-ups? updated-follow-ups updated-result)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (handle-video-data conn updated-result)
-      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
-      {:updated-entry (api-common/rep (assoc updated-result :board-name (:name board)))})
+      (handle-video-data conn final-entry)
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new final-entry} user nil))
+      {:updated-entry (api-common/rep (assoc final-entry :board-name (:name board)))})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
@@ -286,12 +313,19 @@
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
+      ;; TODO: sent follow-up notifications
       (entry-res/delete-versions conn publish-result)
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (auto-share-on-publish conn ctx publish-result)
       (timbre/info "Published entry:" entry-for)
-      (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user nil))
-      {:updated-entry (api-common/rep publish-result)})
+      (let [updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
+            ;; Handle follow-ups
+            updated-follow-ups (when updating-follow-ups?
+                                  (entry-res/add-follow-ups! conn publish-result (:updated-follow-ups ctx) user))
+            final-entry (if updating-follow-ups? updated-follow-ups publish-result)]
+        ;; TODO: send follow-ups notifications
+        (notification/send-trigger! (notification/->trigger :add org board {:new final-entry} user nil))
+        {:updated-entry (api-common/rep final-entry)}))
     (do (timbre/error "Failed publishing entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
@@ -367,7 +401,7 @@
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
                           (slugify/valid-slug? board-slug-or-uuid)
-                          (valid-entry-update? conn entry-uuid (:data ctx))))
+                          (valid-entry-update? conn entry-uuid (:data ctx) (:user ctx))))
     :delete true})
 
   ;; Existentialism
@@ -385,7 +419,8 @@
                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)}
+                         :existing-reactions (api-common/rep reactions)
+                         :existing-follow-ups (api-common/rep (or (:updated-follow-ups ctx) (:follow-ups entry)))}
                         false))
 
   ;; Actions
@@ -577,7 +612,7 @@
     :options true
     :post (fn [ctx] (let [entry-props (:data ctx)]
                       (or (nil? entry-props) ; no updates during publish is fine
-                          (valid-entry-update? conn entry-uuid entry-props))))})
+                          (valid-entry-update? conn entry-uuid entry-props (:user ctx)))))})
   :new? false
   :respond-with-entity? true
 
