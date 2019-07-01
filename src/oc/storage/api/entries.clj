@@ -80,12 +80,12 @@
       ;; Create the new entry from the URL and data provided
       (let [entry-map (:data ctx)
             author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) entry-map author)
-            new-entry-without-follow-ups (dissoc new-entry :follow-ups)
+            without-follow-ups (dissoc entry-map :follow-ups)
+            new-entry (entry-res/->entry conn (:uuid board) without-follow-ups author)
             ts (db-common/current-timestamp)
             follow-ups (map #(fix-follow-up % author ts) (:follow-ups entry-map))
             valid-follow-ups? (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)]
-        {:new-entry (api-common/rep new-entry-without-follow-ups) :existing-board (api-common/rep board)
+        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)
          :new-follow-ups follow-ups})
 
       (catch clojure.lang.ExceptionInfo e
