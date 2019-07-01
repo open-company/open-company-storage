@@ -1,4 +1,4 @@
-(ns oc.storage.db.migrations.create-completed-follow-ups-index
+(ns oc.storage.db.migrations.create-follow-ups-index
   (:require [rethinkdb.query :as r]
             [oc.lib.db.migrations :as m]
             [oc.storage.config :as config]
@@ -10,10 +10,11 @@
 
 (defn up [conn]
   ;; Do great things
-  (println (m/create-compound-index conn entry/table-name "completed-follow-up"
+  (println (m/create-compound-index conn entry/table-name "status-follow-ups-completed?-assignee-user-id"
     (r/fn [row] (r/concat-map (r/get-field row "follow-ups")
                    (r/fn [follow-up-row]
-                     [(r/get-field follow-up-row "completed?")
+                     [(r/get-field row "status")
+                      (r/get-field follow-up-row "completed?")
                       (r/get-field
                        (r/get-field follow-up-row "assignee")
                        "user-id")])))))
