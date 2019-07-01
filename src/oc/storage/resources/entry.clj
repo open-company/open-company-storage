@@ -28,6 +28,10 @@
   "Properties of a resource that are ignored during an update."
   (disj reserved-properties :board-uuid :status))
 
+(def list-properties
+  "Set of properties we want when listing entries."
+  ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"])
+
 ;; ----- Utility functions -----
 
 (defn clean
@@ -432,7 +436,7 @@
          (#{:published :draft} status)]}
   (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[status org-uuid user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"] {:count count})))
+                                          list-properties {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
@@ -440,13 +444,24 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"] {:count count}))
+                                          list-properties {:count count}))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
+
+(schema/defn ^:always-validate list-all-entries-by-follow-ups
+  "Given the UUID of the user, return all the published entries with incomplete follow-ups for the user."
+  [conn user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources-and-relations conn "entries" :status-follow-ups-completed?-assignee-user-id
+                                          [[:published false user-id]]
+                                          :interactions common/interaction-table-name :uuid :resource-uuid
+                                          list-properties {:count false}))
+
+;; ----- Entry follow-up manipulation -----
 
 (schema/defn ^:always-validate add-follow-ups! :- (schema/maybe common/Entry)
   "Add a follow-up for the give entry uuid"
