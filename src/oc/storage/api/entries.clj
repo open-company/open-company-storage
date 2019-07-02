@@ -195,12 +195,10 @@
             entry (:existing-entry ctx)
             user (:user ctx)
             follow-ups (:follow-ups ctx)
-            updated-entry (entry-res/add-follow-ups! conn entry follow-ups user)
-            entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
+            updated-entry (entry-res/add-follow-ups! conn entry follow-ups user)]
     (do
-      ;; TODO: Trigger notifications for created follow-ups
-      ;; (when (and (seq? follow-ups) (any? follow-ups)))
       (timbre/info "Follow-ups created for entry:" entry-for)
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-entry} user nil))
       {:updated-entry (api-common/rep updated-entry)})
     (do
       (timbre/error "Failed creating follow-ups for entry:" entry-for) false)))
@@ -212,11 +210,10 @@
             entry (:existing-entry ctx)
             follow-up (:existing-follow-up ctx)
             user (:user ctx)
-            updated-entry (entry-res/complete-follow-up! conn entry follow-up user)
-            entry-with-comments (assoc entry :existing-comments (entry-res/list-comments-for-entry conn (:uuid entry)))]
+            updated-entry (entry-res/complete-follow-up! conn entry follow-up user)]
     (do
-      ;; TODO: Trigger notifications for completed follow-up
       (timbre/info "Follow-up marked complete for entry:" entry-for)
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-entry} user nil))
       {:updated-entry (api-common/rep updated-entry)})
     (do
       (timbre/error "Failed marking complete follow-up for entry:" entry-for) false)))
