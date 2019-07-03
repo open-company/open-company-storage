@@ -10,10 +10,11 @@
 
 (defn up [conn]
   ;; Do great things
-  (println (m/create-compound-index conn entry/table-name "status-follow-ups-completed?-assignee-user-id"
+  (println (m/create-compound-index conn entry/table-name "org-uuid-status-follow-ups-completed?-assignee-user-id"
     (r/fn [row] (r/concat-map (r/get-field row "follow-ups")
                    (r/fn [follow-up-row]
-                     [(r/get-field row "status")
+                     [(r/get-field row "org-uuid")
+                      (r/get-field row "status")
                       (r/get-field follow-up-row "completed?")
                       (r/get-field
                        (r/get-field follow-up-row "assignee")

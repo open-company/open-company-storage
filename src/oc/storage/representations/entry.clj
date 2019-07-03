@@ -38,6 +38,9 @@
 
 (defun url
 
+  ([org-slug nil]
+  (str "/" org-slug  "/follow-ups"))
+
   ([org-slug board-slug]
   (str (board-url/url org-slug board-slug) "/entries"))
   
@@ -88,8 +91,11 @@
     {:content-type mt/share-request-media-type
      :accept mt/entry-media-type}))
 
-(defn- up-link [org-slug board-slug]
-  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type}))
+(defun- up-link 
+  ([org-slug nil]
+  (hateoas/up-link (str "/" org-slug) {:accept mt/org-media-type}))
+  ([org-slug board-slug]
+  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type})))
 
 (defn- revert-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
@@ -122,7 +128,10 @@
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
   for use in an API response.
   "
-  [org board entry comments reactions access-level user-id secure-access?]
+  ([org board entry comments reactions access-level user-id] 
+  (entry-and-links org board entry comments reactions access-level user-id false))
+
+  ([org board entry comments reactions access-level user-id secure-access?]
   (let [entry-uuid (:uuid entry)
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
@@ -200,7 +209,7 @@
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
       (assoc :follow-ups follow-ups-list)
-      (assoc :links full-links))))
+      (assoc :links full-links)))))
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"

@@ -168,6 +168,19 @@
      :existing-entries (api-common/rep entries)}
     false))
 
+(defn- entry-list-with-follow-ups
+  "Retrieve a list of entries with follow-ups for the user, or false if the org doesn't exist."
+  [conn org-slug ctx]
+  (if-let* [_slug? (slugify/valid-slug? org-slug)
+            org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            user-id (-> ctx :user :user-id)
+            entries (entry-res/list-all-entries-by-follow-ups conn org-uuid user-id)]
+    {:existing-org (api-common/rep org)
+     :existing-entries (api-common/rep entries)}
+    false))
+
 ;; ----- Actions -----
 
 (defn- share-entry [conn ctx entry-for]
@@ -471,7 +484,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
+    :get (fn [ctx] (or (nil? board-slug-or-uuid) ; nil if entry-list for follow-ups, follow-ups are always allowed
+                       (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx))))
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
     :delete (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
@@ -488,7 +502,9 @@
   :exists? (by-method {
     :options true
     :post (partial entry-list-for-board conn org-slug board-slug-or-uuid)
-    :get (partial entry-list-for-board conn org-slug board-slug-or-uuid)
+    :get (fn [ctx] (if (nil? board-slug-or-uuid) ; nil if entry-list is for follow-ups
+                     (entry-list-with-follow-ups conn org-slug ctx)
+                     (entry-list-for-board conn org-slug board-slug-or-uuid)))
     :delete (fn [ctx]
               (if-let* [_slugs? (slugify/valid-slug? org-slug)
                         org (or (:existing-org ctx)
@@ -502,8 +518,11 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
-                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
+    :get (fn [ctx] (let [board-or-followups (if (nil? board-slug-or-uuid)
+                                              :follow-ups
+                                              (:existing-board ctx))]
+                (entry-rep/render-entry-list (:existing-org ctx) board-or-followups
+                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id))))
     :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
                   (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))})
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
@@ -941,6 +960,14 @@
         [org-slug board-slug]
         (pool/with-pool [conn db-pool] 
           (entry-list conn org-slug board-slug)))
+      (ANY "/orgs/:org-slug/follow-ups"
+        [org-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug nil)))
+      (ANY "/orgs/:org-slug/follow-ups/"
+        [org-slug]
+        (pool/with-pool [conn db-pool] 
+          (entry-list conn org-slug nil)))
       ;; Entry operations
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid"
         [org-slug board-slug entry-uuid]

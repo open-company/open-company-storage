@@ -53,7 +53,7 @@
     (update-in org [:links] conj
       (hateoas/link-map
         "changes"
-        "GET"
+        hateoas/GET
         (str config/change-server-ws-url "/change-socket/user/" (:user-id user))
         nil))
     org))
@@ -63,7 +63,7 @@
     (update-in org [:links] conj
       (hateoas/link-map
         "notifications"
-        "GET"
+        hateoas/GET
         (str config/notify-server-ws-url "/notify-socket/user/" (:user-id user))
         nil))
     org))
@@ -73,7 +73,7 @@
     (update-in org [:links] conj
       (hateoas/link-map
         "interactions"
-        "GET"
+        hateoas/GET
         (str config/interaction-server-ws-url
              "/interaction-socket/user/"
              (:user-id user))
@@ -85,13 +85,21 @@
     (update-in org [:links] conj
       (hateoas/link-map
         "reminders"
-        "GET"
+        hateoas/GET
         (str config/reminder-server-url
              "/orgs/"
              (:uuid org)
              "/reminders")
         {:accept mt/reminders-list-media-type}))
     org))
+
+(defn- follow-ups-link [org]
+  (update-in org [:links] conj
+    (hateoas/link-map
+      "follow-ups"
+      hateoas/GET
+      (str (url org) "/follow-ups")
+      {:accept mt/entry-collection-media-type})))
 
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
@@ -134,6 +142,7 @@
         (notify-link access-level user)
         (interactions-link access-level user)
         (reminders-link access-level user)
+        (follow-ups-link)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
