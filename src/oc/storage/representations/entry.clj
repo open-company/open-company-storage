@@ -8,7 +8,8 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
-            [oc.storage.lib.sort :as sort]))
+            [oc.storage.lib.sort :as sort]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -250,7 +251,7 @@
                     :links full-links
                     :items (map #(entry-and-links org board %
                                     (or (filter :body (:interactions %)) [])  ; comments only
-                                    (or (filter :reaction (:interactions %)) []) ; reactions only
+                                    (reaction-res/aggregate-reactions (or (filter :reaction (:interactions %)) [])) ; reactions only
                                     access-level user-id)
                              entries)}}
       {:pretty config/pretty?})))
