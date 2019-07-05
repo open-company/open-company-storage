@@ -456,7 +456,7 @@
   "Given the UUID of the user, return all the published entries with incomplete follow-ups for the user."
   [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn "entries" :org-uuid-status-follow-ups-completed?-assignee-user-id
+  (db-common/read-resources-and-relations conn "entries" :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi
                                           [[org-uuid :published false user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           list-properties {:count false}))
