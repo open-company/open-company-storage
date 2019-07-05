@@ -6,10 +6,6 @@
 
 (defn up [conn]
   ;; Do great things
-  true) ; return true on success
-
-(defn up [conn]
-  ;; Do great things
   (println (m/create-compound-index conn entry/table-name "org-uuid-status-follow-ups-completed?-assignee-user-id"
     (r/fn [row] (r/concat-map (r/get-field row "follow-ups")
                    (r/fn [follow-up-row]
