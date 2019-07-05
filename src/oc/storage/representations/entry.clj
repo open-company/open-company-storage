@@ -25,7 +25,7 @@
                            :video-id :video-transcript :video-processed :video-error :video-image :video-duration
                            :created-at :updated-at :revision-id :new-at :follow-ups])
 
-;; Utility functions
+;; ----- Utility functions -----
 
 (defn comments
   "Return a sequence of just the comments for an entry."
@@ -36,6 +36,13 @@
   "Return a sequence of just the reactions for an entry."
   [{interactions :interactions}]
   (filter :reaction interactions))
+
+(defun- board-of
+  ([boards :guard map? entry] 
+    (boards (:board-uuid entry)))
+  ([board _entry] board))
+
+;; ----- Representation -----
 
 (defun url
 
@@ -233,12 +240,12 @@
 
 (defn render-entry-list
   "
-  Given an org and a board, a sequence of entry maps, and access control levels, 
+  Given an org and a board or a map of boards, a sequence of entry maps, and access control levels, 
   create a JSON representation of a list of entries for the API.
   "
-  [org board entries access-level user-id]
+  [org board-or-boards entries access-level user-id]
   (let [org-slug (:slug org)
-        board-slug (:slug board)
+        board-slug (:slug board-or-boards)
         collection-url (url org-slug board-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (up-link org-slug board-slug)]
@@ -249,7 +256,7 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-and-links org board %
+                    :items (map #(entry-and-links org (board-of board-or-boards %) %
                                     (or (filter :body (:interactions %)) [])  ; comments only
                                     (reaction-res/aggregate-reactions (or (filter :reaction (:interactions %)) [])) ; reactions only
                                     access-level user-id)

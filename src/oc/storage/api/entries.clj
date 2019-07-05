@@ -181,6 +181,14 @@
      :existing-entries (api-common/rep entries)}
     false))
 
+(defn- boards-for [conn org user]
+  (let [org-id (:uuid org)
+        boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+        allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+        board-uuids (map :uuid boards)
+        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)]
+    (zipmap board-uuids board-slugs-and-names)))
+
 ;; ----- Actions -----
 
 (defn- share-entry [conn ctx entry-for]
@@ -518,10 +526,10 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (let [board-or-followups (if (nil? board-slug-or-uuid)
-                                              :follow-ups
+    :get (fn [ctx] (let [board-or-boards (if (nil? board-slug-or-uuid)
+                                              (boards-for conn (:existing-org ctx) (:user ctx))
                                               (:existing-board ctx))]
-                (entry-rep/render-entry-list (:existing-org ctx) board-or-followups
+                (entry-rep/render-entry-list (:existing-org ctx) board-or-boards
                   (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id))))
     :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
                   (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))})
