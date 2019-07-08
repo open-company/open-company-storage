@@ -178,7 +178,7 @@
             user-id (-> ctx :user :user-id)
             entries (entry-res/list-all-entries-by-follow-ups conn org-uuid user-id)]
     {:existing-org (api-common/rep org)
-     :existing-entries (api-common/rep entries)}
+     :existing-entries (api-common/rep (reverse (sort-by :published-at entries)))}
     false))
 
 (defn- boards-for [conn org user]

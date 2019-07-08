@@ -101,6 +101,14 @@
       (str (url org) "/follow-ups")
       {:accept mt/entry-collection-media-type})))
 
+(defn- follow-ups-recent-activity-link [org]
+  (update-in org [:links] conj
+    (hateoas/link-map
+      "follow-ups-activity"
+      hateoas/GET
+      (str (url org) "/follow-ups?sort=activity")
+      {:accept mt/entry-collection-media-type})))
+
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
@@ -143,6 +151,7 @@
         (interactions-link access-level user)
         (reminders-link access-level user)
         (follow-ups-link)
+        (follow-ups-recent-activity-link)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
