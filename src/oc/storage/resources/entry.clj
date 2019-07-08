@@ -454,12 +454,14 @@
 
 (schema/defn ^:always-validate list-all-entries-by-follow-ups
   "Given the UUID of the user, return all the published entries with incomplete follow-ups for the user."
-  [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
+    (list-all-entries-by-follow-ups conn org-uuid user-id {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn "entries" :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi
                                           [[org-uuid :published false user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-properties {:count false}))
+                                          list-properties {:count count})))
 
 ;; ----- Entry follow-up manipulation -----
 
