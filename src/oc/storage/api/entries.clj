@@ -529,10 +529,9 @@
     :get (fn [ctx] (let [board-or-boards (if (nil? board-slug-or-uuid)
                                               (boards-for conn (:existing-org ctx) (:user ctx))
                                               (:existing-board ctx))]
-                (entry-rep/render-entry-list (:existing-org ctx) board-or-boards
-                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id))))
-    :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
-                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))})
+                (entry-rep/render-entry-list (:existing-org ctx) board-or-boards (:existing-entries ctx) ctx)))
+    :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx) (:existing-entries ctx)
+                     ctx))})
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response

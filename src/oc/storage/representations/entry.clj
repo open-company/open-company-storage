@@ -9,6 +9,7 @@
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
             [oc.storage.lib.sort :as sort]
+            [oc.storage.api.access :as access]
             [oc.storage.resources.reaction :as reaction-res]))
 
 (def org-prop-mapping {:uuid :org-uuid
@@ -243,22 +244,25 @@
   Given an org and a board or a map of boards, a sequence of entry maps, and access control levels, 
   create a JSON representation of a list of entries for the API.
   "
-  [org board-or-boards entries access-level user-id]
+  [org board-or-boards entries ctx]
   (let [org-slug (:slug org)
         board-slug (:slug board-or-boards)
         collection-url (url org-slug board-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (up-link org-slug board-slug)]
-        full-links (if (= access-level :author)
+        full-links (if (= (:access-level ctx) :author)
                       (conj links (create-link org-slug board-slug))
-                      links)]
+                      links)
+        user (:user ctx)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-and-links org (board-of board-or-boards %) %
+                    :items (map #(let [board (board-of board-or-boards %)
+                                       access-level (:access-level (access/access-level-for org board user))]
+                                   (entry-and-links org board %
                                     (or (filter :body (:interactions %)) [])  ; comments only
                                     (reaction-res/aggregate-reactions (or (filter :reaction (:interactions %)) [])) ; reactions only
-                                    access-level user-id)
+                                    access-level (:user-id user)))
                              entries)}}
       {:pretty config/pretty?})))
