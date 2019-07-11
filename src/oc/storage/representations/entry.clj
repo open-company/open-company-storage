@@ -48,7 +48,7 @@
 (defun url
 
   ([org-slug nil]
-  (str "/" org-slug  "/follow-ups"))
+  (str "/orgs/" org-slug  "/follow-ups"))
 
   ([org-slug board-slug]
   (str (board-url/url org-slug board-slug) "/entries"))
@@ -164,7 +164,7 @@
         follow-ups-list (if (= access-level :public)
                           []
                           (map #(if (= (-> % :assignee :user-id) user-id)
-                                  (assoc % :links [(complete-follow-up-link org-uuid board-uuid entry-uuid (:uuid %))])
+                                  (assoc % :links [(complete-follow-up-link org-slug board-slug entry-uuid (:uuid %))])
                                   %)
                            (:follow-ups entry)))
         links (if secure-access?
