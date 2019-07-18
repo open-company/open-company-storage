@@ -48,7 +48,7 @@
   {
   :uuid lib-schema/UniqueID
   :slug Slug
-  :name (schema/pred allowed-board-name?)
+  :name lib-schema/NonBlankStr
   :org-uuid lib-schema/UniqueID
   :access AccessLevel
   :authors [lib-schema/UniqueID]
@@ -66,7 +66,7 @@
 
 (def Org {
   :uuid lib-schema/UniqueID
-  :name lib-schema/NonBlankStr
+  :name (schema/pred allowed-org-name?)
   :slug Slug
   :team-id lib-schema/UniqueID
   (schema/optional-key :logo-url) (schema/maybe schema/Str)
