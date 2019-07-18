@@ -94,21 +94,25 @@
         {:accept mt/reminders-list-media-type}))
     org))
 
-(defn- follow-ups-link [org]
-  (update-in org [:links] conj
-    (hateoas/link-map
-      "follow-ups"
-      hateoas/GET
-      (str (url org) "/follow-ups")
-      {:accept mt/entry-collection-media-type})))
+(defn- follow-ups-link [org access-level user]
+  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "follow-ups"
+        hateoas/GET
+        (str (url org) "/follow-ups")
+        {:accept mt/entry-collection-media-type}))
+    org))
 
-(defn- follow-ups-recent-activity-link [org]
-  (update-in org [:links] conj
-    (hateoas/link-map
-      "follow-ups-activity"
-      hateoas/GET
-      (str (url org) "/follow-ups?sort=activity")
-      {:accept mt/entry-collection-media-type})))
+(defn- follow-ups-recent-activity-link [org access-level user]
+  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "follow-ups-activity"
+        hateoas/GET
+        (str (url org) "/follow-ups?sort=activity")
+        {:accept mt/entry-collection-media-type}))
+    org))
 
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
@@ -151,8 +155,8 @@
         (notify-link access-level user)
         (interactions-link access-level user)
         (reminders-link access-level user)
-        (follow-ups-link)
-        (follow-ups-recent-activity-link)
+        (follow-ups-link access-level user)
+        (follow-ups-recent-activity-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
