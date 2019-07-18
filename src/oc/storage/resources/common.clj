@@ -66,7 +66,7 @@
 
 (def Org {
   :uuid lib-schema/UniqueID
-  :name (schema/pred allowed-org-name?)
+  :name lib-schema/NonBlankStr
   :slug Slug
   :team-id lib-schema/UniqueID
   (schema/optional-key :logo-url) (schema/maybe schema/Str)
