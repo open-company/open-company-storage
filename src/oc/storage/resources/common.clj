@@ -21,7 +21,7 @@
 
 (defn- allowed-org-name? [name]
   (and (string? name)
-       (not (re-matches #".*\d(\s*)\d(\s*)\d(\s*)\d.*" name)) ; don't allow any more than 3 numerals in a row
+       (not (re-matches #".*\d(\s*)\d(\s*)\d(\s*)\d(\s*)\d.*" name)) ; don't allow any more than 4 numerals in a row
        (= (count name) (.codePointCount name 0 (count name))))) ; same # of characters as Unicode points
 
 (defn- allowed-board-name? [name]
