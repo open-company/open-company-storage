@@ -24,9 +24,9 @@
        (not (re-matches #".*\d(\s*)\d(\s*)\d(\s*)\d(\s*)\d.*" name)) ; don't allow any more than 4 numerals in a row
        (= (count name) (.codePointCount name 0 (count name))))) ; same # of characters as Unicode points
 
-(defn- allowed-board-name? [name]
-  (and (string? name)
-       (not (re-matches #".*\d\d\d\d.*" name)))) ; don't allow any more than 3 numerals in a row
+; (defn- allowed-board-name? [name]
+;   (and (string? name)
+;        (not (re-matches #".*\d\d\d\d.*" name)))) ; don't allow any more than 3 numerals in a row
 
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
