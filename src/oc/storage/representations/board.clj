@@ -70,11 +70,12 @@
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
         is-draft-board? (= board-slug "drafts")
-        links [(self-link org-slug board-slug :recently-posted options)
-               (when-not is-draft-board?
-                 (self-link org-slug board-slug :recent-activity options))]
-        full-links (if (or (= :author (:access-level board))
-                           is-draft-board?)
+        links (remove nil?
+               [(self-link org-slug board-slug :recently-posted options)
+                (when-not is-draft-board?
+                   (self-link org-slug board-slug :recent-activity options))])
+        full-links (if (and (= :author (:access-level board))
+                            (not is-draft-board?))
           ;; Author gets create link
           (conj links (create-entry-link org-slug board-slug))
           ;; No create link
