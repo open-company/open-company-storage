@@ -266,6 +266,7 @@
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
+                             user-is-part-of-the-team? (when user ((set (:teams user)) (:team-id org)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
@@ -280,7 +281,9 @@
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
-                             follow-ups-count (entry-res/list-all-entries-by-follow-ups conn org-id user-id {:count true})
+                             follow-ups-count (if user-is-part-of-the-team?
+                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id {:count true})
+                                                0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
