@@ -454,14 +454,18 @@
 
 (schema/defn ^:always-validate list-all-entries-by-follow-ups
   "Given the UUID of the user, return all the published entries with incomplete follow-ups for the user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
-    (list-all-entries-by-follow-ups conn org-uuid user-id {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn "entries" :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi
-                                          [[org-uuid :published false user-id]]
-                                          :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-properties {:count count})))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+    (list-all-entries-by-follow-ups conn org-uuid user-id order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)]}
+  (db-common/read-all-resources-and-relations conn table-name
+      :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi [[org-uuid :published false user-id]]
+      "published-at" order start direction
+      :interactions common/interaction-table-name :uuid :resource-uuid
+      ["uuid" "headline" "body" "reaction" "author"
+       "published-at" "created-at" "updated-at"] {:count count})))
 
 ;; ----- Entry follow-up manipulation -----
 
