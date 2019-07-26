@@ -135,7 +135,7 @@
     
     true)) ; no existing entry, so this will fail existence check later
 
-(defn- valid-follow-up-request? [conn entry-uuid follow-up-map user]
+(defn- valid-follow-up-request? [conn entry-uuid follow-up-map user access-level]
   (let [existing-entry (entry-res/get-entry conn entry-uuid)
         ts (db-common/current-timestamp)
         with-keys (keywordize-keys follow-up-map)
@@ -147,7 +147,14 @@
                     (:assignees with-keys))
         follow-ups (map #(fix-follow-up {:assignee %} user ts) assignees)]
     (if existing-entry
-      (if (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)
+      (if (and ;; Check all follow-up request are ok
+               (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)
+               ;; and that is an author
+               (or (= access-level :author)
+                   ;; or is a viewer
+                   (and (= access-level :viewer)
+                   ;; creating follow-ups only for himself
+                        self?)))
         {:existing-entry (api-common/rep existing-entry)
          :self? self?
          :follow-ups (api-common/rep follow-ups)}
@@ -268,9 +275,7 @@
       (when (= (:status final-entry) "published")
         (undraft-board conn user org board)
         (entry-res/delete-versions conn final-entry)
-        (auto-share-on-publish conn ctx final-entry)
-        ;; TODO: sent follow-up notifications
-        )
+        (auto-share-on-publish conn ctx final-entry))
       (notification/send-trigger! (notification/->trigger :add org board {:new final-entry} user nil))
       {:created-entry (api-common/rep final-entry)})
 
@@ -786,7 +791,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -806,7 +811,7 @@
   ;; Validations
   :processable? (by-method {
     :options true
-    :post (fn [ctx] (valid-follow-up-request? conn entry-uuid (:data ctx) (:user ctx)))})
+    :post (fn [ctx] (valid-follow-up-request? conn entry-uuid (:data ctx) (:user ctx) (:access-level ctx)))})
 
   ;; Existentialism
   :can-post-to-missing? false
@@ -851,7 +856,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
