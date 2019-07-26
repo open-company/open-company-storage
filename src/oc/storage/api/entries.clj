@@ -140,8 +140,10 @@
         ts (db-common/current-timestamp)
         with-keys (keywordize-keys follow-up-map)
         self? (:self with-keys)
+        filtered-follow-ups (when self?
+                              (filter #(not= (:user-id %) (:user-id user)) (map :assignee (:follow-ups existing-entry))))
         assignees (if self?
-                    [(lib-schema/author-for-user user)]
+                    (concat [(lib-schema/author-for-user user)] filtered-follow-ups)
                     (:assignees with-keys))
         follow-ups (map #(fix-follow-up {:assignee %} user ts) assignees)]
     (if existing-entry
