@@ -150,7 +150,7 @@
          :self? self?
          :follow-ups (api-common/rep follow-ups)}
         [false, {:follow-ups (api-common/rep follow-ups)}]) ; invalid share request
-      true))) ;; wil fail existence later
+      true))) ;; will fail existence later
 
 (defn- entry-list-for-board
   "Retrieve an entry list for the board, or false if the org or board doesn't exist."
