@@ -475,15 +475,18 @@
    {:pre [(db-common/conn? conn)]}
    (let [old-follow-ups (:follow-ups original-entry)
          ;; List the user-ids of the assignees that can't be replaced
-         ;; because they were created from another user or they are not assigned to the current user
-         cant-replace-follow-ups (remove nil? (map #(when (and (not= (-> % :author :user-id) (:user-id user))
-                                                               (not= (-> % :assignee :user-id) (:user-id user)))
+         cant-replace-follow-ups (remove nil? (map #(when ;; Cant' replace tje follow-ups that
+                                                          (and ;; are not assigned to current user
+                                                               (not= (-> % :assignee :user-id) (:user-id user))
+                                                               ;; and
+                                                               (or ;; or is completed
+                                                                   (:completed? %)
+                                                                   ;; or was created by the user himself
+                                                                   (= (-> % :author :user-id) (-> % :assignee :user-id))))
                                                       (-> % :assignee :user-id))
                                   old-follow-ups))
          ;; filter out the new follow-ups that can't be overridden
          filtered-new-follow-ups (filterv #(not ((set cant-replace-follow-ups) (-> % :assignee :user-id))) follow-ups)
-         ;; Get all the new assignee ids
-         all-new-follow-up-ids (map #(-> % :assignee :user-id) filtered-new-follow-ups)
          ;; Remove the old follow-ups that are going to be overridden
          keep-old-follow-ups (filterv #((set cant-replace-follow-ups) (-> % :assignee :user-id)) old-follow-ups)
          ;; New follow-ups

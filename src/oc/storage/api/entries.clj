@@ -290,8 +290,7 @@
     (let [old-board (:moving-board ctx)
           updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
           ;; Handle follow-ups
-          updated-follow-ups (when updating-follow-ups?
-                                (entry-res/add-follow-ups! conn updated-result (:updated-follow-ups ctx) user))
+          updated-follow-ups (entry-res/add-follow-ups! conn updated-result (:updated-follow-ups ctx) user)
           final-entry (if updating-follow-ups? updated-follow-ups updated-result)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
