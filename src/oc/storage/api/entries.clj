@@ -177,14 +177,6 @@
      :existing-entries (api-common/rep entries)}
     false))
 
-(defn- boards-for [conn org user]
-  (let [org-id (:uuid org)
-        boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
-        allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
-        board-uuids (map :uuid boards)
-        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)]
-    (zipmap board-uuids board-slugs-and-names)))
-
 ;; ----- Actions -----
 
 (defn- share-entry [conn ctx entry-for]
