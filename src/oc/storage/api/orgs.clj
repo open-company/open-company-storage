@@ -266,6 +266,7 @@
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
+                             user-is-part-of-the-team? (when user ((set (:teams user)) (:team-id org)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
