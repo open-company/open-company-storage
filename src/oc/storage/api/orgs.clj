@@ -266,6 +266,7 @@
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
+                             user-is-part-of-the-team? (when user ((set (:teams user)) (:team-id org)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
@@ -289,7 +290,7 @@
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
-                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
+                                                 (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :must-see-count must-see-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
