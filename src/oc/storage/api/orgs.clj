@@ -295,7 +295,7 @@
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
-                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps))
+                                                 (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :must-see-count must-see-count)
                                                  (assoc :follow-ups-count follow-ups-count)
                                                  (assoc :authors author-reps))
