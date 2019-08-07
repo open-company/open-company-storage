@@ -105,7 +105,7 @@
 
   ;; Echo config information
   (println (str "\n"
-    (when c/intro? (str (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"))
+    (when c/intro? (str (slurp (clojure.java.io/resource "oc/assets/ascii_art.txt")) "\n"))
     "OpenCompany Storage Service\n"))
   (echo-config port))
   
