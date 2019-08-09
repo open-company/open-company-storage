@@ -475,7 +475,7 @@
    {:pre [(db-common/conn? conn)]}
    (let [old-follow-ups (:follow-ups original-entry)
          ;; List the user-ids of the assignees that can't be replaced
-         cant-replace-follow-ups (remove nil? (map #(when ;; Cant' replace tje follow-ups that
+         cant-replace-follow-ups (remove nil? (map #(when ;; Cant' replace the follow-ups that
                                                           (and ;; are not assigned to current user
                                                                (not= (-> % :assignee :user-id) (:user-id user))
                                                                ;; and
