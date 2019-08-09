@@ -1,7 +1,5 @@
 (ns oc.storage.async.notification
-  "
-  Async publish of notification events to AWS SNS.
-  "
+  "Async publish of notification events to AWS SNS."
   (:require [clojure.core.async :as async :refer (<! >!!)]
             [defun.core :refer (defun)]
             [taoensso.timbre :as timbre]

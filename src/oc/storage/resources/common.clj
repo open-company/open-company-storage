@@ -96,6 +96,16 @@
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
+(def FollowUp
+  "A follow-up item."
+  {
+  :uuid lib-schema/UniqueID
+  :created-at lib-schema/ISO8601
+  :assignee lib-schema/Author
+  :author lib-schema/Author
+  :completed? schema/Bool
+  (schema/optional-key :completed-at) (schema/maybe lib-schema/ISO8601)})
+
 (def Entry 
   "An entry on a board."
   {
@@ -133,7 +143,10 @@
   (schema/optional-key :video-error) (schema/maybe schema/Bool)
   :revision-id schema/Int
   :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
+  :updated-at lib-schema/ISO8601
+
+  ;; FollowUps
+  (schema/optional-key :follow-ups) [FollowUp]})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."

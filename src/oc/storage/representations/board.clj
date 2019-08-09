@@ -73,7 +73,7 @@
         links (remove nil?
                [(self-link org-slug board-slug :recently-posted options)
                 (when-not is-draft-board?
-                   (self-link org-slug board-slug :recent-activity options))])
+                  (self-link org-slug board-slug :recent-activity options))])
         full-links (if (and (= :author (:access-level board))
                             (not is-draft-board?))
           ;; Author gets create link
