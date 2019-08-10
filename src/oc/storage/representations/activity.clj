@@ -10,16 +10,16 @@
             [oc.storage.config :as config]))
 
 (defn- url
-  ([{slug :slug} sort-type]
+  ([collection-type {slug :slug} sort-type]
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
-    (str "/orgs/" slug "/entries" sort-path)))
-  ([{slug :slug :as org} sort-type {start :start direction :direction}]
+    (str "/orgs/" slug "/" collection-type sort-path)))
+  ([collection-type {slug :slug :as org} sort-type {start :start direction :direction}]
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-    (str (url org sort-type) concat-str "start=" start "&direction=" (name direction)))))
+    (str (url collection-type org sort-type) concat-str "start=" start "&direction=" (name direction)))))
 
 (defn- pagination-links
   "Add `next` and/or `prior` links for pagination as needed."
-  [org sort-type {:keys [start start? direction]} data]
+  [org collection-type sort-type {:keys [start start? direction]} data]
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
@@ -28,12 +28,12 @@
         first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
         next? (or (= (:direction data) :previous)
                   (= (:next-count data) config/default-activity-limit))
-        next-url (when next? (url org sort-type {:start last-activity-date :direction :before}))
+        next-url (when next? (url collection-type org sort-type {:start last-activity-date :direction :before}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))
         prior? (and start?
                     (or (= (:direction data) :next)
                         (= (:previous-count data) config/default-activity-limit)))
-        prior-url (when prior? (url org sort-type {:start first-activity-date :direction :after}))
+        prior-url (when prior? (url collection-type org sort-type {:start first-activity-date :direction :after}))
         prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/activity-collection-media-type}))]
     (remove nil? [next-link prior-link])))
 
@@ -50,16 +50,16 @@
   Given an org and a sequence of entry maps, create a JSON representation of a list of
   activity for the API.
   "
-  [params org sort-type activity boards user]
-  (let [collection-url (url org sort-type)
+  [params org collection-type sort-type activity boards user]
+  (let [collection-url (url collection-type org sort-type)
         recent-activity-sort? (= sort-type :recent-activity)
-        other-sort-url (url org (if recent-activity-sort? :recently-posted :recent-activity))
+        other-sort-url (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity))
         collection-rel (if recent-activity-sort? "activity" "self")
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/activity-collection-media-type} {})
                (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {})
                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
-        full-links (concat links (pagination-links org sort-type params activity))]
+        full-links (concat links (pagination-links org collection-type sort-type params activity))]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url

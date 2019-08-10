@@ -162,7 +162,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-activity conn params org sort-type board-by-uuid allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org sort-type activity boards user))))
+                          (activity-rep/render-activity-list params org "entries" sort-type activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
 (defresource follow-ups [conn slug]
@@ -214,7 +214,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-follow-ups conn params org sort-type board-by-uuid user-id)]
-                          (activity-rep/render-activity-list params org sort-type activity boards user))))
+                          (activity-rep/render-activity-list params org "follow-ups" sort-type activity boards user))))
 
 ;; ----- Routes -----
 
