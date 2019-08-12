@@ -18,7 +18,6 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.async.email :as email]
             [oc.storage.async.bot :as bot]
-            [oc.storage.util.ziggeo :as ziggeo]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
@@ -46,25 +45,8 @@
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
 
-(declare auto-share-on-publish)
-
-(defn- handle-video-data
-  ([conn entry] (handle-video-data conn entry nil))
-  ([conn entry ctx]
-     (when (and (:video-id entry)
-                (or (nil? (:video-processed entry))
-                    (nil? (:video-transcript entry))))
-       (ziggeo/video (:video-id entry)
-         (fn [video error]
-           (if-not error
-             (let [updated-entry (entry-res/update-video-data conn video entry)]
-               (when (and (some? ctx)
-                          (= (:status updated-entry) "published"))
-                 (auto-share-on-publish conn ctx updated-entry)))
-             (entry-res/error-video-data conn entry)))))))
-
 (defn- fix-follow-up
-  "Given a subset of a follow-up coming from the client add the missing keys."
+  "Given a subset of a follow-up coming from the client, add the missing keys."
   [follow-up user ts]
   (hash-map :assignee (:assignee follow-up)
             :uuid (or (:uuid follow-up) (db-common/unique-id))
@@ -229,19 +211,17 @@
 
 (defn auto-share-on-publish
   [conn ctx entry-result]
-  (when (or (nil? (:video-id entry-result))
-            (true? (:video-processed entry-result)))
-    (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
-              _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
-      (let [share-request {:medium "slack"
-                           :note ""
-                           :shared-at (db-common/current-timestamp)
-                           :channel slack-channel}
-            share-ctx (-> ctx
-                          (assoc :share-requests (list share-request))
-                          (assoc :existing-entry (api-common/rep entry-result))
-                          (assoc :auto-share true))]
-        (share-entry conn share-ctx (:uuid entry-result))))))
+  (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
+            _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
+    (let [share-request {:medium "slack"
+                         :note ""
+                         :shared-at (db-common/current-timestamp)
+                         :channel slack-channel}
+          share-ctx (-> ctx
+                        (assoc :share-requests (list share-request))
+                        (assoc :existing-entry (api-common/rep entry-result))
+                        (assoc :auto-share true))]
+      (share-entry conn share-ctx (:uuid entry-result)))))
 
 (defn undraft-board [conn user org board]
   (when (:draft board)
@@ -255,14 +235,13 @@
             org (:existing-org ctx)
             board (:existing-board ctx)
             new-entry (:new-entry ctx)
-            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
-    
+            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry    
+
     (let [;; Create follow-ups if needed
           updating-follow-ups? (pos? (count (:new-follow-ups ctx)))
           updated-follow-ups (when updating-follow-ups?
                                (entry-res/add-follow-ups! conn entry-result (:new-follow-ups ctx) user))
           final-entry (if updating-follow-ups? updated-follow-ups entry-result)]
-      (handle-video-data conn final-entry ctx)
       (timbre/info "Created entry for:" entry-for "as" (:uuid final-entry))
       (when (= (:status final-entry) "published")
         (undraft-board conn user org board)
@@ -280,12 +259,8 @@
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            updated-video (if (not= (:video-id updated-entry) (:video-id entry))
-                            (-> updated-entry
-                                (assoc :video-processed nil)
-                                (assoc :video-transcript nil))
-                            updated-entry)
-            updated-result (entry-res/update-entry! conn (:uuid updated-video) updated-video user)]
+            updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
+
     (let [old-board (:moving-board ctx)
           updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
           ;; Handle follow-ups
@@ -296,7 +271,6 @@
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (handle-video-data conn final-entry)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new final-entry} user nil))
       {:updated-entry (api-common/rep (assoc final-entry :board-name (:name board)))})
 
