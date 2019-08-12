@@ -107,8 +107,6 @@
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
         :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
-        :open-company-ziggeo-api-token "CHANGE-ME" ; Video processing API token
-        :open-company-ziggeo-api-key "CHANGE-ME" ; Video processing API key
         :log-level "debug"
       }
       :plugins [

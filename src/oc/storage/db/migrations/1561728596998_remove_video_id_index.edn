@@ -1,0 +1,9 @@
+(ns oc.storage.db.migrations.remove-video-id-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.resources.entry :as entry]
+            [oc.storage.config :as config]))
+
+(defn up [conn]
+  (println (m/remove-index conn entry/table-name "video-id"))
+  true) ; return true on success

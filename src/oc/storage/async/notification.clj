@@ -61,7 +61,7 @@
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
     (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
-   :user (schema/maybe lib-schema/User) ; occassionaly we have a non-user updating an entry, such as the Ziggeo callback
+   :user lib-schema/User
    (schema/optional-key :note) (schema/maybe schema/Str)
    :notification-at lib-schema/ISO8601})
 

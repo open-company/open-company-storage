@@ -205,14 +205,6 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :secure-uuid-org-uuid [[secure-uuid org-uuid]]))))
 
-(schema/defn ^:always-validate get-entry-by-video :- (schema/maybe common/Entry)
-  "
-  Given the video token in the entry, retrieve the entry, or return nil if it doesn't exist.
-  "
-  ([conn video-id :- schema/Str]
-  {:pre [(db-common/conn? conn)]}
-  (first (db-common/read-resources conn table-name :video-id video-id))))
-
 (defn get-version
   "
   Given the UUID of the entry and revision number, retrieve the entry, or return nil if it doesn't exist.
@@ -286,35 +278,6 @@
   (if-let [original-entry (get-entry conn (:uuid entry))]
     (update-entry! conn (:uuid entry) entry user)
     (create-entry! conn entry)))
-
-(defn error-video-data [conn entry]
-  (update-entry-no-user! conn
-                         (:uuid entry)
-                         (-> entry
-                             (assoc :video-processed false)
-                             (assoc :video-transcript nil)
-                             (assoc :video-image "error")
-                             (assoc :video-duration "error")
-                             (assoc :video-error true))))
-
-(defn update-video-data [conn video entry]
-  (let [video-processed (if (:video-processed entry)
-                          true
-                          (> (:state video) 4)) ;; is video processed?
-        video-transcript-data (get-in video [:original_stream :audio_transcription :text])
-        video-transcript (or video-transcript-data
-                             (:video-transcript entry))
-        video-error (if video-processed
-                      false
-                      (:video-error entry))]
-    (update-entry-no-user! conn
-                           (:uuid entry)
-                           (-> entry
-                               (assoc :video-duration (str (:duration video)))
-                               (assoc :video-image (:embed_image_url video))
-                               (assoc :video-error video-error)
-                               (assoc :video-processed video-processed)
-                               (assoc :video-transcript video-transcript)))))
 
 (schema/defn ^:always-validate publish-entry! :- (schema/maybe common/Entry)
   "
