@@ -19,6 +19,15 @@
 
 ;; ----- Data Schemas -----
 
+(defn- allowed-org-name? [name]
+  (and (string? name)
+       (not (re-matches #".*\d(\s*)\d(\s*)\d(\s*)\d(\s*)\d.*" name)) ; don't allow any more than 4 numerals in a row
+       (= (count name) (.codePointCount name 0 (count name))))) ; same # of characters as Unicode points
+
+; (defn- allowed-board-name? [name]
+;   (and (string? name)
+;        (not (re-matches #".*\d\d\d\d.*" name)))) ; don't allow any more than 3 numerals in a row
+
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
 (def Attachment {
@@ -57,7 +66,7 @@
 
 (def Org {
   :uuid lib-schema/UniqueID
-  :name lib-schema/NonBlankStr
+  :name (schema/pred allowed-org-name?)
   :slug Slug
   :team-id lib-schema/UniqueID
   (schema/optional-key :logo-url) (schema/maybe schema/Str)
@@ -86,6 +95,16 @@
   :shared-at lib-schema/ISO8601})
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
+
+(def FollowUp
+  "A follow-up item."
+  {
+  :uuid lib-schema/UniqueID
+  :created-at lib-schema/ISO8601
+  :assignee lib-schema/Author
+  :author lib-schema/Author
+  :completed? schema/Bool
+  (schema/optional-key :completed-at) (schema/maybe lib-schema/ISO8601)})
 
 (def Entry 
   "An entry on a board."
@@ -124,7 +143,10 @@
   (schema/optional-key :video-error) (schema/maybe schema/Bool)
   :revision-id schema/Int
   :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
+  :updated-at lib-schema/ISO8601
+
+  ;; FollowUps
+  (schema/optional-key :follow-ups) [FollowUp]})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."

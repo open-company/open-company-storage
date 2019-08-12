@@ -6,6 +6,7 @@
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
+            [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
@@ -44,6 +45,15 @@
   (timbre/info "Triggering share: slack for" (:uuid entry) "of" (:slug org))
   (bot/send-share-entry-trigger! (bot/->share-entry-trigger org board entry share-request user))))
 
+(defn- fix-follow-up
+  "Given a subset of a follow-up coming from the client, add the missing keys."
+  [follow-up user ts]
+  (hash-map :assignee (:assignee follow-up)
+            :uuid (or (:uuid follow-up) (db-common/unique-id))
+            :created-at (or (:created-at follow-up) ts (db-common/current-timestamp))
+            :author (lib-schema/author-for-user user)
+            :completed? (or (:completed? follow-up) false)))
+
 ;; ----- Validations -----
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]
@@ -52,14 +62,19 @@
       ;; Create the new entry from the URL and data provided
       (let [entry-map (:data ctx)
             author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) entry-map author)]
-        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)})
+            without-follow-ups (dissoc entry-map :follow-ups)
+            new-entry (entry-res/->entry conn (:uuid board) without-follow-ups author)
+            ts (db-common/current-timestamp)
+            follow-ups (map #(fix-follow-up % author ts) (:follow-ups entry-map))
+            valid-follow-ups? (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)]
+        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)
+         :new-follow-ups follow-ups})
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
-(defn- valid-entry-update? [conn entry-uuid entry-props]
+(defn- valid-entry-update? [conn entry-uuid entry-props user]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
     (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
@@ -72,12 +87,18 @@
                   (assoc entry-props :board-uuid new-board-uuid)
                   (dissoc entry-props :board-uuid))
           merged-entry (merge existing-entry (entry-res/ignore-props props))
-          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))]
-      (if (lib-schema/valid? common-res/Entry updated-entry)
+          updated-entry (-> merged-entry
+                          (update :attachments #(entry-res/timestamp-attachments %))
+                          (dissoc :follow-ups))
+          ts (db-common/current-timestamp)
+          follow-ups (map #(fix-follow-up % user ts) (:follow-ups entry-props))]
+      (if (and (lib-schema/valid? common-res/Entry updated-entry)
+               (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups))
         {:existing-entry (api-common/rep existing-entry)
          :existing-board (api-common/rep new-board)
          :moving-board (api-common/rep old-board)
-         :updated-entry (api-common/rep updated-entry)}
+         :updated-entry (api-common/rep updated-entry)
+         :updated-follow-ups (api-common/rep follow-ups)}
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
     
     true)) ; no existing entry, so this will fail existence check later
@@ -95,6 +116,32 @@
         [false, {:share-requests (api-common/rep share-requests)}]) ; invalid share request
     
     true)) ; no existing entry, so this will fail existence check later
+
+(defn- valid-follow-up-request? [conn entry-uuid follow-up-map user access-level]
+  (let [existing-entry (entry-res/get-entry conn entry-uuid)
+        ts (db-common/current-timestamp)
+        with-keys (keywordize-keys follow-up-map)
+        self? (:self with-keys)
+        filtered-follow-ups (when self?
+                              (filter #(not= (:user-id %) (:user-id user)) (map :assignee (:follow-ups existing-entry))))
+        assignees (if self?
+                    (concat [(lib-schema/author-for-user user)] filtered-follow-ups)
+                    (:assignees with-keys))
+        follow-ups (map #(fix-follow-up {:assignee %} user ts) assignees)]
+    (if existing-entry
+      (if (and ;; Check all follow-up request are ok
+               (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)
+               ;; and that is an author
+               (or (= access-level :author)
+                   ;; or is a viewer
+                   (and (= access-level :viewer)
+                   ;; creating follow-ups only for himself
+                        self?)))
+        {:existing-entry (api-common/rep existing-entry)
+         :self? self?
+         :follow-ups (api-common/rep follow-ups)}
+        [false, {:follow-ups (api-common/rep follow-ups)}]) ; invalid share request
+      true))) ;; will fail existence later
 
 (defn- entry-list-for-board
   "Retrieve an entry list for the board, or false if the org or board doesn't exist."
@@ -132,6 +179,36 @@
     (do
       (timbre/error "Failed sharing entry:" entry-for) false)))
 
+(defn- create-follow-ups [conn ctx entry-for]
+  (timbre/info "Creating " (count (:follow-ups ctx)) " follow-ups for entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)
+            follow-ups (:follow-ups ctx)
+            updated-entry (entry-res/add-follow-ups! conn entry follow-ups user)]
+    (do
+      (timbre/info "Follow-ups created for entry:" entry-for)
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-entry} user nil))
+      {:updated-entry (api-common/rep updated-entry)})
+    (do
+      (timbre/error "Failed creating follow-ups for entry:" entry-for) false)))
+
+(defn- mark-complete-follow-up [conn ctx entry-for]
+  (timbre/info "Marking complete follow-up " (:uuid (:existing-follow-up ctx)) " for entry:" entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            follow-up (:existing-follow-up ctx)
+            user (:user ctx)
+            updated-entry (entry-res/complete-follow-up! conn entry follow-up user)]
+    (do
+      (timbre/info "Follow-up marked complete for entry:" entry-for)
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-entry} user nil))
+      {:updated-entry (api-common/rep updated-entry)})
+    (do
+      (timbre/error "Failed marking complete follow-up for entry:" entry-for) false)))
+
 (defn auto-share-on-publish
   [conn ctx entry-result]
   (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
@@ -154,19 +231,24 @@
 
 (defn- create-entry [conn ctx entry-for]
   (timbre/info "Creating entry for:" entry-for)
-  (if-let* [org (:existing-org ctx)
+  (if-let* [user (:user ctx)
+            org (:existing-org ctx)
             board (:existing-board ctx)
             new-entry (:new-entry ctx)
-            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
-    
-    (do
-      (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (when (= (:status entry-result) "published")
-        (undraft-board conn (:user ctx) org board)
-        (entry-res/delete-versions conn entry-result)
-        (auto-share-on-publish conn ctx entry-result))
-      (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
-      {:created-entry (api-common/rep entry-result)})
+            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry    
+
+    (let [;; Create follow-ups if needed
+          updating-follow-ups? (pos? (count (:new-follow-ups ctx)))
+          updated-follow-ups (when updating-follow-ups?
+                               (entry-res/add-follow-ups! conn entry-result (:new-follow-ups ctx) user))
+          final-entry (if updating-follow-ups? updated-follow-ups entry-result)]
+      (timbre/info "Created entry for:" entry-for "as" (:uuid final-entry))
+      (when (= (:status final-entry) "published")
+        (undraft-board conn user org board)
+        (entry-res/delete-versions conn final-entry)
+        (auto-share-on-publish conn ctx final-entry))
+      (notification/send-trigger! (notification/->trigger :add org board {:new final-entry} user nil))
+      {:created-entry (api-common/rep final-entry)})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
 
@@ -178,14 +260,19 @@
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
-    (let [old-board (:moving-board ctx)]
+
+    (let [old-board (:moving-board ctx)
+          updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
+          ;; Handle follow-ups
+          updated-follow-ups (entry-res/add-follow-ups! conn updated-result (:updated-follow-ups ctx) user)
+          final-entry (if updating-follow-ups? updated-follow-ups updated-result)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
-      {:updated-entry (api-common/rep (assoc updated-result :board-name (:name board)))})
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new final-entry} user nil))
+      {:updated-entry (api-common/rep (assoc final-entry :board-name (:name board)))})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
@@ -203,12 +290,19 @@
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
+      ;; TODO: sent follow-up notifications
       (entry-res/delete-versions conn publish-result)
       (timbre/info "Published entry for:" (:uuid updated-entry))
       (auto-share-on-publish conn ctx publish-result)
       (timbre/info "Published entry:" entry-for)
-      (notification/send-trigger! (notification/->trigger :add org board {:new publish-result} user nil))
-      {:updated-entry (api-common/rep publish-result)})
+      (let [updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
+            ;; Handle follow-ups
+            updated-follow-ups (when updating-follow-ups?
+                                  (entry-res/add-follow-ups! conn publish-result (:updated-follow-ups ctx) user))
+            final-entry (if updating-follow-ups? updated-follow-ups publish-result)]
+        ;; TODO: send follow-ups notifications
+        (notification/send-trigger! (notification/->trigger :add org board {:new final-entry} user nil))
+        {:updated-entry (api-common/rep final-entry)}))
     (do (timbre/error "Failed publishing entry:" entry-for) false)))
 
 (defn- delete-entry [conn ctx entry-for]
@@ -284,7 +378,7 @@
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
                           (slugify/valid-slug? board-slug-or-uuid)
-                          (valid-entry-update? conn entry-uuid (:data ctx))))
+                          (valid-entry-update? conn entry-uuid (:data ctx) (:user ctx))))
     :delete true})
 
   ;; Existentialism
@@ -302,7 +396,8 @@
                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)}
+                         :existing-reactions (api-common/rep reactions)
+                         :existing-follow-ups (api-common/rep (or (:updated-follow-ups ctx) (:follow-ups entry)))}
                         false))
 
   ;; Actions
@@ -352,11 +447,12 @@
                           :get true
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-media-type))
                           :delete true})
-  
+
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
+    :get (fn [ctx] (or (nil? board-slug-or-uuid) ; nil if entry-list for follow-ups, follow-ups are always allowed
+                       (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx))))
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
     :delete (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
 
@@ -373,7 +469,7 @@
   :exists? (by-method {
     :options true
     :post (partial entry-list-for-board conn org-slug board-slug-or-uuid)
-    :get (partial entry-list-for-board conn org-slug board-slug-or-uuid)
+    :get (fn [ctx] (entry-list-for-board conn org-slug board-slug-or-uuid))
     :delete (fn [ctx]
               (if-let* [_slugs? (slugify/valid-slug? org-slug)
                         org (or (:existing-org ctx)
@@ -387,10 +483,9 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
-                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))
-    :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx)
-                  (:existing-entries ctx) (:access-level ctx) (-> ctx :user :user-id)))})
+    :get (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx) (:existing-entries ctx) ctx))
+    :post (fn [ctx] (entry-rep/render-entry-list (:existing-org ctx) (:existing-board ctx) (:existing-entries ctx)
+                     ctx))})
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
@@ -494,8 +589,8 @@
     :options true
     :post (fn [ctx] (let [entry-props (:data ctx)]
                       (or (nil? entry-props) ; no updates during publish is fine
-                          (valid-entry-update? conn entry-uuid entry-props))))})
-  :new? false 
+                          (valid-entry-update? conn entry-uuid entry-props (:user ctx)))))})
+  :new? false
   :respond-with-entity? true
 
   ;; Existentialism
@@ -538,7 +633,7 @@
   :allowed? (by-method {
     :options true
     :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
-  
+
   ;; Media type client accepts
   :available-media-types (by-method {
                             :post [mt/entry-media-type]})
@@ -551,7 +646,7 @@
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/share-request-media-type))})
 
   ;; Data handling
-  :new? false 
+  :new? false
   :respond-with-entity? true
 
   ;; Validations
@@ -655,6 +750,137 @@
                                                   (-> ctx :user :user-id)
                                                   :secure))))
 
+(defresource follow-up-list [conn org-slug board-slug entry-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Media type client sends
+  :known-content-type? (by-method {
+                          :options true
+                          :post (fn [ctx] (api-common/known-content-type? ctx mt/follow-up-request-media-type))})
+
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? (by-method {
+    :options true
+    :post (fn [ctx] (valid-follow-up-request? conn entry-uuid (:data ctx) (:user ctx) (:access-level ctx)))})
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn entry-uuid))
+                               board (board-res/get-board conn (:board-uuid entry))
+                               _matches? (and (= org-uuid (:org-uuid entry))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :published (keyword (:status entry)))) ; sanity check
+                               comments (or (:existing-comments ctx)
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
+                               reactions (or (:existing-reactions ctx)
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)}
+                        false))
+
+  ;; Actions
+  :post! (fn [ctx] (create-follow-ups conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               (:existing-comments ctx)
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/FollowUp %) (:follow-ups ctx)))))
+
+(defresource follow-up [conn org-slug board-slug entry-uuid follow-up-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? true
+
+  ;; Possibly no data to handle
+  :malformed? (by-method {
+    :options false
+    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                                            (slugify/valid-slug? board-slug))
+                               org (or (:existing-org ctx)
+                                       (org-res/get-org conn org-slug))
+                               org-uuid (:uuid org)
+                               entry (or (:existing-entry ctx)
+                                         (entry-res/get-entry conn entry-uuid))
+                               board (board-res/get-board conn (:board-uuid entry))
+                               follow-up (first (filter #(= (:uuid %) follow-up-uuid) (:follow-ups entry)))
+                               _matches? (and (= org-uuid (:org-uuid entry))
+                                              (= org-uuid (:org-uuid board))
+                                              (= :published (keyword (:status entry)))) ; sanity check
+                               comments (or (:existing-comments ctx)
+                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
+                               reactions (or (:existing-reactions ctx)
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
+                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                         :existing-entry (api-common/rep entry)
+                         :existing-follow-up (api-common/rep follow-up)
+                         :existing-comments (api-common/rep comments)
+                         :existing-reactions (api-common/rep reactions)}
+                        false))
+
+  ;; Actions
+  :post! (fn [ctx] (mark-complete-follow-up conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (:updated-entry ctx)
+                                               (:existing-comments ctx)
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                                               (:access-level ctx)
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (map #(schema/check common-res/FollowUp %) (:follow-ups ctx)))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -727,4 +953,12 @@
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
-          (share conn org-slug board-slug entry-uuid))))))
+          (share conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow-up"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (follow-up-list conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow-up/:follow-up-uuid/complete"
+        [org-slug board-slug entry-uuid follow-up-uuid]
+        (pool/with-pool [conn db-pool]
+          (follow-up conn org-slug board-slug entry-uuid follow-up-uuid))))))

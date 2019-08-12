@@ -38,7 +38,7 @@
     [zprint "0.4.16"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.12"]
+    [open-company/lib "0.17.14"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -80,7 +80,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.8" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.9.9" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]
@@ -88,9 +88,9 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.1"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.3.5"]
+        [jonase/eastwood "0.3.6"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
-        [lein-kibit "0.1.6" :exclusions [org.clojure/clojure]]
+        [lein-kibit "0.1.7" :exclusions [org.clojure/clojure]]
       ]
     }
 
@@ -179,7 +179,7 @@
   }
 
   :repl-options {
-    :welcome (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
+    :welcome (println (str "\n" (slurp (clojure.java.io/resource "oc/assets/ascii_art.txt")) "\n"
                       "OpenCompany Storage REPL\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) or (go-db) as your first command.\n"))
     :init-ns dev

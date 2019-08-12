@@ -1,0 +1,19 @@
+(ns oc.storage.db.migrations.create-follow-ups-index-map-multi
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.entry :as entry]))
+
+(defn up [conn]
+  ;; Do great things
+  (println (m/create-compound-index conn entry/table-name "org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi"
+    (r/fn [row] (r/map (r/get-field row "follow-ups")
+                   (r/fn [follow-up-row]
+                     [(r/get-field row "org-uuid")
+                      (r/get-field row "status")
+                      (r/get-field follow-up-row "completed?")
+                      (-> follow-up-row
+                          (r/get-field "assignee")
+                          (r/get-field "user-id"))])))
+    {:multi true}))
+  true) ; return true on success
