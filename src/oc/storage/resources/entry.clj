@@ -413,7 +413,7 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-properties {:count count}))
+                                          list-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
