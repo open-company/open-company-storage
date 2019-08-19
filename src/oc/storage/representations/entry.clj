@@ -8,7 +8,9 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
-            [oc.storage.lib.sort :as sort]))
+            [oc.storage.lib.sort :as sort]
+            [oc.storage.api.access :as access]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -21,10 +23,10 @@
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
-                           :video-id :video-transcript :video-processed :video-error :video-image :video-duration
-                           :created-at :updated-at :revision-id :new-at])
+                           :video-id :video-processed :video-image :video-duration
+                           :created-at :updated-at :revision-id :new-at :follow-ups])
 
-;; Utility functions
+;; ----- Utility functions -----
 
 (defn comments
   "Return a sequence of just the comments for an entry."
@@ -36,7 +38,17 @@
   [{interactions :interactions}]
   (filter :reaction interactions))
 
+(defun- board-of
+  ([boards :guard map? entry] 
+    (boards (:board-uuid entry)))
+  ([board _entry] board))
+
+;; ----- Representation -----
+
 (defun url
+
+  ([org-slug nil]
+  (str "/orgs/" org-slug  "/follow-ups"))
 
   ([org-slug board-slug]
   (str (board-url/url org-slug board-slug) "/entries"))
@@ -44,7 +56,10 @@
   ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
 
   ([org-slug board-slug entry-uuid]
-  (str (url org-slug board-slug) "/" entry-uuid)))
+  (str (url org-slug board-slug) "/" entry-uuid))
+
+  ([org-slug board-slug entry-uuid follow-up-uuid]
+  (str (url org-slug board-slug entry-uuid) "/follow-up/" follow-up-uuid)))
 
 (defn- self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
@@ -85,13 +100,25 @@
     {:content-type mt/share-request-media-type
      :accept mt/entry-media-type}))
 
-(defn- up-link [org-slug board-slug]
-  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type}))
+(defun- up-link 
+  ([org-slug nil]
+  (hateoas/up-link (str "/" org-slug) {:accept mt/org-media-type}))
+  ([org-slug board-slug]
+  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type})))
 
 (defn- revert-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
+
+(defn- create-follow-up-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "follow-up" hateoas/POST (str (url org-slug board-slug entry-uuid) "/follow-up")
+    {:accept mt/entry-media-type
+     :content-type mt/follow-up-request-media-type}))
+
+(defn- complete-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
+  (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
+    {:accept mt/entry-media-type}))
 
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
@@ -110,7 +137,10 @@
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
   for use in an API response.
   "
-  [org board entry comments reactions access-level user-id secure-access?]
+  ([org board entry comments reactions access-level user-id] 
+  (entry-and-links org board entry comments reactions access-level user-id false))
+
+  ([org board entry comments reactions access-level user-id secure-access?]
   (let [entry-uuid (:uuid entry)
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
@@ -131,6 +161,12 @@
         comment-list (if (= access-level :public)
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
+        follow-ups-list (if (= access-level :public)
+                          []
+                          (map #(if (= (-> % :assignee :user-id) user-id)
+                                  (assoc % :links [(complete-follow-up-link org-slug board-slug entry-uuid (:uuid %))])
+                                  %)
+                           (:follow-ups entry)))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
@@ -167,7 +203,8 @@
               ;; Indirect access via the board, rather than direct access by the secure ID
               ;; needs a share link
               (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
-              (conj react-links (share-link org-slug board-slug entry-uuid))
+              (conj react-links (share-link org-slug board-slug entry-uuid)
+               (create-follow-up-link org-slug board-slug entry-uuid))
               ;; Otherwise just the links they already have
               :else react-links)]
     (-> (if secure-access?
@@ -180,7 +217,8 @@
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
-      (assoc :links full-links))))
+      (assoc :follow-ups follow-ups-list)
+      (assoc :links full-links)))))
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
@@ -203,25 +241,28 @@
 
 (defn render-entry-list
   "
-  Given an org and a board, a sequence of entry maps, and access control levels, 
+  Given an org and a board or a map of boards, a sequence of entry maps, and access control levels, 
   create a JSON representation of a list of entries for the API.
   "
-  [org board entries access-level user-id]
+  [org board-or-boards entries ctx]
   (let [org-slug (:slug org)
-        board-slug (:slug board)
+        board-slug (:slug board-or-boards)
         collection-url (url org-slug board-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (up-link org-slug board-slug)]
-        full-links (if (= access-level :author)
+        full-links (if (= (:access-level ctx) :author)
                       (conj links (create-link org-slug board-slug))
-                      links)]
+                      links)
+        user (:user ctx)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(entry-and-links org board %
+                    :items (map #(let [board (board-of board-or-boards %)
+                                       access-level (:access-level (access/access-level-for org board user))]
+                                   (entry-and-links org board %
                                     (or (filter :body (:interactions %)) [])  ; comments only
-                                    (or (filter :reaction (:interactions %)) []) ; reactions only
-                                    access-level user-id)
+                                    (reaction-res/aggregate-reactions (or (filter :reaction (:interactions %)) [])) ; reactions only
+                                    access-level (:user-id user)))
                              entries)}}
       {:pretty config/pretty?})))

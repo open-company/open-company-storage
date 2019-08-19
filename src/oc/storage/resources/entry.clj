@@ -28,6 +28,10 @@
   "Properties of a resource that are ignored during an update."
   (disj reserved-properties :board-uuid :status))
 
+(def list-properties
+  "Set of properties we want when listing entries."
+  ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"])
+
 ;; ----- Utility functions -----
 
 (defn clean
@@ -201,14 +205,6 @@
   {:pre [(db-common/conn? conn)]}
   (first (db-common/read-resources conn table-name :secure-uuid-org-uuid [[secure-uuid org-uuid]]))))
 
-(schema/defn ^:always-validate get-entry-by-video :- (schema/maybe common/Entry)
-  "
-  Given the video token in the entry, retrieve the entry, or return nil if it doesn't exist.
-  "
-  ([conn video-id :- schema/Str]
-  {:pre [(db-common/conn? conn)]}
-  (first (db-common/read-resources conn table-name :video-id video-id))))
-
 (defn get-version
   "
   Given the UUID of the entry and revision number, retrieve the entry, or return nil if it doesn't exist.
@@ -265,7 +261,7 @@
   to the common/Entry schema.
   "
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
-  {:pre [(db-common/conn? conn)         
+  {:pre [(db-common/conn? conn)
          (map? entry)]}
   (when-let [original-entry (get-entry conn uuid)]
     (let [ts (db-common/current-timestamp)
@@ -282,35 +278,6 @@
   (if-let [original-entry (get-entry conn (:uuid entry))]
     (update-entry! conn (:uuid entry) entry user)
     (create-entry! conn entry)))
-
-(defn error-video-data [conn entry]
-  (update-entry-no-user! conn
-                         (:uuid entry)
-                         (-> entry
-                             (assoc :video-processed false)
-                             (assoc :video-transcript nil)
-                             (assoc :video-image "error")
-                             (assoc :video-duration "error")
-                             (assoc :video-error true))))
-
-(defn update-video-data [conn video entry]
-  (let [video-processed (if (:video-processed entry)
-                          true
-                          (> (:state video) 4)) ;; is video processed?
-        video-transcript-data (get-in video [:original_stream :audio_transcription :text])
-        video-transcript (or video-transcript-data
-                             (:video-transcript entry))
-        video-error (if video-processed
-                      false
-                      (:video-error entry))]
-    (update-entry-no-user! conn
-                           (:uuid entry)
-                           (-> entry
-                               (assoc :video-duration (str (:duration video)))
-                               (assoc :video-image (:embed_image_url video))
-                               (assoc :video-error video-error)
-                               (assoc :video-processed video-processed)
-                               (assoc :video-transcript video-transcript)))))
 
 (schema/defn ^:always-validate publish-entry! :- (schema/maybe common/Entry)
   "
@@ -384,7 +351,11 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a direction, one of `:before` or `:after`, return the published entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
+  (db-common/read-resources conn table-name :org-uuid org-uuid))
+
+  ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
@@ -399,7 +370,7 @@
       filter-map
       :interactions common/interaction-table-name :uuid :resource-uuid
       ["uuid" "headline" "body" "reaction" "author"
-       "published-at" "created-at" "updated-at"] {:count count})))
+       "published-at" "created-at" "updated-at"] {:count count}))))
 
 
 (schema/defn ^:always-validate paginated-entries-by-board
@@ -432,7 +403,7 @@
          (#{:published :draft} status)]}
   (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[status org-uuid user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"] {:count count})))
+                                          list-properties {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
@@ -442,13 +413,66 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"] {:count count})))
+                                          list-properties {:count count}))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
   [conn board-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
+
+(schema/defn ^:always-validate list-all-entries-by-follow-ups
+  "Given the UUID of the user, return all the published entries with incomplete follow-ups for the user."
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+    (list-all-entries-by-follow-ups conn org-uuid user-id order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)]}
+  (db-common/read-all-resources-and-relations conn table-name
+      :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi [[org-uuid :published false user-id]]
+      "published-at" order start direction
+      :interactions common/interaction-table-name :uuid :resource-uuid
+      ["uuid" "headline" "body" "reaction" "author"
+       "published-at" "created-at" "updated-at"] {:count count})))
+
+;; ----- Entry follow-up manipulation -----
+
+(schema/defn ^:always-validate add-follow-ups! :- (schema/maybe common/Entry)
+  "Add a follow-up for the give entry uuid"
+  ([conn original-entry :- common/Entry follow-ups :- [common/FollowUp] user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [old-follow-ups (:follow-ups original-entry)
+         ;; List the user-ids of the assignees that can't be replaced
+         cant-replace-follow-ups (remove nil? (map #(when ;; Cant' replace the follow-ups that
+                                                          (and ;; are not assigned to current user
+                                                               (not= (-> % :assignee :user-id) (:user-id user))
+                                                               ;; and
+                                                               (or ;; or is completed
+                                                                   (:completed? %)
+                                                                   ;; or was created by the user himself
+                                                                   (= (-> % :author :user-id) (-> % :assignee :user-id))))
+                                                      (-> % :assignee :user-id))
+                                  old-follow-ups))
+         ;; filter out the new follow-ups that can't be overridden
+         filtered-new-follow-ups (filterv #(not ((set cant-replace-follow-ups) (-> % :assignee :user-id))) follow-ups)
+         ;; Remove the old follow-ups that are going to be overridden
+         keep-old-follow-ups (filterv #((set cant-replace-follow-ups) (-> % :assignee :user-id)) old-follow-ups)
+         ;; New follow-ups
+         new-follow-ups (vec (concat keep-old-follow-ups filtered-new-follow-ups))
+         final-entry (assoc original-entry :follow-ups new-follow-ups)]
+    (update-entry-no-version! conn (:uuid original-entry) final-entry user))))
+
+(schema/defn ^:always-validate complete-follow-up!
+  "Complete a follow-up item"
+  [conn original-entry :- common/Entry follow-up :- common/FollowUp user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)]}
+  (let [completed-follow-up (merge follow-up {:completed? true
+                                              :completed-at (db-common/current-timestamp)})
+        other-follow-ups (filterv #(not= (:uuid %) (:uuid follow-up)) (:follow-ups original-entry))
+        final-follow-ups (vec (conj other-follow-ups completed-follow-up))
+        updated-entry (assoc original-entry :follow-ups final-follow-ups)]
+    (update-entry-no-version! conn (:uuid original-entry) updated-entry user)))
 
 ;; ----- Data about entries -----
 

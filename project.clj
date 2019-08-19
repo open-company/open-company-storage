@@ -38,7 +38,7 @@
     [zprint "0.4.16"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.12"]
+    [open-company/lib "0.17.14"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -108,8 +108,6 @@
         :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
         :aws-sqs-storage-queue "CHANGE-ME" ; SQS queue to read requests from the Bot service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
-        :open-company-ziggeo-api-token "CHANGE-ME" ; Video processing API token
-        :open-company-ziggeo-api-key "CHANGE-ME" ; Video processing API key
         :log-level "debug"
       }
       :plugins [
@@ -182,7 +180,7 @@
   }
 
   :repl-options {
-    :welcome (println (str "\n" (slurp (clojure.java.io/resource "ascii_art.txt")) "\n"
+    :welcome (println (str "\n" (slurp (clojure.java.io/resource "oc/assets/ascii_art.txt")) "\n"
                       "OpenCompany Storage REPL\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) or (go-db) as your first command.\n"))
     :init-ns dev
