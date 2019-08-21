@@ -9,7 +9,7 @@
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at ])
 (def representation-props (concat public-representation-props [:author :authors :must-see-count :follow-ups-count
-                                                               :default-board-names :content-visibility]))
+                                                               :content-visibility]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -44,10 +44,6 @@
 
 (defn- recent-activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/activity-collection-media-type}))
-
-;; Not currently used
-; (defn- calendar-link [org]
-;   (hateoas/link-map "calendar" hateoas/GET (str (url org) "/activity/calendar") {:accept mt/activity-calendar-media-type}))
 
 (defn- change-link [org access-level user]
   (if (or (= access-level :author) (= access-level :viewer))
@@ -149,7 +145,6 @@
         user-id (:user-id user)]
     (json/generate-string
       (-> org
-        (assoc :default-board-names (vec (sort config/default-board-names)))
         (org-links access-level user sample-content?)
         (change-link access-level user)
         (notify-link access-level user)
