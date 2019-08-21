@@ -103,51 +103,19 @@
 
     ;; Org creation succeeded, so create the default boards
     (let [uuid (:uuid org-result)
-          author (:user ctx)]
+          author (:user ctx)
+          sample-entries (flatten (map default-entries-for config/new-org-board-names))]
       (timbre/info "Created org:" uuid)
       (notification/send-trigger! (notification/->trigger :add {:new org-result} (:user ctx)))
       (timbre/info "Creating default boards for org:" uuid)
       (doseq [board (map #(hash-map :name %) config/new-org-board-names)]
         (create-board conn org-result board author))
+      (timbre/info "Creating default entries for org:" uuid)
+      (doseq [entry sample-entries]
+        (create-entry conn org-result entry author))
       {:created-org (api-common/rep org-result)})
       
     (do (timbre/error "Failed creating org.") false)))
-
-      ; (when (:samples ctx) ; are we PATCH'ing boards from NUX?
-      ;   ;; Sync the boards the org has w/ the boards PATCH'd from the NUX by creating and deleting boards
-      ;   (timbre/info "Syncing samples for:" org-uuid)
-      ;   (let [selected-board-names (vec (:boards ctx))
-      ;         existing-boards (board-res/list-boards-by-org conn org-uuid)
-      ;         existing-board-names (set (map :name existing-boards))
-      ;         existing-boards-by-name (zipmap (map :name existing-boards) existing-boards)
-      ;         desired-board-names (set (conj selected-board-names config/forced-board-name))
-      ;         delete-board-names (clojure.set/difference existing-board-names desired-board-names)
-      ;         create-board-names (clojure.set/difference desired-board-names existing-board-names)
-      ;         ;; including these doall/pmap in the let to prevent Eastwood from having a tizzy about the doall
-      ;         ;; Sync the orgs boards w/ the NUX selected boards by deleting and adding as needed
-      ;         _deleted-boards (doall (pmap (fn [delete-board-name]
-      ;           (timbre/info "NUX sync - Deleting board:" delete-board-name "for org:" org-uuid)
-      ;           (let [board (board-res/get-board conn (:uuid (get existing-boards-by-name delete-board-name)))
-      ;                 entries (entry-res/list-all-entries-by-board conn (:uuid board))]
-      ;             (board-res/delete-board! conn org-uuid (:slug board) entries)
-      ;             (notification/send-trigger! (notification/->trigger :delete update-result {:old board} (:user ctx)))))
-      ;           delete-board-names))
-      ;         _created-boards (doall (pmap (fn [create-board-name]
-      ;           (timbre/info "NUX sync - Creating board:" create-board-name "for org:" org-uuid)
-      ;           (create-board conn updated-org {:name create-board-name} author))
-      ;           create-board-names))
-      ;         ;; create a min of 3 / max of 4 sample entries, including at least 1 from the forced board
-      ;         selected-entries (take 3 (flatten (map default-entries-for
-      ;                                             (remove #(= % config/forced-board-name) selected-board-names))))
-      ;         forced-entries (default-entries-for config/forced-board-name)
-      ;         total-entries (take 4 (concat selected-entries forced-entries))
-      ;         create-entries (map #(update % :author (fn [val] (or val (lib-schema/author-for-user author))))
-      ;                         (take 4 (concat selected-entries forced-entries)))
-      ;         _created-entries (doall (pmap #(create-entry conn updated-org % author) create-entries))]
-      ;       (notification/send-trigger!
-      ;         (notification/->trigger :nux updated-org {:nux-boards (vec desired-board-names)} author))
-      ;       (timbre/info "Syncing samples for:" org-uuid "complete.")))
-
       
 (defn- update-org [conn ctx slug]
   (timbre/info "Updating org:" slug)
