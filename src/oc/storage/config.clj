@@ -80,36 +80,16 @@
 
 ;; ----- OpenCompany -----
 
-(defonce default-board-names #{
+(defonce new-org-board-names #{
   "All-hands"
-  "CEO update"
-  "Competition"
-  "Customer wins"
   "Decisions"
-  "Design"
-  "Engineering"
   "Events"
-  "Finances"
-  "Key metrics"
-  "Kudos"
+  "General"
   "Lessons learned"
-  "Marketing"
-  "OKRs"
   "People"
-  "Playbooks"
   "Product updates"
-  "Sales"
   "Team and hiring"
   "Week in review"})
-
-(defonce new-org-board-names #{
-  "Decisions"
-  "Lessons learned"
-  "People"
-  "Product updates"
-  "Week in review"})
-
-(defonce forced-board-name "General")
 
 (defonce max-reaction-count 5) 
 
