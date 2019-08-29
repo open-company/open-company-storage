@@ -93,4 +93,4 @@
 
 (defonce inline-comment-count 10)
 
-(defonce default-activity-limit 5)
+(defonce default-activity-limit 7)
