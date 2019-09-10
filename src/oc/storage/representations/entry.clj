@@ -149,7 +149,7 @@
         board-slug (:slug board)
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
-        entry-with-comments (merge entry :interactions comments)
+        entry-with-comments (assoc entry :interactions comments)
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
