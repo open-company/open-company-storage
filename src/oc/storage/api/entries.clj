@@ -74,7 +74,7 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
-(defn- valid-entry-update? [conn entry-uuid entry-props user]
+(defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
     (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
@@ -83,9 +83,13 @@
           old-board (when new-board
                       (board-res/get-board conn (:board-uuid existing-entry)))
           new-board-uuid (:uuid new-board)
+          without-status-props (dissoc entry-props :status)
+          with-status-props (if entry-publish?
+                              (assoc without-status-props :status :published)
+                              (assoc without-status-props :status (:status existing-entry)))
           props (if new-board-uuid
-                  (assoc entry-props :board-uuid new-board-uuid)
-                  (dissoc entry-props :board-uuid))
+                  (assoc with-status-props :board-uuid new-board-uuid)
+                  (dissoc with-status-props :board-uuid))
           merged-entry (merge existing-entry (entry-res/ignore-props props))
           updated-entry (-> merged-entry
                           (update :attachments #(entry-res/timestamp-attachments %))
@@ -378,7 +382,7 @@
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
                           (slugify/valid-slug? board-slug-or-uuid)
-                          (valid-entry-update? conn entry-uuid (:data ctx) (:user ctx))))
+                          (valid-entry-update? conn entry-uuid (:data ctx) (:user ctx) false)))
     :delete true})
 
   ;; Existentialism
@@ -589,7 +593,7 @@
     :options true
     :post (fn [ctx] (let [entry-props (:data ctx)]
                       (or (nil? entry-props) ; no updates during publish is fine
-                          (valid-entry-update? conn entry-uuid entry-props (:user ctx)))))})
+                          (valid-entry-update? conn entry-uuid entry-props (:user ctx) true))))})
   :new? false
   :respond-with-entity? true
 
