@@ -43,13 +43,15 @@
 
 ;; ----- URLs -----
 
-(defonce auth-server-url (or (env :auth-server-url) "http://localhost:3003"))
-(defonce interaction-server-url (or (env :interaction-server-url) "http://localhost:3002"))
-(defonce interaction-server-ws-url (or (env :interaction-server-ws-url) "ws://localhost:3002"))
-(defonce change-server-url (or (env :change-server-url) "http://localhost:3006"))
-(defonce change-server-ws-url (or (env :change-server-ws-url) "ws://localhost:3006"))
-(defonce notify-server-ws-url (or (env :notify-server-ws-url) "ws://localhost:3010"))
-(defonce reminder-server-url (or (env :reminder-server-url) "http://localhost:3011"))
+(defonce ip-address "localhost")
+
+(defonce auth-server-url (or (env :auth-server-url) (str "http://" ip-address ":3003")))
+(defonce interaction-server-url (or (env :interaction-server-url) (str "http://" ip-address ":3002")))
+(defonce interaction-server-ws-url (or (env :interaction-server-ws-url) (str "ws://" ip-address ":3002")))
+(defonce change-server-url (or (env :change-server-url) (str "http://" ip-address ":3006")))
+(defonce change-server-ws-url (or (env :change-server-ws-url) (str "ws://" ip-address ":3006")))
+(defonce notify-server-ws-url (or (env :notify-server-ws-url) (str "ws://" ip-address ":3010")))
+(defonce reminder-server-url (or (env :reminder-server-url) (str "http://" ip-address ":3011")))
 
 ;; ----- Liberator -----
 
