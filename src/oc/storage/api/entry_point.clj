@@ -27,12 +27,15 @@
 (defn- render-entry-point [conn {:keys [user request] :as _ctx}]
   (let [authed-orgs (if user
                 ;; Auth'd user
-                (org-res/list-orgs-by-teams conn (:teams user) [:team-id :logo-url :logo-width :logo-height :created-at :updated-at])
+                (org-res/list-orgs-by-teams conn (:teams user) [:uuid :team-id :logo-url :logo-width :logo-height :created-at :updated-at])
                 ;; Not auth'd
                 [])
+        org-uuids (set (map :uuid authed-orgs))
         org-slugs (set (map :slug authed-orgs)) ; set of the org slugs for this user
         requested-org-slug (get-in request [:params "requested"]) ; a public org may be requested specifically
-        check-for-public? (and (slugify/valid-slug? requested-org-slug) (not (org-slugs requested-org-slug))) ; requested and not in the list
+        check-for-public? (and (slugify/valid-slug? requested-org-slug)
+                               (not (or (org-uuids requested-org-slug)
+                                        (org-slugs requested-org-slug)))) ; requested and not in the list
         public-org (when check-for-public? (org-if-public-boards conn requested-org-slug)) ; requested org if public
         orgs (if public-org (conj authed-orgs public-org) authed-orgs)] ; final set of orgs
     (org-rep/render-org-list orgs user)))
