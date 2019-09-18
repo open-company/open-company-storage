@@ -32,6 +32,10 @@
   "Set of properties we want when listing entries."
   ["uuid" "headline" "body" "reaction" "author" "created-at" "updated-at"])
 
+(def list-comment-properties
+  "Set of peroperties we want when retrieving comments"
+  ["uuid" "body" "reaction" "author" "parent-uuid" "created-at" "updated-at"])
+
 ;; ----- Utility functions -----
 
 (defn clean
@@ -336,7 +340,7 @@
   "Given the UUID of the entry, return a list of the comments for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :body :created-at])))
+  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid list-comment-properties)))
 
 (schema/defn ^:always-validate list-reactions-for-entry
   "Given the UUID of the entry, return a list of the reactions for the entry."
@@ -369,8 +373,7 @@
       "published-at" order start direction
       filter-map
       :interactions common/interaction-table-name :uuid :resource-uuid
-      ["uuid" "headline" "body" "reaction" "author"
-       "published-at" "created-at" "updated-at"] {:count count}))))
+      list-comment-properties {:count count}))))
 
 
 (schema/defn ^:always-validate paginated-entries-by-board
@@ -386,8 +389,7 @@
     :status-board-uuid [[:published board-uuid]]
     "published-at" order start direction
     :interactions common/interaction-table-name :uuid :resource-uuid
-    ["uuid" "headline" "body" "reaction" "author"
-     "published-at" "created-at" "updated-at"] {:count count}))
+    list-comment-properties {:count count}))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "
@@ -403,7 +405,7 @@
          (#{:published :draft} status)]}
   (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[status org-uuid user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-properties {:count count})))
+                                          list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
@@ -413,7 +415,7 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-properties {:count count})))
+                                          list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
@@ -433,8 +435,7 @@
       :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi [[org-uuid :published false user-id]]
       "published-at" order start direction
       :interactions common/interaction-table-name :uuid :resource-uuid
-      ["uuid" "headline" "body" "reaction" "author"
-       "published-at" "created-at" "updated-at"] {:count count})))
+      list-comment-properties {:count count})))
 
 ;; ----- Entry follow-up manipulation -----
 
