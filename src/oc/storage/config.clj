@@ -80,16 +80,7 @@
 
 ;; ----- OpenCompany -----
 
-(defonce new-org-board-names #{
-  "All-hands"
-  "Decisions"
-  "Events"
-  "General"
-  "Lessons learned"
-  "People"
-  "Product updates"
-  "Team and hiring"
-  "Week in review"})
+(defonce new-org-board-names #{"General"})
 
 (defonce max-reaction-count 5) 
 
