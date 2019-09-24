@@ -25,7 +25,8 @@
 ;; changes to `entry/list-entries-by-org`
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid allowed-boards user-id]
+  [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
+   org sort-type board-by-uuid allowed-boards user-id]
   (let [order (if (= :after direction) :asc :desc)
         activities (cond
 
@@ -37,9 +38,11 @@
                         around-stamp (t/minus start-stamp (t/millis 1))
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards {:must-see must-see})
+                        previous-activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
+                        next-activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc previous-activity-limit user-id)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc next-activity-limit user-id)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -47,14 +50,16 @@
                   
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id)]
+                        activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
+                        previous-activity (sort/sort-activity previous-entries sort-type start :asc activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
+                        activity-limit (if digest-request (count next-entries) config/default-activity-limit)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -161,7 +166,10 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-activity conn params org sort-type board-by-uuid allowed-boards user-id)]
+                             fixed-params (if (= (:auth-source user) "digest")
+                                            (assoc params :digest-request true)
+                                            params)
+                             activity (assemble-activity conn fixed-params org sort-type board-by-uuid allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "entries" sort-type activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
