@@ -3,7 +3,7 @@
     :time-offset 15 ; 15 minutes ago
     :board-slug "general"
     :headline "Welcome to Carrot 👋"
-    :abstract "Carrot provides a calm space for fast-growing and remote teams to stay meaningfully engaged with high-value communication. Getting started is easy! Add a test post to try it out."
+    :abstract "Carrot provides a calm space for remote teams to stay informed and engaged. Getting started is easy. Post something to try it out."
     :body "<p>Here are some common ways teams use Carrot:</p><ul><li>Announcements</li><li>Weekly reviews</li><li>HR and new hires</li><li>Decisions</li><li>CEO updates</li><li>Team updates</li><li>Product releases</li><li>Key metrics and results</li><li>Events</li></ul><p>To ensure key information is seen, everyone receives a personalized digest each morning that makes it easy for them to stay caught up on what matters. And when you share something in Carrot you'll always know who saw it. If it's missed, Carrot works in the background to remind your team for you.</p><p>Using Slack? Turn on our <a onclick=\"OCWebStaticOpenIntegrationsPanel(event);return false;\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"background-color: rgb(251, 250, 249);\">Slack integration</a> to send Carrot posts into specific Slack channels.</p><p>Questions, ideas, or just feeling talkative? <a onclick=\"window.Intercom('showNewMessage');return false;\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"background-color: rgb(251, 250, 249);\">Chat with us!</a> In the meantime, create a test post and invite your team with email or Slack.</p>"
     :author {:name "Yellow Jelly Head" :avatar-url "/img/ML/happy_face_yellow.svg" :user-id "9999-9999-9999"}
     :comments [
