@@ -11,6 +11,7 @@
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cors :refer (wrap-cors)]
+    [ring.middleware.gzip :refer (wrap-gzip)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
     [oc.lib.sentry-appender :as sa]
@@ -76,7 +77,8 @@
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
     true              (wrap-cors #".*")
-    c/hot-reload      wrap-reload))
+    c/hot-reload      wrap-reload
+    true              wrap-gzip))
 
 (defn start
   "Start a development server"
