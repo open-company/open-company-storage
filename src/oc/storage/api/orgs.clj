@@ -4,7 +4,7 @@
             [clj-time.core :as t]
             [clj-time.format :as f]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
+            [compojure.core :as compojure :refer (ANY OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.time :as lib-time]
@@ -272,6 +272,38 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
+;; A resource to get all orgs give a team id
+(defresource orgs-team [conn team-id]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity of optional JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/org-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/org-media-type)
+
+  ;; Media type client sends
+  :known-content-type? (fn [ctx] (api-common/known-content-type? ctx mt/org-media-type))
+  
+  ;; Authorization
+  :allowed? true
+
+  :processable? true
+
+  ;; Existentialism
+  :exists? (fn [ctx] (println "DBG orgs-team" team-id )
+                     (if-let* [_slug? (lib-schema/unique-id? team-id)
+                               orgs (org-res/list-orgs-by-team conn team-id [])]
+                        {:existing-orgs (api-common/rep orgs)}
+                        false))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
+                         (org-rep/render-org-list existing-orgs (:user ctx))))
+
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
+
 ;; A resource for the authors of a particular org
 (defresource author [conn org-slug user-id]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -386,6 +418,9 @@
       ;; Org operations
       (ANY "/orgs/:slug" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
       (ANY "/orgs/:slug/" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
+      ;; Orgs by team
+      (OPTIONS "/orgs-team/:team-id" [team-id] (pool/with-pool [conn db-pool] (println "DBG here OPTIONS team-id" team-id) (orgs-team conn team-id)))
+      (GET "/orgs-team/:team-id" [team-id] (pool/with-pool [conn db-pool] (println "DBG here team-id" team-id) (orgs-team conn team-id)))
       ;; Org author operations
       (OPTIONS "/orgs/:slug/authors" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
       (OPTIONS "/orgs/:slug/authors/" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
