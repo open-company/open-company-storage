@@ -89,4 +89,4 @@
 
 (defonce default-activity-limit 7)
 
-(defonce payments-enabled? (bool (env :payments-enabled))
+(defonce payments-enabled? (bool (env :payments-enabled)))
