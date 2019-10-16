@@ -291,9 +291,8 @@
   :processable? true
 
   ;; Existentialism
-  :exists? (fn [ctx] (println "DBG orgs-team" team-id )
-                     (if-let* [_slug? (lib-schema/unique-id? team-id)
-                               orgs (org-res/list-orgs-by-team conn team-id [])]
+  :exists? (fn [ctx] (if-let* [_slug? (lib-schema/unique-id? team-id)
+                               orgs (org-res/list-orgs-by-team conn team-id [:logo-url :logo-width :logo-height])]
                         {:existing-orgs (api-common/rep orgs)}
                         false))
 
