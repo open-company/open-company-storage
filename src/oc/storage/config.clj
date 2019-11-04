@@ -87,6 +87,6 @@
 
 (defonce inline-comment-count 10)
 
-(defonce default-activity-limit 7)
+(defonce default-activity-limit 10)
 
 (defonce payments-enabled? (bool (env :payments-enabled)))
