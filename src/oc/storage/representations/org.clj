@@ -7,7 +7,7 @@
             [oc.storage.representations.media-types :as mt]))
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
-                                  :boards :created-at :updated-at ])
+                                  :boards :created-at :updated-at])
 (def representation-props (concat public-representation-props [:author :authors :must-see-count :follow-ups-count
                                                                :content-visibility]))
 
@@ -110,6 +110,13 @@
         {:accept mt/activity-collection-media-type}))
     org))
 
+(defn- payments-link [{:keys [team-id]}]
+  (hateoas/link-map 
+    "payments"
+    hateoas/GET
+    (str config/payments-server-url "/teams/" team-id "/customer")
+    {:accept mt/payments-customer-media-type}))
+
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
@@ -122,9 +129,12 @@
                                               (partial-update-link org)
                                               (add-author-link org)])
                       activity-links)
+        payments-links (if config/payments-enabled?
+                         (concat full-links [(payments-link org)])
+                         full-links)
         with-remove-samples-link (if sample-content?
-                                   (concat full-links [(delete-samples-link org)])
-                                   full-links)]
+                                   (concat payments-links [(delete-samples-link org)])
+                                   payments-links)]
     (assoc org :links with-remove-samples-link)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
