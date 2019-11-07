@@ -9,7 +9,7 @@
   :min-lein-version "2.9.1"
 
   ;; JVM memory
-  :jvm-opts ^:replace ["-Xms512m" "-Xmx3072m" "-server"]
+  :jvm-opts ^:replace ["-Xms512m" "-Xmx4096m" "-server"]
 
   ;; All profile dependencies
   :dependencies [
@@ -128,6 +128,7 @@
         [lein-zprint "0.3.16" :exclusions [org.clojure/clojure]]
       ]  
     }]
+    
     :repl-config [:dev {
       :dependencies [
         ;; Network REPL https://github.com/clojure/tools.nrepl

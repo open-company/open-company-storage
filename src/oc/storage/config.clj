@@ -48,6 +48,7 @@
 (defonce auth-server-url (or (env :auth-server-url) (str "http://" host ":3003")))
 (defonce interaction-server-url (or (env :interaction-server-url) (str "http://" host ":3002")))
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) (str "ws://" host ":3002")))
+(defonce payments-server-url (or (env :payments-server-url) (str "http://" host ":3004")))
 (defonce change-server-url (or (env :change-server-url) (str "http://" host ":3006")))
 (defonce change-server-ws-url (or (env :change-server-ws-url) (str "ws://" host ":3006")))
 (defonce notify-server-ws-url (or (env :notify-server-ws-url) (str "ws://" host ":3010")))
@@ -82,19 +83,12 @@
 
 ;; ----- OpenCompany -----
 
-(defonce new-org-board-names #{
-  "All-hands"
-  "Decisions"
-  "Events"
-  "General"
-  "Lessons learned"
-  "People"
-  "Product updates"
-  "Team and hiring"
-  "Week in review"})
+(defonce new-org-board-names #{"General"})
 
 (defonce max-reaction-count 5) 
 
 (defonce inline-comment-count 10)
 
-(defonce default-activity-limit 7)
+(defonce default-activity-limit 10)
+
+(defonce payments-enabled? (bool (env :payments-enabled)))

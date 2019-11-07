@@ -149,10 +149,11 @@
         board-slug (:slug board)
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
+        entry-with-comments (assoc entry :interactions comments)
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
-                           :new-at (-> (sort/max-comment-timestamp user-id entry comments)
+                           :new-at (-> (sort/entry-new-at user-id entry-with-comments true)
                                     vals
                                     first)} entry)
         reaction-list (if (= access-level :public)
