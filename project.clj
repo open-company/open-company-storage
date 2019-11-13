@@ -127,6 +127,7 @@
         [lein-zprint "0.3.16" :exclusions [org.clojure/clojure]]
       ]  
     }]
+    
     :repl-config [:dev {
       :dependencies [
         ;; Network REPL https://github.com/clojure/tools.nrepl

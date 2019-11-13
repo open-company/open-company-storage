@@ -30,3 +30,6 @@
 
 ;; Reminder media types
 (def reminders-list-media-type "application/vnd.collection+vnd.open-company.reminder+json;version=1")
+
+;; Payments media types
+(def payments-customer-media-type "application/vnd.open-company.customer.v1+json")
