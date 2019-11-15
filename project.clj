@@ -9,7 +9,7 @@
   :min-lein-version "2.9.1"
 
   ;; JVM memory
-  :jvm-opts ^:replace ["-Xms512m" "-Xmx4096m" "-server"]
+  :jvm-opts ^:replace ["-Xms512m" "-Xmx5120m" "-server"]
 
   ;; All profile dependencies
   :dependencies [
