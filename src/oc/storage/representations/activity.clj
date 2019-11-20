@@ -71,7 +71,7 @@
   [params org collection-type sort-type activity boards user]
   (let [inbox? (is-inbox? collection-type)
         collection-url (if inbox?
-                         (inbox-url collection-type org sort-type)
+                         (inbox-url collection-type org)
                          (url collection-type org sort-type))
         recent-activity-sort? (= sort-type :recent-activity)
         other-sort-url (when-not inbox?
