@@ -435,6 +435,20 @@
       :interactions common/interaction-table-name :uuid :resource-uuid
       list-comment-properties {:count count})))
 
+(schema/defn ^:always-validate list-all-entries-for-inbox
+  "Given the UUID of the user, return all the published entries that are unread or have new content from the latest read."
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+    (list-all-entries-for-inbox conn org-uuid user-id order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)]}
+  (db-common/read-all-resources-and-relations conn table-name
+      :status-org-uuid [[:published org-uuid]]
+      "published-at" order start direction
+      :interactions common/interaction-table-name :uuid :resource-uuid
+      list-comment-properties {:count count})))
+
 ;; ----- Entry follow-up manipulation -----
 
 (schema/defn ^:always-validate add-follow-ups! :- (schema/maybe common/Entry)
