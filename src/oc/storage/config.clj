@@ -90,3 +90,16 @@
 (defonce default-activity-limit 10)
 
 (defonce payments-enabled? (bool (env :payments-enabled)))
+
+;; DynamoDB
+
+(defonce dynamodb-end-point (or (env :dynamodb-end-point) "http://localhost:8000"))
+
+(defonce dynamodb-table-prefix (or (env :dynamodb-table-prefix) "local"))
+
+(defonce dynamodb-opts {
+    :access-key (env :aws-access-key-id)
+    :secret-key (env :aws-secret-access-key)
+    :endpoint dynamodb-end-point
+    :table-prefix dynamodb-table-prefix
+  })

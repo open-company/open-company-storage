@@ -38,7 +38,7 @@
     [zprint "0.4.16"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.18"]
+    [open-company/lib "0.17.25-alpha1"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -54,6 +54,7 @@
     ;; clj-jwt - A Clojure library for JSON Web Token(JWT) https://github.com/liquidz/clj-jwt
     ;; clj-time - Date and time lib https://github.com/clj-time/clj-time
     ;; Environ - Get environment settings from different sources https://github.com/weavejester/environ
+    ;; Faraday - DynamoDB client https://github.com/ptaoussanis/faraday
   ]
 
   ;; All profile plugins

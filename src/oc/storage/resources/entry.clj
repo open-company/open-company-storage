@@ -6,6 +6,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.text :as oc-str]
+            [rethinkdb.query :as r]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -437,17 +438,43 @@
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
   "Given the UUID of the user, return all the published entries that are unread or have new content from the latest read."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
-    (list-all-entries-for-inbox conn org-uuid user-id order start direction {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID user-seens order start :- lib-schema/ISO8601 direction]
+    (list-all-entries-for-inbox conn org-uuid user-id user-seens order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID user-seens order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (db-common/read-all-resources-and-relations conn table-name
-      :status-org-uuid [[:published org-uuid]]
-      "published-at" order start direction
-      :interactions common/interaction-table-name :uuid :resource-uuid
-      list-comment-properties {:count count})))
+  (let [relation-filter-fn (r/fn [interaction-row]
+                             (apply r/or (mapv
+                                          (fn [seen]
+                                           (r/and (r/eq (:item-id seen) (r/get-field interaction-row "resource-uuid"))
+                                                  (r/lt (:seen-at seen) (r/get-field interaction-row "created-at"))))
+                                          user-seens)))
+
+        filter-fn (r/fn [row]
+
+                    ;; Only unseen entries
+                    (apply r/and (mapv (fn [seen] (r/ne (:item-id seen) (r/get-field row :uuid))) user-seens))
+
+                    ;; Doesn't work, test filtering
+                    ; (r/or ;; the post uuid is not in the seen table
+                    ;       (apply r/and (mapv #(r/ne (:item-id %) (r/get-field row :uuid)) user-seens))
+                    ;       ;; or
+                    ;       (apply r/or (mapv (fn [seen]
+                    ;                           (r/and
+                    ;                            (r/eq (:item-id seen) (r/get-field row :uuid))
+                    ;                            (apply r/or
+                    ;                             (mapv (fn [inter-row]
+                    ;                                    (r/lt (:seen-at seen) (r/get-field inter-row "created-at")))
+                    ;                              (r/get-field row :interactions)))))
+                    ;                    user-seens)))
+                    )]
+    (db-common/read-all-resources-and-relations conn table-name
+        :status-org-uuid [[:published org-uuid]]
+        "published-at" order start direction
+        filter-fn
+        :interactions common/interaction-table-name :uuid :resource-uuid relation-filter-fn
+        list-comment-properties {:count count}))))
 
 ;; ----- Entry follow-up manipulation -----
 
