@@ -7,6 +7,13 @@
     (when (seq sorted-comments)
       (hash-map (:uuid entry) (-> sorted-comments last :created-at)))))
 
+(defn- new-comments-count [entry user-id seen-at]
+  (let [all-comments (filterv :body (:interactions entry))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
+    (if seen-at
+      (count (filter #(> (:created-at %) seen-at) filtered-comments))
+      (count filtered-comments))))
+
 (defn entry-new-at [user-id entry filter-comments?]
   (let [all-comments (filterv :body (:interactions entry))
         filtered-comments (if filter-comments?
@@ -16,7 +23,7 @@
 
 (defn sort-activity
   "Given a set of entries, return up to the default limit of them, intermixed and sorted."
-  [entries sorting start order limit user-id]
+  [entries sorting start order limit user-id user-seens]
   (let [;; Get all the posts published at
         all-published-at (apply merge (map #(hash-map (:uuid %) (:published-at %)) entries))
         sorting-by-recent-activity? (= sorting :recent-activity)
@@ -41,11 +48,15 @@
         last-comment-timestamps (apply merge (map #(hash-map (:uuid %)
                                                     (first (vals (entry-new-at user-id % true))))
                                               entries))
-        ;; Add the new-at field used in the client to show the NEW comment badge
+        ;; Add the new-at field used in the client to show the NEW comment badge and
+        ;; the new-comments-count field user in the client
         return-entries (map (fn [entry-uuid]
-                              (-> (filter #(= (:uuid %) entry-uuid) entries)
-                                first
-                                (assoc :new-at (last-comment-timestamps entry-uuid)))) limited-uuids)]
+                              (let [entry-seen (some #(when (= (:item-id %) entry-uuid) %) user-seens)
+                                    entry-data (first (filter #(= (:uuid %) entry-uuid) entries))]
+                                (-> entry-data
+                                  (assoc :new-at (last-comment-timestamps entry-uuid))
+                                  (assoc :new-comments-count (new-comments-count user-id entry-data entry-seen)))))
+                        limited-uuids)]
     ;; Clean out empty results
     (remove nil? return-entries)))
 
