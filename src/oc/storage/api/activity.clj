@@ -19,7 +19,7 @@
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.sort :as sort]
             [oc.storage.lib.timestamp :as ts]
-            [oc.lib.change.resources.seen :as seen]))
+            [oc.lib.change.resources.read :as read]))
 
 ;; TODO This `assemble-activity` is overly complicated because it used to merge entries
 ;; and stories. It no longer does so can be simplified. This also may entail some
@@ -29,7 +29,7 @@
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
    org sort-type board-by-uuid allowed-boards user-id]
   (let [order (if (= :after direction) :asc :desc)
-        user-seens (seen/retrieve config/dynamodb-opts user-id)
+        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
         activities (cond
 
                   (= direction :around)
@@ -43,8 +43,8 @@
                         previous-activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
                         next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
                         next-activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc previous-activity-limit user-id user-seens)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc next-activity-limit user-id user-seens)]
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc previous-activity-limit user-id user-reads)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc next-activity-limit user-id user-reads)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -53,7 +53,7 @@
                   (= order :asc)
                   (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
                         activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
-                        previous-activity (sort/sort-activity previous-entries sort-type start :asc activity-limit user-id user-seens)]
+                        previous-activity (sort/sort-activity previous-entries sort-type start :asc activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
@@ -61,7 +61,7 @@
                   :else
                   (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
                         activity-limit (if digest-request (count next-entries) config/default-activity-limit)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc activity-limit user-id user-seens)]
+                        next-activity (sort/sort-activity next-entries sort-type start :desc activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -77,7 +77,7 @@
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid user-id]
   (let [order (if (= :after direction) :asc :desc)
-        user-seens (seen/retrieve config/dynamodb-opts user-id)
+        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
         activities (cond
 
                   (= direction :around)
@@ -89,8 +89,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
                         next-entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id :desc start :before)
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id user-seens)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-seens)]
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id user-reads)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -98,14 +98,14 @@
 
                   (= order :asc)
                   (let [previous-entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction)
-                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id user-seens)]
+                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
                   (let [next-entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-seens)]
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]
@@ -121,7 +121,7 @@
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org board-by-uuid user-id]
   (let [order (if (= :after direction) :asc :desc)
-        user-seens (seen/retrieve config/dynamodb-opts user-id)
+        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
         activities (cond
 
                   (= direction :around)
@@ -132,24 +132,24 @@
                         around-stamp (t/minus start-stamp (t/millis 1))
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
-                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-seens :desc start :before)
-                        previous-activity (sort/sort-activity previous-entries :recent-activity around-start :asc config/default-activity-limit user-id user-seens)
-                        next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-seens)]
+                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-reads :desc start :before)
+                        previous-activity (sort/sort-activity previous-entries :recent-activity around-start :asc config/default-activity-limit user-id user-reads)
+                        next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
                      :activity (concat (reverse previous-activity) next-activity)})
 
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-seens order start direction)
-                        previous-activity (sort/sort-activity previous-entries :recent-activity start :asc config/default-activity-limit user-id user-seens)]
+                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-reads order start direction)
+                        previous-activity (sort/sort-activity previous-entries :recent-activity start :asc config/default-activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-seens order start direction)
-                        next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-seens)]
+                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-reads order start direction)
+                        next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
                      :activity next-activity}))]

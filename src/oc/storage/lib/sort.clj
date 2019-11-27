@@ -7,11 +7,12 @@
     (when (seq sorted-comments)
       (hash-map (:uuid entry) (-> sorted-comments last :created-at)))))
 
-(defn- new-comments-count [entry user-id seen-at]
+(defn new-comments-count [entry user-id entry-read]
   (let [all-comments (filterv :body (:interactions entry))
         filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
-    (if seen-at
-      (count (filter #(> (:created-at %) seen-at) filtered-comments))
+    (if (and filtered-comments
+             entry-read)
+      (count (filterv #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
       (count filtered-comments))))
 
 (defn entry-new-at [user-id entry filter-comments?]
@@ -23,7 +24,7 @@
 
 (defn sort-activity
   "Given a set of entries, return up to the default limit of them, intermixed and sorted."
-  [entries sorting start order limit user-id user-seens]
+  [entries sorting start order limit user-id user-reads]
   (let [;; Get all the posts published at
         all-published-at (apply merge (map #(hash-map (:uuid %) (:published-at %)) entries))
         sorting-by-recent-activity? (= sorting :recent-activity)
@@ -51,11 +52,11 @@
         ;; Add the new-at field used in the client to show the NEW comment badge and
         ;; the new-comments-count field user in the client
         return-entries (map (fn [entry-uuid]
-                              (let [entry-seen (some #(when (= (:item-id %) entry-uuid) %) user-seens)
+                              (let [entry-read (some #(when (= (:item-id %) entry-uuid) %) user-reads)
                                     entry-data (first (filter #(= (:uuid %) entry-uuid) entries))]
                                 (-> entry-data
                                   (assoc :new-at (last-comment-timestamps entry-uuid))
-                                  (assoc :new-comments-count (new-comments-count user-id entry-data entry-seen)))))
+                                  (assoc :new-comments-count (new-comments-count entry-data user-id entry-read)))))
                         limited-uuids)]
     ;; Clean out empty results
     (remove nil? return-entries)))

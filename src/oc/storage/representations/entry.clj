@@ -10,7 +10,8 @@
             [oc.storage.representations.content :as content]
             [oc.storage.lib.sort :as sort]
             [oc.storage.api.access :as access]
-            [oc.storage.resources.reaction :as reaction-res]))
+            [oc.storage.resources.reaction :as reaction-res]
+            [oc.lib.change.resources.read :as read]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -24,7 +25,8 @@
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
-                           :created-at :updated-at :revision-id :new-at :follow-ups])
+                           :created-at :updated-at :revision-id :follow-ups
+                           :new-at :new-comments-count])
 
 ;; ----- Utility functions -----
 
@@ -150,9 +152,15 @@
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
+        has-new-comments-count? (contains? entry :new-comments-count)
+        entry-read (when-not has-new-comments-count?
+                     (read/retrieve-by-item config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
+                           :new-comments-count (if has-new-comments-count?
+                                                 (:new-comments-count entry)
+                                                 (sort/new-comments-count entry-with-comments user-id entry-read))
                            :new-at (-> (sort/entry-new-at user-id entry-with-comments true)
                                     vals
                                     first)} entry)
