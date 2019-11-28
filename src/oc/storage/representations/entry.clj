@@ -60,6 +60,10 @@
   ([org-slug board-slug entry-uuid]
   (str (url org-slug board-slug) "/" entry-uuid))
 
+  ([org-slug board-slug entry-uuid inbox-action :guard #(and (keyword? %)
+                                                             #{:dismiss :follow :unfollow} %)]
+  (str (url org-slug board-slug entry-uuid) "/inbox/" (name inbox-action)))
+
   ([org-slug board-slug entry-uuid follow-up-uuid]
   (str (url org-slug board-slug entry-uuid) "/follow-up/" follow-up-uuid)))
 
@@ -122,6 +126,18 @@
   (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
     {:accept mt/entry-media-type}))
 
+(defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "dismiss" hateoas/POST (url org-slug board-slug entry-uuid :dismiss)
+    {:accept mt/entry-media-type}))
+
+(defn- inbox-follow-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "follow" hateoas/POST (url org-slug board-slug entry-uuid :follow)
+    {:accept mt/entry-media-type}))
+
+(defn- inbox-unfollow-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "unfollow" hateoas/POST (url org-slug board-slug entry-uuid :unfollow)
+    {:accept mt/entry-media-type}))
+
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
@@ -154,7 +170,7 @@
         entry-with-comments (assoc entry :interactions comments)
         has-new-comments-count? (contains? entry :new-comments-count)
         entry-read (when-not has-new-comments-count?
-                     (read/retrieve-by-item config/dynamodb-opts user-id (:uuid entry)))
+                     (read/retrieve-by-user config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
@@ -205,6 +221,8 @@
                       ;; Authors and viewers need a link to post fresh new reactions, unless we're maxed out
                       (conj more-links (react-link org board entry-uuid))
                       more-links)
+        user-visibility (when user-id
+                          (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry)))
         full-links (cond
               ;; Drafts need a publish link
               draft?
@@ -213,7 +231,12 @@
               ;; needs a share link
               (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
               (conj react-links (share-link org-slug board-slug entry-uuid)
-               (create-follow-up-link org-slug board-slug entry-uuid))
+               (create-follow-up-link org-slug board-slug entry-uuid)
+               (inbox-dismiss-link org-slug board-slug entry-uuid)
+               (if (and (contains? user-visibility :follow)
+                        (:follow user-visibility))
+                 (inbox-unfollow-link org-slug board-slug entry-uuid)
+                 (inbox-follow-link org-slug board-slug entry-uuid)))
               ;; Otherwise just the links they already have
               :else react-links)]
     (-> (if secure-access?

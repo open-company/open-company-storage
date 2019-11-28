@@ -15,6 +15,9 @@
   ([collection-type {slug :slug :as org} {start :start direction :direction}]
   (str (inbox-url collection-type org) "?start=" start "&direction=" (name direction))))
 
+(defn- dismiss-all-url [org]
+  (str (inbox-url "inbox" org) "/dismiss-all"))
+
 (defn- url
   ([collection-type {slug :slug} sort-type]
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
@@ -80,7 +83,8 @@
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links (remove nil?
                [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/activity-collection-media-type} {})
-                (when-not inbox? ;; Inbox has no sort
+                (if inbox? ;; Inbox has no sort
+                 (hateoas/link-map "dismiss-all" hateoas/POST (dismiss-all-url org) {:accept mt/activity-collection-media-type} {}) 
                  (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {}))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})])
         full-links (concat links (pagination-links org collection-type sort-type params activity))]
