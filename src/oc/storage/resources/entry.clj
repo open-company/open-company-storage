@@ -8,7 +8,8 @@
             [oc.lib.text :as oc-str]
             [rethinkdb.query :as r]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.config :as config]))
 
 (def temp-uuid "9999-9999-9999")
 
@@ -437,37 +438,42 @@
       list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
-  "Given the UUID of the user, return all the published entries that are unread or have new content from the latest read."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID user-reads order start :- lib-schema/ISO8601 direction]
-    (list-all-entries-for-inbox conn org-uuid user-id user-reads order start direction {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID user-reads order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  "Given the UUID of the user, return all the entries publoshed at most 30 days before the minimum allowed date.
+   Filter by user-visibility on the remaining."
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+    (list-all-entries-for-inbox conn org-uuid user-id order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (let [filter-fn (r/fn [row]
-
-                    ;; Only unread entries
-                    (apply r/and (mapv (fn [read] (r/ne (:item-id read) (r/get-field row :uuid))) user-reads))
-
-                    ;; Doesn't work, test filtering
-                    ; (r/or ;; the post uuid is not in the read table
-                    ;       (apply r/and (mapv #(r/ne (:item-id %) (r/get-field row :uuid)) user-reads))
-                    ;       ;; or
-                    ;       (apply r/or (mapv (fn [read]
-                    ;                           (r/and
-                    ;                            (r/eq (:item-id read) (r/get-field row :uuid))
-                    ;                            (apply r/or
-                    ;                             (mapv (fn [inter-row]
-                    ;                                    (r/lt (:read-at read) (r/get-field inter-row "created-at")))
-                    ;                              (r/get-field row :interactions)))))
-                    ;                    user-reads)))
-                    )]
-    (db-common/read-all-resources-and-relations conn table-name
-        :status-org-uuid [[:published org-uuid]]
-        "published-at" order start direction
-        filter-fn
-        :interactions common/interaction-table-name :uuid :resource-uuid
-        list-comment-properties {:count count}))))
+  (let [filter-map [{:fn :le :value config/inbox-minimum-date :field :published-at}]
+        all-entries (db-common/read-all-resources-and-relations conn table-name
+                     :status-org-uuid [[:published org-uuid]]
+                     "published-at" order start direction
+                     filter-map
+                     :interactions common/interaction-table-name :uuid :resource-uuid
+                     list-comment-properties {:count count})]
+    (remove nil?
+     (filter
+      (fn [entry]
+       (let [sorted-comments (sort-by :created-at
+                               (filter #(and (contains? % :body)
+                                             (not= (-> % :author :user-id) user-id))
+                                (:iteractions entry)))
+              last-activity-timestamp (when (seq sorted-comments)
+                                        (:created-at (last sorted-comments)))
+             user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
+         (when (or ;; User has never dismissed not followed/unfollowed the post
+                   (empty? user-visibility)
+                   ;; User has not unfollowed (not (and (contains? :follow) (not (:follow entry-user-vis))))
+                   (not (and (contains? user-visibility :follow)
+                             (not (:follow user-visibility))))
+                   ;; User is following the post, has dismissed before but last comment is after dismiss-at
+                   (and (:follow user-visibility)
+                        (contains? user-visibility :dismiss-at)
+                        (pos? (compare (:dismiss-at user-visibility) last-activity-timestamp))))
+          entry)))
+      all-entries)))))
 
 ;; ----- Entry follow-up manipulation -----
 
