@@ -299,10 +299,15 @@
     (let [authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
+          old-user-visibility (:user-visibility original-entry)
           merged-entry (merge original-entry entry-props {:status :published
                                                           :published-at ts
                                                           :publisher publisher
-                                                          :secure-uuid (db-common/unique-id)})
+                                                          :secure-uuid (db-common/unique-id)
+                                                          :user-visibility (assoc old-user-visibility
+                                                                            (keyword (:user-id user))
+                                                                            {:follow true
+                                                                             :dismiss-at (db-common/current-timestamp)})})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
@@ -454,24 +459,24 @@
                      :interactions common/interaction-table-name :uuid :resource-uuid
                      list-comment-properties {:count count})]
     (remove nil?
-     (filter
+     (filterv
       (fn [entry]
        (let [sorted-comments (sort-by :created-at
-                               (filter #(and (contains? % :body)
+                              (filterv #(and (contains? % :body)
                                              (not= (-> % :author :user-id) user-id))
-                                (:iteractions entry)))
-              last-activity-timestamp (when (seq sorted-comments)
-                                        (:created-at (last sorted-comments)))
+                               (:interactions entry)))
+             last-activity-timestamp (when (seq sorted-comments)
+                                       (:created-at (last sorted-comments)))
              user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
          (when (or ;; User has never dismissed not followed/unfollowed the post
                    (empty? user-visibility)
-                   ;; User has not unfollowed (not (and (contains? :follow) (not (:follow entry-user-vis))))
-                   (not (and (contains? user-visibility :follow)
-                             (not (:follow user-visibility))))
-                   ;; User is following the post, has dismissed before but last comment is after dismiss-at
-                   (and (:follow user-visibility)
-                        (contains? user-visibility :dismiss-at)
-                        (pos? (compare (:dismiss-at user-visibility) last-activity-timestamp))))
+                   ;; User is following the post, has dismissed but before last comment
+                   (and last-activity-timestamp
+                        (:follow user-visibility)
+                        (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
+                   ;; There are no comments on post, user has dismissed but before published-at
+                   (and (not last-activity-timestamp)
+                        (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))
           entry)))
       all-entries)))))
 
