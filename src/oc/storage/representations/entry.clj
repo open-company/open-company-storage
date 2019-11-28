@@ -128,15 +128,18 @@
 
 (defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "dismiss" hateoas/POST (url org-slug board-slug entry-uuid :dismiss)
-    {:accept mt/entry-media-type}))
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
 
 (defn- inbox-follow-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "follow" hateoas/POST (url org-slug board-slug entry-uuid :follow)
-    {:accept mt/entry-media-type}))
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
 
 (defn- inbox-unfollow-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "unfollow" hateoas/POST (url org-slug board-slug entry-uuid :unfollow)
-    {:accept mt/entry-media-type}))
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
 
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
@@ -170,7 +173,7 @@
         entry-with-comments (assoc entry :interactions comments)
         has-new-comments-count? (contains? entry :new-comments-count)
         entry-read (when-not has-new-comments-count?
-                     (read/retrieve-by-user config/dynamodb-opts user-id (:uuid entry)))
+                     (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
