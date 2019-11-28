@@ -84,7 +84,7 @@
         links (remove nil?
                [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/activity-collection-media-type} {})
                 (if inbox? ;; Inbox has no sort
-                 (hateoas/link-map "dismiss-all" hateoas/POST (dismiss-all-url org) {:accept mt/activity-collection-media-type} {}) 
+                 (hateoas/link-map "dismiss-all" hateoas/POST (dismiss-all-url org) {:accept mt/entry-media-type} {})
                  (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {}))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})])
         full-links (concat links (pagination-links org collection-type sort-type params activity))]
