@@ -103,3 +103,5 @@
     :endpoint dynamodb-end-point
     :table-prefix dynamodb-table-prefix
   })
+
+(defonce inbox-minimum-date "2019:10:38T00:00:00Z")
