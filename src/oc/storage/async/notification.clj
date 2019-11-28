@@ -29,9 +29,14 @@
 
 ;; ----- Data schema -----
 
-(defn- notification-type? [notification-type] (#{:add :update :delete :nux} notification-type))
+(defn- notification-type? [notification-type] (#{:add :update :delete :nux :dismiss :follow :unfollow} notification-type))
 
 (defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
+
+(def InboxAction
+  {(schema/optional-key :dismiss-at) lib-schema/ISO8601
+   (schema/optional-key :follow) schema/Bool
+   (schema/optional-key :unfollow) schema/Bool})
 
 (def NotificationTrigger
   "
@@ -60,6 +65,7 @@
     (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
+    (schema/optional-key :inbox-action) InboxAction
     (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
    :user lib-schema/User
    (schema/optional-key :note) (schema/maybe schema/Str)
