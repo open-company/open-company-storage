@@ -132,7 +132,7 @@
                         around-stamp (t/minus start-stamp (t/millis 1))
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
-                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-reads :desc start :before)
+                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start :before)
                         previous-activity (sort/sort-activity previous-entries :recent-activity around-start :asc config/default-activity-limit user-id user-reads)
                         next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :around
@@ -141,14 +141,14 @@
                      :activity (concat (reverse previous-activity) next-activity)})
 
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-reads order start direction)
+                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction)
                         previous-activity (sort/sort-activity previous-entries :recent-activity start :asc config/default-activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id user-reads order start direction)
+                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction)
                         next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
