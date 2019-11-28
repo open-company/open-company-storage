@@ -169,17 +169,17 @@
             existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
             existing-board (or (:existing-board ctx) (board-res/get-board conn (:board-uuid existing-entry)))]
     ;; Merge the existing entry with the new updates
-    (let [user-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v)) (:user-visibility existing-entry))
+    (let [dismiss-at (when (= action-type :dismiss) (-> ctx :request :body slurp))
+          user-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v)) (:user-visibility existing-entry))
                               {})
           updated-user-visibility (cond
                                     (= action-type :dismiss)
-                                    (assoc user-visibility :dismiss-at (:data ctx))
+                                    (assoc user-visibility :dismiss-at dismiss-at)
                                     (= action-type :follow)
                                     (assoc user-visibility :follow true)
                                     (= action-type :unfollow)
                                     (assoc user-visibility :follow false))
-          updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-user-visibility)
-          dismiss-at (:data ctx)]
+          updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-user-visibility)]
       (timbre/info "User visibility" user-visibility "updated:" updated-user-visibility)
       (if (and (or (not= action-type :dismiss)
                    (and (= action-type :dismiss)
@@ -188,24 +188,32 @@
         {:existing-org (api-common/rep existing-org)
          :existing-board (api-common/rep existing-board)
          :existing-entry (api-common/rep existing-entry)
-         :updated-entry (api-common/rep updated-entry)}
+         :updated-entry (api-common/rep updated-entry)
+         :dismiss-at dismiss-at}
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
     
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- valid-dismiss-all-update? [conn ctx org-slug user]
+  (timbre/info "Valid dismiss-all update for" org-slug "from user" (:user-id user))
   (if-let* [existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
-            existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :asc (db-common/current-timestamp) :before)
-            dismiss-at (:data ctx)
-            updated-entries (map #(let [user-vis (get-in % [:user-visibility (keyword (:user-id user))] {})]
-                                    (assoc-in % [:user-visibility (keyword (:user-id user))] (assoc user-vis :dismiss-at dismiss-at)))
-                              existing-entries)]
-    (if (and (lib-schema/valid? lib-schema/ISO8601 dismiss-at)
-             (every? #(lib-schema/valid? common-res/Entry %) updated-entries))
-      {:existing-org (api-common/rep existing-org)
-       :existing-entries (api-common/rep existing-entries)
-       :updated-entries (api-common/rep updated-entries)}
-      false)
+            dismiss-at (-> ctx :request :body slurp)]
+    (let [existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before)
+          updated-entries (mapv
+                           #(let [user-vis (get-in % [:user-visibility (keyword (:user-id user))] {})]
+                              (-> %
+                               (assoc-in [:user-visibility (keyword (:user-id user))] (assoc user-vis :dismiss-at dismiss-at))
+                               (dissoc :interactions)))
+                           existing-entries)]
+      (if (and (lib-schema/valid? lib-schema/ISO8601 dismiss-at)
+               (every? #(lib-schema/valid? common-res/Entry %) updated-entries))
+        (do
+          (timbre/info "Update user-visibility for entries:" (map :uuid updated-entries))
+          {:existing-org (api-common/rep existing-org)
+           :existing-entries (api-common/rep existing-entries)
+           :updated-entries (api-common/rep updated-entries)
+           :dismiss-at dismiss-at})
+        false))
     
     true)) ; no existing entry, so this will fail existence check later
 
@@ -333,11 +341,10 @@
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            final-entry (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)
-            dismiss-at (:data ctx)]
+            final-entry (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
     (let [notify-map (cond
                       (= action-type :dismiss)
-                      {:dismiss-at dismiss-at}
+                      {:dismiss-at (:dismiss-at ctx)}
                       (= action-type :follow)
                       {:follow true}
                       (= action-type :unfollow)
@@ -348,20 +355,20 @@
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
-(defn- inbox-dismiss-all [conn ctx entry-for]
-  (timbre/info "Dismiss all entries for:" entry-for)
+(defn- update-entry-dismiss-all [conn ctx entry-for]
+  (timbre/info "Dismiss all entries for:" entry-for ". Dismissing" (count (:updated-entries ctx)) "entries:" (map :uuid (:updated-entries ctx)))
   (if-let* [org (:existing-org ctx)
             user (:user ctx)
             existing-entries (:existing-entries ctx)
+            updated-entries (:updated-entries ctx)
             final-entries (map
                             #(entry-res/update-entry! conn (:uuid %) % user)
-                            existing-entries)
-            dismiss-at (:data ctx)]
+                            updated-entries)]
     (if (every? #(lib-schema/valid? common-res/Entry %) final-entries)
       (do
         (timbre/info "Dismissed all entries for:" entry-for)
         (doseq [entry final-entries]
-          (notification/send-trigger! (notification/->trigger :dismiss org nil {:new entry :inbox-action {:dismiss-at dismiss-at}} user nil)))
+          (notification/send-trigger! (notification/->trigger :dismiss org nil {:new entry :inbox-action {:dismiss-at (:dismiss-at ctx)}} user nil)))
         {:updated-entries (api-common/rep final-entries)})
       false)
 
@@ -981,6 +988,10 @@
     :options true
     :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
 
+  :known-content-type? (by-method {
+    :options true
+    :post (fn [ctx] (api-common/known-content-type? ctx "text/plain"))})
+
   ;; Media type client accepts
   :available-media-types (by-method {
                             :post [mt/entry-media-type]})
@@ -997,9 +1008,7 @@
     :post (fn [ctx] (valid-dismiss-all-update? conn ctx org-slug (:user ctx)))})
 
   ;; Possibly no data to handle
-  :malformed? (by-method {
-    :options false
-    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
+  :malformed? false
 
   ;; Existentialism
   :can-post-to-missing? false
@@ -1012,7 +1021,7 @@
 
   ;; Actions
   :post! (fn [ctx]
-           (inbox-dismiss-all conn ctx org-slug))
+           (update-entry-dismiss-all conn ctx org-slug))
 
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:updated-entries ctx))))
@@ -1025,6 +1034,10 @@
   :allowed? (by-method {
     :options true
     :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+
+  :known-content-type? (by-method {
+    :options true
+    :post (fn [ctx] (api-common/known-content-type? ctx "text/plain"))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -1041,10 +1054,7 @@
     :options true
     :post (fn [ctx] (valid-entry-new-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
 
-  ;; Possibly no data to handle
-  :malformed? (by-method {
-    :options false
-    :post (fn [ctx] (api-common/malformed-json? ctx true))}) ; allow nil
+  :malformed? false
 
   ;; Existentialism
   :can-post-to-missing? false
