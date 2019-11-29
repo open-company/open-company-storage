@@ -37,7 +37,7 @@
   {(schema/optional-key :dismiss-at) lib-schema/ISO8601
    (schema/optional-key :follow) schema/Bool
    (schema/optional-key :unfollow) schema/Bool
-   :client-id lib-schema/UUIDStr})
+   (schema/optional-key :client-id) lib-schema/UUIDStr})
 
 (def NotificationTrigger
   "
@@ -77,13 +77,13 @@
 (defn- handle-notification-message
   [trigger]
   (timbre/debug "Notification request of:" (:notification-type trigger)
-               "for:" (trigger :current :uuid) "to topic:" config/aws-sns-storage-topic-arn)
+               "for:" (-> trigger :content :new :uuid) "to topic:" config/aws-sns-storage-topic-arn)
   (timbre/trace "Notification request:" trigger)
   (schema/validate NotificationTrigger trigger)
   (timbre/info "Sending request to topic:" config/aws-sns-storage-topic-arn)
   (let [subject (str (name (:notification-type trigger))
                      " on " (name (:resource-type trigger))
-                     ": " (-> trigger :current :uuid))
+                     ": " (-> trigger :content :new :uuid))
         message (json/generate-string trigger {:pretty true})]
     (try
       (sns/publish

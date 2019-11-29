@@ -2,7 +2,7 @@
   "
   Consume storage notifications about new post requests.
 
-  This SQS queue is feed by the Bot service.
+  This SQS queue is feed by other services like Notify (in case of new mention on a post or comment).
   "
   (:require
    [clojure.core.async :as async :refer (<!! >!!)]
@@ -12,10 +12,10 @@
    [oc.lib.sqs :as sqs]
    [oc.lib.db.pool :as pool]
    [taoensso.timbre :as timbre]
-   [oc.storage.async.notification :as notification]
+   [oc.storage.resources.entry :as entry-res]
    [oc.storage.resources.org :as org-res]
    [oc.storage.resources.board :as board-res]
-   [oc.storage.resources.entry :as entry-res]))
+   [oc.storage.async.notification :as notification]))
 
 ;; ----- core.async -----
 
@@ -25,7 +25,7 @@
 
 ;; ----- SQS handling -----
 
-(defun- slack-action-event
+(defun- action-event
 
   "
   Callback from Interaction to follow/unfollow posts for mentioned or commenting users...
@@ -33,17 +33,26 @@
   {:type 'inbox-action'
    :sub-type 'follow'
    :item-id '4321-4321-4321'
-   :user-ids ['1234-1234-1234']}
+   :users [{:user-id '1234-1234-1234'
+            :name '...'
+            :avatar-url ''},
+           ...]}
 
   {:type 'inbox-action'
    :sub-type 'unfollow'
    :item-id '4321-4321-4321'
-   :user-ids ['1234-1234-1234']}
+   :users [{:user-id '1234-1234-1234'
+            :name '...'
+            :avatar-url ''},
+           ...]}
 
   {:type 'inbox-action'
    :sub-type 'dismiss'
    :item-id '4321-4321-4321'
-   :user-ids ['1234-1234-1234']
+   :users [{:user-id '1234-1234-1234'
+            :name '...'
+            :avatar-url ''},
+           ...]
    :dismiss-at '2019-11-29T14:26:12Z'}
   "
 
@@ -53,41 +62,52 @@
   (timbre/debug "Got inbox-action message of type 'follow' from Interaction:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
-              user-ids (:user-ids body)
-              dismiss-at (:dismiss-at body)
+              users (:users body)
               entry-data (entry-res/get-entry conn entry-uuid)
+              org (org-res/get-org conn (:org-uuid entry-data))
+              board (board-res/get-board conn (:board-uuid entry-data))
               user-visibility (get entry-data :user-visibility {})
-              new-entry-data (reduce (fn [uv user-id]
-                                      (update-in uv [:user-visibility (keyword user-id)]
-                                       #(merge % {:dismiss-at dismiss-at
-                                                  :user-id user-id})))
-                                     entry-data user-ids)
-              entry-result (entry-res/update-entry! conn entry-uuid new-entry-data)]
+              new-entry-data (reduce (fn [uv user]
+                                      (update-in uv [:user-visibility (keyword (:user-id user))]
+                                       #(merge % {:follow (= (:sub-type body) "follow")})))
+                                     entry-data users)
+              entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do
-        (timbre/info "Handled inbox-action dismiss for entry:" entry-result)
-        (when (= (:status entry-data) :published)
-          (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} author nil))))
-      (timbre/error "Failed handling" (:sub-type body) "message for item:" entry-uuid "and users" user-ids))))
+        (when (= (:status entry-data) "published")
+          (doseq [user users]
+            (notification/send-trigger! (notification/->trigger :follow org board
+             {:old entry-data
+              :new entry-result
+              :inbox-action {:follow true}} user nil))))
+        (timbre/info "Handled inbox-action dismiss for entry:" entry-result))
+      (timbre/error "Failed handling" (:sub-type body) "message for item:" (:item-id body) "and users:" (mapv :user-id (:users body))))))
 
   ([db-pool body :guard #(and (= (:type %) "inbox-action")
                               (= (:sub-type %) "dismiss"))]
   (timbre/debug "Got inbox-action message of type 'follow' from Interaction:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
-              user-ids (:user-ids body)
+              users (:users body)
+              dismiss-at (:dismiss-at body)
               entry-data (entry-res/get-entry conn entry-uuid)
+              org (org-res/get-org conn (:org-uuid entry-data))
+              board (board-res/get-board conn (:board-uuid entry-data))
               user-visibility (get entry-data :user-visibility {})
-              new-entry-data (reduce (fn [uv user-id]
-                                      (update-in uv [:user-visibility (keyword user-id)]
+              new-entry-data (reduce (fn [uv user]
+                                      (update-in uv [:user-visibility (keyword (:user-id user))]
                                        #(merge % {:follow (= (:sub-type body) "follow")
-                                                  :user-id user-id})))
-                                     entry-data user-ids)
-              entry-result (entry-res/update-entry! conn entry-uuid new-entry-data)]
+                                                  :dismiss-at dismiss-at})))
+                                     entry-data users)
+              entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do
-        (timbre/info "Handled inbox-action" (:sub-type body) "for entry:" entry-result)
-        (when (= (:status entry-data) :published)
-          (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} author nil))))
-      (timbre/error "Failed handling follow message for item:" entry-uuid "and users" user-ids))))
+        (when (= (:status entry-data) "published")
+          (doseq [user users]
+            (notification/send-trigger! (notification/->trigger :follow org board
+             {:old entry-data
+              :new entry-result
+              :inbox-action {:follow true}} user nil))))
+        (timbre/info "Handled inbox-action dismiss for entry:" entry-result))
+      (timbre/error "Failed handling follow message for item:" (:item-id body) "and users:" (mapv :user-id (:users body))))))
 
   ([_ body] (timbre/debug "Skipped message:" body)))
 
@@ -121,9 +141,9 @@
         (if (:stop msg)
           (do (reset! storage-notification-go false) (timbre/info "Storage notification stopped."))
           (try
-            (when (= (:type msg) "new-entry")
+            (when (= (:type msg) "inbox-action")
               (timbre/trace "Storage notification handling:" msg)
-              (slack-action-event db-pool msg))
+              (action-event db-pool msg))
             (timbre/trace "Processing complete.")
             (catch Exception e
               (timbre/error e))))))))
