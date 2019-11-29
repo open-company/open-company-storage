@@ -233,7 +233,9 @@
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
-                             user-is-part-of-the-team? (when user ((set (:teams user)) (:team-id org)))
+                             user-is-member? (and (not (:id-token user))
+                                                  (or (= (:access-level ctx) :author)
+                                                      (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
@@ -248,10 +250,12 @@
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
-                             inbox-count (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
+                             inbox-count (if user-is-member?
+                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
+                                           0)
                              after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
                              after-parse (f/unparse db-common/timestamp-format after-date)
-                             follow-ups-count (if user-is-part-of-the-team?
+                             follow-ups-count (if user-is-member?
                                                 (entry-res/list-all-entries-by-follow-ups conn org-id user-id :asc after-parse :after {:count true})
                                                 0)
                              full-boards (if show-draft-board?
@@ -263,7 +267,7 @@
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
-                                                 (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
+                                                 (assoc :boards (if user-is-member? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :must-see-count must-see-count)
                                                  (assoc :inbox-count inbox-count)
                                                  (assoc :follow-ups-count follow-ups-count)
