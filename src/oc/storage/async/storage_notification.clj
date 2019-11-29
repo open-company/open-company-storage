@@ -65,7 +65,7 @@
               entry-result (entry-res/update-entry! conn entry-uuid new-entry-data)]
       (do
         (timbre/info "Handled inbox-action dismiss for entry:" entry-result)
-        (when (= status :published)
+        (when (= (:status entry-data) :published)
           (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} author nil))))
       (timbre/error "Failed handling" (:sub-type body) "message for item:" entry-uuid "and users" user-ids))))
 
@@ -85,7 +85,7 @@
               entry-result (entry-res/update-entry! conn entry-uuid new-entry-data)]
       (do
         (timbre/info "Handled inbox-action" (:sub-type body) "for entry:" entry-result)
-        (when (= status :published)
+        (when (= (:status entry-data) :published)
           (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} author nil))))
       (timbre/error "Failed handling follow message for item:" entry-uuid "and users" user-ids))))
 
