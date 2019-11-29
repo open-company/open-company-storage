@@ -342,13 +342,14 @@
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             final-entry (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
-    (let [notify-map (cond
+    (let [notify-map* {:client-id (api-common/get-change-client-id ctx)}
+          notify-map (cond
                       (= action-type :dismiss)
-                      {:dismiss-at (:dismiss-at ctx)}
+                      (merge notify-map* {:dismiss-at (:dismiss-at ctx)})
                       (= action-type :follow)
-                      {:follow true}
+                      (merge notify-map* {:follow true})
                       (= action-type :unfollow)
-                      {:unfollow true})]
+                      (merge notify-map* {:unfollow true}))]
       (timbre/info "Updated entry new for:" entry-for "action:" action-type)
       (notification/send-trigger! (notification/->trigger action-type org board {:old entry :new updated-entry :inbox-action notify-map} user nil))
       {:updated-entry (api-common/rep final-entry)})
@@ -365,10 +366,11 @@
                             #(entry-res/update-entry! conn (:uuid %) % user)
                             updated-entries)]
     (if (every? #(lib-schema/valid? common-res/Entry %) final-entries)
-      (do
+      (let [notify-map {:client-id (api-common/get-change-client-id ctx)
+                        :dismiss-at (:dismiss-at ctx)}]
         (timbre/info "Dismissed all entries for:" entry-for)
         (doseq [entry final-entries]
-          (notification/send-trigger! (notification/->trigger :dismiss org nil {:new entry :inbox-action {:dismiss-at (:dismiss-at ctx)}} user nil)))
+          (notification/send-trigger! (notification/->trigger :dismiss org nil {:new entry :inbox-action notify-map} user nil)))
         {:updated-entries (api-common/rep final-entries)})
       false)
 

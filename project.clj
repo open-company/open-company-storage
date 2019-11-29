@@ -38,7 +38,7 @@
     [zprint "0.4.16"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.25-alpha4"]
+    [open-company/lib "0.17.25-alpha5"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
