@@ -107,6 +107,7 @@
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
         :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
+        :aws-sqs-storage-queue "CHANGE-ME" ; SQS queue to read requests from the Bot service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
         :log-level "debug"
       }

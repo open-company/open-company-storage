@@ -416,11 +416,13 @@
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  [conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
+  ([conn board-uuid :- lib-schema/UniqueID] (list-entries-by-board conn board-uuid {:count false}))
+  
+  ([conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-comment-properties {:count count}))
+                                          list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
