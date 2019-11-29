@@ -334,14 +334,14 @@
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
-(defn- update-entry-new [conn ctx entry-for action-type]
+(defn- update-user-visibility [conn ctx entry-for action-type]
   (timbre/info "Updating entry for:" entry-for)
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            final-entry (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
+            final-entry (entry-res/update-entry-no-user! conn (:uuid updated-entry) updated-entry)]
     (let [notify-map* {:client-id (api-common/get-change-client-id ctx)}
           notify-map (cond
                       (= action-type :dismiss)
@@ -356,14 +356,14 @@
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
-(defn- update-entry-dismiss-all [conn ctx entry-for]
+(defn- update-user-visibility-dismiss-all [conn ctx entry-for]
   (timbre/info "Dismiss all entries for:" entry-for ". Dismissing" (count (:updated-entries ctx)) "entries:" (map :uuid (:updated-entries ctx)))
   (if-let* [org (:existing-org ctx)
             user (:user ctx)
             existing-entries (:existing-entries ctx)
             updated-entries (:updated-entries ctx)
             final-entries (map
-                            #(entry-res/update-entry! conn (:uuid %) % user)
+                            #(entry-res/update-entry-no-user! conn (:uuid %) %)
                             updated-entries)]
     (if (every? #(lib-schema/valid? common-res/Entry %) final-entries)
       (let [notify-map {:client-id (api-common/get-change-client-id ctx)
@@ -1023,7 +1023,7 @@
 
   ;; Actions
   :post! (fn [ctx]
-           (update-entry-dismiss-all conn ctx org-slug))
+           (update-user-visibility-dismiss-all conn ctx org-slug))
 
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:updated-entries ctx))))
@@ -1080,7 +1080,7 @@
 
   ;; Actions
   :post! (fn [ctx]
-           (update-entry-new conn ctx (s/join " " [org-slug board-slug entry-uuid]) action-type))
+           (update-user-visibility conn ctx (s/join " " [org-slug board-slug entry-uuid]) action-type))
 
   ;; Responses
   :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
