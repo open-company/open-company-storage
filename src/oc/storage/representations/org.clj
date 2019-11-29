@@ -9,7 +9,7 @@
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at])
 (def representation-props (concat public-representation-props [:author :authors :must-see-count :follow-ups-count
-                                                               :content-visibility]))
+                                                               :content-visibility :inbox-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))

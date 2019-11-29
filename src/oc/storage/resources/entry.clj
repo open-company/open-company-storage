@@ -307,7 +307,7 @@
                                                           :user-visibility (assoc old-user-visibility
                                                                             (keyword (:user-id user))
                                                                             {:follow true
-                                                                             :dismiss-at (db-common/current-timestamp)})})
+                                                                             :dismiss-at ts})})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
@@ -446,7 +446,8 @@
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
   "Given the UUID of the user, return all the entries publoshed at most 30 days before the minimum allowed date.
-   Filter by user-visibility on the remaining."
+   Filter by user-visibility on the remaining.
+   FIXME: move the filter in the query to avoid loading all entries to filter and then apply the count."
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
     (list-all-entries-for-inbox conn org-uuid user-id order start direction {:count false}))
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
@@ -459,28 +460,29 @@
                      "published-at" order start direction
                      filter-map
                      :interactions common/interaction-table-name :uuid :resource-uuid
-                     list-comment-properties {:count count})]
-    (remove nil?
-     (filterv
-      (fn [entry]
-       (let [sorted-comments (sort-by :created-at
-                              (filterv #(and (contains? % :body)
-                                             (not= (-> % :author :user-id) user-id))
-                               (:interactions entry)))
-             last-activity-timestamp (when (seq sorted-comments)
-                                       (:created-at (last sorted-comments)))
-             user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
-         (when (or ;; User has never dismissed not followed/unfollowed the post
-                   (empty? user-visibility)
-                   ;; User is following the post, has dismissed but before last comment
-                   (and last-activity-timestamp
-                        (:follow user-visibility)
-                        (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
-                   ;; There are no comments on post, user has dismissed but before published-at
-                   (and (not last-activity-timestamp)
-                        (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))
-          entry)))
-      all-entries)))))
+                     list-comment-properties {})
+        filtered-entries (remove nil?
+                          (filterv
+                           (fn [entry]
+                            (let [sorted-comments (sort-by :created-at
+                                                   (filterv #(and (contains? % :body)
+                                                                  (not= (-> % :author :user-id) user-id))
+                                                    (:interactions entry)))
+                                  last-activity-timestamp (when (seq sorted-comments)
+                                                            (:created-at (last sorted-comments)))
+                                 user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
+                              (when (or ;; User is following the post, has dismissed but before last comment
+                                        (and last-activity-timestamp
+                                             (:follow user-visibility)
+                                             (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
+                                        ;; There are no comments on post, user has dismissed but before published-at
+                                        (and (not last-activity-timestamp)
+                                             (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))
+                               entry)))
+                           all-entries))]
+    (if count
+      (clojure.core/count filtered-entries)
+      filtered-entries))))
 
 ;; ----- Entry follow-up manipulation -----
 

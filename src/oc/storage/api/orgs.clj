@@ -248,6 +248,7 @@
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
+                             inbox-count (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
                              after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
                              after-parse (f/unparse db-common/timestamp-format after-date)
                              follow-ups-count (if user-is-part-of-the-team?
@@ -264,6 +265,7 @@
                          (org-rep/render-org (-> org
                                                  (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :must-see-count must-see-count)
+                                                 (assoc :inbox-count inbox-count)
                                                  (assoc :follow-ups-count follow-ups-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)

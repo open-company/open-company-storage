@@ -93,6 +93,7 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
+                    :total-count (:total-count activity)
                     :items (map (fn [entry]
                                   (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
                                         access-level (access/access-level-for org board user)]

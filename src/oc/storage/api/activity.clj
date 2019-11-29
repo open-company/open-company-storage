@@ -122,6 +122,7 @@
   [conn {start :start direction :direction must-see :must-see} org board-by-uuid user-id]
   (let [order (if (= :after direction) :asc :desc)
         user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :asc (db-common/current-timestamp) :before {:count true})
         activities (cond
 
                   (= direction :around)
@@ -138,6 +139,7 @@
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
+                     :total-count total-inbox-count
                      :activity (concat (reverse previous-activity) next-activity)})
 
                   (= order :asc)
@@ -145,6 +147,7 @@
                         previous-activity (sort/sort-activity previous-entries :recent-activity start :asc config/default-activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
+                     :total-count total-inbox-count
                      :activity (reverse previous-activity)})
 
                   :else
@@ -152,6 +155,7 @@
                         next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
+                     :total-count total-inbox-count
                      :activity next-activity}))]
     ;; Give each activity its board name
     (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
