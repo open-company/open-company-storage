@@ -272,7 +272,7 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-follow-ups conn params org board-by-uuid user-id)]
+                             activity (assemble-follow-ups conn params org sort-type board-by-uuid user-id)]
                           (activity-rep/render-activity-list params org "follow-ups" sort-type activity boards user))))
 
 ;; A resource to retrieve Inbox posts
