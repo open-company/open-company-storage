@@ -470,15 +470,17 @@
                                                     (:interactions entry)))
                                   last-activity-timestamp (when (seq sorted-comments)
                                                             (:created-at (last sorted-comments)))
-                                 user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
-                              (when (or ;; User is following the post, has dismissed but before last comment
-                                        (and last-activity-timestamp
-                                             (:follow user-visibility)
-                                             (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
-                                        ;; There are no comments on post, user has dismissed but before published-at
-                                        (and (not last-activity-timestamp)
-                                             (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))
-                               entry)))
+                                  user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
+                              (or ;; User has never dismissed/followed/unfollowed so he needs to see it
+                                  (empty? user-visibility)
+                                  ;; User is following the post: sees it only if he has never dismissed or has
+                                  ;; dismissed before the last comment created-at
+                                  (and last-activity-timestamp
+                                       (:follow user-visibility)
+                                       (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
+                                  ;; There are no comments on post, user has dismissed but before published-at
+                                  (and (not last-activity-timestamp)
+                                       (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))))
                            all-entries))]
     (if count
       (clojure.core/count filtered-entries)
