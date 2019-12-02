@@ -54,6 +54,11 @@
             :avatar-url ''},
            ...]
    :dismiss-at '2019-11-29T14:26:12Z'}
+
+  {:type 'inbox-action'
+   :sub-type 'comment-add'
+   :item-id '4321-4321-4321'
+   :users [{:user-id '1234-1234-1234'}]}
   "
 
   ([db-pool body :guard #(and (= (:type %) "inbox-action")
@@ -108,6 +113,37 @@
               :inbox-action {:follow true}} user nil))))
         (timbre/info "Handled inbox-action dismiss for entry:" entry-result))
       (timbre/error "Failed handling follow message for item:" (:item-id body) "and users:" (mapv :user-id (:users body))))))
+
+  ([db-pool body :guard #(and (= (:type %) "inbox-action")
+                              (= (:sub-type %) "comment-add"))]
+  (timbre/debug "Got inbox-action message of type 'comment-add' from Interaction:" body)
+  (pool/with-pool [conn db-pool]
+    (if-let* [entry-uuid (:item-id body)
+              entry-data (entry-res/get-entry conn entry-uuid)
+              comment-publisher (first (:users body))
+              org (org-res/get-org conn (:org-uuid entry-data))
+              board (board-res/get-board conn (:board-uuid entry-data))
+              user-visibility (get entry-data :user-visibility {})]
+      (do
+        (when (= (:status entry-data) "published")
+          ;; For every following user
+          (when-let [user-ids (seq (remove nil?
+                               (for [user-key (keys user-visibility)]
+                                 (when (and ;; user is not the comment publisher
+                                            (not= (name user-key) (:user-id comment-publisher))
+                                            ;; user is following the post
+                                            (->> user-key (get user-visibility) :follow))
+                                    (name user-key)))))]
+            ;; Send to all following users except the comment publisher
+            ;; since inbox won't show it until another user adds a comment
+            (timbre/info "Triggering inbox-action/comment-add notification for" user-ids)
+            (notification/send-trigger! (notification/->trigger :comment-add org board
+             {:new entry-data
+              :inbox-action {:comment-add true}}
+             user-ids
+             nil))))
+        (timbre/info "Handled inbox-action comment-add for entry:" (:uuid entry-data)))
+      (timbre/error "Failed handling comment-add message for item:" (:item-id body)))))
 
   ([_ body] (timbre/debug "Skipped message:" body)))
 
