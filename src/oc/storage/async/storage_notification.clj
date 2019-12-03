@@ -120,17 +120,18 @@
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
               entry-data (entry-res/get-entry conn entry-uuid)
-              comment-publisher (first (:users body))
+              comment-author (first (:users body))
               org (org-res/get-org conn (:org-uuid entry-data))
               board (board-res/get-board conn (:board-uuid entry-data))
               user-visibility (get entry-data :user-visibility {})]
+      ;; Send a message to all following users to force refresh inbox
       (do
         (when (= (:status entry-data) "published")
-          ;; For every following user
+          ;; For every following user except the comment author
           (when-let [user-ids (seq (remove nil?
                                (for [user-key (keys user-visibility)]
                                  (when (and ;; user is not the comment publisher
-                                            (not= (name user-key) (:user-id comment-publisher))
+                                            (not= (name user-key) (:user-id comment-author))
                                             ;; user is following the post
                                             (->> user-key (get user-visibility) :follow))
                                     (name user-key)))))]
