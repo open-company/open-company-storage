@@ -272,8 +272,8 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
-;; A resource to get all orgs give a team id
-(defresource orgs-team [conn team-id]
+;; A resource to get all orgs given a team id
+(defresource team-orgs [conn team-id]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get]
@@ -418,8 +418,8 @@
       (ANY "/orgs/:slug" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
       (ANY "/orgs/:slug/" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
       ;; Orgs by team
-      (OPTIONS "/orgs-team/:team-id" [team-id] (pool/with-pool [conn db-pool] (println "DBG here OPTIONS team-id" team-id) (orgs-team conn team-id)))
-      (GET "/orgs-team/:team-id" [team-id] (pool/with-pool [conn db-pool] (println "DBG here team-id" team-id) (orgs-team conn team-id)))
+      (OPTIONS "/orgs-team/:team-id" [team-id] (pool/with-pool [conn db-pool] (team-orgs conn team-id)))
+      (GET "/orgs-team/:team-id" [team-id] (pool/with-pool [conn db-pool] (team-orgs conn team-id)))
       ;; Org author operations
       (OPTIONS "/orgs/:slug/authors" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
       (OPTIONS "/orgs/:slug/authors/" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
