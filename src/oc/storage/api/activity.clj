@@ -71,7 +71,7 @@
                                                         :board-name (:name board)})))
                                     %))))
 
-(defn- assemble-follow-ups
+(defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid user-id]
   (let [order (if (= :after direction) :asc :desc)
@@ -85,7 +85,7 @@
                         around-stamp (t/minus start-stamp (t/millis 1))
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
-                        next-entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id :desc start :before)
+                        next-entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :desc start :before)
                         previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id)
                         next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :around
@@ -94,14 +94,14 @@
                      :activity (concat (reverse previous-activity) next-activity)})
 
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction)
+                  (let [previous-entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction)
                         previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction)
+                  (let [next-entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction)
                         next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
                     {:direction :next
                      :next-count (count next-activity)
@@ -173,7 +173,7 @@
                           (activity-rep/render-activity-list params org "entries" sort-type activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
-(defresource follow-ups [conn slug]
+(defresource bookmarks [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
@@ -221,8 +221,8 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-follow-ups conn params org sort-type board-by-uuid user-id)]
-                          (activity-rep/render-activity-list params org "follow-ups" sort-type activity boards user))))
+                             activity (assemble-bookmarks conn params org sort-type board-by-uuid user-id)]
+                          (activity-rep/render-activity-list params org "bookmarks" sort-type activity boards user))))
 
 ;; ----- Routes -----
 
@@ -235,7 +235,7 @@
       (GET "/orgs/:slug/entries" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/entries/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
 
-      (OPTIONS "/orgs/:slug/follow-ups" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (OPTIONS "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (GET "/orgs/:slug/follow-ups" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (GET "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug))))))
+      (OPTIONS "/orgs/:slug/bookmarks" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
+      (OPTIONS "/orgs/:slug/bookmarks/" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
+      (GET "/orgs/:slug/bookmarks" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
+      (GET "/orgs/:slug/bookmarks/" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug))))))

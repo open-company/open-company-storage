@@ -435,43 +435,35 @@
       :interactions common/interaction-table-name :uuid :resource-uuid
       list-comment-properties {:count count})))
 
-;; ----- Entry follow-up manipulation -----
+(schema/defn ^:always-validate list-all-bookmarked-entries
+  "Given the UUID of the user, return all the published entries with a bookmark for the given user."
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+    (list-all-bookmarked-entries conn org-uuid user-id order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)]}
+  (db-common/read-all-resources-and-relations conn table-name
+      :org-uuid-status-bookmark-user-id-map-multi [[org-uuid :published false user-id]]
+      "published-at" order start direction
+      :interactions common/interaction-table-name :uuid :resource-uuid
+      list-comment-properties {:count count})))
 
-(schema/defn ^:always-validate add-follow-ups! :- (schema/maybe common/Entry)
-  "Add a follow-up for the give entry uuid"
-  ([conn original-entry :- common/Entry follow-ups :- [common/FollowUp] user :- lib-schema/User]
+;; ----- Entry Bookmarks manipulation -----
+
+(schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
+  "Add a bookmark for the give entry and user"
+  ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
-   (let [old-follow-ups (:follow-ups original-entry)
-         ;; List the user-ids of the assignees that can't be replaced
-         cant-replace-follow-ups (remove nil? (map #(when ;; Cant' replace the follow-ups that
-                                                          (and ;; are not assigned to current user
-                                                               (not= (-> % :assignee :user-id) (:user-id user))
-                                                               ;; and
-                                                               (or ;; or is completed
-                                                                   (:completed? %)
-                                                                   ;; or was created by the user himself
-                                                                   (= (-> % :author :user-id) (-> % :assignee :user-id))))
-                                                      (-> % :assignee :user-id))
-                                  old-follow-ups))
-         ;; filter out the new follow-ups that can't be overridden
-         filtered-new-follow-ups (filterv #(not ((set cant-replace-follow-ups) (-> % :assignee :user-id))) follow-ups)
-         ;; Remove the old follow-ups that are going to be overridden
-         keep-old-follow-ups (filterv #((set cant-replace-follow-ups) (-> % :assignee :user-id)) old-follow-ups)
-         ;; New follow-ups
-         new-follow-ups (vec (concat keep-old-follow-ups filtered-new-follow-ups))
-         final-entry (assoc original-entry :follow-ups new-follow-ups)]
-    (update-entry-no-version! conn (:uuid original-entry) final-entry user))))
+   (when-let [updated-entry (db-common/add-to-set table-name entry-uuid :bookmarks (:user-id user))]
+    (update-entry-no-user! conn (:uuid original-entry) updated-entry))))
 
-(schema/defn ^:always-validate complete-follow-up!
-  "Complete a follow-up item"
-  [conn original-entry :- common/Entry follow-up :- common/FollowUp user :- lib-schema/User]
-  {:pre [(db-common/conn? conn)]}
-  (let [completed-follow-up (merge follow-up {:completed? true
-                                              :completed-at (db-common/current-timestamp)})
-        other-follow-ups (filterv #(not= (:uuid %) (:uuid follow-up)) (:follow-ups original-entry))
-        final-follow-ups (vec (conj other-follow-ups completed-follow-up))
-        updated-entry (assoc original-entry :follow-ups final-follow-ups)]
-    (update-entry-no-version! conn (:uuid original-entry) updated-entry user)))
+(schema/defn ^:always-validate remove-bookmark! :- (schema/maybe common/Entry)
+  "Remove a bookmark for the give entry uuid and user"
+  ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (when-let [updated-entry (db-common/remove-from-set table-name entry-uuid :bookmarks (:user-id user))]
+    (update-entry-no-user! conn (:uuid original-entry) updated-entry))))
 
 ;; ----- Data about entries -----
 

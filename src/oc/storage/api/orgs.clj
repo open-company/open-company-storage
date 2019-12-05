@@ -250,9 +250,9 @@
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
                              after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
                              after-parse (f/unparse db-common/timestamp-format after-date)
-                             follow-ups-count (if user-is-part-of-the-team?
-                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id :asc after-parse :after {:count true})
-                                                0)
+                             bookmarks-count (if user-is-part-of-the-team?
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc after-parse :after {:count true})
+                                              0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
@@ -264,7 +264,7 @@
                          (org-rep/render-org (-> org
                                                  (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :must-see-count must-see-count)
-                                                 (assoc :follow-ups-count follow-ups-count)
+                                                 (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
                                              user

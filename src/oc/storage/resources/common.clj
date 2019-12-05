@@ -146,7 +146,8 @@
   :updated-at lib-schema/ISO8601
 
   ;; FollowUps
-  (schema/optional-key :follow-ups) [FollowUp]})
+  (schema/optional-key :follow-ups) [FollowUp]
+  (schema/optional-key :bookmarks) [lib-schema/UniqueID]})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."
