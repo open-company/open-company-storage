@@ -200,9 +200,9 @@
             dismiss-at (-> ctx :request :body slurp)]
     (let [existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before)
           updated-entries (mapv
-                           #(let [user-vis (get-in % [:user-visibility (keyword (:user-id user))] {})]
-                              (-> %
-                               (assoc-in [:user-visibility (keyword (:user-id user))] (assoc user-vis :dismiss-at dismiss-at))
+                           (fn [entry]
+                              (-> entry
+                               (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
                                (dissoc :interactions)))
                            existing-entries)]
       (if (and (lib-schema/valid? lib-schema/ISO8601 dismiss-at)
@@ -213,9 +213,13 @@
            :existing-entries (api-common/rep existing-entries)
            :updated-entries (api-common/rep updated-entries)
            :dismiss-at dismiss-at})
-        false))
+        (do
+          (timbre/warn "Failed dismiss-all for entries")
+          (map #(when-not (lib-schema/valid? common-res/Entry %) (timbre/info "Failed for" (:uuid %))) updated-entries)
+          false)))
     
-    true)) ; no existing entry, so this will fail existence check later
+    (do
+    true))) ; no existing entry, so this will fail existence check later
 
 ;; ----- Actions -----
 
