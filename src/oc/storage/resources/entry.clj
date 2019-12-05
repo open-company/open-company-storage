@@ -454,7 +454,7 @@
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (let [filter-map [{:fn :ge :value config/inbox-minimum-date :field :published-at}]
+  (let [filter-map [{:fn :le :value config/inbox-minimum-date :field :published-at}]
         all-entries (db-common/read-all-resources-and-relations conn table-name
                      :status-org-uuid [[:published org-uuid]]
                      "published-at" order start direction

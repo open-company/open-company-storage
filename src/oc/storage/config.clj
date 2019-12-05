@@ -106,4 +106,4 @@
     :table-prefix dynamodb-table-prefix
   })
 
-(defonce inbox-minimum-date "2019:10:28T00:00:00.000Z")
+(defonce inbox-minimum-date "2019-10-28T00:00:00.000Z")
