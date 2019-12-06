@@ -215,7 +215,9 @@
            :dismiss-at dismiss-at})
         (do
           (timbre/warn "Failed dismiss-all for entries")
-          (map #(when-not (lib-schema/valid? common-res/Entry %) (timbre/info "Failed for" (:uuid %))) updated-entries)
+          (map #(when-not (lib-schema/valid? common-res/Entry %)
+                  (timbre/info "Failed for" (:uuid %)))
+           updated-entries)
           false)))
     
     (do
@@ -361,7 +363,7 @@
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
 (defn- update-user-visibility-dismiss-all [conn ctx entry-for]
-  (timbre/info "Dismiss all entries for:" entry-for ". Dismissing" (count (:updated-entries ctx)) "entries:" (map :uuid (:updated-entries ctx)))
+  (timbre/info "Dismiss all entries for:" entry-for ". Dismissing" (count (:updated-entries ctx)) "entries for user" (-> ctx :user :user-id))
   (if-let* [org (:existing-org ctx)
             user (:user ctx)
             existing-entries (:existing-entries ctx)
