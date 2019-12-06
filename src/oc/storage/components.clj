@@ -97,7 +97,7 @@
 
   (start [component]
     (timbre/info "[storage-notification] starting...")
-    (storage-notification/start component)
+    (storage-notif/start component)
     (timbre/info "[storage-notification] started")
     (assoc component :storage-notification true))
 
