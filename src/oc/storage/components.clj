@@ -5,8 +5,8 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.sqs :as sqs]
             [oc.storage.async.notification :as notification]
-            [oc.storage.async.auth-notification :as auth-notification]
-            [oc.storage.async.storage-notification :as storage-notification]
+            [oc.storage.async.auth-notification :as auth-notif]
+            [oc.storage.async.storage-notification :as storage-notif]
             [oc.storage.config :as c]))
 
 (defrecord HttpKit [options handler]
@@ -79,7 +79,7 @@
 
   (start [component]
     (timbre/info "[auth-notifcation] starting...")
-    (auth-notification/start component)
+    (auth-notif/start component)
     (timbre/info "[auth-notification] started")
     (assoc component :auth-notification true))
 
@@ -87,7 +87,7 @@
     (if auth-notification
       (do
         (timbre/info "[auth-notification] stopping...")
-        (auth-notification/stop)
+        (auth-notif/stop)
         (timbre/info "[auth-notification] stopped")
         (dissoc component :auth-notification))
       component)))
@@ -101,11 +101,11 @@
     (timbre/info "[storage-notification] started")
     (assoc component :storage-notification true))
 
-  (stop [{:keys [auth-notification] :as component}]
-    (if auth-notification
+  (stop [{:keys [storage-notification] :as component}]
+    (if storage-notification
       (do
         (timbre/info "[storage-notification] stopping...")
-        (storage-notification/stop)
+        (storage-notif/stop)
         (timbre/info "[storage-notification] stopped")
         (dissoc component :storage-notification))
       component)))
