@@ -164,7 +164,7 @@
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
         bookmarks-links (if (= access-level :public)
                          []
-                         (if ((:bookmarks entry) user-id)
+                         (if ((set (:bookmarks entry)) user-id)
                            [(remove-bookmark-link org-slug board-slug entry-uuid)]
                            [(add-bookmark-link org-slug board-slug entry-uuid)]))
         links (if secure-access?
