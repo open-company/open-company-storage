@@ -456,14 +456,14 @@
   ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
    (when-let [updated-entry (db-common/add-to-set table-name entry-uuid :bookmarks (:user-id user))]
-    (update-entry-no-user! conn (:uuid original-entry) updated-entry))))
+    (update-entry-no-user! conn entry-uuid updated-entry))))
 
 (schema/defn ^:always-validate remove-bookmark! :- (schema/maybe common/Entry)
   "Remove a bookmark for the give entry uuid and user"
   ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
    (when-let [updated-entry (db-common/remove-from-set table-name entry-uuid :bookmarks (:user-id user))]
-    (update-entry-no-user! conn (:uuid original-entry) updated-entry))))
+    (update-entry-no-user! conn entry-uuid updated-entry))))
 
 ;; ----- Data about entries -----
 
