@@ -85,7 +85,9 @@
          :existing-board (api-common/rep new-board)
          :moving-board (api-common/rep old-board)
          :updated-entry (api-common/rep updated-entry)}
-        [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
+        (do
+         (println (lib-schema/valid? common-res/Entry updated-entry))
+         [false, {:updated-entry (api-common/rep updated-entry)}]))) ; invalid update
     
     true)) ; no existing entry, so this will fail existence check later
 
@@ -167,7 +169,6 @@
             new-entry (:new-entry ctx)
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry    
     (do
-      (handle-video-data conn entry-result ctx)
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (:status entry-result) "published")
         (undraft-board conn (:user ctx) org board)
@@ -185,7 +186,7 @@
             user (:user ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            updated-result (entry-res/update-entry! conn (:uuid updated-video) updated-entry user)]
+            updated-result (entry-res/update-entry! conn (:uuid entry) updated-entry user)]
 
     (let [old-board (:moving-board ctx)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
