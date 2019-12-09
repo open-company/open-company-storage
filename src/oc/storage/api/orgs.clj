@@ -248,10 +248,8 @@
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
-                             after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
-                             after-parse (f/unparse db-common/timestamp-format after-date)
                              bookmarks-count (if user-is-part-of-the-team?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc after-parse :after {:count true})
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
                                               0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
