@@ -444,7 +444,7 @@
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
   (db-common/read-all-resources-and-relations conn table-name
-      :org-uuid-status-bookmark-user-id-map-multi [[org-uuid :published false user-id]]
+      :org-uuid-status-bookmark-user-id-map-multi [[org-uuid :published user-id]]
       "published-at" order start direction
       :interactions common/interaction-table-name :uuid :resource-uuid
       list-comment-properties {:count count})))
@@ -455,15 +455,13 @@
   "Add a bookmark for the give entry and user"
   ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
-   (when-let [updated-entry (db-common/add-to-set table-name entry-uuid :bookmarks (:user-id user))]
-    (update-entry-no-user! conn entry-uuid updated-entry))))
+   (db-common/add-to-set conn table-name entry-uuid :bookmarks (:user-id user))))
 
 (schema/defn ^:always-validate remove-bookmark! :- (schema/maybe common/Entry)
   "Remove a bookmark for the give entry uuid and user"
   ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
-   (when-let [updated-entry (db-common/remove-from-set table-name entry-uuid :bookmarks (:user-id user))]
-    (update-entry-no-user! conn entry-uuid updated-entry))))
+   (db-common/remove-from-set conn table-name entry-uuid :bookmarks (:user-id user))))
 
 ;; ----- Data about entries -----
 
