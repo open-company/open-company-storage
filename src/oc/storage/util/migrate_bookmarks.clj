@@ -1,6 +1,6 @@
 (ns oc.storage.util.migrate-bookmarks
   "Get all the existing uncompleted follow-ups and create a bookmark for every one of them.
-   To perform a dry run and simulate the update run:
+   To perform a dry run and simulate the update use:
 
   lein run -m oc.storage.util.migrate-bookmark
 
@@ -9,6 +9,7 @@
   lein run -m oc.storage.util.migrate-bookmark -f
 
   Use -s/--self-only to create bookmarks only for self created follow-ups."
+
   (:require [clojure.string :as s]
             [rethinkdb.query :as r]
             [clojure.walk :refer (keywordize-keys)]
