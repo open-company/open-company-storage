@@ -267,7 +267,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             user (:user ctx)]
-    (if-let [updated-entry (entry-res/add-bookmark! conn entry user)]
+    (if-let [updated-entry (entry-res/add-bookmark! conn (:uuid entry) user)]
       (do
         (timbre/info "Bookmark created for entry:" entry-for "and user" (-> ctx :user :user-id))
         {:updated-entry (api-common/rep updated-entry)})
@@ -284,7 +284,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             user (:user ctx)]
-    (if-let [updated-entry (entry-res/remove-bookmark! conn entry user)]
+    (if-let [updated-entry (entry-res/remove-bookmark! conn (:uuid entry) user)]
       (do
         (timbre/info "Bookmark removed for entry:" entry-for "and user" (-> ctx :user :user-id))
         {:updated-entry (api-common/rep updated-entry)})
@@ -836,6 +836,10 @@
         (pool/with-pool [conn db-pool]
           (share conn org-slug board-slug entry-uuid)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (bookmark conn org-slug board-slug entry-uuid)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (bookmark conn org-slug board-slug entry-uuid))))))
