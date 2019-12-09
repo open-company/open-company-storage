@@ -272,14 +272,14 @@
         (timbre/info "Bookmark created for entry:" entry-for "and user" (-> ctx :user :user-id))
         {:updated-entry (api-common/rep updated-entry)})
       (do
-        (timbre/info "Bookmark not added, it probably already exists for entry" entry-for "and user" (-> ctx :user :user-id))
+        (timbre/info "Bookmark not added, it already exists for entry" entry-for "and user" (-> ctx :user :user-id))
         {:updated-entry (api-common/rep entry)}))
     (do
       (timbre/error "Failed adding bookmark for entry:" entry-for "and user" (-> ctx :user :user-id))
       false)))
 
 (defn- remove-bookmark [conn ctx entry-for]
-  (timbre/info "Creating bookmark for entry:" entry-for "for user" (-> ctx :user :user-id))
+  (timbre/info "Removing bookmark for entry:" entry-for "for user" (-> ctx :user :user-id))
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
             entry (:existing-entry ctx)
@@ -289,7 +289,7 @@
         (timbre/info "Bookmark removed for entry:" entry-for "and user" (-> ctx :user :user-id))
         {:updated-entry (api-common/rep updated-entry)})
       (do
-        (timbre/info "Bookmark not removed, it probably already exists for entry" entry-for "and user" (-> ctx :user :user-id))
+        (timbre/info "Bookmark not removed, no bookmark to remove for:" entry-for "and user" (-> ctx :user :user-id))
         {:updated-entry (api-common/rep entry)}))
     (do
       (timbre/error "Failed removing bookmark for entry:" entry-for "and user" (-> ctx :user :user-id))
@@ -740,11 +740,13 @@
                                comments (or (:existing-comments ctx)
                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))
+                               access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry)
                          :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)}
+                         :existing-reactions (api-common/rep reactions)
+                         :access-level access-level}
                         false))
 
   ;; Actions
