@@ -349,6 +349,14 @@
                       conn (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
 
   ;; Validations
+  :malformed? (by-method {
+    :options false
+    :get (fn [ctx] (if-let* [ctx-params (keywordize-keys (-> ctx :request :params))
+                             team-id (:team-id ctx-params) ; org lookup is by team-id
+                             _team-id? (lib-schema/unique-id? team-id)]
+                     [false {:team-id team-id}]
+                     true))
+    :post (fn [ctx] (api-common/malformed-json? ctx))})
   :processable? (by-method {
     :options true
     :get true
@@ -358,11 +366,9 @@
 
   ;; Existentialism
   :exists? (by-method {
-             :get (fn [ctx] (if-let* [ctx-params (keywordize-keys (-> ctx :request :params))
-                                      team-id (:team-id ctx-params) ; org lookup is by team-id
-                                      _team-id? (lib-schema/unique-id? team-id)
+             :get (fn [ctx] (if-let* [team-id (:team-id ctx)
                                       orgs (org-res/list-orgs-by-team conn team-id [:logo-url :logo-width :logo-height])]
-                              {:existing-orgs (api-common/rep orgs)}
+                              (if (empty? orgs) false {:existing-orgs (api-common/rep orgs)})
                               false))})
 
   ;; Actions
