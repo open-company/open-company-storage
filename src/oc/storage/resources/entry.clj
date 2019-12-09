@@ -6,8 +6,10 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.text :as oc-str]
+            [rethinkdb.query :as r]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.config :as config]))
 
 (def temp-uuid "9999-9999-9999")
 
@@ -297,10 +299,15 @@
     (let [authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
+          old-user-visibility (:user-visibility original-entry)
           merged-entry (merge original-entry entry-props {:status :published
                                                           :published-at ts
                                                           :publisher publisher
-                                                          :secure-uuid (db-common/unique-id)})
+                                                          :secure-uuid (db-common/unique-id)
+                                                          :user-visibility (assoc old-user-visibility
+                                                                            (keyword (:user-id user))
+                                                                            {:follow true
+                                                                             :dismiss-at ts})})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
@@ -409,11 +416,13 @@
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  [conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
+  ([conn board-uuid :- lib-schema/UniqueID] (list-entries-by-board conn board-uuid {:count false}))
+  
+  ([conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-comment-properties {:count count}))
+                                          list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
@@ -435,6 +444,50 @@
       :interactions common/interaction-table-name :uuid :resource-uuid
       list-comment-properties {:count count})))
 
+(schema/defn ^:always-validate list-all-entries-for-inbox
+  "Given the UUID of the user, return all the entries publoshed at most 30 days before the minimum allowed date.
+   Filter by user-visibility on the remaining.
+   FIXME: move the filter in the query to avoid loading all entries to filter and then apply the count."
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
+    (list-all-entries-for-inbox conn org-uuid user-id order start direction {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)]}
+  (let [filter-map [{:fn :ge :value config/inbox-minimum-date :field :published-at}]
+        all-entries (db-common/read-all-resources-and-relations conn table-name
+                     :status-org-uuid [[:published org-uuid]]
+                     "published-at" order start direction
+                     filter-map
+                     :interactions common/interaction-table-name :uuid :resource-uuid
+                     list-comment-properties {})
+        filtered-entries (remove nil?
+                          (filterv
+                           (fn [entry]
+                            (let [sorted-comments (sort-by :created-at
+                                                   (filterv #(and (contains? % :body)
+                                                                  (not= (-> % :author :user-id) user-id))
+                                                    (:interactions entry)))
+                                  last-activity-timestamp (when (seq sorted-comments)
+                                                            (:created-at (last sorted-comments)))
+                                  user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
+                              (or ;; User has never dismissed/followed/unfollowed so he needs to see it
+                                  (empty? user-visibility)
+                                  ;; User is following the post: sees it only if he has never dismissed or has
+                                  ;; dismissed before the last comment created-at
+                                  (and last-activity-timestamp
+                                       (:follow user-visibility)
+                                       (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
+                                  ;; There are no comments on post, user has dismissed but before published-at
+                                  (and (not last-activity-timestamp)
+                                       (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))))
+                           all-entries))]
+    (if count
+      (clojure.core/count filtered-entries)
+      filtered-entries))))
+
+;; ----- Entry Bookmarks manipulation -----
+
 (schema/defn ^:always-validate list-all-bookmarked-entries
   "Given the UUID of the user, return all the published entries with a bookmark for the given user."
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
@@ -443,13 +496,11 @@
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (db-common/read-all-resources-and-relations conn table-name
+    (db-common/read-all-resources-and-relations conn table-name
       :org-uuid-status-bookmark-user-id-map-multi [[org-uuid :published user-id]]
       "published-at" order start direction
       :interactions common/interaction-table-name :uuid :resource-uuid
       list-comment-properties {:count count})))
-
-;; ----- Entry Bookmarks manipulation -----
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"

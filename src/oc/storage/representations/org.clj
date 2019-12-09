@@ -8,8 +8,8 @@
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at])
-(def representation-props (concat public-representation-props [:author :authors :must-see-count :bookmarks-count
-                                                               :content-visibility]))
+(def representation-props (concat public-representation-props [:author :authors :bookmarks-count
+                                                               :content-visibility :inbox-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -117,6 +117,18 @@
     (str config/payments-server-url "/teams/" team-id "/customer")
     {:accept mt/payments-customer-media-type}))
 
+(defn- inbox-link [org access-level user]
+  (if (and (not (:id-token user))
+           (or (= access-level :author)
+               (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "inbox"
+        hateoas/GET
+        (str (url org) "/inbox")
+        {:accept mt/activity-collection-media-type}))
+    org))
+
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
@@ -163,6 +175,7 @@
         (reminders-link access-level user)
         (bookmarks-link access-level user)
         (recent-bookmarks-link access-level user)
+        (inbox-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 

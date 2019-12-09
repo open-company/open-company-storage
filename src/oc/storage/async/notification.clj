@@ -29,9 +29,16 @@
 
 ;; ----- Data schema -----
 
-(defn- notification-type? [notification-type] (#{:add :update :delete :nux} notification-type))
+(defn- notification-type? [notification-type] (#{:add :update :delete :nux :comment-add :dismiss :follow :unfollow} notification-type))
 
 (defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
+
+(def InboxAction
+  {(schema/optional-key :dismiss-at) lib-schema/ISO8601
+   (schema/optional-key :follow) schema/Bool
+   (schema/optional-key :unfollow) schema/Bool
+   (schema/optional-key :client-id) lib-schema/UUIDStr
+   (schema/optional-key :comment-add) schema/Bool})
 
 (def NotificationTrigger
   "
@@ -60,23 +67,26 @@
     (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
+    (schema/optional-key :inbox-action) InboxAction
     (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
-   :user lib-schema/User
-   (schema/optional-key :note) (schema/maybe schema/Str)
-   :notification-at lib-schema/ISO8601})
+    (schema/optional-key :user) {:user-id lib-schema/UniqueID
+                                 schema/Keyword schema/Any}
+    (schema/optional-key :users) [lib-schema/UniqueID]
+    (schema/optional-key :note) (schema/maybe schema/Str)
+    :notification-at lib-schema/ISO8601})
 
 ;; ----- Event handling -----
 
 (defn- handle-notification-message
   [trigger]
   (timbre/debug "Notification request of:" (:notification-type trigger)
-               "for:" (trigger :current :uuid) "to topic:" config/aws-sns-storage-topic-arn)
+               "for:" (-> trigger :content :new :uuid) "to topic:" config/aws-sns-storage-topic-arn)
   (timbre/trace "Notification request:" trigger)
   (schema/validate NotificationTrigger trigger)
   (timbre/info "Sending request to topic:" config/aws-sns-storage-topic-arn)
   (let [subject (str (name (:notification-type trigger))
                      " on " (name (:resource-type trigger))
-                     ": " (-> trigger :current :uuid))
+                     ": " (-> trigger :content :new :uuid))
         message (json/generate-string trigger {:pretty true})]
     (try
       (sns/publish
@@ -124,11 +134,21 @@
   ([notification-type content user] (->trigger notification-type nil nil content user nil))
   ([notification-type org content user] (->trigger notification-type org nil content user nil))
   ([notification-type org content user note] (->trigger notification-type org nil content user note))
-  ([notification-type org board content user note]
+  ([notification-type org board content user :guard map? note]
   (let [notice {:notification-type notification-type
                 :resource-type (resource-type (or (:old content) (:new content)))
                 :content content
                 :user user
+                :notification-at (oc-time/current-timestamp)}
+        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        org-notice (if org (assoc note-notice :org org) note-notice)
+        final-notice (if board (assoc org-notice :board board) org-notice)]
+      final-notice))
+  ([notification-type org board content users :guard sequential? note]
+  (let [notice {:notification-type notification-type
+                :resource-type (resource-type (or (:old content) (:new content)))
+                :content content
+                :users users
                 :notification-at (oc-time/current-timestamp)}
         note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)

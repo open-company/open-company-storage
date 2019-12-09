@@ -187,6 +187,7 @@ Make sure you update the section in `project.clj` that looks like this to contai
     :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
     :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
     :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
+    :aws-sqs-storage-queue "CHANGE-ME" ; SQS queue to read requests from the Bot service
     :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
     :log-level "debug"
   }
@@ -197,7 +198,7 @@ You can also override these settings with environmental variables in the form of
 
 ##### Shared Secrets
 
-A secret, `open-company-auth-passphrase`, is shared between the [OpenCompany Authentication Service](https://github.com/open-company/open-company-auth) and the Storage Service for creating and validating [JSON Web Tokens](https://jwt.io/).
+A secret, `open-company-auth-passphrase`, is shared between the OpenCompany services for creating and validating [JSON Web Tokens](https://jwt.io/).
 
 ##### HTTP Behavior
 

@@ -28,7 +28,8 @@
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.lib.sort :as sort]
             [oc.storage.lib.timestamp :as ts]
-            [oc.storage.urls.board :as board-url]))
+            [oc.storage.urls.board :as board-url]
+            [oc.lib.change.resources.read :as read]))
 
 ;; ----- Utility functions -----
 
@@ -48,6 +49,7 @@
   (let [order (if (= :after direction) :asc :desc)
         access-level (:access-level ctx)
         user-id (-> ctx :user :user-id)
+        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
         activities (cond
 
                   (= direction :around)
@@ -59,8 +61,8 @@
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) :asc around-start :after {:must-see must-see})
                         next-entries (entry-res/paginated-entries-by-board conn (:uuid board) :desc start :before {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
+                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id user-reads)
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :around
                      :previous-count (count previous-activity)
                      :next-count (count next-activity)
@@ -71,7 +73,7 @@
 
                   (= order :asc)
                   (let [previous-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
-                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id)]
+                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
                      :entries (map #(entry-rep/render-entry-for-collection org board %
@@ -81,7 +83,7 @@
 
                   :else
                   (let [next-entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction {:must-see must-see})
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id)]
+                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
                      :entries (map #(entry-rep/render-entry-for-collection org board %
