@@ -38,7 +38,7 @@
     [zprint "0.5.3"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.23"]
+    [open-company/lib "0.17.24.3-alpha1"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -86,7 +86,7 @@
       ]
       :plugins [
         ;; Example-based testing https://github.com/marick/lein-midje
-        [lein-midje "3.2.1"]
+        [lein-midje "3.2.2"]
         ;; Linter https://github.com/jonase/eastwood
         [jonase/eastwood "0.3.6"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
