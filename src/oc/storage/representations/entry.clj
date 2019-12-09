@@ -25,7 +25,7 @@
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id :new-at :follow-ups
-                           :bookmarks])
+                           :bookmarked])
 
 ;; ----- Utility functions -----
 
@@ -150,9 +150,11 @@
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
+        bookmarked? ((set (:bookmarks entry)) user-id)
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
+                           :bookmarked (boolean bookmarked?)
                            :new-at (-> (sort/entry-new-at user-id entry-with-comments true)
                                     vals
                                     first)} entry)
@@ -162,11 +164,10 @@
         comment-list (if (= access-level :public)
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
-        bookmarks-links (if (= access-level :public)
-                         []
-                         (if ((set (:bookmarks entry)) user-id)
-                           [(remove-bookmark-link org-slug board-slug entry-uuid)]
-                           [(add-bookmark-link org-slug board-slug entry-uuid)]))
+        bookmarks-links (when (not= access-level :public)
+                          (if bookmarked?
+                            (remove-bookmark-link org-slug board-slug entry-uuid)
+                            (add-bookmark-link org-slug board-slug entry-uuid)))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
