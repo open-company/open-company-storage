@@ -2,11 +2,11 @@
   "Get all the existing uncompleted follow-ups and create a bookmark for every one of them.
    To perform a dry run and simulate the update use:
 
-  lein run -m oc.storage.util.migrate-bookmark
+  lein run -m oc.storage.util.migrate-bookmarks
 
   To actually update the entries:
 
-  lein run -m oc.storage.util.migrate-bookmark -f
+  lein run -m oc.storage.util.migrate-bookmarks -f
 
   Use -s/--self-only to create bookmarks only for self created follow-ups."
 
@@ -54,7 +54,7 @@
       (f (first items)) idx
       :else (recur (inc idx) (rest items)))))
 
-(defn- migrate-follow-ups-for-entry [conn e self-only? dry-run?]
+(defn- migrate-follow-ups-for-entry [conn e self-only? dry-run? complete-follow-ups?]
   (let [follow-ups (:follow-ups e)
         new-bookmarks (remove nil? (mapv #(when (and (not (:completed? %))
                                            (or (not self-only?)
@@ -63,22 +63,27 @@
                                     (:assignee %))
                             follow-ups))
         updated-bookmarks (clojure.set/union (set (map :user-id new-bookmarks)) (:bookmarks e))
-        updated-follow-ups (mapv #(if (and (not (:completed? %))
-                                             (or (not self-only?)
-                                                 (and self-only?
-                                                      (= (-> % :assignee :user-id) (-> % :author :user-id)))))
-                                      (assoc % :completed? true)
-                                      %)
-                              follow-ups)]
+        updated-follow-ups (when complete-follow-ups?
+                             (mapv #(if (and (not (:completed? %))
+                                               (or (not self-only?)
+                                                   (and self-only?
+                                                        (= (-> % :assignee :user-id) (-> % :author :user-id)))))
+                                        (assoc % :completed? true)
+                                        %)
+                                follow-ups))]
     (println "  Updating entry:" (:uuid e))
     (println "    Adding bookmarks for:" updated-bookmarks)
     (println "    Updating follow-ups:")
     (doseq [f updated-follow-ups]
       (println "     -" (:uuid f) "completed?" (:completed? f) "self?" (= (-> f :assignee :user-id) (-> f :author :user-id))))
     (when-not dry-run?
-      (println "  Actually updating entry:" (:uuid e))
-      (entry/update-entry-no-user! conn (:uuid e) (merge e {:follow-ups updated-follow-ups
-                                                            :bookmarks updated-bookmarks})))))
+      (if complete-follow-ups?
+        (println "  Actually updating entry's bookmarks and follow-ups:" (:uuid e))
+        (println "  Actually updating entry's bookmarks:" (:uuid e)))
+      (entry/update-entry-no-user! conn (:uuid e) (merge e (if complete-follow-ups?
+                                                             {:follow-ups updated-follow-ups
+                                                              :bookmarks updated-bookmarks}
+                                                             {:bookmarks updated-bookmarks}))))))
 
 (defn- exit [status msg]
   (println msg)
@@ -86,11 +91,14 @@
 
 (def cli-options
   [["-f" "--force-update"]
+   ["-c" "--complete-follow-ups"] ;; Use with -f
    ["-s" "--self-only"]])
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
-    (println "Running bookmarks migration with options: dry-run" (not (:force-update options)) "self-only" (:self-only options))
+    (println "Running bookmarks migration with options: dry-run" (not (:force-update options))
+      "self-only" (:self-only options)
+      "complete-follow-ups" (:complete-follow-ups options))
     (let [conn (db/init-conn c/db-options)]
       (try
         (create-temp-index conn)
@@ -99,7 +107,12 @@
             (let [entries (entries-for-org conn (:uuid o))]
               (println "Org:" (:uuid o) "-" (:name o))
               (doseq [e entries]
-                (migrate-follow-ups-for-entry conn e (:self-only options) (not (:force-update options)))))))
+                (migrate-follow-ups-for-entry conn e
+                 (:self-only options)                 ; Only self created follow-ups
+                 (not (:force-update options))        ; Make changes in DB, no dry-run
+                 (and (:force-update options)         ; Complete the relative follow-up,
+                      (:complete-follow-ups options)) ; use this to keep them to re-run the import
+                 )))))
         (delete-temp-index conn)
         (exit 0 "\n")
 
