@@ -8,6 +8,8 @@
 
   lein run -m oc.storage.util.migrate-bookmarks -f
 
+  Use -c/--complete-follow-ups to mark follow-up as completed when creating the bookmark.
+
   Use -s/--self-only to create bookmarks only for self created follow-ups."
 
   (:require [clojure.string :as s]
@@ -42,8 +44,17 @@
 (defn- delete-temp-index [conn]
   (println (m/remove-index conn entry/table-name temp-index-name)))
 
-(defn- entries-for-org [conn org-uuid]
-  (db-common/read-resources conn entry/table-name temp-index-name [[org-uuid :published false]] [:uuid :follow-ups :bookmarks]))
+(defn- unique-entries-for-org [conn org-uuid]
+  (let [all-entries (db-common/read-resources conn entry/table-name temp-index-name
+                     [[org-uuid :published false]] [:uuid :follow-ups :bookmarks])
+        all-uuids (vec (set (map :uuid all-entries)))
+        unique-entries (map (fn [entry-uuid]
+                              (first (filter #(= (:uuid %) entry-uuid) all-entries)))
+                        all-uuids)]
+    (println "   count all-entries" (count all-entries))
+    (println "   count all-uuids" (count all-uuids))
+    (println "   count unique-entries" (count unique-entries))
+    unique-entries))
 
 (defn index-of
   "Given a collection and a function return the index that make the function truely."
@@ -62,7 +73,7 @@
                                                     (= (-> % :assignee :user-id) (-> % :author :user-id)))))
                                     (:assignee %))
                             follow-ups))
-        updated-bookmarks (clojure.set/union (set (map :user-id new-bookmarks)) (:bookmarks e))
+        updated-bookmarks (vec (clojure.set/union (set (map :user-id new-bookmarks)) (:bookmarks e)))
         updated-follow-ups (when complete-follow-ups?
                              (mapv #(if (and (not (:completed? %))
                                                (or (not self-only?)
@@ -72,14 +83,15 @@
                                         %)
                                 follow-ups))]
     (println "  Updating entry:" (:uuid e))
-    (println "    Adding bookmarks for:" updated-bookmarks)
-    (println "    Updating follow-ups:")
-    (doseq [f updated-follow-ups]
-      (println "     -" (:uuid f) "completed?" (:completed? f) "self?" (= (-> f :assignee :user-id) (-> f :author :user-id))))
+    (println "    adding bookmarks:" updated-bookmarks)
+    (when complete-follow-ups?
+      (println "    updating follow-ups:")
+      (doseq [f updated-follow-ups]
+        (println "     -" (:uuid f) "completed?" (:completed? f) "self?" (= (-> f :assignee :user-id) (-> f :author :user-id)))))
     (when-not dry-run?
       (if complete-follow-ups?
-        (println "  Actually updating entry's bookmarks and follow-ups:" (:uuid e))
-        (println "  Actually updating entry's bookmarks:" (:uuid e)))
+        (println "    Actually updating entry's bookmarks and follow-ups:" (:uuid e))
+        (println "    Actually updating entry's bookmarks:" (:uuid e)))
       (entry/update-entry-no-user! conn (:uuid e) (merge e (if complete-follow-ups?
                                                              {:follow-ups updated-follow-ups
                                                               :bookmarks updated-bookmarks}
@@ -103,16 +115,16 @@
       (try
         (create-temp-index conn)
         (let [orgs (org/list-orgs conn)]
+          (println " Total orgs:" (count orgs))
           (doseq [o orgs]
-            (let [entries (entries-for-org conn (:uuid o))]
-              (println "Org:" (:uuid o) "-" (:name o))
+            (println " Org:" (:uuid o) "-" (:name o))
+            (let [entries (unique-entries-for-org conn (:uuid o))]
               (doseq [e entries]
                 (migrate-follow-ups-for-entry conn e
                  (:self-only options)                 ; Only self created follow-ups
                  (not (:force-update options))        ; Make changes in DB, no dry-run
-                 (and (:force-update options)         ; Complete the relative follow-up,
-                      (:complete-follow-ups options)) ; use this to keep them to re-run the import
-                 )))))
+                 (:complete-follow-ups options)       ; Complete the relative follow-up,
+                 )))))                                ; use this to keep them to re-run the import
         (delete-temp-index conn)
         (exit 0 "\n")
 
