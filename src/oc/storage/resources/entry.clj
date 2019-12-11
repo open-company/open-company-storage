@@ -6,7 +6,6 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.text :as oc-str]
-            [rethinkdb.query :as r]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]
             [oc.storage.config :as config]))
