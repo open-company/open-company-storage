@@ -67,7 +67,8 @@
             ts (db-common/current-timestamp)
             follow-ups (map #(fix-follow-up % author ts) (:follow-ups entry-map))
             valid-follow-ups? (every? #(lib-schema/valid? common-res/FollowUp %) follow-ups)]
-        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)
+        {:new-entry (api-common/rep new-entry)
+         :existing-board (api-common/rep board)
          :new-follow-ups follow-ups})
 
       (catch clojure.lang.ExceptionInfo e
@@ -163,7 +164,7 @@
      :existing-entries (api-common/rep entries)}
     false))
 
-(defn- valid-entry-new-update? [conn ctx org-slug entry-uuid user action-type]
+(defn- valid-entry-inbox-update? [conn ctx org-slug entry-uuid user action-type]
   (timbre/info "Valid new update for" entry-uuid "from user" (:user-id user) "action" action-type)
   (if-let* [existing-entry (entry-res/get-entry conn entry-uuid)
             existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
@@ -307,7 +308,7 @@
                                (entry-res/add-follow-ups! conn entry-result (:new-follow-ups ctx) user))
           final-entry (if updating-follow-ups? updated-follow-ups entry-result)]
       (timbre/info "Created entry for:" entry-for "as" (:uuid final-entry))
-      (when (= (:status final-entry) "published")
+      (when (= (keyword (:status final-entry)) :published)
         (undraft-board conn user org board)
         (entry-res/delete-versions conn final-entry)
         (auto-share-on-publish conn ctx final-entry))
@@ -324,7 +325,6 @@
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid updated-entry) updated-entry user)]
-
     (let [old-board (:moving-board ctx)
           updating-follow-ups? (pos? (count (:updated-follow-ups ctx)))
           ;; Handle follow-ups
@@ -422,7 +422,7 @@
       (when (= (keyword (:status entry)) :draft)
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid board))]
           (board-res/maybe-delete-draft-board conn org board remaining-entries (:user ctx))))
-      (when (not= (:status entry) "published")
+      (when (not= (keyword (:status entry)) :published)
         (entry-res/delete-versions conn (assoc entry :delete-entry true)))
       (timbre/info "Deleted entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx) nil))
@@ -1060,7 +1060,7 @@
   ;; Validations
   :processable? (by-method {
     :options true
-    :post (fn [ctx] (valid-entry-new-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
+    :post (fn [ctx] (valid-entry-inbox-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
 
   :malformed? false
 
