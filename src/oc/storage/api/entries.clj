@@ -121,7 +121,7 @@
      :existing-entries (api-common/rep entries)}
     false))
 
-(defn- valid-entry-new-update? [conn ctx org-slug entry-uuid user action-type]
+(defn- valid-entry-inbox-update? [conn ctx org-slug entry-uuid user action-type]
   (timbre/info "Valid new update for" entry-uuid "from user" (:user-id user) "action" action-type)
   (if-let* [existing-entry (entry-res/get-entry conn entry-uuid)
             existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
@@ -230,11 +230,11 @@
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry    
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
-      (when (= (:status entry-result) "published")
-        (undraft-board conn (:user ctx) org board)
+      (when (= (keyword (:status entry-result)) :published)
+        (undraft-board conn user org board)
         (entry-res/delete-versions conn entry-result)
         (auto-share-on-publish conn ctx entry-result))
-      (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} (:user ctx) nil))
+      (notification/send-trigger! (notification/->trigger :add org board {:new entry-result} user nil))
       {:created-entry (api-common/rep entry-result)})
 
     (do (timbre/error "Failed creating entry:" entry-for) false)))
@@ -247,7 +247,6 @@
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid entry) updated-entry user)]
-
     (let [old-board (:moving-board ctx)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
@@ -333,7 +332,7 @@
       (when (= (keyword (:status entry)) :draft)
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid board))]
           (board-res/maybe-delete-draft-board conn org board remaining-entries (:user ctx))))
-      (when (not= (:status entry) "published")
+      (when (not= (keyword (:status entry)) :published)
         (entry-res/delete-versions conn (assoc entry :delete-entry true)))
       (timbre/info "Deleted entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :delete org board {:old entry} (:user ctx) nil))
@@ -939,7 +938,7 @@
   ;; Validations
   :processable? (by-method {
     :options true
-    :post (fn [ctx] (valid-entry-new-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
+    :post (fn [ctx] (valid-entry-inbox-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
 
   :malformed? false
 

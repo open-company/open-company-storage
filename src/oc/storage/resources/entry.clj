@@ -24,11 +24,11 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  (clojure.set/union common/reserved-properties #{:board-slug :published-at :publisher :secure-uuid}))
+  (clojure.set/union common/reserved-properties #{:board-slug :published-at :publisher :secure-uuid :user-visibility}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (disj reserved-properties :board-uuid :status))
+  (disj reserved-properties :board-uuid :status :user-visibility))
 
 (def list-properties
   "Set of properties we want when listing entries."
@@ -56,7 +56,8 @@
   (if (= (keyword (:status entry)) :published)
     (-> entry
       (assoc :published-at timestamp)
-      (assoc :publisher author))
+      (assoc :publisher author)
+      (assoc-in [:user-visibility (keyword (:user-id author))] {:follow true :dismiss-at timestamp}))
     entry))
 
 (defn timestamp-attachments
