@@ -216,13 +216,9 @@
            :dismiss-at dismiss-at})
         (do
           (timbre/warn "Failed dismiss-all for entries")
-          (map #(when-not (lib-schema/valid? common-res/Entry %)
-                  (timbre/info "Failed for" (:uuid %)))
-           updated-entries)
+          (doseq [e updated-entries] (timbre/info "Failed for" (:uuid e)))
           false)))
-    
-    (do
-    true))) ; no existing entry, so this will fail existence check later
+    true)) ; no existing entry, so this will fail existence check later
 
 ;; ----- Actions -----
 
