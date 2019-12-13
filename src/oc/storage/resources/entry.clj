@@ -167,7 +167,12 @@
   Throws a runtime exception if the provided entry doesn't conform to the
   common/Entry schema. Throws an exception if the board specified in the entry can't be found.
   "
-  ([conn entry :- common/Entry] (create-entry! conn entry (db-common/current-timestamp)))
+  ([conn entry :- common/Entry]
+   (let [ts (if (and (seq (:published-at entry))
+                      (= (keyword (:status entry)) :published))
+               (:published-at entry)
+               (db-common/current-timestamp))]
+     (create-entry! conn entry ts)))
 
   ([conn entry :- common/Entry ts :- lib-schema/ISO8601]
   {:pre [(db-common/conn? conn)]}
