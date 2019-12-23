@@ -344,14 +344,12 @@
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             final-entry (entry-res/update-entry-no-user! conn (:uuid updated-entry) updated-entry)]
-    (let [notify-map* {:client-id (api-common/get-change-client-id ctx)}
-          notify-map (cond
-                      (= action-type :dismiss)
-                      (merge notify-map* {:dismiss-at (:dismiss-at ctx)})
-                      (= action-type :follow)
-                      (merge notify-map* {:follow true})
-                      (= action-type :unfollow)
-                      (merge notify-map* {:unfollow true}))]
+    (let [sender-ws-client-id (api-common/get-change-client-id ctx)
+          notify-map (cond-> {}
+                        (seq sender-ws-client-id) (assoc :client-id sender-ws-client-id)
+                        (= action-type :dismiss)  (assoc :dismiss-at (:dismiss-at ctx))
+                        (= action-type :follow)   (assoc :follow true)
+                        (= action-type :unfollow) (assoc :unfollow true))]
       (timbre/info "Updated entry new for:" entry-for "action:" action-type)
       (notification/send-trigger! (notification/->trigger action-type org board {:old entry :new updated-entry :inbox-action notify-map} user nil))
       {:updated-entry (api-common/rep final-entry)})
