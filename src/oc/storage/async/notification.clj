@@ -125,7 +125,7 @@
   ([notification-type content user] (->trigger notification-type nil nil content user nil nil))
   ([notification-type org content user] (->trigger notification-type org nil content user nil nil))
   ([notification-type org content user note] (->trigger notification-type org nil content user note nil))
-  ([notification-type org board content user note] (->trigger notification-type org nil content user note nil))
+  ([notification-type org board content user note] (->trigger notification-type org board content user note nil))
   ([notification-type org board content user note ws-client-id]
   (let [notice {:notification-type notification-type
                 :resource-type (resource-type (or (:old content) (:new content)))
