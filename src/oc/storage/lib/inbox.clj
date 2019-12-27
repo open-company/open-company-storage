@@ -34,7 +34,9 @@
               {:last-activity-at (-> (r/table relation-table-name)
                                      (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
                                      (r/filter (r/fn [interaction-row]
-                                      (r/ge (r/get-field interaction-row "body") "")))
+                                      (r/and
+                                       (r/ge (r/get-field interaction-row "body") "")
+                                       (r/ne (r/get-field (r/get-field interaction-row "author") "user-id") user-id))))
                                      (r/coerce-to :array)
                                      (r/reduce (r/fn [left right]
                                        (if (r/ge (r/get-field left "created-at") (r/get-field right "created-at"))
