@@ -10,18 +10,8 @@
             [oc.lib.time :as oc-time]))
 
 (defn read-all-inbox-for-user
- [conn
-  table-name
-  index-name
-  index-value
-  order
-  start
-  direction
-  relation-table-name
-  allowed-boards
-  user-id
-  relation-fields
-  {:keys [count] :or {count false}}]
+ [conn table-name index-name index-value order start direction relation-table-name allowed-boards user-id
+  relation-fields {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)

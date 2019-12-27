@@ -451,9 +451,8 @@
       list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
-  "Given the UUID of the user, return all the entries publoshed at most 30 days before the minimum allowed date.
-   Filter by user-visibility on the remaining.
-   FIXME: move the filter in the query to avoid loading all entries to filter and then apply the count."
+  "Given the UUID of the user, return all the entries the user has access to that have been published
+   or have had activity in the last config/inbox-days-limit days, then filter by user-visibility on the remaining."
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
    (list-all-entries-for-inbox conn org-uuid user-id order start direction allowed-boards {:count false}))
 
@@ -461,18 +460,8 @@
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (inbox-lib/read-all-inbox-for-user conn
-   table-name
-   :status-org-uuid
-   [[:published org-uuid]]
-   order
-   start
-   direction
-   common/interaction-table-name
-   allowed-boards
-   user-id
-   list-comment-properties
-   {:count count})))
+  (inbox-lib/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start direction
+   common/interaction-table-name allowed-boards user-id list-comment-properties {:count count})))
 
 ;; ----- Entry follow-up manipulation -----
 
