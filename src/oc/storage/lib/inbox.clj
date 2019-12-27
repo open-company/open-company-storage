@@ -34,6 +34,7 @@
               {:last-activity-at (-> (r/table relation-table-name)
                                      (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
                                      (r/filter (r/fn [interaction-row]
+                                      ;; Filter out reactions and comments from the current user
                                       (r/and
                                        (r/ge (r/get-field interaction-row "body") "")
                                        (r/ne (r/get-field (r/get-field interaction-row "author") "user-id") user-id))))
@@ -49,6 +50,7 @@
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
                      (r/contains allowed-boards (r/get-field post-row :board-uuid))
+                     ;; Leave in only posts whose last activity is within a certain amount of time
                      (r/gt (r/get-field post-row :last-activity-at) minimum-date-timestamp)
                      ;; All records with follow true
                      (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :follow)
