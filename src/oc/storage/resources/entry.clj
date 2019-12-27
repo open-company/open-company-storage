@@ -8,7 +8,8 @@
             [oc.lib.text :as oc-str]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.config :as config]))
+            [oc.storage.config :as config]
+            [oc.storage.lib.inbox :as inbox-lib]))
 
 (def temp-uuid "9999-9999-9999")
 
@@ -460,38 +461,18 @@
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (let [filter-map [{:fn :contains :value allowed-boards :field :board-uuid}
-                    {:fn :ge :value config/inbox-minimum-date :field :published-at}]
-        all-entries (db-common/read-all-resources-and-relations conn table-name
-                     :status-org-uuid [[:published org-uuid]]
-                     "published-at" order start direction
-                     filter-map
-                     :interactions common/interaction-table-name :uuid :resource-uuid
-                     list-comment-properties {})
-        filtered-entries (remove nil?
-                          (filterv
-                           (fn [entry]
-                            (let [sorted-comments (sort-by :created-at
-                                                   (filterv #(and (contains? % :body)
-                                                                  (not= (-> % :author :user-id) user-id))
-                                                    (:interactions entry)))
-                                  last-activity-timestamp (when (seq sorted-comments)
-                                                            (:created-at (last sorted-comments)))
-                                  user-visibility (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry))]
-                              (or ;; User has never dismissed/followed/unfollowed so he needs to see it
-                                  (empty? user-visibility)
-                                  ;; User is following the post: sees it only if he has never dismissed or has
-                                  ;; dismissed before the last comment created-at
-                                  (and last-activity-timestamp
-                                       (:follow user-visibility)
-                                       (pos? (compare last-activity-timestamp (:dismiss-at user-visibility))))
-                                  ;; There are no comments on post, user has dismissed but before published-at
-                                  (and (not last-activity-timestamp)
-                                       (pos? (compare (:published-at entry) (:dismiss-at user-visibility)))))))
-                           all-entries))]
-    (if count
-      (clojure.core/count filtered-entries)
-      filtered-entries))))
+  (inbox-lib/read-all-inbox-for-user conn
+   table-name
+   :status-org-uuid
+   [[:published org-uuid]]
+   order
+   start
+   direction
+   common/interaction-table-name
+   allowed-boards
+   user-id
+   list-comment-properties
+   {:count count})))
 
 ;; ----- Entry follow-up manipulation -----
 

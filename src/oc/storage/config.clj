@@ -106,4 +106,4 @@
     :table-prefix dynamodb-table-prefix
   })
 
-(defonce inbox-minimum-date (or (env :inbox-minimum-date) "2019-10-28T00:00:00.000Z"))
+(defonce inbox-days-limit (or (env :inbox-days-limit) 10))
