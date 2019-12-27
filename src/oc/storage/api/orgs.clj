@@ -344,7 +344,10 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :get true
+    :get (fn [ctx] (if-let* [team-id (:team-id ctx)
+                             teams (-> ctx :user :teams)
+                             _member? (.contains teams team-id)]
+                      true))
     :post (fn [ctx] (access/allow-team-admins-or-no-org
                       conn (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
 
