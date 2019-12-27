@@ -106,4 +106,4 @@
     :table-prefix dynamodb-table-prefix
   })
 
-(defonce inbox-days-limit (or (env :inbox-days-limit) 10))
+(defonce inbox-days-limit (or (env :inbox-days-limit) 30))
