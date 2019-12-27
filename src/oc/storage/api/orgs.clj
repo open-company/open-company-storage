@@ -251,7 +251,7 @@
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
                              inbox-count (if user-is-member?
-                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
+                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:count true})
                                            0)
                              after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
                              after-parse (f/unparse db-common/timestamp-format after-date)

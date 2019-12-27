@@ -453,13 +453,15 @@
   "Given the UUID of the user, return all the entries publoshed at most 30 days before the minimum allowed date.
    Filter by user-visibility on the remaining.
    FIXME: move the filter in the query to avoid loading all entries to filter and then apply the count."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
-    (list-all-entries-for-inbox conn org-uuid user-id order start direction {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
+   (list-all-entries-for-inbox conn org-uuid user-id order start direction allowed-boards {:count false}))
+
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
-  (let [filter-map [{:fn :ge :value config/inbox-minimum-date :field :published-at}]
+  (let [filter-map [{:fn :contains :value allowed-boards :field :board-uuid}
+                    {:fn :ge :value config/inbox-minimum-date :field :published-at}]
         all-entries (db-common/read-all-resources-and-relations conn table-name
                      :status-org-uuid [[:published org-uuid]]
                      "published-at" order start direction

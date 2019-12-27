@@ -199,7 +199,9 @@
   (timbre/info "Valid dismiss-all update for" org-slug "from user" (:user-id user))
   (if-let* [existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
             dismiss-at (-> ctx :request :body slurp)]
-    (let [existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before)
+    (let [boards (board-res/list-boards-by-org conn (:uuid existing-org) [:created-at :updated-at :authors :viewers :access])
+          allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
+          existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before allowed-boards)
           updated-entries (mapv
                            (fn [entry]
                               (-> entry
