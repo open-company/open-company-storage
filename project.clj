@@ -18,12 +18,12 @@
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "0.4.2"]
     ;; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-devel "1.7.1"]
+    [ring/ring-devel "1.8.0"]
     ;; Web application library https://github.com/ring-clojure/ring
     ;; NB: clj-time pulled in by oc.lib
     ;; NB: joda-time pulled in by oc.lib via clj-time
     ;; NB: commons-codec pulled in by oc.lib
-    [ring/ring-core "1.7.1" :exclusions [clj-time joda-time commons-codec]]
+    [ring/ring-core "1.8.0" :exclusions [clj-time joda-time commons-codec]]
     ;; CORS library https://github.com/jumblerg/ring.middleware.cors
     [jumblerg/ring.middleware.cors "1.0.1"]
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
@@ -35,10 +35,10 @@
     ;; Utility functions https://github.com/weavejester/medley
     [medley "1.2.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.4.16"]
+    [zprint "0.5.3"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.25-alpha5"]
+    [open-company/lib "0.17.25-alpha7"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -87,11 +87,11 @@
       ]
       :plugins [
         ;; Example-based testing https://github.com/marick/lein-midje
-        [lein-midje "3.2.1"]
+        [lein-midje "3.2.2"]
         ;; Linter https://github.com/jonase/eastwood
         [jonase/eastwood "0.3.6"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
-        [lein-kibit "0.1.7" :exclusions [org.clojure/clojure]]
+        [lein-kibit "0.1.8" :exclusions [org.clojure/clojure]]
       ]
     }
 
@@ -126,7 +126,7 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.7" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.3.16" :exclusions [org.clojure/clojure]]
+        [lein-zprint "0.5.3" :exclusions [org.clojure/clojure]]
       ]  
     }]
     
