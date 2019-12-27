@@ -129,7 +129,8 @@
                                               (partial-update-link org)
                                               (add-author-link org)])
                       activity-links)
-        payments-links (if config/payments-enabled?
+        payments-links (if (and config/payments-enabled?
+                                (#{:viewer :author} access-level)) ; Only for members of current org
                          (concat full-links [(payments-link org)])
                          full-links)
         with-remove-samples-link (if sample-content?
