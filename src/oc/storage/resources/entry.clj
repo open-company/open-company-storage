@@ -8,7 +8,6 @@
             [oc.lib.text :as oc-str]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.config :as config]
             [oc.storage.lib.inbox :as inbox-lib]))
 
 (def temp-uuid "9999-9999-9999")

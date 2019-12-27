@@ -3,7 +3,6 @@
   (:require [clj-time.core :as t]
             [clj-time.format :as f]
             [rethinkdb.query :as r]
-            [oc.lib.schema :as lib-schema]
             [oc.lib.time :as lib-time]
             [oc.lib.db.common :as db-common]
             [oc.storage.config :as config]
@@ -31,32 +30,34 @@
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
-            (r/merge query (r/fn [res]
+            (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
-                                     (r/get-all [(r/get-field res :uuid)] {:index :resource-uuid})
+                                     (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
+                                     (r/filter (r/fn [interaction-row]
+                                      (r/ge (r/get-field interaction-row "body") "")))
                                      (r/coerce-to :array)
                                      (r/reduce (r/fn [left right]
                                        (if (r/ge (r/get-field left "created-at") (r/get-field right "created-at"))
                                          left
                                          right)))
-                                     (r/default {"created-at" (r/get-field res "published-at")})
-                                     (r/do (r/fn [res-int]
-                                       (r/get-field res-int "created-at"))))}))
+                                     (r/default {"created-at" (r/get-field post-row "published-at")})
+                                     (r/do (r/fn [interaction-row]
+                                       (r/get-field interaction-row "created-at"))))}))
             ;; Filter out:
-            (r/filter query (r/fn [res]
+            (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
-                     (r/contains allowed-boards (r/get-field res :board-uuid))
-                     (r/gt (r/get-field res :last-activity-at) minimum-date-timestamp)
+                     (r/contains allowed-boards (r/get-field post-row :board-uuid))
+                     (r/gt (r/get-field post-row :last-activity-at) minimum-date-timestamp)
                      ;; All records with follow true
-                     (r/get-field (r/get-field (r/get-field res :user-visibility) user-id) :follow)
+                     (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :follow)
                      ;; All records that have a dismiss-at later or equal than the last activity
-                     (r/gt (r/get-field res :last-activity-at)
-                           (r/get-field (r/get-field (r/get-field res :user-visibility) user-id) :dismiss-at)))))
+                     (r/gt (r/get-field post-row :last-activity-at)
+                           (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :dismiss-at)))))
             ;; Merge in all the interactions
             (if-not count
-              (r/merge query (r/fn [res]
+              (r/merge query (r/fn [post-row]
                 {:interactions (-> (r/table relation-table-name)
-                                   (r/get-all [(r/get-field res :uuid)] {:index :resource-uuid})
+                                   (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
                                    (r/pluck relation-fields)
                                    (r/coerce-to :array))}))
               query)
@@ -72,11 +73,3 @@
             (if (= (type query) rethinkdb.net.Cursor)
               (seq query)
               query)))))
-
-
-
-
-
-
-
-
