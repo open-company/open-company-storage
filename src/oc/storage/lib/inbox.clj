@@ -53,10 +53,10 @@
                      ;; Leave in only posts whose last activity is within a certain amount of time
                      (r/gt (r/get-field post-row :last-activity-at) minimum-date-timestamp)
                      ;; All records with follow true
-                     (r/not (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :unfollow))
+                     (r/not (r/default (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :unfollow) false))
                      ;; All records that have a dismiss-at later or equal than the last activity
                      (r/gt (r/get-field post-row :last-activity-at)
-                           (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :dismiss-at)))))
+                           (r/default (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :dismiss-at) "")))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]
