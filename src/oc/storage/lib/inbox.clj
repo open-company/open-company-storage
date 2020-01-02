@@ -53,7 +53,7 @@
                      ;; Leave in only posts whose last activity is within a certain amount of time
                      (r/gt (r/get-field post-row :last-activity-at) minimum-date-timestamp)
                      ;; All records with follow true
-                     (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :follow)
+                     (r/not (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :unfollow))
                      ;; All records that have a dismiss-at later or equal than the last activity
                      (r/gt (r/get-field post-row :last-activity-at)
                            (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :dismiss-at)))))

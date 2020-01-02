@@ -236,10 +236,9 @@
               (conj react-links (share-link org-slug board-slug entry-uuid)
                (create-follow-up-link org-slug board-slug entry-uuid)
                (inbox-dismiss-link org-slug board-slug entry-uuid)
-               (if (and (contains? user-visibility :follow)
-                        (:follow user-visibility))
-                 (inbox-unfollow-link org-slug board-slug entry-uuid)
-                 (inbox-follow-link org-slug board-slug entry-uuid)))
+               (if (:unfollow user-visibility)
+                 (inbox-follow-link org-slug board-slug entry-uuid)
+                 (inbox-unfollow-link org-slug board-slug entry-uuid)))
               ;; Otherwise just the links they already have
               :else react-links)]
     (-> (if secure-access?

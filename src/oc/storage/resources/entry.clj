@@ -56,7 +56,7 @@
     (-> entry
       (assoc :published-at timestamp)
       (assoc :publisher author)
-      (assoc-in [:user-visibility (keyword (:user-id author))] {:follow true :dismiss-at timestamp}))
+      (assoc-in [:user-visibility (keyword (:user-id author))] {:dismiss-at timestamp}))
     entry))
 
 (defn timestamp-attachments
@@ -311,8 +311,7 @@
                                                           :secure-uuid (db-common/unique-id)
                                                           :user-visibility (assoc old-user-visibility
                                                                             (keyword (:user-id user))
-                                                                            {:follow true
-                                                                             :dismiss-at ts})})
+                                                                            {:dismiss-at ts})})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)

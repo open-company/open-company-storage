@@ -177,9 +177,9 @@
                                     (= action-type :dismiss)
                                     (assoc user-visibility :dismiss-at dismiss-at)
                                     (= action-type :follow)
-                                    (assoc user-visibility :follow true)
+                                    (assoc user-visibility :unfollow false)
                                     (= action-type :unfollow)
-                                    (assoc user-visibility :follow false))
+                                    (assoc user-visibility :unfollow true))
           updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-user-visibility)]
       (timbre/info "User visibility" user-visibility "updated:" updated-user-visibility)
       (if (and (or (not= action-type :dismiss)
