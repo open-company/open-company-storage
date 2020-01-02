@@ -2,6 +2,14 @@
   "
   Convert all the entries from opt-in to opt-out.
 
+  NB: before running this script you need to add this key:
+
+  (schema/optional-key :follow) schema/Bool
+
+  to the UserVisibility schema in oc.storage.resources.common
+  or the update will fail when reading the source entry.
+
+
   Usage:
 
   lein run -m oc.storage.util.inbox-opt-out
