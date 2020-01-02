@@ -59,7 +59,7 @@
                                        :else
                                        nil))
                                 (:user-visibility e))))
-                    cleaned-entry (if (seq user-vis) (assoc e :user-visibility user-vis) (dissoc e :user-visibility))]
+                    cleaned-entry (if (seq user-vis) (assoc e :user-visibility user-vis) (assoc e :user-visibility nil))]
                 (println "Updating entry" (:uuid e))
                 (entry/update-entry-no-user! conn (:uuid e) cleaned-entry))))))
       (catch Exception e
