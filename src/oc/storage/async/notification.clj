@@ -37,7 +37,7 @@
   {(schema/optional-key :dismiss-at) lib-schema/ISO8601
    (schema/optional-key :follow) schema/Bool
    (schema/optional-key :unfollow) schema/Bool
-   (schema/optional-key :client-id) lib-schema/UUIDStr
+   (schema/optional-key :client-id) (schema/maybe lib-schema/UUIDStr)
    (schema/optional-key :comment-add) schema/Bool})
 
 (def NotificationTrigger

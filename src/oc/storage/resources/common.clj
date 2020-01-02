@@ -99,7 +99,7 @@
 (def UserVisibility
   "A user-visibility item."
   {(schema/optional-key :dismiss-at) lib-schema/ISO8601
-   (schema/optional-key :follow) schema/Bool})
+   (schema/optional-key :unfollow) schema/Bool})
 
 (def FollowUp
   "A follow-up item."

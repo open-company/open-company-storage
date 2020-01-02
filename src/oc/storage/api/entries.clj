@@ -134,9 +134,9 @@
                                     (= action-type :dismiss)
                                     (assoc user-visibility :dismiss-at dismiss-at)
                                     (= action-type :follow)
-                                    (assoc user-visibility :follow true)
+                                    (assoc user-visibility :unfollow false)
                                     (= action-type :unfollow)
-                                    (assoc user-visibility :follow false))
+                                    (assoc user-visibility :unfollow true))
           updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-user-visibility)]
       (timbre/info "User visibility" user-visibility "updated:" updated-user-visibility)
       (if (and (or (not= action-type :dismiss)
@@ -156,7 +156,9 @@
   (timbre/info "Valid dismiss-all update for" org-slug "from user" (:user-id user))
   (if-let* [existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
             dismiss-at (-> ctx :request :body slurp)]
-    (let [existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before)
+    (let [boards (board-res/list-boards-by-org conn (:uuid existing-org) [:created-at :updated-at :authors :viewers :access])
+          allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
+          existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before allowed-boards)
           updated-entries (mapv
                            (fn [entry]
                               (-> entry
@@ -262,14 +264,12 @@
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
             final-entry (entry-res/update-entry-no-user! conn (:uuid updated-entry) updated-entry)]
-    (let [notify-map* {:client-id (api-common/get-change-client-id ctx)}
-          notify-map (cond
-                      (= action-type :dismiss)
-                      (merge notify-map* {:dismiss-at (:dismiss-at ctx)})
-                      (= action-type :follow)
-                      (merge notify-map* {:follow true})
-                      (= action-type :unfollow)
-                      (merge notify-map* {:unfollow true}))]
+    (let [sender-ws-client-id (api-common/get-change-client-id ctx)
+          notify-map (cond-> {}
+                        (seq sender-ws-client-id) (assoc :client-id sender-ws-client-id)
+                        (= action-type :dismiss)  (assoc :dismiss-at (:dismiss-at ctx))
+                        (= action-type :follow)   (assoc :follow true)
+                        (= action-type :unfollow) (assoc :unfollow true))]
       (timbre/info "Updated entry new for:" entry-for "action:" action-type)
       (notification/send-trigger! (notification/->trigger action-type org board {:old entry :new updated-entry :inbox-action notify-map} user nil))
       {:updated-entry (api-common/rep final-entry)})

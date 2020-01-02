@@ -74,7 +74,7 @@
               user-visibility (get entry-data :user-visibility {})
               new-entry-data (reduce (fn [uv user]
                                       (update-in uv [:user-visibility (keyword (:user-id user))]
-                                       #(merge % {:follow (= (:sub-type body) "follow")})))
+                                       #(merge % {:unfollow (not= (:sub-type body) "follow")})))
                                      entry-data users)
               entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do
@@ -100,7 +100,7 @@
               user-visibility (get entry-data :user-visibility {})
               new-entry-data (reduce (fn [uv user]
                                       (update-in uv [:user-visibility (keyword (:user-id user))]
-                                       #(merge % {:follow (= (:sub-type body) "follow")
+                                       #(merge % {:unfollow (not= (:sub-type body) "follow")
                                                   :dismiss-at dismiss-at})))
                                      entry-data users)
               entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
@@ -123,26 +123,29 @@
               comment-author (first (:users body))
               org (org-res/get-org conn (:org-uuid entry-data))
               board (board-res/get-board conn (:board-uuid entry-data))
-              user-visibility (get entry-data :user-visibility {})]
-      ;; Send a message to all following users to force refresh inbox
+              user-visibility (get entry-data :user-visibility {})
+              all-users (if (= (:access board) "private")
+                          (clojure.set/union (:authors board) (:viewers board))
+                          (clojure.set/union (:authors org) (:viewers org)))
+              unfollowing-users (clojure.set/union
+                                 (set (remove nil? (map (fn [[k v]] (when-not (:unfollow v) (name k))) (:user-visibility entry-data))))
+                                 (:user-id comment-author))
+              following-users (clojure.set/intersection all-users unfollowing-users)]
+      ; Send a message to all following users to force refresh inbox
       (do
         (when (= (:status entry-data) "published")
-          ;; For every following user except the comment author
-          (when-let [user-ids (seq (remove nil?
-                               (for [user-key (keys user-visibility)]
-                                 (when (and ;; user is not the comment publisher
-                                            (not= (name user-key) (:user-id comment-author))
-                                            ;; user is following the post
-                                            (->> user-key (get user-visibility) :follow))
-                                    (name user-key)))))]
-            ;; Send to all following users except the comment publisher
-            ;; since inbox won't show it until another user adds a comment
-            (timbre/info "Triggering inbox-action/comment-add notification for" user-ids)
-            (notification/send-trigger! (notification/->trigger :comment-add org board
-             {:new entry-data
-              :inbox-action {:comment-add true}}
-             user-ids
-             nil))))
+          (println "DBG comment add")
+          (println "DBG   all allowed users" all-users)
+          (println "DBG   all unfollowing users (with author)" unfollowing-users)
+          (println "DBG   all following users" following-users)
+          ;; Send to all following users except the comment publisher
+          ;; since inbox won't show it until another user adds a comment
+          (timbre/info "Triggering inbox-action/comment-add notification for" following-users)
+          (notification/send-trigger! (notification/->trigger :comment-add org board
+           {:new entry-data
+            :inbox-action {:comment-add true}}
+           following-users
+           nil)))
         (timbre/info "Handled inbox-action comment-add for entry:" (:uuid entry-data)))
       (timbre/error "Failed handling comment-add message for item:" (:item-id body)))))
 

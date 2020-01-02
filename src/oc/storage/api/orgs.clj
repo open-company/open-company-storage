@@ -254,7 +254,7 @@
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
                                               0)
                              inbox-count (if user-is-member?
-                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
+                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:count true})
                                            0)
                              after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
                              after-parse (f/unparse db-common/timestamp-format after-date)

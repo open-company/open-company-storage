@@ -27,7 +27,7 @@
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
-   org sort-type board-by-uuid allowed-boards user-id]
+   org sort-type board-by-uuids allowed-boards user-id]
   (let [order (if (= :after direction) :asc :desc)
         user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
         activities (cond
@@ -66,7 +66,7 @@
                      :next-count (count next-activity)
                      :activity next-activity}))]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
+    (update activities :activity #(map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                        (merge activity {
                                                         :board-slug (:slug board)
                                                         :board-access (:access board)
@@ -75,7 +75,7 @@
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid user-id]
+  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuids user-id]
   (let [order (if (= :after direction) :asc :desc)
         total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc (db-common/current-timestamp) :before {:count true})
         user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
@@ -114,7 +114,7 @@
                      :total-count total-bookmarks-count
                      :activity next-activity}))]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
+    (update activities :activity #(map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                        (merge activity {
                                                         :board-slug (:slug board)
                                                         :board-access (:access board)
@@ -123,10 +123,10 @@
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org board-by-uuid user-id]
+  [conn {start :start direction :direction must-see :must-see} org board-by-uuids allowed-boards user-id]
   (let [order (if (= :after direction) :asc :desc)
         user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :asc (db-common/current-timestamp) :before {:count true})
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :asc (db-common/current-timestamp) :before allowed-boards {:count true})
         activities (cond
 
                   (= direction :around)
@@ -137,7 +137,7 @@
                         around-stamp (t/minus start-stamp (t/millis 1))
                         around-start (f/unparse db-common/timestamp-format around-stamp)
                         previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
-                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start :before)
+                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start :before allowed-boards)
                         previous-activity (sort/sort-activity previous-entries :recent-activity around-start :asc config/default-activity-limit user-id user-reads)
                         next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :around
@@ -147,7 +147,7 @@
                      :activity (concat (reverse previous-activity) next-activity)})
 
                   (= order :asc)
-                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction)
+                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction allowed-boards)
                         previous-activity (sort/sort-activity previous-entries :recent-activity start :asc config/default-activity-limit user-id user-reads)]
                     {:direction :previous
                      :previous-count (count previous-activity)
@@ -155,14 +155,14 @@
                      :activity (reverse previous-activity)})
 
                   :else
-                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction)
+                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction allowed-boards)
                         next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
                     {:direction :next
                      :next-count (count next-activity)
                      :total-count total-inbox-count
                      :activity next-activity}))]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
+    (update activities :activity #(map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                        (merge activity {
                                                         :board-slug (:slug board)
                                                         :board-access (:access board)
@@ -220,11 +220,11 @@
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuid (zipmap board-uuids board-slugs-and-names)
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              fixed-params (if (= (:auth-source user) "digest")
                                             (assoc params :digest-request true)
                                             params)
-                             activity (assemble-activity conn fixed-params org sort-type board-by-uuid allowed-boards user-id)]
+                             activity (assemble-activity conn fixed-params org sort-type board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "entries" sort-type activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
@@ -275,8 +275,8 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-bookmarks conn params org sort-type board-by-uuid user-id)]
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             activity (assemble-bookmarks conn params org sort-type board-by-uuids user-id)]
                           (activity-rep/render-activity-list params org "bookmarks" sort-type activity boards user))))
 
 ;; A resource to retrieve Inbox posts
@@ -324,9 +324,10 @@
                              params (merge start-params {:direction direction :start? start?})
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-uuids (map :uuid boards)
+                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-inbox conn params org board-by-uuid user-id)]
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             activity (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "inbox" nil activity boards user))))
 
 ;; ----- Routes -----
