@@ -125,19 +125,19 @@
               board (board-res/get-board conn (:board-uuid entry-data))
               user-visibility (get entry-data :user-visibility {})
               all-users (if (= (:access board) "private")
-                          (clojure.set/union (:authors board) (:viewers board))
-                          (clojure.set/union (:authors org) (:viewers org)))
+                          (clojure.set/union (set (:authors board)) (set (:viewers board)))
+                          (clojure.set/union (set (:authors org)) (set (:viewers org))))
               unfollowing-users (clojure.set/union
-                                 (set (remove nil? (map (fn [[k v]] (when-not (:unfollow v) (name k))) (:user-visibility entry-data))))
-                                 (:user-id comment-author))
-              following-users (clojure.set/intersection all-users unfollowing-users)]
+                                 (set (remove nil? (map
+                                  (fn [[k v]]
+                                    (when-not (:unfollow v)
+                                      (name k)))
+                                  (:user-visibility entry-data))))
+                                 (hash-set (:user-id comment-author)))
+              following-users (vec (clojure.set/intersection all-users unfollowing-users))]
       ; Send a message to all following users to force refresh inbox
       (do
         (when (= (:status entry-data) "published")
-          (println "DBG comment add")
-          (println "DBG   all allowed users" all-users)
-          (println "DBG   all unfollowing users (with author)" unfollowing-users)
-          (println "DBG   all following users" following-users)
           ;; Send to all following users except the comment publisher
           ;; since inbox won't show it until another user adds a comment
           (timbre/info "Triggering inbox-action/comment-add notification for" following-users)
