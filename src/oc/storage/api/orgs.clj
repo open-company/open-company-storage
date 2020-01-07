@@ -248,11 +248,9 @@
                                                         ;; or has at least one board with author access
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
-                             must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
-                             after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
-                             after-parse (f/unparse db-common/timestamp-format after-date)
                              follow-ups-count (if user-is-part-of-the-team?
-                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id :asc after-parse :after {:count true})
+                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id :desc (db-common/current-timestamp)
+                                                 0 :recent-activity (map :uuid allowed-boards) {:count true})
                                                 0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
@@ -264,7 +262,6 @@
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
-                                                 (assoc :must-see-count must-see-count)
                                                  (assoc :follow-ups-count follow-ups-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
