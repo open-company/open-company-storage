@@ -80,9 +80,9 @@
   [board org-slug sort-type access-level params]
   (let [slug (:slug board)
         is-drafts-board? (= slug "drafts")
-        pagination-link (if is-drafts-board? [] (pagination-link org-slug slug sort-type params board))
+        page-link (when-not is-drafts-board? (pagination-link org-slug slug sort-type params board))
         ;; Everyone gets these
-        links (remove nil? [pagination-link
+        links (remove nil? [page-link
                             (self-link org-slug slug :recently-posted)
                             (when-not is-drafts-board?
                               (self-link org-slug slug :recent-activity))
