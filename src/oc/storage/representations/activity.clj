@@ -52,12 +52,12 @@
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/activity-collection-media-type} {})
                (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {})
-               (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]
-        full-links (conj links (pagination-link org collection-type sort-type params activity))]
+               (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
+               (pagination-link org collection-type sort-type params activity)]]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
-                    :links full-links
+                    :links links
                     :items (map (fn [entry]
                                   (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
                                         access-level (access/access-level-for org board user)]
