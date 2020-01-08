@@ -48,16 +48,15 @@
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org board sort-type {:keys [start start? direction]} data]
+  [org board sort-type {:keys [start start?]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
         first-activity (first activity)
         last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
         first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
-        next? (or (= (:direction data) :previous)
-                  (= (:next-count data) config/default-activity-limit))
-        next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction :before}))
+        next? (= (:next-count data) config/default-activity-limit)
+        next-url (when next? (board-url/url org board sort-type {:start last-activity-date}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
     next-link))
 

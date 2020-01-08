@@ -43,13 +43,11 @@
 
 (defn- assemble-paginated-board
   "Assemble the requested activity (params) for the provided board."
-  [conn sort-type {start :start direction :direction must-see :must-see} org board ctx]
-  (let [order (if (= :after direction) :asc :desc)
-        access-level (:access-level ctx)
+  [conn sort-type {start :start must-see :must-see} org board ctx]
+  (let [access-level (:access-level ctx)
         user-id (-> ctx :user :user-id)
-        entries (entry-res/paginated-entries-by-board conn (:uuid board) order start config/default-activity-limit sort-type {:must-see must-see})
-        activities {:direction :next
-                    :next-count (count entries)
+        entries (entry-res/paginated-entries-by-board conn (:uuid board) :desc start config/default-activity-limit sort-type {:must-see must-see})
+        activities {:next-count (count entries)
                     :entries (map #(entry-rep/render-entry-for-collection org board %
                                     (entry-rep/comments %) (reaction-res/aggregate-reactions (entry-rep/reactions %))
                                     access-level user-id)
@@ -326,14 +324,8 @@
     :options false
     :get (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                          start (:start ctx-params)
-                         valid-start? (if start (ts/valid-timestamp? start) true)
-                         direction (keyword (:direction ctx-params))
-                         ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                         valid-direction? (if direction (#{:before :after :around} direction) true)
-                         ;; a specified start/direction must be together or ommitted
-                         pairing-allowed? (or (and start direction)
-                                              (and (not start) (not direction)))]
-                     (not (and valid-start? valid-direction? pairing-allowed?))))
+                         valid-start? (if start (ts/valid-timestamp? start) true)]
+                     (not valid-start?)))
     :patch (fn [ctx] (api-common/malformed-json? ctx))
     :delete false})
 
@@ -378,9 +370,7 @@
                             ;; Render paginated board for all the rest
                             (let [ctx-params (keywordize-keys (-> ctx :request :params))
                                  start? (if (:start ctx-params) true false) ; flag if a start was specified
-                                 start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                                 direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
-                                 params (merge start-params {:direction direction :start? start?})
+                                 params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                                  full-board (assemble-paginated-board conn sort-type params org board ctx)]
                               (board-rep/render-board org sort-type full-board ctx params)))))
   :handle-unprocessable-entity (fn [ctx]

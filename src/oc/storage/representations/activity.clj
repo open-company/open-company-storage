@@ -13,22 +13,21 @@
   ([collection-type {slug :slug} sort-type]
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
     (str "/orgs/" slug "/" collection-type sort-path)))
-  ([collection-type {slug :slug :as org} sort-type {start :start direction :direction}]
+  ([collection-type {slug :slug :as org} sort-type {start :start}]
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-    (str (url collection-type org sort-type) concat-str "start=" start "&direction=" (name direction)))))
+    (str (url collection-type org sort-type) concat-str "start=" start))))
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type sort-type {:keys [start start? direction]} data]
+  [org collection-type sort-type {:keys [start start?]} data]
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
         first-activity (first activity)
         last-activity-date (when activity? (or (:last-activity-at last-activity) (:last-activity-at last-activity)))
         first-activity-date (when activity? (or (:last-activity-at first-activity) (:last-activity-at first-activity)))
-        next? (or (= (:direction data) :previous)
-                  (= (:next-count data) config/default-activity-limit))
-        next-url (when next? (url collection-type org sort-type {:start last-activity-date :direction :before}))
+        next? (= (:next-count data) config/default-activity-limit)
+        next-url (when next? (url collection-type org sort-type {:start last-activity-date}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))]
     next-link))
 

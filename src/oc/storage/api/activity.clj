@@ -21,12 +21,11 @@
 
 (defn- assemble-activity
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
+  [conn {start :start must-see :must-see digest-request :digest-request}
    org sort-type board-by-uuid allowed-boards user-id]
   (let [limit (if digest-request 0 config/default-activity-limit)
         entries (entry-res/paginated-entries-by-org conn (:uuid org) :desc start limit sort-type allowed-boards {:must-see must-see})
-        activities {:direction :next
-                    :next-count (count entries)
+        activities {:next-count (count entries)
                     :activity entries}]
     ;; Give each activity its board name
     (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
@@ -38,12 +37,11 @@
 
 (defn- assemble-follow-ups
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid
+  [conn {start :start must-see :must-see} org sort-type board-by-uuid
    allowed-boards user-id]
   (let [entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id :desc start config/default-activity-limit
                  sort-type allowed-boards {:must-see must-see})
-        activities {:direction :next
-                    :next-count (count entries)
+        activities {:next-count (count entries)
                     :activity entries}]
     ;; Give each activity its board name
     (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
@@ -73,14 +71,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
-                              direction (keyword (:direction ctx-params))
-                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after :around} direction) true)
-                              ;; a specified start/direction must be together or ommitted
-                              pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                          (not (and valid-start? valid-direction? pairing-allowed?))))
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -97,9 +89,7 @@
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction :start? start?})
+                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -129,14 +119,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
-                              direction (keyword (:direction ctx-params))
-                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after :around} direction) true)
-                              ;; a specified start/direction must be together or ommitted
-                              pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                          (not (and valid-start? valid-direction? pairing-allowed?))))
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
