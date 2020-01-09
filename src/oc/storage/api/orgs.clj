@@ -250,7 +250,7 @@
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              follow-ups-count (if user-is-part-of-the-team?
                                                 (entry-res/list-all-entries-by-follow-ups conn org-id user-id :desc (db-common/current-timestamp)
-                                                 0 :recent-activity (map :uuid allowed-boards) {:count true})
+                                                 :before 0 :recent-activity (map :uuid allowed-boards) {:count true})
                                                 0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))

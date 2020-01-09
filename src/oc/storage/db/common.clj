@@ -4,7 +4,7 @@
             [oc.lib.db.common :as db-common]))
 
 (defn read-paginated-entries
- [conn table-name index-name index-value order start limit sort-type relation-table-name allowed-boards user-id
+ [conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards user-id
   relation-fields {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
@@ -13,6 +13,7 @@
         (db-common/s-or-k? relation-table-name)
         (#{:desc :asc} order)
         (not (nil? start))
+        (#{:after :before} direction)
         (integer? limit)
         (#{:recent-activity :recently-posted} sort-type)
         (sequential? relation-fields)
@@ -53,10 +54,15 @@
               (r/filter query (r/fn [post-row]
                 (r/and ;; All records in boards the user has no access
                        (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                       ;; All records after the start
-                       (r/gt start (r/get-field post-row :last-activity-at)))))
+                       ;; All records after/before the start
+                       (if (= direction :before)
+                         (r/gt start (r/get-field post-row :last-activity-at))
+                         (r/le start (r/get-field post-row :last-activity-at))))))
+              ;; Filter out only based on the date
               (r/filter query (r/fn [post-row]
-                (r/gt start (r/get-field post-row :last-activity-at)))))
+                (if (= direction :before)
+                  (r/gt start (r/get-field post-row :last-activity-at))
+                  (r/le start (r/get-field post-row :last-activity-at))))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]

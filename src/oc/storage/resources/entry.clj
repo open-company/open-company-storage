@@ -381,26 +381,28 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a number of results, return the published entries for the org with any interactions.
   "
-  ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit sort-type allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
+         (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start limit sort-type
-   common/interaction-table-name allowed-boards nil list-comment-properties {:count count})))
+  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
+   limit sort-type common/interaction-table-name allowed-boards nil list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn board-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit sort-type {:keys [count] :or {count false}}]
+  [conn board-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
+         (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-board-uuid [[:published board-uuid]]
-   order start limit sort-type common/interaction-table-name [board-uuid] nil list-comment-properties {:count count}))
+  (storage-db-common/read-paginated-entries conn table-name :status-board-uuid [[:published board-uuid]] order start
+   direction limit sort-type common/interaction-table-name [board-uuid] nil list-comment-properties {:count count}))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "
@@ -434,18 +436,19 @@
 
 (schema/defn ^:always-validate list-all-entries-by-follow-ups
   "Given the UUID of the user, return all the published entries with incomplete follow-ups for the user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit sort-type
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
     allowed-boards :- [lib-schema/UniqueID]]
-    (list-all-entries-by-follow-ups conn org-uuid user-id order start limit sort-type allowed-boards {:count false}))
+    (list-all-entries-by-follow-ups conn org-uuid user-id order start direction limit sort-type allowed-boards {:count false}))
 
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit sort-type
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
     allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
+         (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi
-   [[org-uuid :published false user-id]] order start limit sort-type common/interaction-table-name allowed-boards nil 
+   [[org-uuid :published false user-id]] order start direction limit sort-type common/interaction-table-name allowed-boards nil 
    list-comment-properties {:count count})))
 
 ;; ----- Entry follow-up manipulation -----
