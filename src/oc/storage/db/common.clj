@@ -1,12 +1,7 @@
 (ns oc.storage.db.common
   "CRUD function to retrieve entries from RethinkDB with pagination."
-  (:require [clj-time.core :as t]
-            [clj-time.format :as f]
-            [rethinkdb.query :as r]
-            [oc.lib.time :as lib-time]
-            [oc.lib.db.common :as db-common]
-            [oc.storage.config :as config]
-            [oc.lib.time :as oc-time]))
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.common :as db-common]))
 
 (defn read-paginated-entries
  [conn table-name index-name index-value order start limit sort-type relation-table-name allowed-boards user-id

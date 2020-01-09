@@ -7,8 +7,6 @@
             [liberator.core :refer (defresource by-method)]
             [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
-            [clj-time.core :as t]
-            [clj-time.format :as f]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]

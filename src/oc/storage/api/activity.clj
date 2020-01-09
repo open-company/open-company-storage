@@ -4,8 +4,6 @@
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
-            [clj-time.core :as t]
-            [clj-time.format :as f]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
