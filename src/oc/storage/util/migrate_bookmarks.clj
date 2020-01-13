@@ -12,19 +12,11 @@
 
   Use -s/--self-only to create bookmarks only for self created follow-ups."
 
-  (:require [clojure.string :as s]
-            [rethinkdb.query :as r]
-            [clojure.walk :refer (keywordize-keys)]
+  (:require [rethinkdb.query :as r]
             [clojure.tools.cli :refer (parse-opts)]
-            [defun.core :refer (defun-)]
             [oc.lib.db.migrations :as m]
-            [clj-http.client :as http]
-            [cheshire.core :as json]
-            [clj-time.core :as t]
-            [clj-time.format :as f]
             [oc.lib.db.pool :as db]
             [oc.lib.db.common :as db-common]
-            [oc.storage.resources.common :as common]
             [oc.storage.resources.entry :as entry]
             [oc.storage.resources.org :as org]
             [oc.storage.config :as c])
