@@ -6,7 +6,6 @@
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
-            [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.pool :as pool]
