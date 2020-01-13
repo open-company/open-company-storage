@@ -61,7 +61,7 @@
   (str (url org-slug board-slug) "/" entry-uuid))
 
   ([org-slug board-slug entry-uuid inbox-action :guard #(and (keyword? %)
-                                                             #{:dismiss :follow :unfollow} %)]
+                                                             #{:dismiss :unread :follow :unfollow} %)]
   (str (url org-slug board-slug entry-uuid) "/inbox/" (name inbox-action)))
 
   ([org-slug board-slug entry-uuid _bookmark? :guard true?]
@@ -127,6 +127,11 @@
 
 (defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "dismiss" hateoas/POST (url org-slug board-slug entry-uuid :dismiss)
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
+
+(defn- inbox-unread-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "unread" hateoas/POST (url org-slug board-slug entry-uuid :unread)
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
@@ -234,6 +239,7 @@
               (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
               (conj react-links (share-link org-slug board-slug entry-uuid)
                bookmarks-links
+               (inbox-unread-link org-slug board-slug entry-uuid)
                (inbox-dismiss-link org-slug board-slug entry-uuid)
                (if (:unfollow user-visibility)
                  (inbox-follow-link org-slug board-slug entry-uuid)

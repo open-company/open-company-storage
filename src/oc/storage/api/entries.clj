@@ -133,6 +133,8 @@
           updated-user-visibility (cond
                                     (= action-type :dismiss)
                                     (assoc user-visibility :dismiss-at dismiss-at)
+                                    (= action-type :unread)
+                                    (assoc user-visibility :dismiss-at nil)
                                     (= action-type :follow)
                                     (assoc user-visibility :unfollow false)
                                     (= action-type :unfollow)
@@ -268,6 +270,7 @@
           notify-map (cond-> {}
                         (seq sender-ws-client-id) (assoc :client-id sender-ws-client-id)
                         (= action-type :dismiss)  (assoc :dismiss-at (:dismiss-at ctx))
+                        (= action-type :unread)   (assoc :dismiss-at nil)
                         (= action-type :follow)   (assoc :follow true)
                         (= action-type :unfollow) (assoc :unfollow true))]
       (timbre/info "Updated entry new for:" entry-for "action:" action-type)
@@ -1062,6 +1065,10 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/unread"
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (inbox conn org-slug board-slug entry-uuid :unread)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/follow"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
