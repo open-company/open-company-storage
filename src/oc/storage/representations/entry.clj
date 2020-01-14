@@ -172,7 +172,8 @@
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
         has-new-comments-count? (contains? entry :new-comments-count)
-        entry-read (when-not has-new-comments-count?
+        entry-read (when (and user-id
+                              (not has-new-comments-count?))
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
