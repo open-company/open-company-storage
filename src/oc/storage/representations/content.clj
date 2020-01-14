@@ -1,13 +1,9 @@
 (ns oc.storage.representations.content
   "Resource representations for OpenCompany content resources (which receive comments and reactions)."
-  (:require [defun.core :refer (defun defun-)]
+  (:require [defun.core :refer (defun-)]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
-
-(defn- change-url
-  ([resource-uuid]
-   (str config/change-server-url "/change/read/post/" resource-uuid)))
 
 (defun- interaction-url
 
