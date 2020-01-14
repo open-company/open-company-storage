@@ -161,10 +161,9 @@
           allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
           existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before allowed-boards)
           updated-entries (mapv
-                           (fn [entry]
-                              (-> entry
-                               (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
-                               (dissoc :interactions)))
+                           #(-> %
+                             (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
+                             (dissoc :last-activity-at :interactions))
                            existing-entries)]
       (if (and (lib-schema/valid? lib-schema/ISO8601 dismiss-at)
                (every? #(lib-schema/valid? common-res/Entry %) updated-entries))
@@ -175,8 +174,10 @@
            :updated-entries (api-common/rep updated-entries)
            :dismiss-at dismiss-at})
         (do
-          (timbre/warn "Failed dismiss-all for entries")
-          (doseq [e updated-entries] (timbre/info "Failed for" (:uuid e)))
+          (timbre/warn "Failed dismiss-all with dismiss-at:" dismiss-at)
+          (doseq [e updated-entries]
+            (when-not (lib-schema/valid? common-res/Entry e)
+              (timbre/info "Failed for" (:uuid e))))
           false)))
     true)) ; no existing entry, so this will fail existence check later
 
@@ -892,7 +893,7 @@
     :post (fn [ctx] (valid-dismiss-all-update? conn ctx org-slug (:user ctx)))})
 
   ;; Possibly no data to handle
-  :malformed? false
+  :malformed? false ; allow nil
 
   ;; Existentialism
   :can-post-to-missing? false
@@ -938,7 +939,8 @@
     :options true
     :post (fn [ctx] (valid-entry-inbox-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
 
-  :malformed? false
+  ;; Possibly no data to handle
+  :malformed? false ; allow nil
 
   ;; Existentialism
   :can-post-to-missing? false
