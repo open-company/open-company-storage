@@ -133,7 +133,7 @@
                                     (= action-type :dismiss)
                                     (assoc user-visibility :dismiss-at dismiss-at)
                                     (= action-type :unread)
-                                    (assoc user-visibility :dismiss-at nil)
+                                    (merge user-visibility {:dismiss-at nil :unfollow false})
                                     (= action-type :follow)
                                     (assoc user-visibility :unfollow false)
                                     (= action-type :unfollow)
