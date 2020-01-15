@@ -7,7 +7,8 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]
             [oc.storage.urls.board :as board-url]
-            [oc.storage.representations.entry :as entry-rep]))
+            [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft]))
@@ -110,7 +111,7 @@
 (defn render-entry-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org board entry access-level user-id]
-  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (entry-rep/reactions entry) access-level user-id))
+  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (reaction-res/aggregate-reactions (entry-rep/reactions entry)) access-level user-id))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
