@@ -133,5 +133,7 @@
     (json/generate-string
       (-> board
         (board-links (:slug org) sort-type access-level params)
+        (assoc :entries (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
+                         (:entries board)))
         (select-keys rep-props))
       {:pretty config/pretty?})))
