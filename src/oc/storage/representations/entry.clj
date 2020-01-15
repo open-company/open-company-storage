@@ -8,7 +8,6 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
-            [oc.storage.lib.sort :as sort]
             [oc.storage.api.access :as access]
             [oc.storage.resources.reaction :as reaction-res]
             [oc.lib.change.resources.read :as read]))
@@ -153,6 +152,23 @@
     entry
     (assoc entry key-name collection)))
 
+(defn new-comments-count [entry user-id entry-read]
+  (let [all-comments (filterv :body (:interactions entry))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
+    (if (and filtered-comments
+             entry-read)
+      (count (filterv #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
+      (count filtered-comments))))
+
+(defn- entry-new-at
+  "Return the most recent created-at of the comments, exclude comments from current user if needed."
+  [user-id entry]
+  (let [all-comments (filterv :body (:interactions entry))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)
+        sorted-comments (sort-by :created-at filtered-comments)]
+    (when (seq sorted-comments)
+      (-> sorted-comments last :created-at))))
+
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -180,10 +196,9 @@
                            :board-name (:name board)
                            :new-comments-count (if has-new-comments-count?
                                                  (:new-comments-count entry)
-                                                 (sort/new-comments-count entry-with-comments user-id entry-read))
-                           :new-at (-> (sort/entry-new-at user-id entry-with-comments true)
-                                    vals
-                                    first)} entry)
+                                                 (new-comments-count entry-with-comments user-id entry-read))
+                           :new-at (entry-new-at user-id entry-with-comments)}
+                          entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
