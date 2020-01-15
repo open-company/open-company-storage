@@ -4,8 +4,6 @@
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
-            [clj-time.core :as t]
-            [clj-time.format :as f]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
@@ -14,160 +12,77 @@
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.activity :as activity-rep]
+            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.lib.sort :as sort]
             [oc.storage.lib.timestamp :as ts]
             [oc.lib.change.resources.read :as read]))
 
-;; TODO This `assemble-activity` is overly complicated because it used to merge entries
-;; and stories. It no longer does so can be simplified. This also may entail some
-;; changes to `entry/list-entries-by-org`
 (defn- assemble-activity
-  "Assemble the requested activity (params) for the provided org."
+  "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
    org sort-type board-by-uuids allowed-boards user-id]
-  (let [order (if (= :after direction) :asc :desc)
-        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        activities (cond
-
-                  (= direction :around)
-                  ;; around is inclusive of the provided timestamp, so we offset the after timestamp by 1ms so as not
-                  ;; to exclude the provided timestamp (essentially with '> timestamp' and '< timestamp').
-                  ;; This means we actually have a 1ms overlap, but in practice, this is OK.
-                  (let [start-stamp (f/parse db-common/timestamp-format start)
-                        around-stamp (t/minus start-stamp (t/millis 1))
-                        around-start (f/unparse db-common/timestamp-format around-stamp)
-                        previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after allowed-boards {:must-see must-see})
-                        previous-activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
-                        next-entries (entry-res/list-entries-by-org conn (:uuid org) :desc start :before allowed-boards {:must-see must-see})
-                        next-activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc previous-activity-limit user-id user-reads)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc next-activity-limit user-id user-reads)]
-                    {:direction :around
-                     :previous-count (count previous-activity)
-                     :next-count (count next-activity)
-                     :activity (concat (reverse previous-activity) next-activity)})
-                  
-                  (= order :asc)
-                  (let [previous-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        activity-limit (if digest-request (count previous-entries) config/default-activity-limit)
-                        previous-activity (sort/sort-activity previous-entries sort-type start :asc activity-limit user-id user-reads)]
-                    {:direction :previous
-                     :previous-count (count previous-activity)
-                     :activity (reverse previous-activity)})
-
-                  :else
-                  (let [next-entries (entry-res/list-entries-by-org conn (:uuid org) order start direction allowed-boards {:must-see must-see})
-                        activity-limit (if digest-request (count next-entries) config/default-activity-limit)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc activity-limit user-id user-reads)]
-                    {:direction :next
-                     :next-count (count next-activity)
-                     :activity next-activity}))]
+  (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
+        order (if (= direction :before) :desc :asc)
+        limit (if digest-request 0 config/default-activity-limit)
+        entries (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
+                 {:must-see must-see})
+        activities {:next-count (count entries)
+                    :direction direction
+                    :user-reads user-reads}]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
-                                                       (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-access (:access board)
-                                                        :board-name (:name board)})))
-                                    %))))
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
+                                                          activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)
+                                                       :new-comments-count (entry-rep/new-comments-count activity user-id activity-read)})))
+                                    entries))))
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuids user-id]
-  (let [order (if (= :after direction) :asc :desc)
-        total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc (db-common/current-timestamp) :before {:count true})
-        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        activities (cond
-
-                  (= direction :around)
-                  ;; around is inclusive of the provided timestamp, so we offset the after timestamp by 1ms so as not
-                  ;; to exclude the provided timestamp (essentially with '> timestamp' and '< timestamp').
-                  ;; This means we actually have a 1ms overlap, but in practice, this is OK.
-                  (let [start-stamp (f/parse db-common/timestamp-format start)
-                        around-stamp (t/minus start-stamp (t/millis 1))
-                        around-start (f/unparse db-common/timestamp-format around-stamp)
-                        previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
-                        next-entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :desc start :before)
-                        previous-activity (sort/sort-activity previous-entries sort-type around-start :asc config/default-activity-limit user-id user-reads)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-reads)]
-                    {:direction :around
-                     :previous-count (count previous-activity)
-                     :next-count (count next-activity)
-                     :total-count total-bookmarks-count
-                     :activity (concat (reverse previous-activity) next-activity)})
-
-                  (= order :asc)
-                  (let [previous-entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction)
-                        previous-activity (sort/sort-activity previous-entries sort-type start :asc config/default-activity-limit user-id user-reads)]
-                    {:direction :previous
-                     :previous-count (count previous-activity)
-                     :total-count total-bookmarks-count
-                     :activity (reverse previous-activity)})
-
-                  :else
-                  (let [next-entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction)
-                        next-activity (sort/sort-activity next-entries sort-type start :desc config/default-activity-limit user-id user-reads)]
-                    {:direction :next
-                     :next-count (count next-activity)
-                     :total-count total-bookmarks-count
-                     :activity next-activity}))]
+  (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
+        order (if (= direction :before) :desc :asc)
+        total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc
+                               (db-common/current-timestamp) :before 0 sort-type {:count true})
+        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction
+                 config/default-activity-limit sort-type {:count false})
+        activities {:direction direction
+                    :next-count (count entries)
+                    :total-count total-bookmarks-count
+                    :user-reads user-reads}]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
-                                                       (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-access (:access board)
-                                                        :board-name (:name board)})))
-                                    %))))
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
+                                                          activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)
+                                                       :new-comments-count (entry-rep/new-comments-count activity user-id activity-read)})))
+                                  entries))))
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org board-by-uuids allowed-boards user-id]
-  (let [order (if (= :after direction) :asc :desc)
-        user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :asc (db-common/current-timestamp) :before allowed-boards {:count true})
-        activities (cond
-
-                  (= direction :around)
-                  ;; around is inclusive of the provided timestamp, so we offset the after timestamp by 1ms so as not
-                  ;; to exclude the provided timestamp (essentially with '> timestamp' and '< timestamp').
-                  ;; This means we actually have a 1ms overlap, but in practice, this is OK.
-                  (let [start-stamp (f/parse db-common/timestamp-format start)
-                        around-stamp (t/minus start-stamp (t/millis 1))
-                        around-start (f/unparse db-common/timestamp-format around-stamp)
-                        previous-entries (entry-res/list-entries-by-org conn (:uuid org) :asc around-start :after)
-                        next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start :before allowed-boards)
-                        previous-activity (sort/sort-activity previous-entries :recent-activity around-start :asc config/default-activity-limit user-id user-reads)
-                        next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
-                    {:direction :around
-                     :previous-count (count previous-activity)
-                     :next-count (count next-activity)
-                     :total-count total-inbox-count
-                     :activity (concat (reverse previous-activity) next-activity)})
-
-                  (= order :asc)
-                  (let [previous-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction allowed-boards)
-                        previous-activity (sort/sort-activity previous-entries :recent-activity start :asc config/default-activity-limit user-id user-reads)]
-                    {:direction :previous
-                     :previous-count (count previous-activity)
-                     :total-count total-inbox-count
-                     :activity (reverse previous-activity)})
-
-                  :else
-                  (let [next-entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction allowed-boards)
-                        next-activity (sort/sort-activity next-entries :recent-activity start :desc config/default-activity-limit user-id user-reads)]
-                    {:direction :next
-                     :next-count (count next-activity)
-                     :total-count total-inbox-count
-                     :activity next-activity}))]
+  [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
+  (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
+                           0 allowed-boards {:count true})
+        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start 0 allowed-boards)
+        activities {:next-count (count entries)
+                    :total-count total-inbox-count
+                    :user-reads user-reads}]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
-                                                       (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-access (:access board)
-                                                        :board-name (:name board)})))
-                                    %))))
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
+                                                          activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)
+                                                       :new-comments-count (entry-rep/new-comments-count activity user-id activity-read)})))
+                                 entries))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -189,14 +104,15 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
+
                               valid-start? (if start (ts/valid-timestamp? start) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after :around} direction) true)
+                              valid-direction? (if direction (#{:before :after} direction) true)
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                          (not (and valid-start? valid-direction? pairing-allowed?))))
+                                                    (and (not start) (not direction)))]
+                           (not (and valid-start? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -212,10 +128,9 @@
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
-                             start? (if (:start ctx-params) true false) ; flag if a start was specified
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction :start? start?})
+                             direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
+                             params (merge start-params {:direction direction})
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -245,14 +160,15 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
+
                               valid-start? (if start (ts/valid-timestamp? start) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after :around} direction) true)
+                              valid-direction? (if direction (#{:before :after} direction) true)
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                          (not (and valid-start? valid-direction? pairing-allowed?))))
+                                                    (and (not start) (not direction)))]
+                           (not (and valid-start? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -268,11 +184,11 @@
                              ctx-params (-> ctx :request :params keywordize-keys)
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
-                             start? (if (:start ctx-params) true false) ; flag if a start was specified
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (-> ctx-params :direction keyword #{:after :around}) :before) ; default is before
-                             params (merge start-params {:direction direction :start? start?})
+                             direction (or (-> ctx-params :direction keyword #{:after}) :before) ; default is before
+                             params (merge start-params {:direction direction})
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -297,14 +213,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
-                              direction (keyword (:direction ctx-params))
-                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after :around} direction) true)
-                              ;; a specified start/direction must be together or ommitted
-                              pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                          (not (and valid-start? valid-direction? pairing-allowed?))))
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -319,9 +229,7 @@
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction :start? start?})
+                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
