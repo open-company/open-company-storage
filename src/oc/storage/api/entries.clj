@@ -157,7 +157,8 @@
             dismiss-at (-> ctx :request :body slurp)]
     (let [boards (board-res/list-boards-by-org conn (:uuid existing-org) [:created-at :updated-at :authors :viewers :access])
           allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
-          existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc (db-common/current-timestamp) :before allowed-boards)
+          existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc
+                            (db-common/current-timestamp) 0 allowed-boards)
           updated-entries (mapv
                            #(-> %
                              (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)

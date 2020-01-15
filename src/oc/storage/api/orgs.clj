@@ -255,7 +255,8 @@
                                                0 :recent-activity {:count true})
                                               0)
                              inbox-count (if user-is-member?
-                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:count true})
+                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                            0 (map :uuid allowed-boards) {:count true})
                                            0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))

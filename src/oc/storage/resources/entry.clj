@@ -8,8 +8,7 @@
             [oc.storage.db.common :as storage-db-common]
             [oc.lib.text :as oc-str]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.board :as board-res]
-            [oc.storage.lib.inbox :as inbox-lib]))
+            [oc.storage.resources.board :as board-res]))
 
 (def temp-uuid "9999-9999-9999")
 
@@ -399,7 +398,7 @@
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards nil list-comment-properties {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
@@ -413,7 +412,7 @@
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-board-uuid [[:published board-uuid]] order start
-   direction limit sort-type common/interaction-table-name [board-uuid] nil list-comment-properties {:count count}))
+   direction limit sort-type common/interaction-table-name [board-uuid] list-comment-properties {:count count}))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   "
@@ -461,20 +460,20 @@
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi
-   [[org-uuid :published false user-id]] order start direction limit sort-type common/interaction-table-name allowed-boards nil 
+   [[org-uuid :published false user-id]] order start direction limit sort-type common/interaction-table-name allowed-boards 
    list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
   "Given the UUID of the user, return all the entries the user has access to that have been published
    or have had activity in the last config/inbox-days-limit days, then filter by user-visibility on the remaining."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID]]
-   (list-all-entries-for-inbox conn org-uuid user-id order start direction allowed-boards {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit allowed-boards :- [lib-schema/UniqueID]]
+   (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards {:count false}))
 
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
-         (#{:before :after} direction)]}
-  (inbox-lib/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start direction
+         (integer? limit)]}
+  (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
    common/interaction-table-name allowed-boards user-id list-comment-properties {:count count})))
 
 ;; ----- Entry Bookmarks manipulation -----
