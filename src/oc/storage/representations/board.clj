@@ -46,25 +46,19 @@
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
-(defn- pagination-links
-  "Add `next` and/or `prior` links for pagination as needed."
-  [org board sort-type {:keys [start start? direction]} data]
+(defn- pagination-link
+  "Add `next` links for pagination as needed."
+  [org board sort-type {:keys [start]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
         first-activity (first activity)
         last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
         first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
-        next? (or (= (:direction data) :previous)
-                  (= (:next-count data) config/default-activity-limit))
-        next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction :before}))
-        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))
-        prior? (and start?
-                    (or (= (:direction data) :next)
-                        (= (:previous-count data) config/default-activity-limit)))
-        prior-url (when prior? (board-url/url org board sort-type {:start first-activity-date :direction :after}))
-        prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/board-media-type}))]
-    (remove nil? [next-link prior-link])))
+        next? (= (:next-count data) config/default-activity-limit)
+        next-url (when next? (board-url/url org board sort-type {:start last-activity-date}))
+        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
+    next-link))
 
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
@@ -86,13 +80,13 @@
   [board org-slug sort-type access-level params]
   (let [slug (:slug board)
         is-drafts-board? (= slug "drafts")
-        pagination-links (if is-drafts-board? [] (pagination-links org-slug slug sort-type params board))
+        page-link (when-not is-drafts-board? (pagination-link org-slug slug sort-type params board))
         ;; Everyone gets these
-        links (remove nil?
-               (concat pagination-links [(self-link org-slug slug :recently-posted)
-                                         (when-not is-drafts-board?
-                                            (self-link org-slug slug :recent-activity))
-                                        (up-link org-slug)]))
+        links (remove nil? [page-link
+                            (self-link org-slug slug :recently-posted)
+                            (when-not is-drafts-board?
+                              (self-link org-slug slug :recent-activity))
+                            (up-link org-slug)])
         ;; Authors get board management links
         full-links (if (= access-level :author)
                      (concat links [(create-entry-link org-slug slug)
