@@ -1,10 +1,11 @@
 (ns oc.storage.api.orgs
   "Liberator API for org resources."
-  (:require [if-let.core :refer (if-let*)]
+  (:require [clojure.walk :refer (keywordize-keys)]
+            [if-let.core :refer (if-let*)]
             [clj-time.core :as t]
             [clj-time.format :as f]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
+            [compojure.core :as compojure :refer (ANY OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.time :as lib-time]
@@ -247,11 +248,9 @@
                                                         ;; or has at least one board with author access
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
-                             must-see-count (entry-res/list-entries-by-org conn org-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:must-see true :count true})
-                             after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
-                             after-parse (f/unparse db-common/timestamp-format after-date)
                              follow-ups-count (if user-is-part-of-the-team?
-                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id :asc after-parse :after {:count true})
+                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id :desc (db-common/current-timestamp)
+                                                 :before 0 :recent-activity (map :uuid allowed-boards) {:count true})
                                                 0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
@@ -263,7 +262,6 @@
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
                                                  (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
-                                                 (assoc :must-see-count must-see-count)
                                                  (assoc :follow-ups-count follow-ups-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
@@ -328,7 +326,7 @@
 (defresource org-list [conn]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
-  :allowed-methods [:options :post]
+  :allowed-methods [:options :get :post]
 
   ;; Media type client accepts
   :available-media-types [mt/org-media-type]
@@ -337,20 +335,41 @@
   ;; Media type client sends
   :known-content-type? (by-method {
                           :options true
+                          :get true
                           :post (fn [ctx] (api-common/known-content-type? ctx mt/org-media-type))})
 
   ;; Authorization
   :allowed? (by-method {
     :options true
+    :get (fn [ctx] (if-let* [team-id (:team-id ctx)
+                             teams (-> ctx :user :teams)
+                             _member? (.contains teams team-id)]
+                      true))
     :post (fn [ctx] (access/allow-team-admins-or-no-org
                       conn (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
 
   ;; Validations
+  :malformed? (by-method {
+    :options false
+    :get (fn [ctx] (if-let* [ctx-params (keywordize-keys (-> ctx :request :params))
+                             team-id (:team-id ctx-params) ; org lookup is by team-id
+                             _team-id? (lib-schema/unique-id? team-id)]
+                     [false {:team-id team-id}]
+                     true))
+    :post (fn [ctx] (api-common/malformed-json? ctx))})
   :processable? (by-method {
     :options true
+    :get true
     :post (fn [ctx] (valid-new-org? conn ctx))})
 
   :conflict? (fn [ctx] (not (is-first-org? conn (:user ctx))))
+
+  ;; Existentialism
+  :exists? (by-method {
+             :get (fn [ctx] (if-let* [team-id (:team-id ctx)
+                                      orgs (org-res/list-orgs-by-team conn team-id [:logo-url :logo-width :logo-height])]
+                              (if (empty? orgs) false {:existing-orgs (api-common/rep orgs)})
+                              false))})
 
   ;; Actions
   :post! (fn [ctx] (create-org conn ctx))
@@ -372,6 +391,8 @@
                                 (org-rep/url slug)
                                 (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)
                                   mt/org-media-type)))
+  :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
+                         (org-rep/render-org-list existing-orgs (:user ctx))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
@@ -380,7 +401,7 @@
 (defn routes [sys]
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
-      ;; Org creation
+      ;; Org creation and lookup
       (ANY "/orgs" [] (pool/with-pool [conn db-pool] (org-list conn)))
       (ANY "/orgs/" [] (pool/with-pool [conn db-pool] (org-list conn)))
       ;; Org operations

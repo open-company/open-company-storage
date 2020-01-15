@@ -8,7 +8,6 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
-            [oc.storage.lib.sort :as sort]
             [oc.storage.api.access :as access]
             [oc.storage.resources.reaction :as reaction-res]))
 
@@ -132,6 +131,15 @@
     entry
     (assoc entry key-name collection)))
 
+(defn- entry-new-at
+  "Return the most recent created-at of the comments, exclude comments from current user if needed."
+  [user-id entry]
+  (let [all-comments (filterv :body (:interactions entry))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)
+        sorted-comments (sort-by :created-at filtered-comments)]
+    (when (seq sorted-comments)
+      (-> sorted-comments last :created-at))))
+
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -153,9 +161,8 @@
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
-                           :new-at (-> (sort/entry-new-at user-id entry-with-comments true)
-                                    vals
-                                    first)} entry)
+                           :new-at (entry-new-at user-id entry-with-comments)}
+                          entry)
         reaction-list (if (= access-level :public)
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
