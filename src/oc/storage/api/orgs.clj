@@ -256,8 +256,6 @@
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:count true})
                                            0)
-                             after-date (f/parse (f/formatter "yyyyMMdd") "19700101")
-                             after-parse (f/unparse db-common/timestamp-format after-date)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
