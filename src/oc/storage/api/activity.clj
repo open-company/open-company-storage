@@ -64,14 +64,12 @@
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see} org board-by-uuids allowed-boards user-id]
+  [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
   (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        order (if (= :after direction) :asc :desc)
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :asc (db-common/current-timestamp)
-                           :before allowed-boards {:count true})
-        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id order start direction allowed-boards)
-        activities {:direction :next
-                    :next-count (count entries)
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
+                           0 allowed-boards {:count true})
+        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start 0 allowed-boards)
+        activities {:next-count (count entries)
                     :total-count total-inbox-count
                     :user-reads user-reads}]
     ;; Give each activity its board name
@@ -213,14 +211,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
-                              direction (keyword (:direction ctx-params))
-                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after :around} direction) true)
-                              ;; a specified start/direction must be together or ommitted
-                              pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                          (not (and valid-start? valid-direction? pairing-allowed?))))
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -235,9 +227,7 @@
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (#{:after :around} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction :start? start?})
+                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
