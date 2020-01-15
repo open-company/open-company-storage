@@ -481,17 +481,16 @@
 
 (schema/defn ^:always-validate list-all-bookmarked-entries
   "Given the UUID of the user, return all the published entries with a bookmark for the given user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction]
-    (list-all-bookmarked-entries conn org-uuid user-id order start direction {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction {:keys [count] :or {count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type]
+    (list-all-bookmarked-entries conn org-uuid user-id order start direction limit sort-type {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
-         (#{:before :after} direction)]}
-    (db-common/read-all-resources-and-relations conn table-name
-      :org-uuid-status-bookmark-user-id-map-multi [[org-uuid :published user-id]]
-      "published-at" order start direction
-      :interactions common/interaction-table-name :uuid :resource-uuid
-      list-comment-properties {:count count})))
+         (#{:before :after} direction)
+         (#{:recent-activity :recently-posted} sort-type)]}
+  (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
+   [[org-uuid :published user-id]] order start direction limit sort-type common/interaction-table-name nil
+   user-id list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"

@@ -45,13 +45,15 @@
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuids user-id]
   (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        order (if (= :after direction) :asc :desc)
+        order (if (= direction :before) :desc :asc)
         total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc
-                               (db-common/current-timestamp) :before {:count true})
-        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction {:count true})
+                               (db-common/current-timestamp) :before 0 sort-type {:count true})
+        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction
+                 config/default-activity-limit sort-type {:count false})
         activities {:direction direction
                     :next-count (count entries)
-                    :total-count total-bookmarks-count}]
+                    :total-count total-bookmarks-count
+                    :user-reads user-reads}]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
                                                           activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
@@ -192,7 +194,7 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-bookmarks conn params org sort-type board-by-uuids allowed-boards user-id)]
+                             activity (assemble-bookmarks conn params org sort-type board-by-uuids user-id)]
                           (activity-rep/render-activity-list params org "bookmarks" sort-type activity boards user))))
 
 ;; A resource to retrieve Inbox posts

@@ -251,7 +251,8 @@
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
                              bookmarks-count (if user-is-member?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before {:count true})
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
+                                               0 :recent-activity {:count true})
                                               0)
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp) :before (map :uuid allowed-boards) {:count true})
