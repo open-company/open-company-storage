@@ -49,17 +49,13 @@
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
                  config/default-activity-limit sort-type {:must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction
-                    :entries (map #(entry-rep/render-entry-for-collection org board %
-                                    (entry-rep/comments %) (reaction-res/aggregate-reactions (entry-rep/reactions %))
-                                    access-level user-id)
-                              entries)}
-        fixed-activities (update activities :entries #(map (fn [activity] (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-name (:name board)}))
-                            %))]
+                    :direction direction}]
     ;; Give each activity its board name
-    (merge board fixed-activities)))
+    (merge board activities {:entries (map (fn [activity]
+                                            (merge activity {
+                                             :board-slug (:slug board)
+                                             :board-name (:name board)}))
+                                       entries)})))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
@@ -74,24 +70,15 @@
                   all-drafts)
         board-uuids (distinct (map :board-uuid entries))
         boards (filter map? (map #(board-res/get-board conn %) board-uuids))
-        board-map (zipmap (map :uuid boards) boards)
-        entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
-                            [] []
-                            (:access-level ctx) (-> ctx :user :user-id))
-                        entries)]
-    (assemble-board org-slug board entry-reps ctx)))
+        board-map (zipmap (map :uuid boards) boards)]
+    (assemble-board org-slug board entries ctx)))
 
   ;; Regular board
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
-        entries (entry-res/list-entries-by-board conn (:uuid board) {}) ; all entries for the board
-        entry-reps (map #(entry-rep/render-entry-for-collection org board %
-                            (comments %)
-                            (reaction-res/aggregate-reactions (reactions %))
-                            (:access-level ctx) (-> ctx :user :user-id))
-                      entries)]
-    (assemble-board org-slug board entry-reps ctx)))
+        entries (entry-res/list-entries-by-board conn (:uuid board) {})] ; all entries for the board
+    (assemble-board org-slug board entries ctx)))
 
   ;; Recursion to finish up both kinds of boards
   ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
