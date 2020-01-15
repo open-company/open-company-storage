@@ -69,7 +69,7 @@
     (assemble-board org-slug board entries ctx)))
 
   ;; Recursion to finish up both kinds of boards
-  ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
+  ([org-slug :guard string? board :guard map? entry-reps :guard coll? ctx]
   (let [slug (:slug board)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
