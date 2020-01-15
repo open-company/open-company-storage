@@ -18,7 +18,7 @@
             [oc.storage.lib.timestamp :as ts]))
 
 (defn- assemble-activity
-  "Assemble the requested activity (params) for the provided org."
+  "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
    org sort-type board-by-uuid allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
@@ -37,7 +37,7 @@
                                     %))))
 
 (defn- assemble-follow-ups
-  "Assemble the requested activity (params) for the provided org."
+  "Assemble the requested (by the params) follow-up entries for the provided user."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuid
    allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)

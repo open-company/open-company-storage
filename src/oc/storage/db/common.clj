@@ -1,31 +1,32 @@
 (ns oc.storage.db.common
-  "CRUD function to retrieve entries from RethinkDB with pagination."
+  "RethinkDB fns specific to storage service."
   (:require [rethinkdb.query :as r]
             [oc.lib.db.common :as db-common]))
 
 (defn read-paginated-entries
- [conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards user-id
-  relation-fields {:keys [count] :or {count false}}]
- {:pre [(db-common/conn? conn)
-        (db-common/s-or-k? table-name)
-        (db-common/s-or-k? index-name)
-        (or (string? index-value) (sequential? index-value))
-        (db-common/s-or-k? relation-table-name)
-        (#{:desc :asc} order)
-        (not (nil? start))
-        (#{:after :before} direction)
-        (integer? limit)
-        (#{:recent-activity :recently-posted} sort-type)
-        (sequential? relation-fields)
-        (every? db-common/s-or-k? relation-fields)]}
+  "CRUD function to retrieve entries from RethinkDB with pagination."
+  [conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+   user-id relation-fields {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (db-common/s-or-k? table-name)
+         (db-common/s-or-k? index-name)
+         (or (string? index-value) (sequential? index-value))
+         (db-common/s-or-k? relation-table-name)
+         (#{:desc :asc} order)
+         (not (nil? start))
+         (#{:after :before} direction)
+         (integer? limit)
+         (#{:recent-activity :recently-posted} sort-type)
+         (sequential? relation-fields)
+         (every? db-common/s-or-k? relation-fields)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
         order-fn (if (= order :desc) r/desc r/asc)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
-            ;; Merge in a last-activity-at date for each post, which is the
-            ;; last comment created-at, with fallback to published-at or created-at for published entries
-            ;; the entry created-at in all the other cases.
+            ;; Merge in a last-activity-at date for each entry, which is the
+            ;; last comment created-at, with fallback to published-at or created-at
+            ;; for published entries, and the entry created-at in all the other cases.
             (r/merge query (r/fn [post-row]
               (if (= sort-type :recent-activity)
                 {:last-activity-at (-> (r/table relation-table-name)
@@ -50,15 +51,15 @@
                                          (r/get-field interaction-row "created-at"))))}
                 {:last-activity-at (r/get-field post-row :published-at)})))
             (if (sequential? allowed-boards)
-              ;; Filter out:
+              ;; Filter out entries that don't belong
               (r/filter query (r/fn [post-row]
-                (r/and ;; All records in boards the user has no access
+                (r/and ;; All entries in boards the user has no access
                        (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                       ;; All records after/before the start
+                       ;; All entries after/before the start
                        (if (= direction :before)
                          (r/gt start (r/get-field post-row :last-activity-at))
                          (r/le start (r/get-field post-row :last-activity-at))))))
-              ;; Filter out only based on the date
+              ;; Filter entries based on the date
               (r/filter query (r/fn [post-row]
                 (if (= direction :before)
                   (r/gt start (r/get-field post-row :last-activity-at))
@@ -79,7 +80,7 @@
                      (not count))
               (r/limit query limit)
               query)
-            ;; Run!
+            ;; Let's finally run this bad boy!
             (r/run query conn)
             (if (= (type query) rethinkdb.net.Cursor)
               (seq query)

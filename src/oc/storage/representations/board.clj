@@ -47,7 +47,7 @@
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
 (defn- pagination-link
-  "Add `next` and/or `prior` links for pagination as needed."
+  "Add `next` links for pagination as needed."
   [org board sort-type {:keys [start]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
