@@ -48,14 +48,13 @@
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
                  config/default-activity-limit sort-type {:must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction
-                    :entries entries}
-        fixed-activities (update activities :entries #(map (fn [activity] (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-name (:name board)}))
-                            %))]
+                    :direction direction}]
     ;; Give each activity its board name
-    (merge board fixed-activities)))
+    (merge board activities {:entries (map (fn [activity]
+                                            (merge activity {
+                                             :board-slug (:slug board)
+                                             :board-name (:name board)}))
+                                       entries)})))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
