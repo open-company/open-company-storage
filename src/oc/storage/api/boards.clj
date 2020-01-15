@@ -18,26 +18,14 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
-            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.lib.timestamp :as ts]
             [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----
-
-(defn- comments
-  "Return a sequence of just the comments for an entry."
-  [{interactions :interactions}]
-  (filter :body interactions))
-
-(defn- reactions
-  "Return a sequence of just the reactions for an entry."
-  [{interactions :interactions}]
-  (filter :reaction interactions))
 
 (defn- assemble-paginated-board
   "Assemble the requested activity (params) for the provided board."
