@@ -12,8 +12,8 @@
 (defn- inbox-url
   ([collection-type {slug :slug}]
   (str "/orgs/" slug "/" collection-type))
-  ([collection-type {slug :slug :as org} {start :start direction :direction}]
-  (str (inbox-url collection-type org) "?start=" start "&direction=" (name direction))))
+  ([collection-type {slug :slug :as org} {start :start}]
+  (str (inbox-url collection-type org) "?start=" start)))
 
 (defn- dismiss-all-url [org]
   (str (inbox-url "inbox" org) "/dismiss-all"))
