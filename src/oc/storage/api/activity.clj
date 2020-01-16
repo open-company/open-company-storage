@@ -57,7 +57,8 @@
   [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
   (let [total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
                            0 allowed-boards {:count true})
-        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start 0 allowed-boards)
+        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
+                 allowed-boards)
         activities {:next-count (count entries)
                     :total-count total-inbox-count}]
     ;; Give each activity its board name
