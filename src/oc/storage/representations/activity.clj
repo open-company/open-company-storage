@@ -24,7 +24,7 @@
     (str "/orgs/" slug "/" collection-type sort-path)))
   ([collection-type {slug :slug :as org} sort-type {start :start direction :direction}]
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-    (str (url collection-type org sort-type) concat-str "start=" start "&direction=" (name direction)))))
+    (str (url collection-type org sort-type) concat-str "start=" start (when direction "&direction=" (name direction))))))
 
 (defn- is-inbox? [collection-type]
   (= collection-type "inbox"))
@@ -37,7 +37,8 @@
         last-activity (last activity)
         last-activity-date (when activity? (or (:last-activity-at last-activity) (:last-activity-at last-activity)))
         next? (= (:next-count data) config/default-activity-limit)
-        next-url (when next? (url collection-type org sort-type {:start last-activity-date :direction direction}))
+        url-fn (if (is-inbox? collection-type) inbox-url url)
+        next-url (when next? (url-fn collection-type org sort-type {:start last-activity-date :direction direction}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))]
     next-link))
 
