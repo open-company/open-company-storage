@@ -23,8 +23,7 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]
-            [oc.storage.urls.board :as board-url]
-            [oc.lib.change.resources.read :as read]))
+            [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----
 
@@ -40,9 +39,9 @@
                     :direction direction}]
     ;; Give each activity its board name
     (merge board activities {:entries (map (fn [activity]
-                                            (merge activity {
-                                             :board-slug (:slug board)
-                                             :board-name (:name board)}))
+                                             (merge activity {
+                                              :board-slug (:slug board)
+                                              :board-name (:name board)}))
                                        entries)})))
 
 (defun- assemble-board
