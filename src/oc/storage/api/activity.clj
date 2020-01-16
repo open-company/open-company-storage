@@ -12,76 +12,62 @@
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.activity :as activity-rep]
-            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.lib.timestamp :as ts]
-            [oc.lib.change.resources.read :as read]))
+            [oc.storage.lib.timestamp :as ts]))
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
    org sort-type board-by-uuids allowed-boards user-id]
-  (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        order (if (= direction :before) :desc :asc)
+  (let [order (if (= direction :before) :desc :asc)
         limit (if digest-request 0 config/default-activity-limit)
         entries (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                  {:must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction
-                    :user-reads user-reads}]
+                    :direction direction}]
     ;; Give each activity its board name
-    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
-                                                          activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
                                                        :board-slug (:slug board)
                                                        :board-access (:access board)
-                                                       :board-name (:name board)
-                                                       :new-comments-count (entry-rep/new-comments-count activity user-id activity-read)})))
+                                                       :board-name (:name board)})))
                                     entries))))
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuids user-id]
-  (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        order (if (= direction :before) :desc :asc)
+  (let [order (if (= direction :before) :desc :asc)
         total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc
                                (db-common/current-timestamp) :before 0 sort-type {:count true})
         entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction
                  config/default-activity-limit sort-type {:count false})
         activities {:direction direction
                     :next-count (count entries)
-                    :total-count total-bookmarks-count
-                    :user-reads user-reads}]
+                    :total-count total-bookmarks-count}]
     ;; Give each activity its board name
-    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
-                                                          activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
                                                        :board-slug (:slug board)
                                                        :board-access (:access board)
-                                                       :board-name (:name board)
-                                                       :new-comments-count (entry-rep/new-comments-count activity user-id activity-read)})))
+                                                       :board-name (:name board)})))
                                   entries))))
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
-  (let [user-reads (read/retrieve-by-user config/dynamodb-opts user-id)
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
+  (let [total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
                            0 allowed-boards {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start 0 allowed-boards)
         activities {:next-count (count entries)
-                    :total-count total-inbox-count
-                    :user-reads user-reads}]
+                    :total-count total-inbox-count}]
     ;; Give each activity its board name
-    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))
-                                                          activity-read (some #(when (= (:item-id %) (:uuid activity)) %) user-reads)]
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
                                                        :board-slug (:slug board)
                                                        :board-access (:access board)
-                                                       :board-name (:name board)
-                                                       :new-comments-count (entry-rep/new-comments-count activity user-id activity-read)})))
+                                                       :board-name (:name board)})))
                                  entries))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg

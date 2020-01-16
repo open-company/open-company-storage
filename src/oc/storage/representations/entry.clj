@@ -151,7 +151,7 @@
     entry
     (assoc entry key-name collection)))
 
-(defn new-comments-count [entry user-id entry-read]
+(defn- new-comments-count [entry user-id entry-read]
   (let [all-comments (filterv :body (:interactions entry))
         filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
     (if (and filtered-comments
@@ -187,18 +187,18 @@
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
         bookmarked? ((set (:bookmarks entry)) user-id)
-        has-new-comments-count? (contains? entry :new-comments-count)
-        entry-read (when (and user-id
-                              (not has-new-comments-count?))
+        entry-read (when user-id
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
                            :bookmarked (boolean bookmarked?)
-                           :new-comments-count (if has-new-comments-count?
-                                                 (:new-comments-count entry)
-                                                 (new-comments-count entry-with-comments user-id entry-read))
-                           :new-at (entry-new-at user-id entry-with-comments)}
+                           :new-comments-count (when user-id
+                                                 (if entry-read
+                                                   (new-comments-count entry-with-comments user-id entry-read)
+                                                   0))
+                           :new-at (when user-id
+                                     (entry-new-at user-id entry-with-comments))}
                           entry)
         reaction-list (if (= access-level :public)
                         []
