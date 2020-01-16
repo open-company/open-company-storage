@@ -7,7 +7,8 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]
             [oc.storage.urls.board :as board-url]
-            [oc.storage.representations.entry :as entry-rep]))
+            [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft]))
@@ -48,15 +49,13 @@
 
 (defn- pagination-link
   "Add `next` links for pagination as needed."
-  [org board sort-type {:keys [start]} data]
+  [org board sort-type {:keys [start direction]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
-        first-activity (first activity)
-        last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
-        first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
+        last-activity-date (when activity? (:last-activity-at last-activity))
         next? (= (:next-count data) config/default-activity-limit)
-        next-url (when next? (board-url/url org board sort-type {:start last-activity-date}))
+        next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction direction}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
     next-link))
 
@@ -112,7 +111,7 @@
 (defn render-entry-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org board entry access-level user-id]
-  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (entry-rep/reactions entry) access-level user-id))
+  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (reaction-res/aggregate-reactions (entry-rep/reactions entry)) access-level user-id))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
@@ -135,5 +134,7 @@
     (json/generate-string
       (-> board
         (board-links (:slug org) sort-type access-level params)
+        (assoc :entries (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
+                         (:entries board)))
         (select-keys rep-props))
       {:pretty config/pretty?})))

@@ -4,7 +4,7 @@
 (defun url
   ([org-slug board-slug :guard string? sort-type :guard keyword? params :guard map?]
     (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-      (str (url org-slug board-slug sort-type) concat-str "start=" (:start params))))
+      (str (url org-slug board-slug sort-type) concat-str "start=" (:start params) "&direction=" (name (:direction params)))))
   ([org-slug board :guard map?]
     (url org-slug (:slug board) :recently-posted))
   ([org-slug slug :guard string?]

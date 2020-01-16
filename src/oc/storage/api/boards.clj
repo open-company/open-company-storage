@@ -18,26 +18,14 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
-            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.lib.timestamp :as ts]
             [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----
-
-(defn- comments
-  "Return a sequence of just the comments for an entry."
-  [{interactions :interactions}]
-  (filter :body interactions))
-
-(defn- reactions
-  "Return a sequence of just the reactions for an entry."
-  [{interactions :interactions}]
-  (filter :reaction interactions))
 
 (defn- assemble-paginated-board
   "Assemble the requested activity (params) for the provided board."
@@ -48,17 +36,13 @@
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
                  config/default-activity-limit sort-type {:must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction
-                    :entries (map #(entry-rep/render-entry-for-collection org board %
-                                    (entry-rep/comments %) (reaction-res/aggregate-reactions (entry-rep/reactions %))
-                                    access-level user-id)
-                              entries)}
-        fixed-activities (update activities :entries #(map (fn [activity] (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-name (:name board)}))
-                            %))]
+                    :direction direction}]
     ;; Give each activity its board name
-    (merge board fixed-activities)))
+    (merge board activities {:entries (map (fn [activity]
+                                            (merge activity {
+                                             :board-slug (:slug board)
+                                             :board-name (:name board)}))
+                                       entries)})))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
@@ -73,27 +57,18 @@
                   all-drafts)
         board-uuids (distinct (map :board-uuid entries))
         boards (filter map? (map #(board-res/get-board conn %) board-uuids))
-        board-map (zipmap (map :uuid boards) boards)
-        entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
-                            [] []
-                            (:access-level ctx) (-> ctx :user :user-id))
-                        entries)]
-    (assemble-board org-slug board entry-reps ctx)))
+        board-map (zipmap (map :uuid boards) boards)]
+    (assemble-board org-slug board entries ctx)))
 
   ;; Regular board
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
-        entries (entry-res/list-entries-by-board conn (:uuid board) {}) ; all entries for the board
-        entry-reps (map #(entry-rep/render-entry-for-collection org board %
-                            (comments %)
-                            (reaction-res/aggregate-reactions (reactions %))
-                            (:access-level ctx) (-> ctx :user :user-id))
-                      entries)]
-    (assemble-board org-slug board entry-reps ctx)))
+        entries (entry-res/list-entries-by-board conn (:uuid board) {})] ; all entries for the board
+    (assemble-board org-slug board entries ctx)))
 
   ;; Recursion to finish up both kinds of boards
-  ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
+  ([org-slug :guard string? board :guard map? entry-reps :guard coll? ctx]
   (let [slug (:slug board)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
