@@ -161,7 +161,8 @@
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
-                           :new-at (entry-new-at user-id entry-with-comments)}
+                           :new-at (when-not draft?
+                                     (entry-new-at user-id entry-with-comments))}
                           entry)
         reaction-list (if (= access-level :public)
                         []
