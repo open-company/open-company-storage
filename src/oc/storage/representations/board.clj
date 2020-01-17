@@ -62,7 +62,7 @@
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
-        is-draft-board? (= board-slug "drafts")
+        is-draft-board? (= board-slug (:slug board-res/default-drafts-board))
         links (remove nil?
                [(self-link org-slug board-slug :recently-posted options)
                 (when-not is-draft-board?
@@ -130,11 +130,14 @@
   (let [access-level (:access-level ctx)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                       representation-props
-                      public-representation-props)]
+                      public-representation-props)
+        rendered-entries (if (= (:slug board) (:slug board-res/default-drafts-board))
+                           (:entries board)
+                           (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
+                            (:entries board)))]
     (json/generate-string
       (-> board
         (board-links (:slug org) sort-type access-level params)
-        (assoc :entries (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
-                         (:entries board)))
+        (assoc :entries rendered-entries)
         (select-keys rep-props))
       {:pretty config/pretty?})))
