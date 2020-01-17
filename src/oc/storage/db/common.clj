@@ -43,14 +43,14 @@
                                            left
                                            right)))
                                        (r/default (r/fn [_err]
-                                        {"created-at" (if (r/has-fields post-row "published-at")
-                                                        (r/get-field post-row "published-at")
-                                                        (r/get-field post-row "created-at"))}))
+                                        {"created-at" (r/default
+                                                       (r/get-field post-row "published-at")
+                                                       (r/get-field post-row "created-at"))}))
                                        (r/do (r/fn [interaction-row]
                                          (r/get-field interaction-row "created-at"))))}
-                {:last-activity-at (if (r/has-fields post-row "published-at")
-                                     (r/get-field post-row "published-at")
-                                     (r/get-field post-row "created-at"))})))
+                {:last-activity-at (r/default
+                                    (r/get-field post-row "published-at")
+                                    (r/get-field post-row "created-at"))})))
             (if (sequential? allowed-boards)
               ;; Filter out:
               (r/filter query (r/fn [post-row]
