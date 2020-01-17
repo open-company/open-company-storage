@@ -192,17 +192,19 @@
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
         bookmarked? ((set (:bookmarks entry)) user-id)
-        entry-read (when user-id
+        enrich-entry? (and (not draft?)
+                           user-id)
+        entry-read (when enrich-entry?
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
                            :bookmarked (boolean bookmarked?)
-                           :new-comments-count (when user-id
+                           :new-comments-count (when enrich-entry?
                                                  (if entry-read
                                                    (new-comments-count entry-with-comments user-id entry-read)
                                                    0))
-                           :new-at (when user-id
+                           :new-at (when enrich-entry?
                                      (entry-new-at user-id entry-with-comments))}
                           entry)
         reaction-list (if (= access-level :public)
