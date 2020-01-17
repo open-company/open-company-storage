@@ -18,6 +18,7 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
+            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
@@ -57,10 +58,14 @@
                   all-drafts)
         board-uuids (distinct (map :board-uuid entries))
         boards (filter map? (map #(board-res/get-board conn %) board-uuids))
-        board-map (zipmap (map :uuid boards) boards)]
-    (assemble-board org-slug board entries ctx)))
+        board-map (zipmap (map :uuid boards) boards)
+        entry-reps (map #(entry-rep/render-entry-for-collection org (or (board-map (:board-uuid %)) board) %
+                            [] []
+                            (:access-level ctx) (-> ctx :user :user-id))
+                        entries)]
+    (assemble-board org-slug board entry-reps ctx)))
 
-  ;; Regular board
+  ;; Regular board. used on board creation since it doesn't need pagination yet
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
@@ -68,7 +73,7 @@
     (assemble-board org-slug board entries ctx)))
 
   ;; Recursion to finish up both kinds of boards
-  ([org-slug :guard string? board :guard map? entry-reps :guard coll? ctx]
+  ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
   (let [slug (:slug board)
         authors (:authors board)
         author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
