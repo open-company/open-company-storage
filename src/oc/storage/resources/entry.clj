@@ -489,7 +489,7 @@
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
    [[org-uuid :published user-id]] order start direction limit sort-type common/interaction-table-name nil
-   user-id list-comment-properties {:count count})))
+   list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"
