@@ -23,27 +23,11 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.lib.timestamp :as ts]
             [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----
-
-(defn- assemble-paginated-board
-  "Assemble the requested activity (params) for the provided board."
-  [conn sort-type {start :start direction :direction must-see :must-see} org board ctx]
-  (let [access-level (:access-level ctx)
-        user-id (-> ctx :user :user-id)
-        order (if (= direction :before) :desc :asc)
-        entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
-                 config/default-activity-limit sort-type {:must-see must-see})
-        activities {:next-count (count entries)
-                    :direction direction}]
-    ;; Give each activity its board name
-    (merge board activities {:entries (map (fn [activity]
-                                            (merge activity {
-                                             :board-slug (:slug board)
-                                             :board-name (:name board)}))
-                                       entries)})))
 
 (defun- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
@@ -63,26 +47,37 @@
                             [] []
                             (:access-level ctx) (-> ctx :user :user-id))
                         entries)]
-    (assemble-board org-slug board entry-reps ctx)))
+    (assoc board :entries entry-reps)))
 
   ;; Regular board. used on board creation since it doesn't need pagination yet
   ([conn org :guard map? board :guard map? ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
-        entries (entry-res/list-entries-by-board conn (:uuid board) {})] ; all entries for the board
-    (assemble-board org-slug board entries ctx)))
+        entries (entry-res/paginated-entries-by-board conn (:uuid board) :desc (db-common/current-timestamp) :before
+                 config/default-activity-limit :recent-activity {})
+        entry-reps (map #(entry-rep/render-entry-for-collection org board %
+                            (entry-rep/comments %)
+                            (reaction-res/aggregate-reactions (entry-rep/reactions %))
+                            (:access-level ctx) (-> ctx :user :user-id))
+                      entries)]
+    (assoc board :entries entry-reps)))
 
-  ;; Recursion to finish up both kinds of boards
-  ([org-slug :guard string? board :guard map? entry-reps :guard seq? ctx]
-  (let [slug (:slug board)
-        authors (:authors board)
-        author-reps (map #(board-rep/render-author-for-collection org-slug slug % (:access-level ctx)) authors)
-        viewers (:viewers board)
-        viewer-reps (map #(board-rep/render-viewer-for-collection org-slug slug % (:access-level ctx)) viewers)]
-    (-> board 
-      (assoc :authors author-reps)
-      (assoc :viewers viewer-reps)
-      (assoc :entries entry-reps)))))
+  ;; Regular paginated board, used in all the other cases
+  ([conn sort-type params org :guard map? board :guard map? ctx]
+  (let [{start :start direction :direction must-see :must-see} params
+        access-level (:access-level ctx)
+        user-id (-> ctx :user :user-id)
+        order (if (= direction :before) :desc :asc)
+        entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
+                 config/default-activity-limit sort-type {:must-see must-see})
+        activities {:next-count (count entries)
+                    :direction direction}]
+    ;; Give each activity its board name
+    (merge board activities {:entries (map (fn [activity]
+                                            (merge activity {
+                                             :board-slug (:slug board)
+                                             :board-name (:name board)}))
+                                       entries)}))))
 
 ;; ----- Validations -----
 
@@ -361,7 +356,7 @@
                                  start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                                  direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                                  params (merge start-params {:direction direction})
-                                 full-board (assemble-paginated-board conn sort-type params org board ctx)]
+                                 full-board (assemble-board conn sort-type params org board ctx)]
                               (board-rep/render-board org sort-type full-board ctx params)))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))

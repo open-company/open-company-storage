@@ -134,9 +134,15 @@
         rendered-entries (if (= (:slug board) (:slug board-res/default-drafts-board))
                            (:entries board)
                            (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
-                            (:entries board)))]
+                            (:entries board)))
+        authors (:authors board)
+        author-reps (map #(render-author-for-collection (:slug org) (:slug board) % access-level) authors)
+        viewers (:viewers board)
+        viewer-reps (map #(render-viewer-for-collection (:slug org) (:slug board) % access-level) viewers)]
     (json/generate-string
       (-> board
+        (assoc :authors author-reps)
+        (assoc :viewers viewer-reps)
         (board-links (:slug org) sort-type access-level params)
         (assoc :entries rendered-entries)
         (select-keys rep-props))
