@@ -22,6 +22,7 @@
   ([collection-type {slug :slug} sort-type]
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
     (str "/orgs/" slug "/" collection-type sort-path)))
+
   ([collection-type {slug :slug :as org} sort-type {start :start direction :direction}]
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
     (str (url collection-type org sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
@@ -35,7 +36,7 @@
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
-        last-activity-date (when activity? (or (:last-activity-at last-activity) (:last-activity-at last-activity)))
+        last-activity-date (when activity? (:last-activity-at last-activity))
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next?
                    (if (is-inbox? collection-type)
