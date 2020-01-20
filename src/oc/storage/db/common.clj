@@ -38,11 +38,9 @@
                                            (r/ge (r/get-field interaction-row "body") "")
                                            (r/ne (r/get-field (r/get-field interaction-row "author") "user-id") user-id))
                                           (r/ge (r/get-field interaction-row "body") ""))))
+                                       (r/order-by (r/desc "created-at"))
                                        (r/coerce-to :array)
-                                       (r/reduce (r/fn [left right]
-                                         (if (r/ge (r/get-field left "created-at") (r/get-field right "created-at"))
-                                           left
-                                           right)))
+                                       (r/nth 0)
                                        (r/default (r/fn [_err]
                                         {"created-at" (r/default
                                                        (r/get-field post-row "published-at")
