@@ -31,7 +31,7 @@
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type sort-type {:keys [start direction]} data]
+  [org collection-type {:keys [start direction sort-type]} data]
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
@@ -57,8 +57,9 @@
   Given an org and a sequence of entry maps, create a JSON representation of a list of
   activity for the API.
   "
-  [params org collection-type sort-type activity boards user]
-  (let [inbox? (is-inbox? collection-type)
+  [params org collection-type activity boards user]
+  (let [sort-type (:sort-type params)
+        inbox? (is-inbox? collection-type)
         collection-url (if inbox?
                          (inbox-url collection-type org)
                          (url collection-type org sort-type))
@@ -74,7 +75,7 @@
                                                                                      :content-type "text/plain"} {})
                  (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {}))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
-                (pagination-link org collection-type sort-type params activity)])]
+                (pagination-link org collection-type params activity)])]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href collection-url

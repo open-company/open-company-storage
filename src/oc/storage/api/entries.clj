@@ -252,7 +252,7 @@
         (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
-      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil))
+      (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil (api-common/get-change-client-id ctx)))
       {:updated-entry (api-common/rep (assoc updated-result :board-name (:name board)))})
 
     (do (timbre/error "Failed updating entry:" entry-for) false)))
