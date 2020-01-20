@@ -49,7 +49,7 @@
 
 (defn- pagination-link
   "Add `next` links for pagination as needed."
-  [org board sort-type {:keys [start direction]} data]
+  [org board {:keys [start direction sort-type]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
@@ -76,10 +76,10 @@
     (assoc board :links full-links)))
 
 (defn- board-links
-  [board org-slug sort-type access-level params]
+  [board org-slug access-level params]
   (let [slug (:slug board)
         is-drafts-board? (= slug "drafts")
-        page-link (when-not is-drafts-board? (pagination-link org-slug slug sort-type params board))
+        page-link (when-not is-drafts-board? (pagination-link org-slug slug params board))
         ;; Everyone gets these
         links (remove nil? [page-link
                             (self-link org-slug slug :recently-posted)
@@ -126,18 +126,24 @@
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"
-  [org sort-type board ctx params]
+  [org board ctx params]
   (let [access-level (:access-level ctx)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                       representation-props
                       public-representation-props)
-        rendered-entries (if (= (:slug board) (:slug board-res/default-drafts-board))
-                           (:entries board)
-                           (map #(render-entry-for-collection org board % access-level (-> ctx :user :user-id))
-                            (:entries board)))]
+        boards-map (:existing-org-boards ctx)
+        is-drafts-board? (= (:slug board) (:slug board-res/default-drafts-board))
+        authors (:authors board)
+        author-reps (map #(render-author-for-collection (:slug org) (:slug board) % access-level) authors)
+        viewers (:viewers board)
+        viewer-reps (map #(render-viewer-for-collection (:slug org) (:slug board) % access-level) viewers)]
     (json/generate-string
       (-> board
-        (board-links (:slug org) sort-type access-level params)
-        (assoc :entries rendered-entries)
+        (assoc :authors author-reps)
+        (assoc :viewers viewer-reps)
+        (board-links (:slug org) access-level params)
+        (assoc :entries (map #(let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
+                                (render-entry-for-collection org entry-board % access-level (-> ctx :user :user-id)))
+                         (:entries board)))
         (select-keys rep-props))
       {:pretty config/pretty?})))
