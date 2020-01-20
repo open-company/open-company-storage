@@ -36,21 +36,18 @@
                                        (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
                                        (r/filter (r/fn [interaction-row]
                                         ;; Filter out reactions
-                                        (r/ge (r/get-field interaction-row "body") "")))
+                                        (r/ge (r/get-field interaction-row :body) "")))
                                        (r/coerce-to :array)
-                                       (r/reduce (r/fn [left right]
-                                         (if (r/ge (r/get-field left "created-at") (r/get-field right "created-at"))
-                                           left
-                                           right)))
+                                       (r/order-by (r/desc :created-at))
                                        (r/default (r/fn [_err]
-                                        {"created-at" (r/default
-                                                       (r/get-field post-row "published-at")
-                                                       (r/get-field post-row "created-at"))}))
-                                       (r/do (r/fn [interaction-row]
-                                         (r/get-field interaction-row "created-at"))))}
+                                        {:created-at (r/default
+                                                       (r/get-field post-row :published-at)
+                                                       (r/get-field post-row :created-at))}))
+                                       (r/do (r/fn [activity-row]
+                                         (r/get-field activity-row :created-at))))}
                 {:last-activity-at (r/default
-                                    (r/get-field post-row "published-at")
-                                    (r/get-field post-row "created-at"))})))
+                                    (r/get-field post-row :published-at)
+                                    (r/get-field post-row :created-at))})))
             (if (sequential? allowed-boards)
               ;; Filter out:
               (r/filter query (r/fn [post-row]
@@ -114,18 +111,16 @@
                                      (r/filter (r/fn [interaction-row]
                                       ;; Filter out reactions and comments from the current user
                                       (r/and
-                                       (r/ge (r/get-field interaction-row "body") "")
-                                       (r/ne (r/get-field (r/get-field interaction-row "author") "user-id") user-id))))
+                                       (r/ge (r/get-field interaction-row :body) "")
+                                       (r/ne (r/get-field (r/get-field interaction-row :author) :user-id) user-id))))
                                      (r/coerce-to :array)
-                                     (r/reduce (r/fn [left right]
-                                       (if (r/ge (r/get-field left "created-at") (r/get-field right "created-at"))
-                                         left
-                                         right)))
-                                     (r/default {"created-at" (r/default
-                                                               (r/get-field post-row "published-at")
-                                                               (r/get-field post-row "created-at"))})
-                                     (r/do (r/fn [interaction-row]
-                                       (r/get-field interaction-row "created-at"))))}))
+                                     (r/order-by (r/desc :created-at))
+                                     (r/nth 0)
+                                     (r/default {:created-at (r/default
+                                                               (r/get-field post-row :published-at)
+                                                               (r/get-field post-row :created-at))})
+                                     (r/do (r/fn [activity-row]
+                                       (r/get-field activity-row :created-at))))}))
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
