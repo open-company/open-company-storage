@@ -19,8 +19,8 @@
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
-  [conn {start :start direction :direction must-see :must-see digest-request :digest-request}
-   org sort-type board-by-uuids allowed-boards user-id]
+  [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type}
+   org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
         limit (if digest-request 0 config/default-activity-limit)
         entries (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
@@ -37,7 +37,7 @@
 
 (defn- assemble-follow-ups
   "Assemble the requested (by the params) follow-up entries for the provided user."
-  [conn {start :start direction :direction must-see :must-see} org sort-type board-by-uuids
+  [conn {start :start direction :direction must-see :must-see sort-type :sort-type} org board-by-uuids
    allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
         entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction
@@ -115,7 +115,7 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction})
+                             params (merge start-params {:direction direction :sort-type sort-type})
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -124,8 +124,8 @@
                              fixed-params (if (= (:auth-source user) "digest")
                                             (assoc params :digest-request true)
                                             params)
-                             activity (assemble-activity conn fixed-params org sort-type board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "entries" sort-type activity boards user))))
+                             activity (assemble-activity conn fixed-params org board-by-uuids allowed-boards user-id)]
+                          (activity-rep/render-activity-list params org "entries" activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
 (defresource follow-ups [conn slug]
@@ -145,15 +145,16 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-
                               valid-start? (if start (ts/valid-timestamp? start) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
+                              valid-sort? (or (not (contains? ctx-params :sort))
+                                              (= (:sort ctx-params) "activity"))
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
                                                     (and (not start) (not direction)))]
-                           (not (and valid-start? valid-direction? pairing-allowed?))))
+                           (not (and valid-start? valid-sort? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -171,14 +172,14 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (-> ctx-params :direction keyword #{:after}) :before) ; default is before
-                             params (merge start-params {:direction direction})
+                             params (merge start-params {:direction direction :sort-type sort-type})
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-follow-ups conn params org sort-type board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "follow-ups" sort-type activity boards user))))
+                             activity (assemble-follow-ups conn params org board-by-uuids allowed-boards user-id)]
+                          (activity-rep/render-activity-list params org "follow-ups" activity boards user))))
 
 ;; A resource to retrieve Inbox posts
 (defresource inbox [conn slug]
