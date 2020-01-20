@@ -37,8 +37,8 @@
                                        (r/filter (r/fn [interaction-row]
                                         ;; Filter out reactions
                                         (r/ge (r/get-field interaction-row :body) "")))
-                                       (r/coerce-to :array)
                                        (r/order-by (r/desc :created-at))
+                                       (r/coerce-to :array)
                                        (r/default (r/fn [_err]
                                         {:created-at (r/default
                                                        (r/get-field post-row :published-at)
@@ -113,8 +113,8 @@
                                       (r/and
                                        (r/ge (r/get-field interaction-row :body) "")
                                        (r/ne (r/get-field (r/get-field interaction-row :author) :user-id) user-id))))
-                                     (r/coerce-to :array)
                                      (r/order-by (r/desc :created-at))
+                                     (r/coerce-to :array)
                                      (r/nth 0)
                                      (r/default {:created-at (r/default
                                                                (r/get-field post-row :published-at)
