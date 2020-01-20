@@ -39,6 +39,7 @@
                                         (r/ge (r/get-field interaction-row :body) "")))
                                        (r/order-by (r/desc :created-at))
                                        (r/coerce-to :array)
+                                       (r/nth 0)
                                        (r/default (r/fn [_err]
                                         {:created-at (r/default
                                                        (r/get-field post-row :published-at)
