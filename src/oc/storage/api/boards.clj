@@ -18,12 +18,10 @@
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.board :as board-rep]
-            [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.lib.timestamp :as ts]
             [oc.storage.urls.board :as board-url]))
 

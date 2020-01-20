@@ -16,6 +16,8 @@ pom.xml.asc
 /.nrepl-port
 .idea/
 
+.eastwood
+
 /opt/open-company-interaction
 
 .ruby-gemset
