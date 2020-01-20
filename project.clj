@@ -29,7 +29,10 @@
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
     ;; NB: com.taoensso/encore pulled in by oc.lib
     ;; NB: com.taoensso/timbre pulled in by oc.lib
-    [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore com.taoensso/timbre]] 
+    ;; NB: org.clojure/tools.logging pulled in by oc.lib
+    [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore
+                                             com.taoensso/timbre
+                                             org.clojure/tools.logging]]
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.1"]
     ;; Utility functions https://github.com/weavejester/medley

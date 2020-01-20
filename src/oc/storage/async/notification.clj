@@ -63,7 +63,8 @@
     (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
    :user lib-schema/User
    (schema/optional-key :note) (schema/maybe schema/Str)
-   :notification-at lib-schema/ISO8601})
+   :notification-at lib-schema/ISO8601
+   (schema/optional-key :sender-ws-client-id) (schema/maybe lib-schema/UUIDStr)})
 
 ;; ----- Event handling -----
 
@@ -121,15 +122,17 @@
      :user user
      :content nux-content
      :notification-at (oc-time/current-timestamp)})
-  ([notification-type content user] (->trigger notification-type nil nil content user nil))
-  ([notification-type org content user] (->trigger notification-type org nil content user nil))
-  ([notification-type org content user note] (->trigger notification-type org nil content user note))
-  ([notification-type org board content user note]
+  ([notification-type content user] (->trigger notification-type nil nil content user nil nil))
+  ([notification-type org content user] (->trigger notification-type org nil content user nil nil))
+  ([notification-type org content user note] (->trigger notification-type org nil content user note nil))
+  ([notification-type org board content user note] (->trigger notification-type org board content user note nil))
+  ([notification-type org board content user note ws-client-id]
   (let [notice {:notification-type notification-type
                 :resource-type (resource-type (or (:old content) (:new content)))
                 :content content
                 :user user
-                :notification-at (oc-time/current-timestamp)}
+                :notification-at (oc-time/current-timestamp)
+                :sender-ws-client-id ws-client-id}
         note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
