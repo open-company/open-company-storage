@@ -222,7 +222,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "inbox" nil activity boards user))))
+                          (activity-rep/render-activity-list params org "inbox" activity boards user))))
 
 ;; ----- Routes -----
 
