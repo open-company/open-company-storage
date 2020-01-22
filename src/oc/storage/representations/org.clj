@@ -78,7 +78,7 @@
     org))
 
 (defn- viewer-is-private-board-author? [org user]
-  (some #((:authors %) (-> user :user-id)) (:boards org)))
+  (some #((set (:authors %)) (:user-id user)) (:boards org)))
 
 (defn- reminders-link [org access-level user]
   (if (and (not (:id-token user))
