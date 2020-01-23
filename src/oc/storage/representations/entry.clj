@@ -61,7 +61,7 @@
 
   ([org-slug board-slug entry-uuid inbox-action :guard #(and (keyword? %)
                                                              #{:dismiss :follow :unfollow} %)]
-  (str (url org-slug board-slug entry-uuid) "/inbox/" (name inbox-action)))
+  (str (url org-slug board-slug entry-uuid) "/" (name inbox-action)))
 
   ([org-slug board-slug entry-uuid follow-up-uuid]
   (str (url org-slug board-slug entry-uuid) "/follow-up/" follow-up-uuid)))

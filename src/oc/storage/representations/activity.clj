@@ -16,7 +16,7 @@
   (str (inbox-url collection-type org) "?start=" start)))
 
 (defn- dismiss-all-url [org]
-  (str (inbox-url "inbox" org) "/dismiss-all"))
+  (str (inbox-url "inbox" org) "/dismiss"))
 
 (defn- url
   ([collection-type {slug :slug} sort-type]
