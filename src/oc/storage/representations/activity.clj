@@ -42,7 +42,7 @@
                    (if (is-inbox? collection-type)
                      (inbox-url collection-type org {:start last-activity-date :direction direction})
                      (url collection-type org sort-type {:start last-activity-date :direction direction})))
-        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/activity-collection-media-type}))]
+        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))]
     next-link))
 
 (defn render-activity-for-collection
@@ -70,11 +70,11 @@
         collection-rel (if recent-activity-sort? "activity" "self")
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links (remove nil?
-               [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/activity-collection-media-type} {})
+               [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/entry-collection-media-type} {})
                 (if inbox? ;; Inbox has no sort
                  (hateoas/link-map "dismiss-all" hateoas/POST (dismiss-all-url org) {:accept mt/entry-media-type
                                                                                      :content-type "text/plain"} {})
-                 (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/activity-collection-media-type} {}))
+                 (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {}))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
                 (pagination-link org collection-type params activity)])]
     (json/generate-string
