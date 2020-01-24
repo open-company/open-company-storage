@@ -5,7 +5,6 @@
             [oc.storage.resources.entry :as entry]))
 
 (defn up [conn]
-  ;; Do great things
   (println (m/create-compound-index conn entry/table-name "org-uuid-status-bookmark-user-id-map-multi"
     (r/fn [row] (r/map (r/get-field row "bookmarks")
                    (r/fn [user-id]
