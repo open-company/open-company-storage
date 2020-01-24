@@ -29,12 +29,12 @@
 
 ;; ----- Data schema -----
 
-(defn- notification-type? [notification-type] (#{:add :update :delete :nux :comment-add :dismiss :follow :unfollow} notification-type))
+(defn- notification-type? [notification-type] (#{:add :update :delete :nux :comment-add :dismiss :unread :follow :unfollow} notification-type))
 
 (defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
 
 (def InboxAction
-  {(schema/optional-key :dismiss-at) lib-schema/ISO8601
+  {(schema/optional-key :dismiss-at) (schema/maybe lib-schema/ISO8601)
    (schema/optional-key :follow) schema/Bool
    (schema/optional-key :unfollow) schema/Bool
    (schema/optional-key :client-id) (schema/maybe lib-schema/UUIDStr)
