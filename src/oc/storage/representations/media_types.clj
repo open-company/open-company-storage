@@ -5,10 +5,6 @@
 (def org-collection-media-type "application/vnd.collection+vnd.open-company.org+json;version=1")
 (def org-author-media-type "application/vnd.open-company.org.author.v1")
 
-;; Activity media types
-(def activity-collection-media-type "application/vnd.collection+vnd.open-company.activity+json;version=1")
-(def activity-calendar-media-type "application/vnd.collection+vnd.open-company.activity-calendar+json;version=1")
-
 ;; Board media types
 (def board-media-type "application/vnd.open-company.board.v1+json")
 (def board-collection-media-type "application/vnd.collection+vnd.open-company.board+json;version=1")

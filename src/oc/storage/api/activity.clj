@@ -20,39 +20,54 @@
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type}
-   org board-by-uuid allowed-boards user-id]
+   org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
         limit (if digest-request 0 config/default-activity-limit)
         entries (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                  {:must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction
-                    :activity entries}]
+                    :direction direction}]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
-                                                       (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-access (:access board)
-                                                        :board-name (:name board)})))
-                                    %))))
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)})))
+                                    entries))))
 
 (defn- assemble-follow-ups
   "Assemble the requested (by the params) follow-up entries for the provided user."
-  [conn {start :start direction :direction must-see :must-see sort-type :sort-type} org board-by-uuid
+  [conn {start :start direction :direction must-see :must-see sort-type :sort-type} org board-by-uuids
    allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
         entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction
                  config/default-activity-limit sort-type allowed-boards {:must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction
-                    :activity entries}]
+                    :direction direction}]
     ;; Give each activity its board name
-    (update activities :activity #(map (fn [activity] (let [board (board-by-uuid (:board-uuid activity))]
-                                                       (merge activity {
-                                                        :board-slug (:slug board)
-                                                        :board-access (:access board)
-                                                        :board-name (:name board)})))
-                                    %))))
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)})))
+                                  entries))))
+
+(defn- assemble-inbox
+  "Assemble the requested activity (params) for the provided org."
+  [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
+  (let [total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
+                           0 allowed-boards {:count true})
+        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
+                 allowed-boards)
+        activities {:next-count (count entries)
+                    :total-count total-inbox-count}]
+    ;; Give each activity its board name
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)})))
+                                 entries))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -63,8 +78,8 @@
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/activity-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-collection-media-type)
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
 
   ;; Authorization
   :allowed? (by-method {
@@ -105,11 +120,11 @@
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuid (zipmap board-uuids board-slugs-and-names)
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              fixed-params (if (= (:auth-source user) "digest")
                                             (assoc params :digest-request true)
                                             params)
-                             activity (assemble-activity conn fixed-params org board-by-uuid allowed-boards user-id)]
+                             activity (assemble-activity conn fixed-params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "entries" activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
@@ -119,8 +134,8 @@
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/activity-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-collection-media-type)
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
 
   ;; Authorization
   :allowed? (by-method {
@@ -152,19 +167,62 @@
                              user-id (:user-id user)
                              org (:existing-org ctx)
                              org-id (:uuid org)
-                             ctx-params (keywordize-keys (-> ctx :request :params))
+                             ctx-params (-> ctx :request :params keywordize-keys)
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
+                             direction (or (-> ctx-params :direction keyword #{:after}) :before) ; default is before
                              params (merge start-params {:direction direction :sort-type sort-type})
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuid (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-follow-ups conn params org board-by-uuid allowed-boards user-id)]
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             activity (assemble-follow-ups conn params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "follow-ups" activity boards user))))
+
+;; A resource to retrieve entries with unread activity
+(defresource inbox [conn slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+
+  ;; Check the request
+  :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+                              start (:start ctx-params)
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
+
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
+                        {:existing-org (api-common/rep org)}
+                        false))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (let [user (:user ctx)
+                             user-id (:user-id user)
+                             org (:existing-org ctx)
+                             org-id (:uuid org)
+                             ctx-params (keywordize-keys (-> ctx :request :params))
+                             start? (if (:start ctx-params) true false) ; flag if a start was specified
+                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             board-uuids (map :uuid boards)
+                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             activity (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
+                          (activity-rep/render-activity-list params org "inbox" activity boards user))))
 
 ;; ----- Routes -----
 
@@ -180,4 +238,9 @@
       (OPTIONS "/orgs/:slug/follow-ups" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
       (OPTIONS "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
       (GET "/orgs/:slug/follow-ups" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (GET "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug))))))
+      (GET "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
+
+      (OPTIONS "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
+      (OPTIONS "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
+      (GET "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
+      (GET "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug))))))
