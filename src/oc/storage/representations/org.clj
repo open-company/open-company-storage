@@ -40,10 +40,10 @@
   (assoc org :links [(item-link org)]))
 
 (defn- activity-link [org]
-  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/entry-collection-media-type}))
 
 (defn- recent-activity-link [org]
-  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/entry-collection-media-type}))
 
 (defn- change-link [org access-level user]
   (if (or (= access-level :author) (= access-level :viewer))
@@ -77,8 +77,14 @@
         nil))
     org))
 
+(defn- viewer-is-private-board-author? [org user]
+  (some #((set (:authors %)) (:user-id user)) (:boards org)))
+
 (defn- reminders-link [org access-level user]
-  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
+  (if (and (not (:id-token user))
+           (or (= access-level :author)
+               (and (= access-level :viewer)
+                    (viewer-is-private-board-author? org user))))
     (update-in org [:links] conj
       (hateoas/link-map
         "reminders"
@@ -97,7 +103,7 @@
         "bookmarks"
         hateoas/GET
         (str (url org) "/bookmarks")
-        {:accept mt/activity-collection-media-type}))
+        {:accept mt/entry-collection-media-type}))
     org))
 
 (defn- recent-bookmarks-link [org access-level user]
@@ -107,7 +113,7 @@
         "bookmarks-activity"
         hateoas/GET
         (str (url org) "/bookmarks?sort=activity")
-        {:accept mt/activity-collection-media-type}))
+        {:accept mt/entry-collection-media-type}))
     org))
 
 (defn- payments-link [{:keys [team-id]}]
@@ -126,7 +132,7 @@
         "inbox"
         hateoas/GET
         (str (url org) "/inbox")
-        {:accept mt/activity-collection-media-type}))
+        {:accept mt/entry-collection-media-type}))
     org))
 
 (defn- org-links [org access-level user sample-content?]

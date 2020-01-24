@@ -67,7 +67,8 @@
     "Trace: " c/liberator-trace "\n"
     "Log level: " c/log-level "\n"
     "Sentry: " c/dsn "\n"
-    "Payments?: " c/payments-enabled? "\n\n"
+    "Payments?: " c/payments-enabled? "\n"
+    "Unread limit: " c/unread-days-limit " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition

@@ -80,8 +80,8 @@
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/activity-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-collection-media-type)
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
 
   ;; Authorization
   :allowed? (by-method {
@@ -136,8 +136,8 @@
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/activity-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-collection-media-type)
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
 
   ;; Authorization
   :allowed? (by-method {
@@ -183,15 +183,15 @@
                              activity (assemble-bookmarks conn params org board-by-uuids user-id)]
                           (activity-rep/render-activity-list params org "bookmarks" activity boards user))))
 
-;; A resource to retrieve Inbox posts
+;; A resource to retrieve entries with unread activity
 (defresource inbox [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/activity-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/activity-collection-media-type)
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
 
   ;; Authorization
   :allowed? (by-method {
