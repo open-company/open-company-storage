@@ -25,6 +25,7 @@
 (def temp-index-name "org-uuid-status-follow-ups-completed?-multi")
 
 (defn- create-temp-index [conn]
+  (println "Adding temporary index to retrieve uncompleted follow-ups")
   (println (m/create-compound-index conn entry/table-name temp-index-name
     (r/fn [row] (r/map (r/get-field row "follow-ups")
                    (r/fn [follow-up-row]
@@ -34,7 +35,8 @@
     {:multi true})))
 
 (defn- delete-temp-index [conn]
-  (println (m/remove-index conn entry/table-name temp-index-name)))
+  (println (m/remove-index conn entry/table-name temp-index-name))
+  (println "Removed temporary follow-ups index."))
 
 (defn- unique-entries-for-org [conn org-uuid]
   (let [all-entries (db-common/read-resources conn entry/table-name temp-index-name
@@ -43,6 +45,7 @@
         unique-entries (map (fn [entry-uuid]
                               (first (filter #(= (:uuid %) entry-uuid) all-entries)))
                         all-uuids)]
+    (println " Found follow-ups:")
     (println "   count all-entries" (count all-entries))
     (println "   count all-uuids" (count all-uuids))
     (println "   count unique-entries" (count unique-entries))
