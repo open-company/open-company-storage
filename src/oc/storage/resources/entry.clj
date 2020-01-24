@@ -465,7 +465,7 @@
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
   "Given the UUID of the user, return all the entries the user has access to that have been published
-   or have had activity in the last config/inbox-days-limit days, then filter by user-visibility on the remaining."
+   or have had activity in the last config/unread-days-limit days, then filter by user-visibility on the remaining."
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit allowed-boards :- [lib-schema/UniqueID]]
    (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards {:count false}))
 

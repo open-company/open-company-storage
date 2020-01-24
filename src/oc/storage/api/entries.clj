@@ -1023,15 +1023,7 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool] 
           (entry conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/"
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (entry conn org-slug board-slug entry-uuid)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish"
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (publish conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug entry-uuid)))
@@ -1039,15 +1031,7 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (revert-version conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert/"
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (revert-version conn org-slug board-slug entry-uuid)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (share conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (share conn org-slug board-slug entry-uuid)))
@@ -1055,15 +1039,11 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (bookmark conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark/"
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (bookmark conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/inbox/dismiss-all"
+      (ANY "/orgs/:org-slug/inbox/dismiss"
         [org-slug]
         (pool/with-pool [conn db-pool]
           (inbox-dismiss-all conn org-slug)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/dismiss"
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/dismiss"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
@@ -1071,11 +1051,11 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/follow"
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :follow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/unfollow"
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unfollow"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unfollow))))))
