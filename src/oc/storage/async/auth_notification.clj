@@ -46,7 +46,7 @@
   [msg done-channel]
   (let [msg-body (read-message-body (:body msg))
         error (if (:test-error msg-body) (/ 1 0) false)] ; a message testing Sentry error reporting
-    (timbre/infof "Received message from SQS: %s\n" msg-body)
+    (timbre/debugf "Received message from SQS (auth notification): %s\n" msg-body)
     (>!! auth-notification-chan msg-body))
   (sqs/ack done-channel msg))
 

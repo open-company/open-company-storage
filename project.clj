@@ -41,7 +41,7 @@
     [zprint "0.5.3"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.25.1"]
+    [open-company/lib "0.17.25.2"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -57,6 +57,7 @@
     ;; clj-jwt - A Clojure library for JSON Web Token(JWT) https://github.com/liquidz/clj-jwt
     ;; clj-time - Date and time lib https://github.com/clj-time/clj-time
     ;; Environ - Get environment settings from different sources https://github.com/weavejester/environ
+    ;; Faraday - DynamoDB client https://github.com/ptaoussanis/faraday
   ]
 
   ;; All profile plugins
@@ -109,6 +110,7 @@
         :aws-sqs-bot-queue "CHANGE-ME" ; SQS queue to pass on requests to the Slack Bot
         :aws-sqs-email-queue "CHANGE-ME" ; SQS queue to pass on requests to the Email service
         :aws-sqs-auth-queue "CHANGE-ME" ; SQS queue to read notifications from the Auth service
+        :aws-sqs-storage-queue "CHANGE-ME" ; SQS queue to read requests from the Bot service
         :aws-sns-storage-topic-arn "" ; SNS topic to publish notifications (optional)
         :log-level "debug"
       }

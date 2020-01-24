@@ -234,7 +234,9 @@
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              user-id (:user-id user)
                              org (or (:updated-org ctx) (:existing-org ctx))
-                             user-is-part-of-the-team? (when user ((set (:teams user)) (:team-id org)))
+                             user-is-member? (and (not (:id-token user))
+                                                  (or (= (:access-level ctx) :author)
+                                                      (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
                              board-access (map #(board-with-access-level org % user) boards)
@@ -248,10 +250,14 @@
                                                         ;; or has at least one board with author access
                                                         (pos? (count author-access-boards))))
                              draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
-                             follow-ups-count (if user-is-part-of-the-team?
-                                                (entry-res/list-all-entries-by-follow-ups conn org-id user-id :desc (db-common/current-timestamp)
-                                                 :before 0 :recent-activity (map :uuid allowed-boards) {:count true})
-                                                0)
+                             bookmarks-count (if user-is-member?
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
+                                               0 :recent-activity {:count true})
+                                              0)
+                             inbox-count (if user-is-member?
+                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                            0 (map :uuid allowed-boards) {:count true})
+                                           0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
@@ -261,8 +267,9 @@
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
-                                                 (assoc :boards (if user-is-part-of-the-team? board-reps (map #(dissoc % :authors :viewers) board-reps)))
-                                                 (assoc :follow-ups-count follow-ups-count)
+                                                 (assoc :boards (if user-is-member? board-reps (map #(dissoc % :authors :viewers) board-reps)))
+                                                 (assoc :bookmarks-count bookmarks-count)
+                                                 (assoc :inbox-count inbox-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
                                              user

@@ -9,7 +9,8 @@
             [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
             [oc.storage.api.access :as access]
-            [oc.storage.resources.reaction :as reaction-res]))
+            [oc.storage.resources.reaction :as reaction-res]
+            [oc.lib.change.resources.read :as read]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -23,7 +24,8 @@
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
-                           :created-at :updated-at :revision-id :new-at :follow-ups])
+                           :created-at :updated-at :revision-id :follow-ups
+                           :new-at :new-comments-count :bookmarked])
 
 ;; ----- Utility functions -----
 
@@ -47,7 +49,7 @@
 (defun url
 
   ([org-slug nil]
-  (str "/orgs/" org-slug  "/follow-ups"))
+  (str "/orgs/" org-slug  "/bookmarks"))
 
   ([org-slug board-slug]
   (str (board-url/url org-slug board-slug) "/entries"))
@@ -57,8 +59,12 @@
   ([org-slug board-slug entry-uuid]
   (str (url org-slug board-slug) "/" entry-uuid))
 
-  ([org-slug board-slug entry-uuid follow-up-uuid]
-  (str (url org-slug board-slug entry-uuid) "/follow-up/" follow-up-uuid)))
+  ([org-slug board-slug entry-uuid inbox-action :guard #(and (keyword? %)
+                                                             #{:dismiss :unread :follow :unfollow} %)]
+  (str (url org-slug board-slug entry-uuid) "/" (name inbox-action)))
+
+  ([org-slug board-slug entry-uuid _bookmark? :guard true?]
+  (str (url org-slug board-slug entry-uuid) "/bookmark/")))
 
 (defn- self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
@@ -110,14 +116,33 @@
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
 
-(defn- create-follow-up-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "follow-up" hateoas/POST (str (url org-slug board-slug entry-uuid) "/follow-up")
-    {:accept mt/entry-media-type
-     :content-type mt/follow-up-request-media-type}))
-
-(defn- complete-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
-  (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
+(defn- add-bookmark-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "bookmark" hateoas/POST (url org-slug board-slug entry-uuid true)
     {:accept mt/entry-media-type}))
+
+(defn- remove-bookmark-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "bookmark" hateoas/DELETE (url org-slug board-slug entry-uuid true)
+    {:accept mt/entry-media-type}))
+
+(defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "dismiss" hateoas/POST (url org-slug board-slug entry-uuid :dismiss)
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
+
+(defn- inbox-unread-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "unread" hateoas/POST (url org-slug board-slug entry-uuid :unread)
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
+
+(defn- inbox-follow-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "follow" hateoas/POST (url org-slug board-slug entry-uuid :follow)
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
+
+(defn- inbox-unfollow-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "unfollow" hateoas/POST (url org-slug board-slug entry-uuid :unfollow)
+    {:accept mt/entry-media-type
+     :content-type "text/plain"}))
 
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
@@ -130,6 +155,14 @@
   (if (empty? collection)
     entry
     (assoc entry key-name collection)))
+
+(defn- new-comments-count [entry user-id entry-read]
+  (let [all-comments (filterv :body (:interactions entry))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
+    (if (and filtered-comments
+             entry-read)
+      (count (filterv #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
+      (count filtered-comments))))
 
 (defn- entry-new-at
   "Return the most recent created-at of the comments, exclude comments from current user if needed."
@@ -158,10 +191,20 @@
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
+        bookmarked? ((set (:bookmarks entry)) user-id)
+        enrich-entry? (and (not draft?)
+                           user-id)
+        entry-read (when enrich-entry?
+                     (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
-                           :new-at (when-not draft?
+                           :bookmarked (boolean bookmarked?)
+                           :new-comments-count (when enrich-entry?
+                                                 (if entry-read
+                                                   (new-comments-count entry-with-comments user-id entry-read)
+                                                   0))
+                           :new-at (when enrich-entry?
                                      (entry-new-at user-id entry-with-comments))}
                           entry)
         reaction-list (if (= access-level :public)
@@ -170,12 +213,10 @@
         comment-list (if (= access-level :public)
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
-        follow-ups-list (if (= access-level :public)
-                          []
-                          (map #(if (= (-> % :assignee :user-id) user-id)
-                                  (assoc % :links [(complete-follow-up-link org-slug board-slug entry-uuid (:uuid %))])
-                                  %)
-                           (:follow-ups entry)))
+        bookmarks-links (when (not= access-level :public)
+                          (if bookmarked?
+                            (remove-bookmark-link org-slug board-slug entry-uuid)
+                            (add-bookmark-link org-slug board-slug entry-uuid)))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
@@ -190,13 +231,11 @@
                                    (secure-link org-slug secure-uuid)
                                    (revert-link org-slug board-slug entry-uuid)
                                    (content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
-                                   (content/mark-unread-link entry-uuid)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
                     ;; Access by viewers get comments
                     (= access-level :viewer)
                     (concat links [(content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
-                                   (content/mark-unread-link entry-uuid)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
                     ;; Everyone else is read-only
                     :else links)
         react-links (if (and
@@ -205,6 +244,8 @@
                       ;; Authors and viewers need a link to post fresh new reactions, unless we're maxed out
                       (conj more-links (react-link org board entry-uuid))
                       more-links)
+        user-visibility (when user-id
+                          (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry)))
         full-links (cond
               ;; Drafts need a publish link
               draft?
@@ -213,7 +254,12 @@
               ;; needs a share link
               (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
               (conj react-links (share-link org-slug board-slug entry-uuid)
-               (create-follow-up-link org-slug board-slug entry-uuid))
+               bookmarks-links
+               (inbox-unread-link org-slug board-slug entry-uuid)
+               (inbox-dismiss-link org-slug board-slug entry-uuid)
+               (if (:unfollow user-visibility)
+                 (inbox-follow-link org-slug board-slug entry-uuid)
+                 (inbox-unfollow-link org-slug board-slug entry-uuid)))
               ;; Otherwise just the links they already have
               :else react-links)]
     (-> (if secure-access?
@@ -226,7 +272,6 @@
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
-      (assoc :follow-ups follow-ups-list)
       (assoc :links full-links)))))
 
 (defn render-entry-for-collection

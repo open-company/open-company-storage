@@ -5,7 +5,8 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.sqs :as sqs]
             [oc.storage.async.notification :as notification]
-            [oc.storage.async.auth-notification :as auth]
+            [oc.storage.async.auth-notification :as auth-notif]
+            [oc.storage.async.storage-notification :as storage-notif]
             [oc.storage.config :as c]))
 
 (defrecord HttpKit [options handler]
@@ -78,7 +79,7 @@
 
   (start [component]
     (timbre/info "[auth-notifcation] starting...")
-    (auth/start component)
+    (auth-notif/start component)
     (timbre/info "[auth-notification] started")
     (assoc component :auth-notification true))
 
@@ -86,16 +87,35 @@
     (if auth-notification
       (do
         (timbre/info "[auth-notification] stopping...")
-        (auth/stop)
+        (auth-notif/stop)
         (timbre/info "[auth-notification] stopped")
         (dissoc component :auth-notification))
+      component)))
+
+(defrecord StorageNotification [storage-notification-fn]
+  component/Lifecycle
+
+  (start [component]
+    (timbre/info "[storage-notification] starting...")
+    (storage-notif/start component)
+    (timbre/info "[storage-notification] started")
+    (assoc component :storage-notification true))
+
+  (stop [{:keys [storage-notification] :as component}]
+    (if storage-notification
+      (do
+        (timbre/info "[storage-notification] stopping...")
+        (storage-notif/stop)
+        (timbre/info "[storage-notification] stopped")
+        (dissoc component :storage-notification))
       component)))
 
 (defn db-only-storage-system [_opts]
   (component/system-map
    :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})))
 
-(defn storage-system [{:keys [host port handler-fn sqs-creds sqs-queue auth-sqs-msg-handler] :as opts}]
+(defn storage-system [{:keys [host port handler-fn sqs-creds auth-sqs-queue storage-sqs-queue
+                              auth-sqs-msg-handler storage-sqs-msg-handler] :as opts}]
   (component/system-map
     :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
     :async-consumers (component/using
@@ -104,7 +124,11 @@
     :auth-notification (component/using
                   (map->AuthNotification {:auth-notification-fn auth-sqs-msg-handler})
                   [:db-pool])
-    :sqs (sqs/sqs-listener sqs-creds sqs-queue auth-sqs-msg-handler)
+    :storage-notification (component/using
+                  (map->StorageNotification {:storage-notification-fn storage-sqs-msg-handler})
+                  [:db-pool])
+    :auth-sqs (sqs/sqs-listener sqs-creds auth-sqs-queue auth-sqs-msg-handler)
+    :storage-sqs (sqs/sqs-listener sqs-creds storage-sqs-queue storage-sqs-msg-handler)
     :handler (component/using
                 (map->Handler {:handler-fn handler-fn})
                 [:db-pool])
