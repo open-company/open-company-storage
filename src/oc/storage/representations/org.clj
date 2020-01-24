@@ -8,7 +8,7 @@
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at])
-(def representation-props (concat public-representation-props [:author :authors :follow-ups-count
+(def representation-props (concat public-representation-props [:author :authors :bookmarks-count
                                                                :content-visibility :inbox-count]))
 
 (defun url
@@ -96,23 +96,23 @@
         {:accept mt/reminders-list-media-type}))
     org))
 
-(defn- follow-ups-link [org access-level user]
+(defn- bookmarks-link [org access-level user]
   (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
     (update-in org [:links] conj
       (hateoas/link-map
-        "follow-ups"
+        "bookmarks"
         hateoas/GET
-        (str (url org) "/follow-ups")
+        (str (url org) "/bookmarks")
         {:accept mt/entry-collection-media-type}))
     org))
 
-(defn- recent-follow-ups-link [org access-level user]
+(defn- recent-bookmarks-link [org access-level user]
   (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
     (update-in org [:links] conj
       (hateoas/link-map
-        "follow-ups-activity"
+        "bookmarks-activity"
         hateoas/GET
-        (str (url org) "/follow-ups?sort=activity")
+        (str (url org) "/bookmarks?sort=activity")
         {:accept mt/entry-collection-media-type}))
     org))
 
@@ -179,8 +179,8 @@
         (notify-link access-level user)
         (interactions-link access-level user)
         (reminders-link access-level user)
-        (follow-ups-link access-level user)
-        (recent-follow-ups-link access-level user)
+        (bookmarks-link access-level user)
+        (recent-bookmarks-link access-level user)
         (inbox-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))

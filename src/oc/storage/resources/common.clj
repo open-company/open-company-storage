@@ -150,8 +150,8 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601
 
-  ;; FollowUps
   (schema/optional-key :follow-ups) [FollowUp]
+  (schema/optional-key :bookmarks) [lib-schema/UniqueID]
   (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
 })
 

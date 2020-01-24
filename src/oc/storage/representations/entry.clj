@@ -25,7 +25,7 @@
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id :follow-ups
-                           :new-at :new-comments-count])
+                           :new-at :new-comments-count :bookmarked])
 
 ;; ----- Utility functions -----
 
@@ -49,7 +49,7 @@
 (defun url
 
   ([org-slug nil]
-  (str "/orgs/" org-slug  "/follow-ups"))
+  (str "/orgs/" org-slug  "/bookmarks"))
 
   ([org-slug board-slug]
   (str (board-url/url org-slug board-slug) "/entries"))
@@ -63,8 +63,8 @@
                                                              #{:dismiss :follow :unfollow} %)]
   (str (url org-slug board-slug entry-uuid) "/" (name inbox-action)))
 
-  ([org-slug board-slug entry-uuid follow-up-uuid]
-  (str (url org-slug board-slug entry-uuid) "/follow-up/" follow-up-uuid)))
+  ([org-slug board-slug entry-uuid _bookmark? :guard true?]
+  (str (url org-slug board-slug entry-uuid) "/bookmark/")))
 
 (defn- self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
@@ -116,13 +116,12 @@
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
 
-(defn- create-follow-up-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "follow-up" hateoas/POST (str (url org-slug board-slug entry-uuid) "/follow-up")
-    {:accept mt/entry-media-type
-     :content-type mt/follow-up-request-media-type}))
+(defn- add-bookmark-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "bookmark" hateoas/POST (url org-slug board-slug entry-uuid true)
+    {:accept mt/entry-media-type}))
 
-(defn- complete-follow-up-link [org-slug board-slug entry-uuid follow-up-uuid]
-  (hateoas/link-map "mark-complete" hateoas/POST (str (url org-slug board-slug entry-uuid follow-up-uuid) "/complete")
+(defn- remove-bookmark-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "bookmark" hateoas/DELETE (url org-slug board-slug entry-uuid true)
     {:accept mt/entry-media-type}))
 
 (defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
@@ -187,6 +186,7 @@
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
+        bookmarked? ((set (:bookmarks entry)) user-id)
         enrich-entry? (and (not draft?)
                            user-id)
         entry-read (when enrich-entry?
@@ -194,6 +194,7 @@
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
+                           :bookmarked (boolean bookmarked?)
                            :new-comments-count (when enrich-entry?
                                                  (if entry-read
                                                    (new-comments-count entry-with-comments user-id entry-read)
@@ -207,12 +208,10 @@
         comment-list (if (= access-level :public)
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
-        follow-ups-list (if (= access-level :public)
-                          []
-                          (map #(if (= (-> % :assignee :user-id) user-id)
-                                  (assoc % :links [(complete-follow-up-link org-slug board-slug entry-uuid (:uuid %))])
-                                  %)
-                           (:follow-ups entry)))
+        bookmarks-links (when (not= access-level :public)
+                          (if bookmarked?
+                            (remove-bookmark-link org-slug board-slug entry-uuid)
+                            (add-bookmark-link org-slug board-slug entry-uuid)))
         links (if secure-access?
                 ;; secure UUID access
                 [(secure-self-link org-slug secure-uuid)]
@@ -252,7 +251,7 @@
               ;; needs a share link
               (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
               (conj react-links (share-link org-slug board-slug entry-uuid)
-               (create-follow-up-link org-slug board-slug entry-uuid)
+               bookmarks-links
                (inbox-dismiss-link org-slug board-slug entry-uuid)
                (if (:unfollow user-visibility)
                  (inbox-follow-link org-slug board-slug entry-uuid)
@@ -269,7 +268,6 @@
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
-      (assoc :follow-ups follow-ups-list)
       (assoc :links full-links)))))
 
 (defn render-entry-for-collection

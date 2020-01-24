@@ -35,15 +35,17 @@
                                                        :board-name (:name board)})))
                                     entries))))
 
-(defn- assemble-follow-ups
-  "Assemble the requested (by the params) follow-up entries for the provided user."
-  [conn {start :start direction :direction must-see :must-see sort-type :sort-type} org board-by-uuids
-   allowed-boards user-id]
+(defn- assemble-bookmarks
+  "Assemble the requested activity (params) for the provided org."
+  [conn {start :start direction :direction must-see :must-see sort-type :sort-type} org board-by-uuids user-id]
   (let [order (if (= direction :before) :desc :asc)
-        entries (entry-res/list-all-entries-by-follow-ups conn (:uuid org) user-id order start direction
-                 config/default-activity-limit sort-type allowed-boards {:must-see must-see})
-        activities {:next-count (count entries)
-                    :direction direction}]
+        total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc
+                               (db-common/current-timestamp) :before 0 sort-type {:count true})
+        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction
+                 config/default-activity-limit sort-type {:count false})
+        activities {:direction direction
+                    :next-count (count entries)
+                    :total-count total-bookmarks-count}]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
@@ -128,7 +130,7 @@
                           (activity-rep/render-activity-list params org "entries" activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
-(defresource follow-ups [conn slug]
+(defresource bookmarks [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
@@ -178,8 +180,8 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-follow-ups conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "follow-ups" activity boards user))))
+                             activity (assemble-bookmarks conn params org board-by-uuids user-id)]
+                          (activity-rep/render-activity-list params org "bookmarks" activity boards user))))
 
 ;; A resource to retrieve entries with unread activity
 (defresource inbox [conn slug]
@@ -235,10 +237,10 @@
       (GET "/orgs/:slug/entries" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
       (GET "/orgs/:slug/entries/" [slug] (pool/with-pool [conn db-pool] (activity conn slug)))
 
-      (OPTIONS "/orgs/:slug/follow-ups" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (OPTIONS "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (GET "/orgs/:slug/follow-ups" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
-      (GET "/orgs/:slug/follow-ups/" [slug] (pool/with-pool [conn db-pool] (follow-ups conn slug)))
+      (OPTIONS "/orgs/:slug/bookmarks" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
+      (OPTIONS "/orgs/:slug/bookmarks/" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
+      (GET "/orgs/:slug/bookmarks" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
+      (GET "/orgs/:slug/bookmarks/" [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
 
       (OPTIONS "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (OPTIONS "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
