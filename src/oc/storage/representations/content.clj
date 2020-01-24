@@ -1,13 +1,9 @@
 (ns oc.storage.representations.content
   "Resource representations for OpenCompany content resources (which receive comments and reactions)."
-  (:require [defun.core :refer (defun defun-)]
+  (:require [defun.core :refer (defun-)]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
-
-(defn- change-url
-  ([resource-uuid]
-   (str config/change-server-url "/change/read/post/" resource-uuid)))
 
 (defun- interaction-url
 
@@ -38,10 +34,6 @@
     (hateoas/link-map "comments" hateoas/GET comment-url {:accept mt/comment-collection-media-type}
                                                           {:count (count comments)
                                                            :authors (comment-authors comments)})))
-
-(defn mark-unread-link [resource-uuid]
-  (let [mark-unread-url (change-url resource-uuid)]
-    (hateoas/link-map "mark-unread" hateoas/DELETE mark-unread-url {})))
 
 (defn- react-link [org-uuid board-uuid resource-uuid reaction]
   (let [react-url (interaction-url org-uuid board-uuid resource-uuid reaction)]
