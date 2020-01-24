@@ -2,9 +2,17 @@
   "
   For every read we have in DynamoDB, create a dismiss-at record in the corresponding entry.
 
-  Usage:
+  Dry run:
 
   lein run -m oc.storage.util.import-inbox-dismiss
+
+  To actualy update
+
+  lein run -m oc.storage.util.import-inbox-dismiss -f
+
+  or
+
+  lein run -m oc.storage.util.import-inbox-dismiss --force-update
   "
   (:require [clojure.string :as s]
             [clojure.tools.cli :refer (parse-opts)]
@@ -24,7 +32,7 @@
 ;; ----- CLI -----
 
 (def cli-options
-  [])
+  [["-f" "--force-update"]])
 
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
@@ -53,7 +61,8 @@
                                              next-user-visibility)))
                         updated-entry (assoc e :user-visibility entry-user-vis)]
                     (println "Updating entry" (:uuid e) "with:" entry-user-vis)
-                    (entry/update-entry-no-user! conn (:uuid e) updated-entry))))))))
+                    (when (:force-update options)
+                      (entry/update-entry-no-user! conn (:uuid e) updated-entry)))))))))
       (catch Exception e
         (println e)
-        (exit 1 "Exception migrating follow<->unfollow.")))))
+        (exit 1 "Exception migrating read->dimiss-at.")))))
