@@ -8,8 +8,8 @@
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at])
-(def representation-props (concat public-representation-props [:author :authors :must-see-count :follow-ups-count
-                                                               :content-visibility]))
+(def representation-props (concat public-representation-props [:author :authors :bookmarks-count
+                                                               :content-visibility :inbox-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -40,10 +40,10 @@
   (assoc org :links [(item-link org)]))
 
 (defn- activity-link [org]
-  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/entry-collection-media-type}))
 
 (defn- recent-activity-link [org]
-  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/activity-collection-media-type}))
+  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/entry-collection-media-type}))
 
 (defn- change-link [org access-level user]
   (if (or (= access-level :author) (= access-level :viewer))
@@ -77,8 +77,14 @@
         nil))
     org))
 
+(defn- viewer-is-private-board-author? [org user]
+  (some #((set (:authors %)) (:user-id user)) (:boards org)))
+
 (defn- reminders-link [org access-level user]
-  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
+  (if (and (not (:id-token user))
+           (or (= access-level :author)
+               (and (= access-level :viewer)
+                    (viewer-is-private-board-author? org user))))
     (update-in org [:links] conj
       (hateoas/link-map
         "reminders"
@@ -90,24 +96,24 @@
         {:accept mt/reminders-list-media-type}))
     org))
 
-(defn- follow-ups-link [org access-level user]
+(defn- bookmarks-link [org access-level user]
   (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
     (update-in org [:links] conj
       (hateoas/link-map
-        "follow-ups"
+        "bookmarks"
         hateoas/GET
-        (str (url org) "/follow-ups")
-        {:accept mt/activity-collection-media-type}))
+        (str (url org) "/bookmarks")
+        {:accept mt/entry-collection-media-type}))
     org))
 
-(defn- recent-follow-ups-link [org access-level user]
+(defn- recent-bookmarks-link [org access-level user]
   (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
     (update-in org [:links] conj
       (hateoas/link-map
-        "follow-ups-activity"
+        "bookmarks-activity"
         hateoas/GET
-        (str (url org) "/follow-ups?sort=activity")
-        {:accept mt/activity-collection-media-type}))
+        (str (url org) "/bookmarks?sort=activity")
+        {:accept mt/entry-collection-media-type}))
     org))
 
 (defn- payments-link [{:keys [team-id]}]
@@ -116,6 +122,18 @@
     hateoas/GET
     (str config/payments-server-url "/teams/" team-id "/customer")
     {:accept mt/payments-customer-media-type}))
+
+(defn- inbox-link [org access-level user]
+  (if (and (not (:id-token user))
+           (or (= access-level :author)
+               (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "inbox"
+        hateoas/GET
+        (str (url org) "/inbox")
+        {:accept mt/entry-collection-media-type}))
+    org))
 
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
@@ -161,8 +179,9 @@
         (notify-link access-level user)
         (interactions-link access-level user)
         (reminders-link access-level user)
-        (follow-ups-link access-level user)
-        (recent-follow-ups-link access-level user)
+        (bookmarks-link access-level user)
+        (recent-bookmarks-link access-level user)
+        (inbox-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 

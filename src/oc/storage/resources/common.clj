@@ -96,6 +96,11 @@
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
+(def UserVisibility
+  "A user-visibility item."
+  {(schema/optional-key :dismiss-at) (schema/maybe lib-schema/ISO8601)
+   (schema/optional-key :unfollow) schema/Bool})
+
 (def FollowUp
   "A follow-up item."
   {
@@ -145,8 +150,10 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601
 
-  ;; FollowUps
-  (schema/optional-key :follow-ups) [FollowUp]})
+  (schema/optional-key :follow-ups) [FollowUp]
+  (schema/optional-key :bookmarks) [lib-schema/UniqueID]
+  (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
+})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."

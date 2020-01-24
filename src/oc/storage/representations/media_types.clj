@@ -5,10 +5,6 @@
 (def org-collection-media-type "application/vnd.collection+vnd.open-company.org+json;version=1")
 (def org-author-media-type "application/vnd.open-company.org.author.v1")
 
-;; Activity media types
-(def activity-collection-media-type "application/vnd.collection+vnd.open-company.activity+json;version=1")
-(def activity-calendar-media-type "application/vnd.collection+vnd.open-company.activity-calendar+json;version=1")
-
 ;; Board media types
 (def board-media-type "application/vnd.open-company.board.v1+json")
 (def board-collection-media-type "application/vnd.collection+vnd.open-company.board+json;version=1")
@@ -20,7 +16,6 @@
 (def entry-collection-media-type "application/vnd.collection+vnd.open-company.entry+json;version=1")
 (def share-request-media-type "application/vnd.open-company.share-request.v1+json")
 (def revert-request-media-type "application/vnd.open-company.revert-request.v1+json")
-(def follow-up-request-media-type "application/vnd.open-company.follow-up-request.v1+json")
 
 ;; Interaction media types
 (def comment-media-type "application/vnd.open-company.comment.v1+json")

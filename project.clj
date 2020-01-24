@@ -29,7 +29,10 @@
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
     ;; NB: com.taoensso/encore pulled in by oc.lib
     ;; NB: com.taoensso/timbre pulled in by oc.lib
-    [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore com.taoensso/timbre]] 
+    ;; NB: org.clojure/tools.logging pulled in by oc.lib
+    [ring-logger-timbre "0.7.6" :exclusions [com.taoensso/encore
+                                             com.taoensso/timbre
+                                             org.clojure/tools.logging]]
     ;; Web routing https://github.com/weavejester/compojure
     [compojure "1.6.1"]
     ;; Utility functions https://github.com/weavejester/medley
@@ -38,7 +41,7 @@
     [zprint "0.5.3"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.24.3"]
+    [open-company/lib "0.17.25.2"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -54,6 +57,7 @@
     ;; clj-jwt - A Clojure library for JSON Web Token(JWT) https://github.com/liquidz/clj-jwt
     ;; clj-time - Date and time lib https://github.com/clj-time/clj-time
     ;; Environ - Get environment settings from different sources https://github.com/weavejester/environ
+    ;; Faraday - DynamoDB client https://github.com/ptaoussanis/faraday
   ]
 
   ;; All profile plugins
@@ -88,7 +92,7 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.2"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.3.6"]
+        [jonase/eastwood "0.3.7"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-kibit "0.1.8" :exclusions [org.clojure/clojure]]
       ]

@@ -7,7 +7,8 @@
             [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]
             [oc.storage.urls.board :as board-url]
-            [oc.storage.representations.entry :as entry-rep]))
+            [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.resources.reaction :as reaction-res]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft]))
@@ -46,30 +47,22 @@
 
 (defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
 
-(defn- pagination-links
-  "Add `next` and/or `prior` links for pagination as needed."
-  [org board sort-type {:keys [start start? direction]} data]
+(defn- pagination-link
+  "Add `next` links for pagination as needed."
+  [org board {:keys [start direction sort-type]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
-        first-activity (first activity)
-        last-activity-date (when activity? (or (:published-at last-activity) (:created-at last-activity)))
-        first-activity-date (when activity? (or (:published-at first-activity) (:created-at first-activity)))
-        next? (or (= (:direction data) :previous)
-                  (= (:next-count data) config/default-activity-limit))
-        next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction :before}))
-        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))
-        prior? (and start?
-                    (or (= (:direction data) :next)
-                        (= (:previous-count data) config/default-activity-limit)))
-        prior-url (when prior? (board-url/url org board sort-type {:start first-activity-date :direction :after}))
-        prior-link (when prior-url (hateoas/link-map "previous" hateoas/GET prior-url {:accept mt/board-media-type}))]
-    (remove nil? [next-link prior-link])))
+        last-activity-date (when activity? (:last-activity-at last-activity))
+        next? (= (:next-count data) config/default-activity-limit)
+        next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction direction}))
+        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
+    next-link))
 
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
-        is-draft-board? (= board-slug "drafts")
+        is-draft-board? (= board-slug (:slug board-res/default-drafts-board))
         links (remove nil?
                [(self-link org-slug board-slug :recently-posted options)
                 (when-not is-draft-board?
@@ -83,16 +76,16 @@
     (assoc board :links full-links)))
 
 (defn- board-links
-  [board org-slug sort-type access-level params]
+  [board org-slug access-level params]
   (let [slug (:slug board)
         is-drafts-board? (= slug "drafts")
-        pagination-links (if is-drafts-board? [] (pagination-links org-slug slug sort-type params board))
+        page-link (when-not is-drafts-board? (pagination-link org-slug slug params board))
         ;; Everyone gets these
-        links (remove nil?
-               (concat pagination-links [(self-link org-slug slug :recently-posted)
-                                         (when-not is-drafts-board?
-                                            (self-link org-slug slug :recent-activity))
-                                        (up-link org-slug)]))
+        links (remove nil? [page-link
+                            (self-link org-slug slug :recently-posted)
+                            (when-not is-drafts-board?
+                              (self-link org-slug slug :recent-activity))
+                            (up-link org-slug)])
         ;; Authors get board management links
         full-links (if (= access-level :author)
                      (concat links [(create-entry-link org-slug slug)
@@ -118,7 +111,7 @@
 (defn render-entry-for-collection
   "Create a map of the activity for use in a collection in the API"
   [org board entry access-level user-id]
-  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (entry-rep/reactions entry) access-level user-id))
+  (entry-rep/render-entry-for-collection org board entry (entry-rep/comments entry) (reaction-res/aggregate-reactions (entry-rep/reactions entry)) access-level user-id))
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
@@ -133,13 +126,24 @@
 
 (defn render-board
   "Create a JSON representation of the board for the REST API"
-  [org sort-type board ctx params]
+  [org board ctx params]
   (let [access-level (:access-level ctx)
         rep-props (if (or (= :author access-level) (= :viewer access-level))
                       representation-props
-                      public-representation-props)]
+                      public-representation-props)
+        boards-map (:existing-org-boards ctx)
+        is-drafts-board? (= (:slug board) (:slug board-res/default-drafts-board))
+        authors (:authors board)
+        author-reps (map #(render-author-for-collection (:slug org) (:slug board) % access-level) authors)
+        viewers (:viewers board)
+        viewer-reps (map #(render-viewer-for-collection (:slug org) (:slug board) % access-level) viewers)]
     (json/generate-string
       (-> board
-        (board-links (:slug org) sort-type access-level params)
+        (assoc :authors author-reps)
+        (assoc :viewers viewer-reps)
+        (board-links (:slug org) access-level params)
+        (assoc :entries (map #(let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
+                                (render-entry-for-collection org entry-board % access-level (-> ctx :user :user-id)))
+                         (:entries board)))
         (select-keys rep-props))
       {:pretty config/pretty?})))
