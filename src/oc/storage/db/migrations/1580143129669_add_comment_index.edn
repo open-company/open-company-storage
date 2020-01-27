@@ -1,0 +1,19 @@
+(ns oc.storage.db.migrations.add-comment-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.resources.common :as common]))
+
+(defn up [conn]
+  (println "Create resource-uuid-reaction index...")
+  (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-reaction
+              (r/fn [row]
+                [(r/get-field row :resource-uuid)
+                 (r/get-field row :reaction)])))
+
+  (println "Create resource-uuid-author-uuid-reaction index...")
+  (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-author-uuid-reaction
+              (r/fn [row]
+                [(r/get-field row :resource-uuid)
+                 (r/get-field row [:author :user-id])
+                 (r/get-field row :reaction)])))
+  true) ; return true on success

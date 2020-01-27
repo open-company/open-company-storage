@@ -27,42 +27,33 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
+            ;; Filter on the allowed-boards
+            (if (sequential? allowed-boards)
+              (r/fn [post-row]
+                ;; All records in boards the user has no access
+                (r/contains allowed-boards (r/get-field post-row :board-uuid)))
+              query)
             ;; Merge in a last-activity-at date for each post, which is the
             ;; last comment created-at, with fallback to published-at or created-at for published entries
             ;; the entry created-at in all the other cases.
             (r/merge query (r/fn [post-row]
               (if (= sort-type :recent-activity)
                 {:last-activity-at (-> (r/table relation-table-name)
-                                       (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
-                                       (r/filter (r/fn [interaction-row]
-                                        ;; Filter out reactions
-                                        (r/ge (r/get-field interaction-row :body) "")))
-                                       (r/order-by (r/desc :created-at))
-                                       (r/coerce-to :array)
-                                       (r/nth 0)
-                                       (r/default (r/fn [_err]
-                                        {:created-at (r/default
-                                                       (r/get-field post-row :published-at)
-                                                       (r/get-field post-row :created-at))}))
-                                       (r/do (r/fn [activity-row]
-                                         (r/get-field activity-row :created-at))))}
+                                       (r/get-all [(r/get-field post-row :uuid) nil] {:index :resource-uuid-reaction})
+                                       (r/max :created-at)
+                                       (r/default
+                                        (r/default
+                                         (r/get-field post-row :published-at)
+                                         (r/get-field post-row :created-at))))}
                 {:last-activity-at (r/default
                                     (r/get-field post-row :published-at)
                                     (r/get-field post-row :created-at))})))
-            (if (sequential? allowed-boards)
-              ;; Filter out:
-              (r/filter query (r/fn [post-row]
-                (r/and ;; All records in boards the user has no access
-                       (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                       ;; All records after/before the start
-                       (if (= direction :before)
-                         (r/gt start (r/get-field post-row :last-activity-at))
-                         (r/le start (r/get-field post-row :last-activity-at))))))
-              ;; Filter out only based on the date
-              (r/filter query (r/fn [post-row]
-                (if (= direction :before)
-                  (r/gt start (r/get-field post-row :last-activity-at))
-                  (r/le start (r/get-field post-row :last-activity-at))))))
+            ;; Filter out:
+            (r/filter query (r/fn [post-row]
+              ;; All records after/before the start
+              (if (= direction :before)
+                (r/gt start (r/get-field post-row :last-activity-at))
+                (r/le start (r/get-field post-row :last-activity-at)))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]
@@ -105,31 +96,25 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
-            ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
-            (r/merge query (r/fn [post-row]
-              {:last-activity-at (-> (r/table relation-table-name)
-                                     (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
-                                     (r/filter (r/fn [interaction-row]
-                                      ;; Filter out reactions and comments from the current user
-                                      (r/and
-                                       (r/ge (r/get-field interaction-row :body) "")
-                                       (r/ne (r/get-field (r/get-field interaction-row :author) :user-id) user-id))))
-                                     (r/order-by (r/desc :created-at))
-                                     (r/coerce-to :array)
-                                     (r/nth 0)
-                                     (r/default {:created-at (r/default
-                                                               (r/get-field post-row :published-at)
-                                                               (r/get-field post-row :created-at))})
-                                     (r/do (r/fn [activity-row]
-                                       (r/get-field activity-row :created-at))))}))
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
                      (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                     ;; Leave in only posts whose last activity is within a certain amount of time
+                     ;; All records with follow false
+                     (r/not (r/default (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :unfollow) false)))))
+            ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
+            (r/merge query (r/fn [post-row]
+              {:last-activity-at (-> (r/table relation-table-name)
+                                     (r/get-all [(r/get-field post-row :uuid) user-id nil] {:index :resource-uuid-author-uuid-reaction})
+                                     (r/max :created-at)
+                                     (r/default
+                                      (r/default
+                                       (r/get-field post-row :published-at)
+                                       (r/get-field post-row :created-at))))}))
+            ;; Filter out:
+            (r/filter query (r/fn [post-row]
+              (r/and ;; Leave in only posts whose last activity is within a certain amount of time
                      (r/gt (r/get-field post-row :last-activity-at) minimum-date-timestamp)
-                     ;; All records with follow true
-                     (r/not (r/default (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :unfollow) false))
                      ;; All records that have a dismiss-at later or equal than the last activity
                      (r/gt (r/get-field post-row :last-activity-at)
                            (r/default (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :dismiss-at) "")))))
