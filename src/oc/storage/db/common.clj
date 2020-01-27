@@ -105,7 +105,9 @@
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
-                                     (r/get-all [(r/get-field post-row :uuid) user-id nil] {:index :resource-uuid-author-uuid-reaction})
+                                     (r/get-all [(r/get-field post-row :uuid) nil] {:index :resource-uuid-reaction})
+                                     (r/filter (r/fn [interaction-row]
+                                       (r/ne (r/get-field interaction-row [:author :user-id]) user-id)))
                                      (r/max :created-at)
                                      (r/default
                                       (r/default
