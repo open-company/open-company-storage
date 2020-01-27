@@ -29,9 +29,9 @@
             (r/get-all query index-values {:index index-name})
             ;; Filter on the allowed-boards
             (if (sequential? allowed-boards)
-              (r/fn [post-row]
+              (r/filter query (r/fn [post-row]
                 ;; All records in boards the user has no access
-                (r/contains allowed-boards (r/get-field post-row :board-uuid)))
+                (r/contains allowed-boards (r/get-field post-row :board-uuid))))
               query)
             ;; Merge in a last-activity-at date for each post, which is the
             ;; last comment created-at, with fallback to published-at or created-at for published entries
