@@ -6,14 +6,11 @@
 (defn up [conn]
   (println "Create resource-uuid-reaction index...")
   (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-reaction
-              (r/fn [row]
-                [(r/get-field row :resource-uuid)
-                 (r/get-field row :reaction)])))
-
-  (println "Create resource-uuid-author-uuid-reaction index...")
-  (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-author-uuid-reaction
-              (r/fn [row]
-                [(r/get-field row :resource-uuid)
-                 (r/get-field row [:author :user-id])
-                 (r/get-field row :reaction)])))
+            (r/fn [row]
+              [(r/get-field row :resource-uuid)
+               (r/get-field row :reaction)])))
+  (println "Create created-at index...")
+  (println (m/create-compound-index conn common/interaction-table-name :created-at
+            (r/fn [row]
+              (r/get-field row :created-at))))
   true) ; return true on success
