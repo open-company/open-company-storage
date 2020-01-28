@@ -8,7 +8,7 @@
   (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-comment
             (r/fn [row]
               [(r/get-field row :resource-uuid)
-               (-> (r/get-filed row :body) seq boolean)])))
+               (-> (r/get-field row :body) seq boolean)])))
   (println "Create created-at index...")
   (println (m/create-compound-index conn common/interaction-table-name :created-at
             (r/fn [row]
