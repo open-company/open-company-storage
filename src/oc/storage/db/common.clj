@@ -39,12 +39,11 @@
             (r/merge query (r/fn [post-row]
               (if (= sort-type :recent-activity)
                 {:last-activity-at (-> (r/table relation-table-name)
-                                       (r/get-all [(r/get-field post-row :uuid) nil] {:index :resource-uuid-reaction})
+                                       (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
                                        (r/max :created-at)
-                                       (r/default
-                                        (r/default
-                                         (r/get-field post-row :published-at)
-                                         (r/get-field post-row :created-at))))}
+                                       (r/get-field :created-at)
+                                       (r/default (r/get-field post-row :published-at))
+                                       (r/default (r/get-field post-row :created-at)))}
                 {:last-activity-at (r/default
                                     (r/get-field post-row :published-at)
                                     (r/get-field post-row :created-at))})))
@@ -101,18 +100,17 @@
               (r/and ;; All records in boards the user has no access
                      (r/contains allowed-boards (r/get-field post-row :board-uuid))
                      ;; All records with follow false
-                     (r/not (r/default (r/get-field (r/get-field (r/get-field post-row :user-visibility) user-id) :unfollow) false)))))
+                     (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false)))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
-                                     (r/get-all [(r/get-field post-row :uuid) nil] {:index :resource-uuid-reaction})
+                                     (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
                                      (r/filter (r/fn [interaction-row]
                                        (r/ne (r/get-field interaction-row [:author :user-id]) user-id)))
                                      (r/max :created-at)
-                                     (r/default
-                                      (r/default
-                                       (r/get-field post-row :published-at)
-                                       (r/get-field post-row :created-at))))}))
+                                     (r/get-field [:created-at])
+                                     (r/default (r/get-field post-row :published-at))
+                                     (r/default (r/get-field post-row :created-at)))}))
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; Leave in only posts whose last activity is within a certain amount of time
