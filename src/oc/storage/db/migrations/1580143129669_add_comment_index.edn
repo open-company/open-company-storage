@@ -4,11 +4,11 @@
             [oc.storage.resources.common :as common]))
 
 (defn up [conn]
-  (println "Create resource-uuid-reaction index...")
-  (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-reaction
+  (println "Create resource-uuid-comment index...")
+  (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-comment
             (r/fn [row]
               [(r/get-field row :resource-uuid)
-               (r/get-field row :reaction)])))
+               (-> (r/get-filed row :body) seq boolean)])))
   (println "Create created-at index...")
   (println (m/create-compound-index conn common/interaction-table-name :created-at
             (r/fn [row]
