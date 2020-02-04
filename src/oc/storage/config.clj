@@ -43,7 +43,7 @@
 
 ;; ----- URLs -----
 
-(defonce host "localhost")
+(defonce host (or (env :local-dev-host) "localhost"))
 
 (defonce auth-server-url (or (env :auth-server-url) (str "http://" host ":3003")))
 (defonce interaction-server-url (or (env :interaction-server-url) (str "http://" host ":3002")))
