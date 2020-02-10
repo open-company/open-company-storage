@@ -4,7 +4,6 @@
             [oc.storage.resources.common :as common]))
 
 (defn up [conn]
-  ;; Do great things
   (println (m/remove-index conn common/interaction-table-name "resource-uuid-comment"))
   (println (m/create-compound-index conn common/interaction-table-name :resource-uuid-comment
             (r/fn [row]
