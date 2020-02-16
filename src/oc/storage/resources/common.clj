@@ -74,6 +74,7 @@
   (schema/optional-key :logo-height) schema/Int
   :promoted schema/Bool
   (schema/optional-key :content-visibility) ContentVisibility
+  (schema/optional-key :why-carrot) (schema/maybe schema/Str)
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
