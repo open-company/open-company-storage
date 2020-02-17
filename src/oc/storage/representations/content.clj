@@ -5,6 +5,10 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
+(defn- change-url
+  ([resource-uuid]
+   (str config/change-server-url "/change/read/post/" resource-uuid)))
+
 (defun- interaction-url
 
   ([org-uuid board-uuid resource-uuid]
