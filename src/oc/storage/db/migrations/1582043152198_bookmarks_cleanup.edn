@@ -8,10 +8,10 @@
 
 (defn- delete-follow-ups [conn]
   (println "Remove all :follow-ups values from the existing entries.")
-  (-> (r/table entry/table-name)
-    (r/replace (r/fn [e]
-      (r/without e [:follow-ups])))
-    (r/run conn)))
+  (println (-> (r/table entry/table-name)
+            (r/replace (r/fn [e]
+              (r/without e [:follow-ups])))
+            (r/run conn))))
 
 (defn up [conn]
   (delete-follow-ups conn)
