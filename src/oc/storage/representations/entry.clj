@@ -24,7 +24,7 @@
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
-                           :created-at :updated-at :revision-id :follow-ups
+                           :created-at :updated-at :revision-id
                            :new-at :new-comments-count :bookmarked-at])
 
 ;; ----- Utility functions -----
