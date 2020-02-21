@@ -16,6 +16,7 @@
 (def entry-collection-media-type "application/vnd.collection+vnd.open-company.entry+json;version=1")
 (def share-request-media-type "application/vnd.open-company.share-request.v1+json")
 (def revert-request-media-type "application/vnd.open-company.revert-request.v1+json")
+(def entry-poll-media-type "application/vnd.open-company.entry-poll.v1+json")
 
 ;; Interaction media types
 (def comment-media-type "application/vnd.open-company.comment.v1+json")

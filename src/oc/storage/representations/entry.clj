@@ -25,7 +25,7 @@
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id :follow-ups
-                           :new-at :new-comments-count :bookmarked])
+                           :new-at :new-comments-count :bookmarked :polls])
 
 ;; ----- Utility functions -----
 
@@ -144,6 +144,17 @@
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
+(defn- poll-vote-url [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (str (url org-slug board-slug entry-uuid) "/polls/" poll-uuid "/reply/" reply-id "/vote"))
+
+(defn- poll-vote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (hateoas/link-map "vote" hateoas/POST (poll-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+    {:accept mt/entry-poll-media-type}))
+
+(defn- poll-unvote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (hateoas/link-map "unvote" hateoas/DELETE (poll-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+    {:accept mt/entry-poll-media-type}))
+
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
@@ -173,6 +184,21 @@
     (when (seq sorted-comments)
       (-> sorted-comments last :created-at))))
 
+(defn- polls-with-links [polls org-slug board-slug entry-uuid user-id]
+  (mapv
+   (fn [poll]
+    (assoc poll :replies
+     (mapv
+      (fn [reply]
+        (let [user-voted? (and user-id
+                               (seq (filterv #(= % user-id) (:votes reply))))]
+          (assoc reply :links 
+           [(if user-voted?
+             (poll-unvote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply))
+             (poll-vote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply)))])))
+      (:replies poll))))
+   polls))
+
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -196,6 +222,7 @@
                            user-id)
         entry-read (when enrich-entry?
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
+        rendered-polls (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id)
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
@@ -268,6 +295,7 @@
             (clojure.set/rename-keys org-prop-mapping)
             (merge full-entry))
           full-entry)
+      (assoc :polls rendered-polls)
       (select-keys representation-props)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
@@ -320,3 +348,8 @@
                                     access-level (:user-id user)))
                              entries)}}
       {:pretty config/pretty?})))
+
+(defn render-entry-poll [entry poll ct]
+  (json/generate-string
+    poll
+    {:pretty config/pretty?}))

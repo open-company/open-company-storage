@@ -396,6 +396,38 @@
       (timbre/error "Failed removing bookmark for entry:" entry-for "and user" (-> ctx :user :user-id))
       false)))
 
+;; Polls
+
+(defn- update-reply [user-id voting-reply-id add? reply]
+  (let [updated-votes (fn [r add?]
+                        (if add?
+                          (vec (conj (set (:votes r)) user-id))
+                          (filterv #(not= % user-id) (:votes r))))]
+    (cond
+      (= (:reply-id reply) voting-reply-id)
+      (let [next-votes (updated-votes reply add?)]
+        (merge reply
+          {:votes next-votes
+           :votes-count (count next-votes)}))
+      (some #(when (= % user-id) %) (:votes reply))
+      (let [next-votes (updated-votes reply false)]
+        (merge reply
+          {:votes next-votes
+           :votes-count (count next-votes)}))
+      :else
+      reply)))
+
+(defn- update-poll-vote [conn entry poll user reply-id add?]
+  (let [user-has-voted? (some #(when (= % (:user-id user)) %) (:replies poll))
+        
+        updated-poll-replies (mapv (partial update-reply (:user-id user) reply-id add?) (:replies poll))
+        sorted-replies (reverse (sort-by :votes-count updated-poll-replies))
+        updated-poll (merge poll {:replies sorted-replies :total-votes-count (reduce + (map :votes-count sorted-replies))})
+        filtered-polls (filterv #(not= (:poll-uuid %) (:poll-uuid poll)) (:polls entry))
+        final-entry (assoc entry :polls (vec (conj filtered-polls updated-poll)))
+        updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
+    {:updated-entry updated-entry}))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular entry
@@ -978,6 +1010,113 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:updated-entry ctx))))
 
+;; A resource for casting and removing votes from a poll
+(defresource poll-vote [conn org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id]
+  (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
+
+  :allowed-methods [:options :post :delete]
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-poll-media-type]
+                            :delete [mt/entry-poll-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)
+                            :delete (api-common/only-accept 406 mt/entry-collection-media-type)})
+
+  ;; Media type client sends
+  :known-content-type? true
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+  
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? true
+
+  ;; Possibly no data to handle
+  :malformed? false ; allow nil
+
+  ;; Existentialism
+  :exists? (by-method {
+    :options true
+    :post (fn [ctx]
+            (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
+                      org (or (:existing-org ctx)
+                              (org-res/get-org conn org-slug))
+                      org-uuid (:uuid org)
+                      board (or (:existing-board ctx)
+                                (board-res/get-board conn org-uuid board-slug-or-uuid))
+                      entry (or (:existing-entry ctx)
+                                (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
+                      poll (some #(when (= (:poll-uuid %) poll-uuid) %) (:polls entry))
+                      poll-reply (some #(when (= (:reply-id %) reply-id) %) (:replies poll))]
+              {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+               :existing-entry (api-common/rep entry) :existing-poll poll
+               :existing-poll-reply poll-reply}
+              false))
+    :delete (fn [ctx]
+              (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
+                        org (or (:existing-org ctx)
+                                (org-res/get-org conn org-slug))
+                        org-uuid (:uuid org)
+                        board (or (:existing-board ctx)
+                                   (board-res/get-board conn org-uuid board-slug-or-uuid))
+                        entry (or (:existing-entry ctx)
+                                  (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
+                        comments (or (:existing-comments ctx)
+                                     (entry-res/list-comments-for-entry conn (:uuid entry)))
+                        reactions (or (:existing-reactions ctx)
+                                      (entry-res/list-reactions-for-entry conn (:uuid entry)))
+                        poll (some #(when (= (:poll-uuid %) poll-uuid) %) (:polls entry))
+                        poll-reply (some #(when (= (:reply-id %) reply-id) %) (:replies poll))]
+                {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                 :existing-entry (api-common/rep entry)
+                 :existing-comments (api-common/rep comments)
+                 :existing-reactions (api-common/rep reactions)
+                 :existing-poll poll :existing-poll-reply poll-reply}
+                false))})
+
+  ;; Actions
+  :post! (fn [ctx] (update-poll-vote conn (:existing-entry ctx) (:existing-poll ctx) (:user ctx) reply-id true))
+  :delete! (fn [ctx] (update-poll-vote conn (:existing-entry ctx) (:existing-poll ctx) (:user ctx) reply-id false))
+
+  ;; Responses
+  :handle-ok (by-method {
+    :post (fn [ctx] (entry-rep/render-entry 
+                     (:existing-org ctx)
+                     (:existing-board ctx)
+                     (:updated-entry ctx)
+                     (:existing-comments ctx)
+                     (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                     (:access-level ctx)
+                     (-> ctx :user :user-id)))
+    :delete (fn [ctx] (entry-rep/render-entry 
+                       (:existing-org ctx)
+                       (:existing-board ctx)
+                       (:updated-entry ctx)
+                       (:existing-comments ctx)
+                       (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                       (:access-level ctx)
+                       (-> ctx :user :user-id)))})
+  ; :handle-created (fn [ctx] 
+  ;                   (entry-rep/render-entry 
+  ;                    (:existing-org ctx)
+  ;                    (:existing-board ctx)
+  ;                    (:existing-entry ctx)
+  ;                    (:existing-comments ctx)
+  ;                    (reaction-res/aggregate-reactions (:existing-reactions ctx))
+  ;                    (:access-level ctx)
+  ;                    (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-response (:reason ctx))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -1094,4 +1233,8 @@
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unfollow/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
-          (inbox conn org-slug board-slug entry-uuid :unfollow))))))
+          (inbox conn org-slug board-slug entry-uuid :unfollow)))
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/polls/:poll-uuid/reply/:reply-id/vote"
+        [org-slug board-slug entry-uuid poll-uuid reply-id]
+        (pool/with-pool [conn db-pool]
+          (poll-vote conn org-slug board-slug entry-uuid poll-uuid reply-id))))))

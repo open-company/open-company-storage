@@ -97,6 +97,25 @@
 
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
+(def PollReply
+  "A poll reply."
+  {:body schema/Str
+   :author lib-schema/Author
+   :votes-count schema/Int
+   :reply-id lib-schema/UniqueID
+   :votes [lib-schema/UniqueID]})
+
+(def Poll
+  "A poll item."
+  {:poll-uuid lib-schema/UniqueID
+   :question schema/Str
+   :total-votes-count schema/Int
+   :can-add-reply schema/Bool
+   :author lib-schema/Author
+   :created-at lib-schema/ISO8601
+   :updated-at lib-schema/ISO8601
+   :replies [PollReply]})
+
 (def UserVisibility
   "A user-visibility item."
   {(schema/optional-key :dismiss-at) (schema/maybe lib-schema/ISO8601)
@@ -154,6 +173,8 @@
   (schema/optional-key :follow-ups) [FollowUp]
   (schema/optional-key :bookmarks) [lib-schema/UniqueID]
   (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
+
+  (schema/optional-key :polls) (schema/maybe [Poll])
 })
 
 (def NewBoard
