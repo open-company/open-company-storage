@@ -417,7 +417,7 @@
       :else
       reply)))
 
-(defn- update-poll-vote [conn entry poll user reply-id add?]
+(defn- update-poll-vote [conn org board entry poll user reply-id add?]
   (let [user-has-voted? (some #(when (= % (:user-id user)) %) (:replies poll))
         
         updated-poll-replies (mapv (partial update-reply (:user-id user) reply-id add?) (:replies poll))
@@ -426,6 +426,7 @@
         filtered-polls (filterv #(not= (:poll-uuid %) (:poll-uuid poll)) (:polls entry))
         final-entry (assoc entry :polls (vec (conj filtered-polls updated-poll)))
         updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
+    (notification/send-trigger! (notification/->trigger :update org board {:new updated-entry :old entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry updated-entry}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -1084,8 +1085,10 @@
                 false))})
 
   ;; Actions
-  :post! (fn [ctx] (update-poll-vote conn (:existing-entry ctx) (:existing-poll ctx) (:user ctx) reply-id true))
-  :delete! (fn [ctx] (update-poll-vote conn (:existing-entry ctx) (:existing-poll ctx) (:user ctx) reply-id false))
+  :post! (fn [ctx] (update-poll-vote conn (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
+                    (:existing-poll ctx) (:user ctx) reply-id true))
+  :delete! (fn [ctx] (update-poll-vote conn (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
+                    (:existing-poll ctx) (:user ctx) reply-id false))
 
   ;; Responses
   :handle-ok (by-method {
