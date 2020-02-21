@@ -417,7 +417,7 @@
       :else
       reply)))
 
-(defn- update-poll-vote [conn org board entry poll user reply-id add?]
+(defn- update-poll-vote [conn ctx org board entry poll user reply-id add?]
   (let [user-has-voted? (some #(when (= % (:user-id user)) %) (:replies poll))
         
         updated-poll-replies (mapv (partial update-reply (:user-id user) reply-id add?) (:replies poll))
@@ -1085,9 +1085,9 @@
                 false))})
 
   ;; Actions
-  :post! (fn [ctx] (update-poll-vote conn (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
+  :post! (fn [ctx] (update-poll-vote conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
                     (:existing-poll ctx) (:user ctx) reply-id true))
-  :delete! (fn [ctx] (update-poll-vote conn (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
+  :delete! (fn [ctx] (update-poll-vote conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
                     (:existing-poll ctx) (:user ctx) reply-id false))
 
   ;; Responses
@@ -1108,15 +1108,6 @@
                        (reaction-res/aggregate-reactions (:existing-reactions ctx))
                        (:access-level ctx)
                        (-> ctx :user :user-id)))})
-  ; :handle-created (fn [ctx] 
-  ;                   (entry-rep/render-entry 
-  ;                    (:existing-org ctx)
-  ;                    (:existing-board ctx)
-  ;                    (:existing-entry ctx)
-  ;                    (:existing-comments ctx)
-  ;                    (reaction-res/aggregate-reactions (:existing-reactions ctx))
-  ;                    (:access-level ctx)
-  ;                    (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
