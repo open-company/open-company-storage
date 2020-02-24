@@ -75,11 +75,10 @@
                                (-> reply
                                 (assoc :votes reply-votes)
                                 (assoc :votes-count (count reply-votes)))))
-                              (:replies poll))
-            sorted-replies (sort-by (juxt :votes-count :created-at) updated-replies)]
+                              (:replies poll))]
         (-> poll
          ;; Replace replies with new sorted ones
-         (assoc :replies sorted-replies)
+         (assoc :replies updated-replies)
          ;; Update the total count
          (assoc :total-votes-count (reduce + (map :votes-count updated-replies)))))
       poll))
@@ -447,8 +446,7 @@
   (let [user-has-voted? (some #(when (= % (:user-id user)) %) (:replies poll))
         
         updated-poll-replies (mapv (partial update-reply (:user-id user) reply-id add?) (:replies poll))
-        sorted-replies (reverse (sort-by (juxt :votes-count :created-at) updated-poll-replies))
-        updated-poll (merge poll {:replies sorted-replies :total-votes-count (reduce + (map :votes-count sorted-replies))})
+        updated-poll (merge poll {:replies updated-poll-replies :total-votes-count (reduce + (map :votes-count updated-poll-replies))})
         filtered-polls (filterv #(not= (:poll-uuid %) (:poll-uuid poll)) (:polls entry))
         final-entry (assoc entry :polls (vec (conj filtered-polls updated-poll)))
         updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
