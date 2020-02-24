@@ -60,6 +60,31 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
+(defn- clean-polls-for-patch
+  "Given the new"
+  [existing-entry entry]
+  (update entry :polls (fn [polls]
+   (mapv (fn [poll]
+    (if-let [existing-poll (some #(when (= (:poll-uuid %) (:poll-uid poll)) %) (:polls existing-entry))]
+      ;; Make sure we keep the votes that are currently saved, client can't update votes with an entry patch
+      ;; but can add/delete/update replies.
+      (let [updated-replies (mapv (fn [reply]
+                             (let [existing-reply (some #(when (= (:reply-id %) (:reply-id reply)) %)
+                                                   (:replies existing-poll))
+                                   reply-votes (or (:votes existing-reply) (:votes reply) 0)]
+                               (-> reply
+                                (assoc :votes reply-votes)
+                                (assoc :votes-count (count reply-votes)))))
+                              (:replies poll))
+            sorted-replies (sort-by (juxt :votes-count :created-at) updated-replies)]
+        (-> poll
+         ;; Replace replies with new sorted ones
+         (assoc :replies sorted-replies)
+         ;; Update the total count
+         (assoc :total-votes-count (reduce + (map :votes-count updated-replies)))))
+      poll))
+    polls))))
+
 (defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
@@ -77,7 +102,8 @@
                   (assoc with-status-props :board-uuid new-board-uuid)
                   (dissoc with-status-props :board-uuid))
           merged-entry (merge existing-entry (entry-res/ignore-props props))
-          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))
+          with-attachments (update merged-entry :attachments #(entry-res/timestamp-attachments %))
+          updated-entry (clean-polls-for-patch existing-entry with-attachments)
           ts (db-common/current-timestamp)]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry (api-common/rep existing-entry)
@@ -421,7 +447,7 @@
   (let [user-has-voted? (some #(when (= % (:user-id user)) %) (:replies poll))
         
         updated-poll-replies (mapv (partial update-reply (:user-id user) reply-id add?) (:replies poll))
-        sorted-replies (reverse (sort-by :votes-count updated-poll-replies))
+        sorted-replies (reverse (sort-by (juxt :votes-count :created-at) updated-poll-replies))
         updated-poll (merge poll {:replies sorted-replies :total-votes-count (reduce + (map :votes-count sorted-replies))})
         filtered-polls (filterv #(not= (:poll-uuid %) (:poll-uuid poll)) (:polls entry))
         final-entry (assoc entry :polls (vec (conj filtered-polls updated-poll)))
