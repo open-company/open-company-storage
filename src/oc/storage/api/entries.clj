@@ -1071,11 +1071,11 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/unread"
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unread"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/inbox/unread/"
+      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unread/"
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
