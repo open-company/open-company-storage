@@ -25,7 +25,7 @@
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id :follow-ups
-                           :new-at :new-comments-count :bookmarked])
+                           :new-at :new-comments-count :bookmarked :last-read-at])
 
 ;; ----- Utility functions -----
 
@@ -200,6 +200,7 @@
                            :board-access board-access
                            :board-name (:name board)
                            :bookmarked (boolean bookmarked?)
+                           :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
                                                  (if entry-read
                                                    (new-comments-count entry-with-comments user-id entry-read)
