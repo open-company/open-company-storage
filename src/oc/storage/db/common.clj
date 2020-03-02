@@ -8,8 +8,12 @@
             [oc.lib.db.common :as db-common]))
 
 (defn read-paginated-entries
- [conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+ ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
   relation-fields {:keys [count] :or {count false}}]
+ (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+  relation-fields nil {:count count}))
+ ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+  relation-fields user-id {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -19,7 +23,9 @@
         (not (nil? start))
         (#{:after :before} direction)
         (integer? limit)
-        (#{:recent-activity :recently-posted} sort-type)
+        (or (#{:recent-activity :recently-posted} sort-type)
+            (and (= sort-type :bookmarked-at)
+                 (seq user-id)))
         (sequential? relation-fields)
         (every? db-common/s-or-k? relation-fields)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
@@ -37,13 +43,21 @@
             ;; last comment created-at, with fallback to published-at or created-at for published entries
             ;; the entry created-at in all the other cases.
             (r/merge query (r/fn [post-row]
-              (if (= sort-type :recent-activity)
+              (cond
+                (= sort-type :recent-activity)
                 {:last-activity-at (-> (r/table relation-table-name)
                                        (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
                                        (r/max :created-at)
                                        (r/get-field :created-at)
                                        (r/default (r/get-field post-row :published-at))
                                        (r/default (r/get-field post-row :created-at)))}
+                (= sort-type :bookmarked-at)
+                {:last-activity-at (r/default
+                                    (-> (r/get-field post-row [:bookmarks])
+                                        (r/filter {:user-id user-id})
+                                        (r/get-field :bookmarked-at))
+                                    (r/get-field post-row :published-at))}
+                :else
                 {:last-activity-at (r/default
                                     (r/get-field post-row :published-at)
                                     (r/get-field post-row :created-at))})))
@@ -73,7 +87,7 @@
             (r/run query conn)
             (if (= (type query) rethinkdb.net.Cursor)
               (seq query)
-              query)))))
+              query))))))
 
 (defn read-all-inbox-for-user
  [conn table-name index-name index-value order start limit relation-table-name allowed-boards user-id

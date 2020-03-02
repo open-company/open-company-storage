@@ -1,0 +1,46 @@
+(ns oc.storage.db.migrations.add-bookmarked-at
+  (:require [clj-time.format :as format]
+            [clj-time.coerce :as coerce]
+            [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.lib.time :as oc-time]
+            [oc.storage.resources.org :as org]
+            [oc.storage.resources.entry :as entry]))
+
+(defn- migrate-existing-bookmarks [conn bookmarked-at]
+  (println "Migrate all bookmarks to include a bookmarked-at value")
+  (let [orgs (org/list-orgs conn)]
+    (doseq [org orgs]
+      (let [bookmarked-at-time (format/parse oc-time/timestamp-format bookmarked-at)
+            ts (coerce/to-long bookmarked-at-time)
+            entries (entry/list-entries-by-org conn (:uuid org))]
+        (println "------------------------------------------------------------------")
+        (println "Org:" (:name org) "(" (:uuid org) ")")
+        (doseq [e entries
+                :when (seq (:bookmarks e))
+                :let [bm-ts (->> ts
+                              (+ (int (rand 100)))
+                              (coerce/from-long)
+                              (format/unparse oc-time/timestamp-format))]]
+          (let [updated-entry (assoc e :bookmarks
+                               (map #(hash-map :user-id % :bookmarked-at bm-ts) (:bookmarks e)))]
+            (println "   Entry:" (:uuid e) "(" (count (:bookmarks e)) "bookmarks)" )
+            (entry/update-entry-no-user! conn (:uuid e) updated-entry)))))))
+
+(defn up [conn]
+  ;; Do great things
+  (println "Remove bookmarks index:")
+  (println (m/remove-index conn entry/table-name "org-uuid-status-bookmark-user-id-map-multi"))
+
+  (migrate-existing-bookmarks conn (oc-time/current-timestamp))
+
+  (println (m/create-compound-index conn entry/table-name "org-uuid-status-bookmark-user-id-map-multi"
+   (r/fn [row] (r/map (r/get-field row "bookmarks")
+     (r/fn [bookmark-row]
+       [(r/get-field row "status")
+        (r/get-field row "org-uuid")
+        (r/get-field bookmark-row "user-id")])))
+   {:multi true}))
+
+  true) ; return true on success
