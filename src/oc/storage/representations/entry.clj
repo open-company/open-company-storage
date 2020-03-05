@@ -144,15 +144,33 @@
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
-(defn- poll-vote-url [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (str (url org-slug board-slug entry-uuid) "/polls/" poll-uuid "/reply/" reply-id "/vote"))
+(defn- poll-url [org-slug board-slug entry-uuid poll-uuid]
+  (str (url org-slug board-slug entry-uuid) "/polls/" poll-uuid))
+
+(defn- poll-replies-url [org-slug board-slug entry-uuid poll-uuid]
+  (str (poll-url org-slug board-slug entry-uuid poll-uuid) "/replies"))
+
+(defn- poll-reply-url [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (str (poll-replies-url org-slug board-slug entry-uuid poll-uuid) "/" reply-id))
+
+(defn- poll-reply-vote-url [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (str (poll-reply-url org-slug board-slug entry-uuid poll-uuid reply-id) "/vote"))
+
+(defn- poll-add-reply-link [org-slug board-slug entry-uuid poll-uuid]
+  (hateoas/link-map "reply" hateoas/POST (poll-replies-url org-slug board-slug entry-uuid poll-uuid)
+    {:accept mt/poll-reply-media-type
+     :content-type "text/plain"}))
+
+(defn- poll-delete-reply-link [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (hateoas/link-map "delete" hateoas/DELETE (poll-reply-url org-slug board-slug entry-uuid poll-uuid reply-id)
+    {:accept mt/poll-reply-media-type}))
 
 (defn- poll-vote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (hateoas/link-map "vote" hateoas/POST (poll-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+  (hateoas/link-map "vote" hateoas/POST (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/entry-poll-media-type}))
 
 (defn- poll-unvote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (hateoas/link-map "unvote" hateoas/DELETE (poll-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+  (hateoas/link-map "unvote" hateoas/DELETE (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/entry-poll-media-type}))
 
 (defn- include-secure-uuid
@@ -187,16 +205,24 @@
 (defn- polls-with-links [polls org-slug board-slug entry-uuid user-id]
   (mapv
    (fn [poll]
-    (assoc poll :replies
-     (mapv
-      (fn [reply]
-        (let [user-voted? (and user-id
-                               (seq (filterv #(= % user-id) (:votes reply))))]
-          (assoc reply :links 
-           [(if user-voted?
-             (poll-unvote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply))
-             (poll-vote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply)))])))
-      (:replies poll))))
+    (-> poll
+     (assoc :replies
+       (mapv
+        (fn [reply]
+          (let [user-voted? (and user-id
+                                 (seq (filterv #(= % user-id) (:votes reply))))]
+            (assoc reply :links
+             (remove nil?
+              [(if user-voted?
+                (poll-unvote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply))
+                (poll-vote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply)))
+               (when (= user-id (-> reply :author :user-id))
+                 (poll-delete-reply-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply)))]))))
+         (:replies poll)))
+       (assoc :links
+        (remove nil?
+         [(when (:can-add-reply poll)
+            (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
    polls))
 
 (defn- entry-and-links
