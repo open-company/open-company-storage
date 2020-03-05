@@ -131,6 +131,11 @@
   :completed? schema/Bool
   (schema/optional-key :completed-at) (schema/maybe lib-schema/ISO8601)})
 
+(def Bookmark
+  "A bookmark item"
+  {:user-id lib-schema/UniqueID
+   :bookmarked-at lib-schema/ISO8601})
+
 (def Entry 
   "An entry on a board."
   {
@@ -171,7 +176,7 @@
   :updated-at lib-schema/ISO8601
 
   (schema/optional-key :follow-ups) [FollowUp]
-  (schema/optional-key :bookmarks) [lib-schema/UniqueID]
+  (schema/optional-key :bookmarks) [(schema/if string? lib-schema/UniqueID Bookmark)]
   (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
 
   (schema/optional-key :polls) (schema/maybe [Poll])

@@ -81,7 +81,8 @@
   (some #((set (:authors %)) (:user-id user)) (:boards org)))
 
 (defn- reminders-link [org access-level user]
-  (if (and (not (:id-token user))
+  (if (and config/reminders-enabled?
+           (not (:id-token user))
            (or (= access-level :author)
                (and (= access-level :viewer)
                     (viewer-is-private-board-author? org user))))
