@@ -93,6 +93,8 @@
 
 (defonce payments-enabled? (bool (env :payments-enabled)))
 
+(defonce reminders-enabled? (bool (env :reminders-enabled)))
+
 ;; DynamoDB
 
 (defonce dynamodb-end-point (or (env :dynamodb-end-point) "http://localhost:8000"))
