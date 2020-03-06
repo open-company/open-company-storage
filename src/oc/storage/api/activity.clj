@@ -37,12 +37,12 @@
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction must-see :must-see sort-type :sort-type} org board-by-uuids user-id]
+  [conn {start :start direction :direction must-see :must-see} org board-by-uuids user-id]
   (let [order (if (= direction :before) :desc :asc)
         total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc
-                               (db-common/current-timestamp) :before 0 sort-type {:count true})
+                               (db-common/current-timestamp) :before 0 {:count true})
         entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction
-                 config/default-activity-limit sort-type {:count false})
+                 config/default-activity-limit {:count false})
         activities {:direction direction
                     :next-count (count entries)
                     :total-count total-bookmarks-count}]

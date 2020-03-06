@@ -480,28 +480,36 @@
 
 (schema/defn ^:always-validate list-all-bookmarked-entries
   "Given the UUID of the user, return all the published entries with a bookmark for the given user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type]
-    (list-all-bookmarked-entries conn org-uuid user-id order start direction limit sort-type {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type {:keys [count] :or {count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit]
+    (list-all-bookmarked-entries conn org-uuid user-id order start direction limit :bookmarked-at {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (#{:recent-activity :recently-posted} sort-type)]}
+         (#{:before :after} direction)]}
   (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
-   [[org-uuid :published user-id]] order start direction limit sort-type common/interaction-table-name nil
-   list-comment-properties {:count count})))
+   [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name nil
+   list-comment-properties user-id {:count count})))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"
   ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
-   (db-common/add-to-set conn table-name entry-uuid :bookmarks (:user-id user))))
+   (let [original-entry (get-entry conn entry-uuid)]
+     (if (seq (filter #(= (:user-id %) (:user-id user)) (:bookmarks original-entry)))
+       ;; User has the bookmark already set
+       original-entry
+       ;; Add the user's bookmark
+       (let [updated-bookmarks (vec (conj (:bookmarks original-entry) {:user-id (:user-id user)
+                                                                       :bookmarked-at (db-common/current-timestamp)}))]
+         (update-entry conn (assoc original-entry :bookmarks updated-bookmarks) original-entry (db-common/current-timestamp)))))))
 
 (schema/defn ^:always-validate remove-bookmark! :- (schema/maybe common/Entry)
   "Remove a bookmark for the give entry uuid and user"
   ([conn entry-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
-   (db-common/remove-from-set conn table-name entry-uuid :bookmarks (:user-id user))))
+   (let [original-entry (get-entry conn entry-uuid)
+         updated-entry (update original-entry :bookmarks #(filterv (fn[bm] (not= (:user-id bm) (:user-id user))) %))]
+     (update-entry conn updated-entry original-entry (db-common/current-timestamp)))))
 
 ;; ----- Armageddon -----
 
