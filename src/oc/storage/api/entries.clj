@@ -444,14 +444,16 @@
         index-map (zipmap (map :poll-uuid (:polls entry)) (-> entry :polls count range))
         final-entry (assoc-in entry [:polls (get index-map (:poll-uuid poll))] updated-poll)
         updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
+    (notification/send-trigger! (notification/->trigger :update org board {:new updated-entry :old entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry updated-entry}))
 
-(defn- delete-poll-reply [conn ctx org board entry poll poll-reply]
+(defn- delete-poll-reply [conn ctx org board entry poll poll-reply user]
   (let [updated-poll (update poll :replies (fn [replies]
                                              (filterv #(not= (:reply-id %) (:reply-id poll-reply)))))
         index-map (zipmap (map :poll-uuid (:polls entry)) (-> entry :polls count range))
         final-entry (update-in entry [:polls (get index-map (:poll-uuid poll))] updated-poll)
         updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
+    (notification/send-trigger! (notification/->trigger :update org board {:new updated-entry :old entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry updated-entry}))
 
 (defn- update-reply [user-id voting-reply-id add? reply]
@@ -1191,7 +1193,7 @@
 
   ;; Actions
   :delete! (fn [ctx] (delete-poll-reply conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
-                      (:existing-poll ctx) (:existing-poll-reply ctx)))
+                      (:existing-poll ctx) (:existing-poll-reply ctx) (:user ctx)))
 
   ;; Responses
   :handle-ok (by-method {
