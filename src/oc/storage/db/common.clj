@@ -55,6 +55,7 @@
                 {:last-activity-at (r/default
                                     (-> (r/get-field post-row [:bookmarks])
                                         (r/filter {:user-id user-id})
+                                        (r/nth 0)
                                         (r/get-field :bookmarked-at))
                                     (r/get-field post-row :published-at))}
                 :else
