@@ -158,3 +158,29 @@
             (if (= (type query) rethinkdb.net.Cursor)
               (seq query)
               query)))))
+
+(defn update-poll-vote
+  "
+  Atomic update of poll vote to avoid race conditions while multiple
+  users are voting together.
+  "
+  [conn table-name entry-uuid poll-uuid reply-id user-id vote?]
+  {:pre [(db-common/conn? conn)
+         (db-common/s-or-k? table-name)]}
+  (let [ts (db-common/current-timestamp)
+        set-operation (if vote? r/set-insert r/set-difference)
+        user-id-value (if vote? user-id [user-id])
+        update (db-common/with-timeout db-common/default-timeout
+                  (-> (r/table table-name)
+                      (r/get entry-uuid)
+                      (r/update
+                       (r/fn [entry-doc]
+                        {:polls {poll-uuid {:replies {reply-id {:votes
+                         (-> entry-doc
+                          (r/get-field [:polls poll-uuid :replies reply-id :votes])
+                          (r/default [])
+                          (set-operation user-id-value))}}}}}))
+                      (r/run conn)))]
+    (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
+      (db-common/read-resource conn table-name entry-uuid)
+      (throw (RuntimeException. (str "RethinkDB update failure: " update))))))

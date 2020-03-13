@@ -202,28 +202,30 @@
     (when (seq sorted-comments)
       (-> sorted-comments last :created-at))))
 
-(defn- polls-with-links [polls org-slug board-slug entry-uuid user-id]
-  (mapv
-   (fn [poll]
-    (-> poll
-     (assoc :replies
-       (mapv
-        (fn [reply]
+(defn- poll-replies-with-links [poll-replies org-slug board-slug entry-uuid poll-uuid user-id]
+  (zipmap
+   (mapv (comp keyword :reply-id) (vals poll-replies))
+   (mapv (fn [reply]
           (let [user-voted? (and user-id
                                  (seq (filterv #(= % user-id) (:votes reply))))]
-            (assoc reply :links
-             (remove nil?
-              [(if user-voted?
-                (poll-unvote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply))
-                (poll-vote-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply)))
-               (when (= user-id (-> reply :author :user-id))
-                 (poll-delete-reply-link org-slug board-slug entry-uuid (:poll-uuid poll) (:reply-id reply)))]))))
-         (:replies poll)))
-       (assoc :links
-        (remove nil?
-         [(when (:can-add-reply poll)
-            (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
-   polls))
+            (assoc reply :links (remove nil?
+             [(if user-voted?
+                (poll-unvote-link org-slug board-slug entry-uuid poll-uuid (:reply-id reply))
+                (poll-vote-link org-slug board-slug entry-uuid poll-uuid (:reply-id reply)))
+              (when (= user-id (-> reply :author :user-id))
+                (poll-delete-reply-link org-slug board-slug entry-uuid poll-uuid (:reply-id reply)))]))))
+     (vals poll-replies))))
+
+(defn- polls-with-links [polls org-slug board-slug entry-uuid user-id]
+  (zipmap
+   (mapv (comp keyword :poll-uuid) (vals polls))
+   (mapv (fn [poll] (-> poll
+          (update :replies #(poll-replies-with-links % org-slug board-slug entry-uuid (:poll-uuid poll) user-id))
+          (assoc :links
+           (remove nil?
+            [(when (:can-add-reply poll)
+               (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
+     (vals polls))))
 
 (defn- entry-and-links
   "
@@ -248,7 +250,8 @@
                            user-id)
         entry-read (when enrich-entry?
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
-        rendered-polls (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id)
+        rendered-polls (when (seq (:polls entry))
+                         (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)

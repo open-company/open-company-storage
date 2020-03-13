@@ -63,26 +63,22 @@
 (defn- clean-polls-for-patch
   "Given the new"
   [existing-entry entry]
-  (update entry :polls (fn [polls]
-   (mapv (fn [poll]
-    (if-let [existing-poll (some #(when (= (:poll-uuid %) (:poll-uid poll)) %) (:polls existing-entry))]
-      ;; Make sure we keep the votes that are currently saved, client can't update votes with an entry patch
-      ;; but can add/delete/update replies.
-      (let [updated-replies (mapv (fn [reply]
-                             (let [existing-reply (some #(when (= (:reply-id %) (:reply-id reply)) %)
-                                                   (:replies existing-poll))
-                                   reply-votes (or (:votes existing-reply) (:votes reply) 0)]
-                               (-> reply
-                                (assoc :votes reply-votes)
-                                (assoc :votes-count (count reply-votes)))))
-                              (:replies poll))]
-        (-> poll
-         ;; Replace replies with new sorted ones
-         (assoc :replies updated-replies)
-         ;; Update the total count
-         (assoc :total-votes-count (reduce + (map :votes-count updated-replies)))))
-      poll))
-    polls))))
+  (update entry :polls
+   (fn [polls]
+    (let [updated-polls (mapv (fn [[k poll]]
+                         (if-let [existing-poll (get-in existing-entry [:polls (:poll-uuid poll)])]
+                           ;; Make sure we keep the votes that are currently saved,
+                           ;; client can't update votes with an entry patch
+                           ;; but can add/delete/update replies.
+                           (let [updated-replies (mapv (fn [[reply-id reply]]
+                                                  (let [existing-reply (get existing-poll reply-id)
+                                                        reply-votes (if existing-reply (:votes existing-reply) (:votes reply))]
+                                                    (assoc reply :votes reply-votes)))
+                                                   (:replies poll))]
+                             (assoc poll :replies (zipmap (mapv (comp keyword :reply-id) updated-replies) updated-replies)))
+                           poll))
+                        polls)]
+      (zipmap (mapv (comp keyword :poll-uuid) updated-polls) updated-polls)))))
 
 (defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
@@ -433,55 +429,47 @@
       (do (timbre/warn "Request body is empty " e)
         true))))
 
+(defn- poll-exists? [conn ctx org-slug board-slug-or-uuid entry-uuid poll-uuid]
+  (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
+            org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            board (or (:existing-board ctx)
+                      (board-res/get-board conn org-uuid board-slug-or-uuid))
+            entry (or (:existing-entry ctx)
+                      (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
+            poll (or (:existing-poll ctx)
+                     (entry-res/get-poll conn entry-uuid entry poll-uuid))]
+    {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+     :existing-entry (api-common/rep entry) :existing-poll poll}
+    false))
+
+(defn- poll-reply-exists? [conn ctx org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id]
+  (if-let* [{:keys [existing-entry existing-poll] :as existing-poll-ctx} (poll-exists? conn ctx org-slug board-slug-or-uuid entry-uuid poll-uuid)
+            poll-reply (or (:existing-poll-reply ctx)
+                           (entry-res/get-poll-reply conn entry-uuid existing-entry poll-uuid existing-poll reply-id))]
+    (assoc existing-poll-ctx :existing-poll-reply poll-reply)
+    false))
+
 (defn- create-poll-reply [conn ctx org board entry poll user reply-body]
-  (let [updated-poll (update poll :replies (fn [replies]
-                                             (vec (conj replies
-                                              {:body reply-body
-                                               :author (lib-schema/author-for-user user)
-                                               :votes-count 0
-                                               :reply-id (db-common/unique-id)
-                                               :votes []}))))
-        index-map (zipmap (map :poll-uuid (:polls entry)) (-> entry :polls count range))
-        final-entry (assoc-in entry [:polls (get index-map (:poll-uuid poll))] updated-poll)
+  (let [reply-id (db-common/unique-id)
+        final-entry (assoc-in entry [:polls (:poll-uuid poll) :replies reply-id]
+                     {:body reply-body
+                      :author (lib-schema/author-for-user user)
+                      :reply-id reply-id
+                      :votes []})
         updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
     (notification/send-trigger! (notification/->trigger :update org board {:new updated-entry :old entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry updated-entry}))
 
 (defn- delete-poll-reply [conn ctx org board entry poll poll-reply user]
-  (let [updated-poll (update poll :replies (fn [replies]
-                                             (filterv #(not= (:reply-id %) (:reply-id poll-reply)))))
-        index-map (zipmap (map :poll-uuid (:polls entry)) (-> entry :polls count range))
-        final-entry (update-in entry [:polls (get index-map (:poll-uuid poll))] updated-poll)
+  (let [final-entry (update-in entry [:polls (:poll-uuid poll) :replies] dissoc (:reply-id poll-reply))
         updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
     (notification/send-trigger! (notification/->trigger :update org board {:new updated-entry :old entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry updated-entry}))
 
-(defn- update-reply [user-id voting-reply-id add? reply]
-  (let [updated-votes (fn [r add?]
-                        (if add?
-                          (vec (conj (set (:votes r)) user-id))
-                          (filterv #(not= % user-id) (:votes r))))]
-    (cond
-      (= (:reply-id reply) voting-reply-id)
-      (let [next-votes (updated-votes reply add?)]
-        (merge reply
-          {:votes next-votes
-           :votes-count (count next-votes)}))
-      (some #(when (= % user-id) %) (:votes reply))
-      (let [next-votes (updated-votes reply false)]
-        (merge reply
-          {:votes next-votes
-           :votes-count (count next-votes)}))
-      :else
-      reply)))
-
-(defn- update-poll-vote [conn ctx org board entry poll user reply-id add?]
-  (let [user-has-voted? (some #(when (= % (:user-id user)) %) (:replies poll))
-        updated-poll-replies (mapv (partial update-reply (:user-id user) reply-id add?) (:replies poll))
-        updated-poll (merge poll {:replies updated-poll-replies :total-votes-count (reduce + (map :votes-count updated-poll-replies))})
-        filtered-polls (filterv #(not= (:poll-uuid %) (:poll-uuid poll)) (:polls entry))
-        final-entry (assoc entry :polls (vec (conj filtered-polls updated-poll)))
-        updated-entry (entry-res/update-entry-no-user! conn (:uuid entry) final-entry)]
+(defn- update-poll-vote [conn ctx org board entry poll reply-id user add?]
+  (let [updated-entry (entry-res/poll-reply-vote! conn (:uuid entry) (:poll-uuid poll) reply-id (:user-id user) add?)]
     (notification/send-trigger! (notification/->trigger :update org board {:new updated-entry :old entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry updated-entry}))
 
@@ -1105,19 +1093,7 @@
   ;; Existentialism
   :exists? (by-method {
     :options true
-    :post (fn [ctx]
-            (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
-                      org (or (:existing-org ctx)
-                              (org-res/get-org conn org-slug))
-                      org-uuid (:uuid org)
-                      board (or (:existing-board ctx)
-                                (board-res/get-board conn org-uuid board-slug-or-uuid))
-                      entry (or (:existing-entry ctx)
-                                (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
-                      poll (some #(when (= (:poll-uuid %) poll-uuid) %) (:polls entry))]
-              {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-               :existing-entry (api-common/rep entry) :existing-poll poll}
-              false))})
+    :post #(poll-exists? conn % org-slug board-slug-or-uuid entry-uuid poll-uuid)})
 
   ;; Actions
   :post! (fn [ctx] (create-poll-reply conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
@@ -1169,27 +1145,7 @@
   ;; Existentialism
   :exists? (by-method {
     :options true
-    :delete (fn [ctx]
-              (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
-                        org (or (:existing-org ctx)
-                                (org-res/get-org conn org-slug))
-                        org-uuid (:uuid org)
-                        board (or (:existing-board ctx)
-                                   (board-res/get-board conn org-uuid board-slug-or-uuid))
-                        entry (or (:existing-entry ctx)
-                                  (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
-                        comments (or (:existing-comments ctx)
-                                     (entry-res/list-comments-for-entry conn (:uuid entry)))
-                        reactions (or (:existing-reactions ctx)
-                                      (entry-res/list-reactions-for-entry conn (:uuid entry)))
-                        poll (some #(when (= (:poll-uuid %) poll-uuid) %) (:polls entry))
-                        poll-reply (some #(when (= (:reply-id %) reply-id) %) (:replies poll))]
-                {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                 :existing-entry (api-common/rep entry)
-                 :existing-comments (api-common/rep comments)
-                 :existing-reactions (api-common/rep reactions)
-                 :existing-poll poll :existing-poll-reply poll-reply}
-                false))})
+    :delete #(poll-reply-exists? conn % org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id)})
 
   ;; Actions
   :delete! (fn [ctx] (delete-poll-reply conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
@@ -1244,48 +1200,14 @@
   ;; Existentialism
   :exists? (by-method {
     :options true
-    :post (fn [ctx]
-            (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
-                      org (or (:existing-org ctx)
-                              (org-res/get-org conn org-slug))
-                      org-uuid (:uuid org)
-                      board (or (:existing-board ctx)
-                                (board-res/get-board conn org-uuid board-slug-or-uuid))
-                      entry (or (:existing-entry ctx)
-                                (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
-                      poll (some #(when (= (:poll-uuid %) poll-uuid) %) (:polls entry))
-                      poll-reply (some #(when (= (:reply-id %) reply-id) %) (:replies poll))]
-              {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-               :existing-entry (api-common/rep entry) :existing-poll poll
-               :existing-poll-reply poll-reply}
-              false))
-    :delete (fn [ctx]
-              (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
-                        org (or (:existing-org ctx)
-                                (org-res/get-org conn org-slug))
-                        org-uuid (:uuid org)
-                        board (or (:existing-board ctx)
-                                   (board-res/get-board conn org-uuid board-slug-or-uuid))
-                        entry (or (:existing-entry ctx)
-                                  (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
-                        comments (or (:existing-comments ctx)
-                                     (entry-res/list-comments-for-entry conn (:uuid entry)))
-                        reactions (or (:existing-reactions ctx)
-                                      (entry-res/list-reactions-for-entry conn (:uuid entry)))
-                        poll (some #(when (= (:poll-uuid %) poll-uuid) %) (:polls entry))
-                        poll-reply (some #(when (= (:reply-id %) reply-id) %) (:replies poll))]
-                {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                 :existing-entry (api-common/rep entry)
-                 :existing-comments (api-common/rep comments)
-                 :existing-reactions (api-common/rep reactions)
-                 :existing-poll poll :existing-poll-reply poll-reply}
-                false))})
+    :post #(poll-reply-exists? conn % org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id)
+    :delete #(poll-reply-exists? conn % org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id)})
 
   ;; Actions
   :post! (fn [ctx] (update-poll-vote conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
-                    (:existing-poll ctx) (:user ctx) reply-id true))
+                    (:existing-poll ctx) reply-id (:user ctx) true))
   :delete! (fn [ctx] (update-poll-vote conn ctx (:existing-org ctx) (:existing-board ctx) (:existing-entry ctx)
-                    (:existing-poll ctx) (:user ctx) reply-id false))
+                    (:existing-poll ctx) reply-id (:user ctx) false))
 
   ;; Responses
   :handle-ok (by-method {

@@ -511,6 +511,33 @@
          updated-entry (update original-entry :bookmarks #(filterv (fn[bm] (not= (:user-id bm) (:user-id user))) %))]
      (update-entry conn updated-entry original-entry (db-common/current-timestamp)))))
 
+;; ----- Polls ------
+
+(schema/defn ^:always-validate get-poll :- (schema/maybe common/Poll)
+  ([conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID]
+   {:pre [(db-common/conn? conn)]}
+   (get-poll conn (get-entry conn entry-uuid) poll-uuid))
+  ([conn entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID]
+   {:pre [(db-common/conn? conn)]}
+   (get-in entry [:polls (keyword poll-uuid)])))
+
+(schema/defn ^:always-validate get-poll-reply :- (schema/maybe common/PollReply)
+  ([conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID reply-id :- lib-schema/UniqueID]
+   {:pre [(db-common/conn? conn)]}
+   (let [entry (get-entry conn entry-uuid)]
+     (get-poll-reply conn entry-uuid entry poll-uuid (get-poll conn entry-uuid entry poll-uuid) reply-id)))
+  ([conn entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID reply-id :- lib-schema/UniqueID]
+   {:pre [(db-common/conn? conn)]}
+   (get-poll-reply conn entry-uuid entry poll-uuid (get-poll conn entry-uuid entry poll-uuid) reply-id))
+  ([conn entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID poll :- common/Poll reply-id :- lib-schema/UniqueID]
+   {:pre [(db-common/conn? conn)]}
+   (get-in poll [:replies (keyword reply-id)])))
+
+(schema/defn ^:always-validate poll-reply-vote! :- (schema/maybe common/Entry)
+  [conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID
+   reply-id :- lib-schema/UniqueID user-id :- lib-schema/UniqueID add?]
+  (storage-db-common/update-poll-vote conn table-name entry-uuid poll-uuid reply-id user-id add?))
+
 ;; ----- Armageddon -----
 
 (defn delete-all-entries!
