@@ -173,13 +173,28 @@
         update (db-common/with-timeout db-common/default-timeout
                   (-> (r/table table-name)
                       (r/get entry-uuid)
-                      (r/update
-                       (r/fn [entry-doc]
-                        {:polls {poll-uuid {:replies {reply-id {:votes
-                         (-> entry-doc
-                          (r/get-field [:polls poll-uuid :replies reply-id :votes])
-                          (r/default [])
-                          (set-operation user-id-value))}}}}}))
+                      (r/update (r/fn [entry]
+                       {:polls {poll-uuid {:replies
+                        (-> entry
+                         (r/get-field [:polls poll-uuid :replies])
+                         (r/values)
+                         (r/map (r/fn [reply-data]
+                          (r/branch
+                           (r/eq (r/get-field reply-data [:reply-id]) reply-id)
+                           (r/object (r/get-field reply-data :reply-id)
+                            (r/merge reply-data
+                             {:votes (-> reply-data
+                                      (r/get-field [:votes])
+                                      (r/default [])
+                                      (set-operation user-id-value))}))
+                           (r/object (r/get-field reply-data :reply-id)
+                            (r/merge reply-data
+                             {:votes (-> reply-data
+                                      (r/get-field [:votes])
+                                      (r/default [])
+                                      (r/set-difference [user-id]))})))))
+                         (r/reduce (r/fn [a b]
+                          (r/merge a b))))}}}))
                       (r/run conn)))]
     (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
       (db-common/read-resource conn table-name entry-uuid)
