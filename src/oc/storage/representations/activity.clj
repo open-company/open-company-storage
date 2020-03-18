@@ -27,20 +27,34 @@
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
     (str (url collection-type org sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
 
+(defn- contributor-url
+  ([org author-uuid {sort-type :sort-type}]
+  (url "contributors" org author-uuid sort-type))
+  ([{slug :slug :as org} author-uuid sort-type {start :start direction :direction}]
+  (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
+    (str (url "contributors" org author-uuid sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
+
 (defn- is-inbox? [collection-type]
   (= collection-type "inbox"))
 
+(defn- is-contributor? [collection-type]
+  (= collection-type "contributors"))
+
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [start direction sort-type]} data]
+  [org collection-type {:keys [start direction sort-type author-uuid]} data]
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
         last-activity-date (when activity? (:last-activity-at last-activity))
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next?
-                   (if (is-inbox? collection-type)
+                   (cond
+                     (is-inbox? collection-type)
                      (inbox-url collection-type org {:start last-activity-date :direction direction})
+                     (is-contributor? collection-type)
+                     (contributor-url org author-uuid {:start last-activity-date :direction direction :sort-type sort-type})
+                     :else
                      (url collection-type org sort-type {:start last-activity-date :direction direction})))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))]
     next-link))
