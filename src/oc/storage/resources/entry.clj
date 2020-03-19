@@ -423,7 +423,7 @@
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-author-id [[:published org-uuid author-uuid]] order start direction
+  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-publisher [[:published org-uuid author-uuid]] order start direction
    limit sort-type common/interaction-table-name allowed-boards list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-drafts-by-org-author

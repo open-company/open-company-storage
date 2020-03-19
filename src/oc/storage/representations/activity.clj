@@ -29,11 +29,6 @@
 
 (defn- contributor-url
 
-  ([org {sort-type :sort-type author-uuid :author-uuid start :start :as params}]
-  (if start
-    (contributor-url org author-uuid sort-type params)
-    (contributor-url org author-uuid sort-type)))
-
   ([{slug :slug :as org} author-uuid sort-type]
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
     (str "/orgs/" slug "/contributors/" author-uuid sort-path)))
@@ -88,7 +83,7 @@
                         inbox?
                         (inbox-url collection-type org)
                         contributor?
-                        (contributor-url org params)
+                        (contributor-url org (:author-uuid params) (:sort-type params))
                         :else
                         (url collection-type org sort-type))
         recent-activity-sort? (= sort-type :recent-activity)

@@ -50,7 +50,7 @@
    :replace {:author-uuid "$0"}))
 
 (defn- recent-contributor-partial-link [org]
-  (assoc (hateoas/link-map "partial-contributor" hateoas/GET (str (url org) "/contributors/$0?sort=activity") {:accept mt/entry-collection-media-type})
+  (assoc (hateoas/link-map "recent-partial-contributor" hateoas/GET (str (url org) "/contributors/$0?sort=activity") {:accept mt/entry-collection-media-type})
    :replace {:author-uuid "$0"}))
 
 (defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
