@@ -28,6 +28,12 @@
     (str (url collection-type org sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
 
 (defn- contributor-url
+
+  ([org {sort-type :sort-type author-uuid :author-uuid start :start :as params}]
+  (if start
+    (contributor-url org author-uuid sort-type params)
+    (contributor-url org author-uuid sort-type)))
+
   ([{slug :slug :as org} author-uuid sort-type]
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
     (str "/orgs/" slug "/contributors/" author-uuid sort-path)))
@@ -77,12 +83,22 @@
   [params org collection-type activity boards user]
   (let [sort-type (:sort-type params)
         inbox? (is-inbox? collection-type)
-        collection-url (if inbox?
-                         (inbox-url collection-type org)
-                         (url collection-type org sort-type))
+        contributor? (is-contributor? collection-type)
+        collection-url (cond
+                        inbox?
+                        (inbox-url collection-type org)
+                        contributor?
+                        (contributor-url org params)
+                        :else
+                        (url collection-type org sort-type))
         recent-activity-sort? (= sort-type :recent-activity)
-        other-sort-url (when-not inbox?
-                         (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
+        other-sort-url (cond
+                        inbox?
+                        nil
+                        contributor?
+                        (contributor-url org (:author-uuid params) (if recent-activity-sort? :recently-posted :recent-activity))
+                        :else
+                        (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
         collection-rel (if recent-activity-sort? "activity" "self")
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links (remove nil?

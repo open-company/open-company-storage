@@ -45,6 +45,20 @@
 (defn- recent-activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/entry-collection-media-type}))
 
+(defn- contributor-partial-link [org]
+  (assoc (hateoas/link-map "partial-contributor" hateoas/GET (str (url org) "/contributors/$0") {:accept mt/entry-collection-media-type})
+   :replace {:author-uuid "$0"}))
+
+(defn- recent-contributor-partial-link [org]
+  (assoc (hateoas/link-map "partial-contributor" hateoas/GET (str (url org) "/contributors/$0?sort=activity") {:accept mt/entry-collection-media-type})
+   :replace {:author-uuid "$0"}))
+
+(defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
+
+(defn- partial-secure-link []
+  (assoc (hateoas/link-map "partial-secure" hateoas/GET (secure-url "$0" "$1") {:accept mt/entry-media-type})
+   :replace {:org-slug "$0" :secure-uuid "$1"}))
+
 (defn- change-link [org access-level user]
   (if (or (= access-level :author) (= access-level :viewer))
     (update-in org [:links] conj
@@ -140,7 +154,7 @@
   (let [links [(self-link org)]
         id-token (:id-token user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
-                          (concat links [(activity-link org) (recent-activity-link org)]) ; (calendar-link org) - not currently used
+                          (concat links [(activity-link org) (recent-activity-link org) (recent-contributor-partial-link org) (contributor-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
                       (concat activity-links [(board-create-link org)
@@ -189,7 +203,8 @@
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
   [orgs authed?]
-  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type}) auth-link]
+  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type}) auth-link
+               (partial-secure-link)]
         full-links (if authed?
                       (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
                                                                  :accept mt/org-media-type}))

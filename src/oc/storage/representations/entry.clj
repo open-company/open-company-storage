@@ -69,13 +69,11 @@
 (defn- self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
 
-(defn- secure-url [org-slug secure-uuid] (str (org-rep/url org-slug) "/entries/" secure-uuid))
-
 (defn- secure-self-link [org-slug entry-uuid]
-  (hateoas/self-link (secure-url org-slug entry-uuid) {:accept mt/entry-media-type}))
+  (hateoas/self-link (org-rep/secure-url org-slug entry-uuid) {:accept mt/entry-media-type}))
 
 (defn- secure-link [org-slug secure-uuid]
-  (hateoas/link-map "secure" hateoas/GET (secure-url org-slug secure-uuid) {:accept mt/entry-media-type}))
+  (hateoas/link-map "secure" hateoas/GET (org-rep/secure-url org-slug secure-uuid) {:accept mt/entry-media-type}))
 
 (defn- create-link [org-slug board-slug]
   (hateoas/create-link (str (url org-slug board-slug) "/") {:content-type mt/entry-media-type
