@@ -25,7 +25,7 @@
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id :follow-ups
-                           :new-at :new-comments-count :bookmarked])
+                           :new-at :new-comments-count :bookmarked-at :last-read-at])
 
 ;; ----- Utility functions -----
 
@@ -191,7 +191,7 @@
         board-access (:access board)
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
-        bookmarked? ((set (:bookmarks entry)) user-id)
+        bookmark (some #(when (= (:user-id %) user-id) %) (:bookmarks entry))
         enrich-entry? (and (not draft?)
                            user-id)
         entry-read (when enrich-entry?
@@ -199,7 +199,8 @@
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
-                           :bookmarked (boolean bookmarked?)
+                           :bookmarked-at (:bookmarked-at bookmark)
+                           :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
                                                  (if entry-read
                                                    (new-comments-count entry-with-comments user-id entry-read)
@@ -214,7 +215,7 @@
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
         bookmarks-links (when (not= access-level :public)
-                          (if bookmarked?
+                          (if bookmark
                             (remove-bookmark-link org-slug board-slug entry-uuid)
                             (add-bookmark-link org-slug board-slug entry-uuid)))
         links (if secure-access?
@@ -231,11 +232,13 @@
                                    (secure-link org-slug secure-uuid)
                                    (revert-link org-slug board-slug entry-uuid)
                                    (content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
+                                   (content/mark-unread-link entry-uuid)])
                     ;; Access by viewers get comments
                     (= access-level :viewer)
                     (concat links [(content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)])
+                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
+                                   (content/mark-unread-link entry-uuid)])
                     ;; Everyone else is read-only
                     :else links)
         react-links (if (and
