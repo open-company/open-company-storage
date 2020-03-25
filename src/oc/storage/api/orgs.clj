@@ -258,6 +258,10 @@
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
                                             0 (map :uuid allowed-boards) {:count true})
                                            0)
+                             user-count (if user-is-member?
+                                          (entry-res/list-entries-by-org-author conn org-id user-id :asc (db-common/current-timestamp) :before
+                                            0 :recently-posted (map :uuid allowed-boards) {:count true})
+                                           0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
@@ -270,6 +274,7 @@
                                                  (assoc :boards (if user-is-member? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :inbox-count inbox-count)
+                                                 (assoc :contributor-count user-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
                                              user
