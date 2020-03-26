@@ -15,7 +15,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at :direct})
+  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at})
 
 ;; ----- Data Schemas -----
 
