@@ -15,7 +15,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at})
+  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at :direct})
 
 ;; ----- Data Schemas -----
 
@@ -56,6 +56,7 @@
   (schema/optional-key :slack-mirror) (schema/maybe lib-schema/SlackChannel)
   :author lib-schema/Author
   (schema/optional-key :draft) schema/Bool
+  (schema/optional-key :direct) schema/Bool
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
