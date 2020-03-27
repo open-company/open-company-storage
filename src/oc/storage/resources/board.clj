@@ -130,7 +130,7 @@
      (dissoc :entries)
      (update :slug #(slug/find-available-slug
                      (if (:direct board)
-                       (clojure.string/join "-" (:authors board))
+                       (db-common/unique-id)
                        %)
                      (taken-slugs conn (:org-uuid board)))))
     (db-common/current-timestamp)))
