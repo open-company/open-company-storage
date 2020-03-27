@@ -126,7 +126,13 @@
   [conn board :- common/NewBoard]
   {:pre [(db-common/conn? conn)]}
   (db-common/create-resource conn table-name
-    (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
+    (-> board
+     (dissoc :entries)
+     (update :slug #(slug/find-available-slug
+                     (if (:direct board)
+                       (clojure.string/join "-" (:authors board))
+                       %)
+                     (taken-slugs conn (:org-uuid board)))))
     (db-common/current-timestamp)))
 
 (schema/defn ^:always-validate get-board :- (schema/maybe common/Board)
