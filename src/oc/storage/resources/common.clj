@@ -98,7 +98,7 @@
 (def Status (schema/pred #(#{:draft :published} (keyword %))))
 
 (def PollReply
-  "A poll reply."
+  "An option you can vote on in a poll."
   {:body schema/Str
    :author lib-schema/Author
    :reply-id lib-schema/UniqueID
@@ -106,7 +106,7 @@
    :votes [lib-schema/UniqueID]})
 
 (def Poll
-  "A poll item."
+  "A user poll for voting."
   {:poll-uuid lib-schema/UniqueID
    :question schema/Str
    :can-add-reply schema/Bool
