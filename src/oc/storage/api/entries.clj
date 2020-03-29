@@ -66,18 +66,18 @@
   (update entry :polls
    (fn [polls]
     (let [updated-polls (mapv (fn [[k poll]]
-                         (if-let [existing-poll (get-in existing-entry [:polls (:poll-uuid poll)])]
-                           ;; Make sure we keep the votes that are currently saved,
-                           ;; client can't update votes with an entry patch
-                           ;; but can add/delete/update replies.
-                           (let [updated-replies (mapv (fn [[reply-id reply]]
-                                                  (let [existing-reply (get existing-poll reply-id)
-                                                        reply-votes (if existing-reply (:votes existing-reply) (:votes reply))]
-                                                    (assoc reply :votes reply-votes)))
-                                                   (:replies poll))]
-                             (assoc poll :replies (zipmap (mapv (comp keyword :reply-id) updated-replies) updated-replies)))
-                           poll))
-                        polls)]
+                          (if-let [existing-poll (get-in existing-entry [:polls (:poll-uuid poll)])]
+                            ;; Make sure we keep the votes that are currently saved,
+                            ;; client can't update votes with an entry patch
+                            ;; but can add/delete/update replies.
+                            (let [updated-replies (mapv (fn [[reply-id reply]]
+                                                    (let [existing-reply (get existing-poll reply-id)
+                                                          reply-votes (if existing-reply (:votes existing-reply) (:votes reply))]
+                                                      (assoc reply :votes reply-votes)))
+                                                     (:replies poll))]
+                              (assoc poll :replies (zipmap (mapv (comp keyword :reply-id) updated-replies) updated-replies)))
+                            poll))
+                          polls)]
       (zipmap (mapv (comp keyword :poll-uuid) updated-polls) updated-polls)))))
 
 (defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
