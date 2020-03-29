@@ -156,8 +156,7 @@
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601
 
-  (schema/optional-key :follow-ups) [FollowUp]
-  (schema/optional-key :bookmarks) [(schema/if string? lib-schema/UniqueID Bookmark)]
+  (schema/optional-key :bookmarks) [Bookmark]
   (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
 })
 

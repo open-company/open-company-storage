@@ -24,8 +24,8 @@
                            :board-uuid :board-slug :board-name :board-access
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
-                           :created-at :updated-at :revision-id :follow-ups
-                           :new-at :new-comments-count :bookmarked-at])
+                           :created-at :updated-at :revision-id
+                           :new-at :new-comments-count :bookmarked-at :last-read-at])
 
 ;; ----- Utility functions -----
 
@@ -198,6 +198,7 @@
                            :board-access board-access
                            :board-name (:name board)
                            :bookmarked-at (:bookmarked-at bookmark)
+                           :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
                                                  (if entry-read
                                                    (new-comments-count entry-with-comments user-id entry-read)
