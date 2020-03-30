@@ -163,13 +163,16 @@
   "
   Atomic update of poll vote to avoid race conditions while multiple
   users are voting together.
+  `add-vote?` can be true if the user is casting his vote or false if he's
+  removing it.
   "
-  [conn table-name entry-uuid poll-uuid reply-id user-id vote?]
+  [conn table-name entry-uuid poll-uuid reply-id user-id add-vote?]
   {:pre [(db-common/conn? conn)
-         (db-common/s-or-k? table-name)]}
+         (db-common/s-or-k? table-name)
+         (boolean? add-vote?)]}
   (let [ts (db-common/current-timestamp)
-        set-operation (if vote? r/set-insert r/set-difference)
-        user-id-value (if vote? user-id [user-id])
+        set-operation (if add-vote? r/set-insert r/set-difference)
+        user-id-value (if add-vote? user-id [user-id])
         update (db-common/with-timeout db-common/default-timeout
                   (-> (r/table table-name)
                       (r/get entry-uuid)
