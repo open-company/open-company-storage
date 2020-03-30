@@ -1,0 +1,20 @@
+(ns oc.storage.db.migrations.bookmarks-cleanup
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.lib.db.common :as db-common]
+            [oc.storage.resources.entry :as entry]
+            [oc.storage.resources.board :as board]))
+
+(defn- delete-follow-ups [conn]
+  (println "Remove all :follow-ups values from the existing entries.")
+  (println (-> (r/table entry/table-name)
+            (r/replace (r/fn [e]
+              (r/without e [:follow-ups])))
+            (r/run conn))))
+
+(defn up [conn]
+  (delete-follow-ups conn)
+  (println "Removing follow-ups multi index:")
+  (println (m/remove-index conn entry/table-name "org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi"))
+  true) ; return true on success

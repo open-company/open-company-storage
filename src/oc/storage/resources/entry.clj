@@ -446,23 +446,6 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
 
-(schema/defn ^:always-validate list-all-entries-by-follow-ups
-  "Given the UUID of the user, return all the published entries with follow-ups for the user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID]]
-    (list-all-entries-by-follow-ups conn org-uuid user-id order start direction limit sort-type allowed-boards {:count false}))
-
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-follow-ups-completed?-assignee-user-id-map-multi
-   [[org-uuid :published false user-id]] order start direction limit sort-type common/interaction-table-name allowed-boards 
-   list-comment-properties {:count count})))
-
 (schema/defn ^:always-validate list-all-entries-for-inbox
   "Given the UUID of the user, return all the entries the user has access to that have been published
    or have had activity in the last config/unread-days-limit days, then filter by user-visibility on the remaining."
