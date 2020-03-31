@@ -15,9 +15,16 @@
   ([slug :guard string?] (str "/orgs/" slug))
   ([org :guard map?] (url (:slug org))))
 
+(defn- active-users-url
+  [{:keys [team-id]}]
+  (str config/auth-server-url "/teams/" team-id "/active-users"))
+
 (defn- self-link [org] (hateoas/self-link (url org) {:accept mt/org-media-type}))
 
 (defn- item-link [org] (hateoas/item-link (url org) {:accept mt/org-media-type}))
+
+(defn- active-users-link [org]
+  (hateoas/link-map "active-users" hateoas/GET (active-users-url org) {:accept mt/user-collection-media-type}))
 
 (defn partial-update-link [org] (hateoas/partial-update-link (url org) {:content-type mt/org-media-type
                                                                         :accept mt/org-media-type}))
@@ -140,7 +147,7 @@
   (let [links [(self-link org)]
         id-token (:id-token user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
-                          (concat links [(activity-link org) (recent-activity-link org)]) ; (calendar-link org) - not currently used
+                          (concat links [(active-users-link org) (activity-link org) (recent-activity-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
                       (concat activity-links [(board-create-link org)
