@@ -1,8 +1,6 @@
 (ns oc.storage.api.polls
   "Liberator API for poll resources."
-  (:require [clojure.string :as s]
-            [defun.core :refer (defun-)]
-            [if-let.core :refer (if-let* when-let*)]
+  (:require [if-let.core :refer (if-let* when-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
@@ -95,7 +93,7 @@
   :available-media-types (by-method {
                             :post [mt/poll-reply-media-type]})
   :handle-not-acceptable (by-method {
-                            :post (api-common/only-accept 406 mt/entry-poll-media-type)})
+                            :post (api-common/only-accept 406 mt/poll-media-type)})
 
   ;; Media type client sends
   :known-content-type? (by-method {
@@ -152,7 +150,7 @@
   :available-media-types (by-method {
                             :delete [mt/poll-reply-media-type]})
   :handle-not-acceptable (by-method {
-                            :delete (api-common/only-accept 406 mt/entry-poll-media-type)})
+                            :delete (api-common/only-accept 406 mt/poll-media-type)})
 
   ;; Media type client sends
   :known-content-type? true
@@ -202,8 +200,8 @@
 
   ;; Media type client accepts
   :available-media-types (by-method {
-                            :post [mt/entry-poll-media-type]
-                            :delete [mt/entry-poll-media-type]})
+                            :post [mt/poll-media-type]
+                            :delete [mt/poll-media-type]})
   :handle-not-acceptable (by-method {
                             :post (api-common/only-accept 406 mt/entry-media-type)
                             :delete (api-common/only-accept 406 mt/entry-collection-media-type)})
