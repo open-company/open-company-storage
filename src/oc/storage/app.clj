@@ -23,6 +23,7 @@
     [oc.storage.api.orgs :as orgs-api]
     [oc.storage.api.boards :as boards-api]
     [oc.storage.api.entries :as entries-api]
+    [oc.storage.api.polls :as polls-api]
     [oc.storage.api.activity :as activity-api]))
 
 ;; ----- Unhandled Exceptions -----
@@ -49,7 +50,8 @@
     (orgs-api/routes sys)
     (boards-api/routes sys)
     (entries-api/routes sys)
-    (activity-api/routes sys)))
+    (activity-api/routes sys)
+    (polls-api/routes sys)))
 
 ;; ----- System Startup -----
 
