@@ -167,11 +167,11 @@
 
 (defn- poll-vote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
   (hateoas/link-map "vote" hateoas/POST (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
-    {:accept mt/entry-poll-media-type}))
+    {:accept mt/poll-media-type}))
 
 (defn- poll-unvote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
   (hateoas/link-map "unvote" hateoas/DELETE (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
-    {:accept mt/entry-poll-media-type}))
+    {:accept mt/poll-media-type}))
 
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
