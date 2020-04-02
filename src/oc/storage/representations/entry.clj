@@ -25,7 +25,7 @@
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id
-                           :new-at :new-comments-count :bookmarked-at :last-read-at])
+                           :new-at :new-comments-count :bookmarked-at :polls :last-read-at])
 
 ;; ----- Utility functions -----
 
@@ -142,6 +142,35 @@
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
+(defn- poll-url [org-slug board-slug entry-uuid poll-uuid]
+  (str (url org-slug board-slug entry-uuid) "/polls/" poll-uuid))
+
+(defn- poll-replies-url [org-slug board-slug entry-uuid poll-uuid]
+  (str (poll-url org-slug board-slug entry-uuid poll-uuid) "/replies"))
+
+(defn- poll-reply-url [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (str (poll-replies-url org-slug board-slug entry-uuid poll-uuid) "/" reply-id))
+
+(defn- poll-reply-vote-url [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (str (poll-reply-url org-slug board-slug entry-uuid poll-uuid reply-id) "/vote"))
+
+(defn- poll-add-reply-link [org-slug board-slug entry-uuid poll-uuid]
+  (hateoas/link-map "reply" hateoas/POST (poll-replies-url org-slug board-slug entry-uuid poll-uuid)
+    {:accept mt/poll-reply-media-type
+     :content-type "text/plain"}))
+
+(defn- poll-delete-reply-link [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (hateoas/link-map "delete" hateoas/DELETE (poll-reply-url org-slug board-slug entry-uuid poll-uuid reply-id)
+    {:accept mt/poll-reply-media-type}))
+
+(defn- poll-vote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (hateoas/link-map "vote" hateoas/POST (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+    {:accept mt/poll-media-type}))
+
+(defn- poll-unvote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
+  (hateoas/link-map "unvote" hateoas/DELETE (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+    {:accept mt/poll-media-type}))
+
 (defn- include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
@@ -171,6 +200,31 @@
     (when (seq sorted-comments)
       (-> sorted-comments last :created-at))))
 
+(defn- poll-replies-with-links [poll-replies org-slug board-slug entry-uuid poll-uuid user-id]
+  (zipmap
+   (mapv (comp keyword :reply-id) (vals poll-replies))
+   (mapv (fn [reply]
+          (let [user-voted? (and user-id
+                                 (seq (filterv #(= % user-id) (:votes reply))))]
+            (assoc reply :links (remove nil?
+             [(if user-voted?
+                (poll-unvote-link org-slug board-slug entry-uuid poll-uuid (:reply-id reply))
+                (poll-vote-link org-slug board-slug entry-uuid poll-uuid (:reply-id reply)))
+              (when (= user-id (-> reply :author :user-id))
+                (poll-delete-reply-link org-slug board-slug entry-uuid poll-uuid (:reply-id reply)))]))))
+     (vals poll-replies))))
+
+(defn- polls-with-links [polls org-slug board-slug entry-uuid user-id]
+  (zipmap
+   (mapv (comp keyword :poll-uuid) (vals polls))
+   (mapv (fn [poll] (-> poll
+          (update :replies #(poll-replies-with-links % org-slug board-slug entry-uuid (:poll-uuid poll) user-id))
+          (assoc :links
+           (remove nil?
+            [(when (:can-add-reply poll)
+               (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
+     (vals polls))))
+
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -194,6 +248,8 @@
                            user-id)
         entry-read (when enrich-entry?
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
+        rendered-polls (when (seq (:polls entry))
+                         (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
@@ -269,6 +325,7 @@
             (clojure.set/rename-keys org-prop-mapping)
             (merge full-entry))
           full-entry)
+      (assoc :polls rendered-polls)
       (select-keys representation-props)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
@@ -321,3 +378,8 @@
                                     access-level (:user-id user)))
                              entries)}}
       {:pretty config/pretty?})))
+
+(defn render-entry-poll [entry poll ct]
+  (json/generate-string
+    poll
+    {:pretty config/pretty?}))
