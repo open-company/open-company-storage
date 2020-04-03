@@ -158,3 +158,47 @@
             (if (= (type query) rethinkdb.net.Cursor)
               (seq query)
               query)))))
+
+(defn update-poll-vote
+  "
+  Atomic update of poll vote to avoid race conditions while multiple
+  users are voting together.
+  `add-vote?` can be true if the user is casting his vote or false if he's
+  removing it.
+  "
+  [conn table-name entry-uuid poll-uuid reply-id user-id add-vote?]
+  {:pre [(db-common/conn? conn)
+         (db-common/s-or-k? table-name)
+         (boolean? add-vote?)]}
+  (let [ts (db-common/current-timestamp)
+        set-operation (if add-vote? r/set-insert r/set-difference)
+        user-id-value (if add-vote? user-id [user-id])
+        update (db-common/with-timeout db-common/default-timeout
+                  (-> (r/table table-name)
+                      (r/get entry-uuid)
+                      (r/update (r/fn [entry]
+                       {:polls {poll-uuid {:replies
+                        (-> entry
+                         (r/get-field [:polls poll-uuid :replies])
+                         (r/values)
+                         (r/map (r/fn [reply-data]
+                          (r/branch
+                           (r/eq (r/get-field reply-data [:reply-id]) reply-id)
+                           (r/object (r/get-field reply-data :reply-id)
+                            (r/merge reply-data
+                             {:votes (-> reply-data
+                                      (r/get-field [:votes])
+                                      (r/default [])
+                                      (set-operation user-id-value))}))
+                           (r/object (r/get-field reply-data :reply-id)
+                            (r/merge reply-data
+                             {:votes (-> reply-data
+                                      (r/get-field [:votes])
+                                      (r/default [])
+                                      (r/set-difference [user-id]))})))))
+                         (r/reduce (r/fn [a b]
+                          (r/merge a b))))}}}))
+                      (r/run conn)))]
+    (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
+      (db-common/read-resource conn table-name entry-uuid)
+      (throw (RuntimeException. (str "RethinkDB update failure: " update))))))

@@ -60,6 +60,36 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new entry
     [false, {:reason "Invalid board."}])) ; couldn't find the specified board
 
+(defn- clean-poll-reply
+  "Copy the votes from the existing poll's reply if any, into the new reply."
+  [existing-poll reply-id reply-data]
+  (let [existing-reply (get existing-poll reply-id)
+        reply-votes (if existing-reply (:votes existing-reply) (:votes reply-data))]
+    (assoc reply-data :votes reply-votes)))
+
+(defn- clean-poll-for-patch
+  "Update a poll without overriding the votes but preserve the added/removed/updated replies."
+  [existing-entry poll-data]
+  (if-let [existing-poll (get-in existing-entry [:polls (:poll-uuid poll-data)])]
+    ;; Make sure we keep the votes that are currently saved,
+    ;; client can't update votes with an entry patch
+    ;; but can add/delete/update replies.
+    (let [updated-replies (map (fn [[reply-id reply-data]]
+                                 (clean-poll-reply existing-poll reply-id reply-data))
+                           (:replies poll-data))]
+      (assoc poll-data :replies (zipmap (map (comp keyword :reply-id) updated-replies)
+                                         updated-replies)))
+    poll-data))
+
+(defn- clean-polls-for-patch
+  "Given the existing entry and the patched entry, clean the polls contained in the
+   the new data."
+  [existing-entry entry]
+  (update entry :polls (fn [polls]
+    (let [updated-polls (map (partial clean-poll-for-patch existing-entry) (vals polls))
+          poll-uuids (map (comp keyword :poll-uuid) updated-polls)]
+      (zipmap poll-uuids updated-polls)))))
+
 (defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
@@ -77,17 +107,16 @@
                   (assoc with-status-props :board-uuid new-board-uuid)
                   (dissoc with-status-props :board-uuid))
           merged-entry (merge existing-entry (entry-res/ignore-props props))
-          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))
+          with-attachments (update merged-entry :attachments #(entry-res/timestamp-attachments %))
+          updated-entry (clean-polls-for-patch existing-entry with-attachments)
           ts (db-common/current-timestamp)]
       (if (lib-schema/valid? common-res/Entry updated-entry)
         {:existing-entry (api-common/rep existing-entry)
          :existing-board (api-common/rep new-board)
          :moving-board (api-common/rep old-board)
          :updated-entry (api-common/rep updated-entry)}
-        (do
-         (println (lib-schema/valid? common-res/Entry updated-entry))
-         [false, {:updated-entry (api-common/rep updated-entry)}]))) ; invalid update
-    
+        [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
+
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- valid-entry-revert? [entry-props]
@@ -101,7 +130,7 @@
     (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-requests)
         {:existing-entry (api-common/rep existing-entry) :share-requests (api-common/rep share-requests)}
         [false, {:share-requests (api-common/rep share-requests)}]) ; invalid share request
-    
+
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- entry-list-for-board
@@ -150,7 +179,7 @@
          :updated-entry (api-common/rep updated-entry)
          :dismiss-at dismiss-at}
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
-    
+
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- valid-dismiss-all-update? [conn ctx org-slug user]
@@ -228,7 +257,7 @@
             org (:existing-org ctx)
             board (:existing-board ctx)
             new-entry (:new-entry ctx)
-            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry    
+            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (keyword (:status entry-result)) :published)
@@ -407,7 +436,7 @@
   ;; Media type client accepts
   :available-media-types [mt/entry-media-type]
   :handle-not-acceptable (api-common/only-accept 406 mt/entry-media-type)
-  
+
   ;; Media type client sends
   :known-content-type? (by-method {
     :options true
@@ -658,7 +687,7 @@
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry)}
                         false))
-  
+
   ;; Actions
   :post! (fn [ctx] (publish-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
 
@@ -723,7 +752,7 @@
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
                          :existing-reactions (api-common/rep reactions)}
                         false))
-  
+
   ;; Actions
   :post! (fn [ctx] (share-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
 
@@ -748,11 +777,11 @@
   ;; Authorization
   :allowed? (fn [ctx]
               (let [org (or (:existing-org ctx)
-                            (org-res/get-org conn org-slug))]                
+                            (org-res/get-org conn org-slug))]
                 (if (:id-token ctx) ; access by secure link
                   (= secure-uuid (:secure-uuid (:user ctx))) ; ensure secured UUID from secure link is for this entry
                   (if (-> org :content-visibility :disallow-public-share)
-                    false ; org doesn't allow secure links                  
+                    false ; org doesn't allow secure links
                     true)))) ; not logged in are allowed by using the secure link
 
   ;; Media type client accepts
@@ -784,7 +813,7 @@
                          :existing-reactions (api-common/rep reactions)
                          :access-level access-level}
                         false))
-  
+
   ;; Responses
   :handle-ok (fn [ctx] (let [access-level (:access-level ctx)]
                           (entry-rep/render-entry (:existing-org ctx)
