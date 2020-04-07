@@ -57,7 +57,8 @@
   :author lib-schema/Author
   (schema/optional-key :draft) schema/Bool
   :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
+  :updated-at lib-schema/ISO8601
+  (schema/optional-key :personal) schema/Bool})
 
 (def ContentVisibility {
   (schema/optional-key :disallow-secure-links) schema/Bool
