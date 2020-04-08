@@ -21,7 +21,7 @@
 
 (def representation-props [:uuid :headline :body :abstract :attachments :status :must-see :sample
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
-                           :board-uuid :board-slug :board-name :board-access
+                           :board-uuid :board-slug :board-name :board-access :publisher-board
                            :team-id :author :publisher :published-at
                            :video-id :video-processed :video-image :video-duration
                            :created-at :updated-at :revision-id
@@ -253,6 +253,7 @@
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
+                           :publisher-board (:publisher-board board)
                            :bookmarked-at (:bookmarked-at bookmark)
                            :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?

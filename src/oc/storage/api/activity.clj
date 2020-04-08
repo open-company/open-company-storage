@@ -17,6 +17,8 @@
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]))
 
+(def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
+
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type}
@@ -137,7 +139,7 @@
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction :sort-type sort-type})
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
@@ -194,7 +196,7 @@
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (-> ctx-params :direction keyword #{:after}) :before) ; default is before
                              params (merge start-params {:direction direction :sort-type sort-type})
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
@@ -244,7 +246,7 @@
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
                              params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
@@ -290,7 +292,7 @@
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction :sort-type sort-type :author-uuid author-uuid})
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)

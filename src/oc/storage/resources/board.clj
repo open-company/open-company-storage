@@ -4,6 +4,7 @@
             [defun.core :refer (defun)]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
+            [oc.lib.user :as user-lib]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
@@ -16,6 +17,8 @@
 
 (def table-name common/board-table-name)
 (def primary-key :uuid)
+
+(def publisher-board-slug-prefix "publisher-board-")
 
 ;; ----- Metadata -----
 
@@ -128,6 +131,20 @@
   (db-common/create-resource conn table-name
     (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
     (db-common/current-timestamp)))
+
+(defn- publisher-board-slug [taken-slugs user-id]
+  (slug/find-available-slug (str publisher-board-slug-prefix user-id) taken-slugs))
+
+(schema/defn ^:always-validate create-publisher-board!
+  [conn org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)]}
+  (let [taken-slugs (taken-slugs conn org-uuid)
+        board-map {:slug (publisher-board-slug taken-slugs (:user-id user))
+                   :publisher-board true
+                   :access :team
+                   :name (user-lib/name-for user)}
+        new-board (->board org-uuid board-map user)]
+   (create-board! conn new-board)))
 
 (schema/defn ^:always-validate get-board :- (schema/maybe common/Board)
   "

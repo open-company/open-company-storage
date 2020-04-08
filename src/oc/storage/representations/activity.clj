@@ -67,7 +67,8 @@
   [org activity comments reactions access-level user-id]
   (entry-rep/render-entry-for-collection org {:slug (:board-slug activity)
                                               :access (:board-access activity)
-                                              :uuid (:board-uuid activity)}
+                                              :uuid (:board-uuid activity)
+                                              :publisher-board (:publisher-board activity)}
     activity comments reactions access-level user-id))
 
 (defn render-activity-list

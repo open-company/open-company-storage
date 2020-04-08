@@ -9,8 +9,8 @@
             [oc.storage.resources.board :as board-res]))
 
 ;; ----- Validation -----
- 
- (defn malformed-user-id?
+
+(defn malformed-user-id?
   "Read in the body param from the request and make sure it's a non-blank string
   that corresponds to a user-id. Otherwise just indicate it's malformed."
   [ctx]
@@ -39,9 +39,7 @@
     :public
     false
   "
-  
   ;; Access to org
-  
   ;; Invalid org slug
   ([_conn org-slug :guard #(and (string? %) (not (slugify/valid-slug? %))) _user]
     ;; Will fail existence checks later
@@ -62,22 +60,22 @@
         org-uuid (:uuid org)
         org-authors (set (:authors org))]
     (cond
-      
+
       ;; a named author of this org
       (org-authors user-id) {:access-level :author}
-      
+
       ;; an admin of this org's team
       ((set admin) (:team-id org)) {:access-level :author}
 
       ;; a team member of this org
       ((set teams) (:team-id org)) {:access-level :viewer}
-      
+
       ;; public access to orgs w/ at least 1 public board AND that allow public boards
       (and
         (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
         (not (-> org :content-visibility :disallow-public-board)))
         {:access-level :public}
-      
+
       ;; no access
       :else false)))
 
@@ -107,32 +105,36 @@
   (let [user-id (:user-id user)
         teams (:teams user)
         admin (:admin user)
-        org-uuid (:org-uuid org)
+        org-uuid (:uuid org)
         org-authors (set (:authors org))
         board-access (keyword (:access board))
         board-authors (set (:authors board))
         board-viewers (set (:viewers board))]
     (cond
-      
+
       ;; a named author of this private board
       (and (= board-access :private) (board-authors user-id)) {:access-level :author}
-      
+
+      (and (= board-access :team)
+           (:publisher-board board))
+      {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer)}
+
       ;; an org author of this non-private board
       (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
-      
+
       ;; an admin of this org's team for this non-private board
       (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author}
 
       ;; a named viewer of this board
       (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
-      
+
       ;; a team member on a non-private board
       (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
-      
+
       ;; anyone else on a public board IF the org allows public boards
       (and (= board-access :public) (not (-> org :content-visibility :disallow-public-board)))
       {:access-level :public}
-      
+
       ;; no access
       :else false))))
 

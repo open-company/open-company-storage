@@ -432,7 +432,7 @@
   "
   [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[:drafts org-uuid user-id]]
+  (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[:draft org-uuid user-id]]
                                           :interactions common/interaction-table-name :uuid :resource-uuid
                                           list-comment-properties {:count count}))
 

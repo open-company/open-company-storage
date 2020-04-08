@@ -11,6 +11,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
+            [oc.lib.user :as user-lib]
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
@@ -46,19 +47,35 @@
 
 ;; ----- Validations -----
 
-(defn- valid-new-entry? [conn org-slug board-slug ctx]
-  (if-let [board (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug)]
-    (try
-      ;; Create the new entry from the URL and data provided
-      (let [entry-map (:data ctx)
-            author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) entry-map author)
-            ts (db-common/current-timestamp)]
-        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)})
+(defn- create-publisher-board [conn org author]
+  (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
+    (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
+    created-board))
 
-      (catch clojure.lang.ExceptionInfo e
-        [false, {:reason (.getMessage e)}])) ; Not a valid new entry
-    [false, {:reason "Invalid board."}])) ; couldn't find the specified board
+(defn- valid-new-entry? [conn org-slug board-slug ctx]
+  (let [org (org-res/get-org conn org-slug)
+        board (board-res/get-board conn (:uuid org) board-slug)
+        entry-map (:data ctx)
+        author (:user ctx)
+        existing-board (cond
+                        board
+                        board
+
+                        (and (not board)
+                             (:publisher-board entry-map)
+                             (= (:user-id author) (:board-slug entry-map)))
+                        (create-publisher-board conn org author))]
+    (if board
+      (try
+        ;; Create the new entry from the URL and data provided
+        (let [new-entry (entry-res/->entry conn (:uuid existing-board) entry-map author)
+              ts (db-common/current-timestamp)]
+          {:new-entry (api-common/rep new-entry)
+           :existing-board (api-common/rep existing-board)
+           :existing-org (api-common/rep org)})
+        (catch clojure.lang.ExceptionInfo e
+          [false, {:reason (.getMessage e)}])) ; Not a valid new entry))
+      [false, {:reason "Invalid board."}]))) ; couldn't find the specified board
 
 (defn- clean-poll-reply
   "Copy the votes from the existing poll's reply if any, into the new reply."
@@ -84,7 +101,7 @@
 (defn- clean-polls-for-patch
   "Given the existing entry and the patched entry, clean the polls contained in the
    the new data."
-  [existing-entry entry]
+  [entry existing-entry]
   (update entry :polls (fn [polls]
     (let [updated-polls (map (partial clean-poll-for-patch existing-entry) (vals polls))
           poll-uuids (map (comp keyword :poll-uuid) updated-polls)]
@@ -93,28 +110,46 @@
 (defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
-    (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
-          new-board (when new-board-slug ; look up the board it's being moved to
-                          (board-res/get-board conn (:org-uuid existing-entry) new-board-slug))
-          old-board (when new-board
-                      (board-res/get-board conn (:board-uuid existing-entry)))
+    (let [org (org-res/get-org conn (:org-uuid existing-entry))
+          new-board-slug (:board-slug entry-props) ; check if they are moving the entry
+          old-board (board-res/get-board conn (:board-uuid existing-entry))
+          moving-board? (not= (:slug old-board) new-board-slug)
+          new-board* (board-res/get-board conn (:uuid org) new-board-slug)
+          new-board (cond
+                      ;; Entry not moved from old board
+                      (and new-board-slug
+                           (= new-board-slug (:slug old-board)))
+                      old-board
+                      ;; Entry moved to another existing board
+                      (and new-board-slug
+                           (not= new-board-slug (:slug old-board))
+                           (map? new-board*))
+                      new-board*
+                      ;; Entry moved to a new board
+                      (and new-board-slug
+                           (not= new-board-slug (:slug old-board))
+                           (not new-board*))
+                      (create-publisher-board conn org user))
           new-board-uuid (:uuid new-board)
-          without-status-props (dissoc entry-props :status)
-          with-status-props (if entry-publish?
-                              (assoc without-status-props :status :published)
-                              (assoc without-status-props :status (:status existing-entry)))
-          props (if new-board-uuid
-                  (assoc with-status-props :board-uuid new-board-uuid)
-                  (dissoc with-status-props :board-uuid))
-          merged-entry (merge existing-entry (entry-res/ignore-props props))
-          with-attachments (update merged-entry :attachments #(entry-res/timestamp-attachments %))
-          updated-entry (clean-polls-for-patch existing-entry with-attachments)
-          ts (db-common/current-timestamp)]
+          clean-entry-props (cond-> entry-props
+                              moving-board? (assoc :board-uuid (:uuid new-board))
+                              (not moving-board?) (dissoc :board-uuid)
+                              true (-> (dissoc :publisher-board)
+                                       (update :status #(if entry-publish? :published %))))
+          updated-entry (-> existing-entry
+                         (merge existing-entry (entry-res/ignore-props clean-entry-props))
+                         (update :attachments #(entry-res/timestamp-attachments %))
+                         (clean-polls-for-patch existing-entry))
+          ts (db-common/current-timestamp)
+          ctx-base (if moving-board?
+                     {:moving-board (api-common/rep old-board)}
+                     {})]
       (if (lib-schema/valid? common-res/Entry updated-entry)
-        {:existing-entry (api-common/rep existing-entry)
-         :existing-board (api-common/rep new-board)
-         :moving-board (api-common/rep old-board)
-         :updated-entry (api-common/rep updated-entry)}
+        (merge ctx-base
+         {:existing-entry (api-common/rep existing-entry)
+          :existing-board (api-common/rep new-board)
+          :existing-org (api-common/rep org)
+          :updated-entry (api-common/rep updated-entry)})
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
 
     true)) ; no existing entry, so this will fail existence check later
@@ -546,7 +581,7 @@
   :exists? (by-method {
     :options true
     :post (partial entry-list-for-board conn org-slug board-slug-or-uuid)
-    :get (fn [ctx] (entry-list-for-board conn org-slug board-slug-or-uuid))
+    :get (partial entry-list-for-board conn org-slug board-slug-or-uuid)
     :delete (fn [ctx]
               (if-let* [_slugs? (slugify/valid-slug? org-slug)
                         org (or (:existing-org ctx)
