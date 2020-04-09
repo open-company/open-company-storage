@@ -222,16 +222,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-
-                              valid-start? (if start (ts/valid-timestamp? start) true)
-                              direction (keyword (:direction ctx-params))
-                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
-                              valid-direction? (if direction (#{:before :after} direction) true)
-                              ;; a specified start/direction must be together or ommitted
-                              pairing-allowed? (or (and start direction)
-                                                    (and (not start) (not direction)))]
-                           (not (and valid-start? valid-direction? pairing-allowed?))))
-
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
