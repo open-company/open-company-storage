@@ -24,7 +24,8 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]))
+            [oc.storage.resources.reaction :as reaction-res]
+            [oc.lib.change.resources.follow :as follow]))
 
 ;; ----- Utility functions -----
 
@@ -47,7 +48,7 @@
 
 ;; ----- Validations -----
 
-(defn- create-publisher-board [conn org author]
+(defn create-publisher-board [conn org author]
   (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
     (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
     created-board))
@@ -68,7 +69,8 @@
     (if board
       (try
         ;; Create the new entry from the URL and data provided
-        (let [new-entry (entry-res/->entry conn (:uuid existing-board) entry-map author)
+        (let [clean-entry-map (dissoc entry-map :publisher-board)
+              new-entry (entry-res/->entry conn (:uuid existing-board) clean-entry-map author)
               ts (db-common/current-timestamp)]
           {:new-entry (api-common/rep new-entry)
            :existing-board (api-common/rep existing-board)
@@ -125,7 +127,9 @@
                            (not= new-board-slug (:slug old-board))
                            (map? new-board*))
                       new-board*
-                      ;; Entry moved to a new board
+                      ;; Entry moved to a new board: if the board doesn't exists
+                      ;; it means it's a publisher-board since the endpoint
+                      ;; needed to create a new board with entries is another
                       (and new-board-slug
                            (not= new-board-slug (:slug old-board))
                            (not new-board*))
@@ -136,9 +140,16 @@
                               (not moving-board?) (dissoc :board-uuid)
                               true (-> (dissoc :publisher-board)
                                        (update :status #(if entry-publish? :published %))))
-          updated-entry (-> existing-entry
-                         (merge existing-entry (entry-res/ignore-props clean-entry-props))
+          board-followers (when (:publisher-board new-board)
+                            (follow/retrieve config/dynamodb-opts (-> new-board :author :user-id) (:slug org)))
+          updated-entry* (merge existing-entry (entry-res/ignore-props clean-entry-props))
+          updated-entry (-> updated-entry*
                          (update :attachments #(entry-res/timestamp-attachments %))
+                         (update :user-visibility #(if (and moving-board?
+                                                            (not= (:publisher-board old-board)
+                                                                  (:publisher-board new-board)))
+                                                     (entry-res/update-user-visibility-for-move updated-entry* board-followers (:publisher-entry new-board))
+                                                     %))
                          (clean-polls-for-patch existing-entry))
           ts (db-common/current-timestamp)
           ctx-base (if moving-board?
@@ -191,19 +202,41 @@
             existing-board (or (:existing-board ctx) (board-res/get-board conn (:board-uuid existing-entry)))]
     ;; Merge the existing entry with the new updates
     (let [dismiss-at (when (= action-type :dismiss) (-> ctx :request :body slurp))
-          user-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v)) (:user-visibility existing-entry))
+          self-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v))
+                               (:user-visibility existing-entry))
                               {})
-          updated-user-visibility (cond
+          pb? (:publisher-board existing-board)
+          dismiss-at {:dismiss-at dismiss-at}
+          uv-value (cond)
+          updated-self-visibility (cond
                                     (= action-type :dismiss)
-                                    (assoc user-visibility :dismiss-at dismiss-at)
+                                    (assoc self-visibility :dismiss-at dismiss-at)
                                     (= action-type :unread)
-                                    (merge user-visibility {:dismiss-at nil :unfollow false})
+                                    (if pb?
+                                      (-> self-visibility
+                                        (dissoc :unfollow)
+                                        (assoc :follow true))
+                                      (-> self-visibility
+                                        (dissoc :follow)
+                                        (assoc :unfollow false)))
                                     (= action-type :follow)
-                                    (assoc user-visibility :unfollow false)
+                                    (if pb?
+                                      (-> self-visibility
+                                        (dissoc :unfollow)
+                                        (assoc :follow true))
+                                      (-> self-visibility
+                                        (dissoc :follow)
+                                        (assoc :unfollow false)))
                                     (= action-type :unfollow)
-                                    (assoc user-visibility :unfollow true))
-          updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-user-visibility)]
-      (timbre/info "User visibility" user-visibility "updated:" updated-user-visibility)
+                                    (if pb?
+                                      (-> self-visibility
+                                        (dissoc :unfollow)
+                                        (assoc :follow false))
+                                      (-> self-visibility
+                                        (dissoc :follow)
+                                        (assoc :unfollow true))))
+          updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-self-visibility)]
+      (timbre/info "User visibility" self-visibility "updated:" updated-self-visibility)
       (if (and (or (not= action-type :dismiss)
                    (and (= action-type :dismiss)
                         (lib-schema/valid? lib-schema/ISO8601 dismiss-at)))
@@ -371,7 +404,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
+            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) org updated-entry user (:publisher-board board))]
     (let [old-board (:moving-board ctx)]
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
@@ -519,7 +552,7 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry 
+    :get (fn [ctx] (entry-rep/render-entry
                       (:existing-org ctx)
                       (:existing-board ctx)
                       (:existing-entry ctx)
@@ -782,7 +815,7 @@
                                comments (or (:existing-comments ctx)
                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))] 
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
                          :existing-reactions (api-common/rep reactions)}
@@ -1067,25 +1100,25 @@
       ;; Secure UUID access
       (ANY "/orgs/:org-slug/entries/:secure-uuid"
         [org-slug secure-uuid]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-access conn org-slug secure-uuid)))
       (ANY "/orgs/:org-slug/entries/:secure-uuid/"
         [org-slug secure-uuid]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-access conn org-slug secure-uuid)))
       ;; Entry list operations
       (ANY "/orgs/:org-slug/boards/:board-slug/entries"
         [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-list conn org-slug board-slug)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/"
         [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-list conn org-slug board-slug)))
       ;; Entry operations
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid"
         [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry conn org-slug board-slug entry-uuid)))
       (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish"
         [org-slug board-slug entry-uuid]

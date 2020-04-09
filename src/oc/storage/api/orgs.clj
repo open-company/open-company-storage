@@ -265,13 +265,18 @@
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
+                             filter-publisher-boards (filter #(or (not (:publisher-board %))
+                                                                  (= (-> % :author :user-id) (:user-id user)))
+                                                      full-boards)
                              board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count)
-                                          full-boards)
+                                          filter-publisher-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                          (org-rep/render-org (-> org
-                                                 (assoc :boards (if user-is-member? board-reps (map #(dissoc % :authors :viewers) board-reps)))
+                                                 (assoc :boards (if user-is-member?
+                                                                  board-reps
+                                                                  (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :inbox-count inbox-count)
                                                  (assoc :contributor-count user-count)

@@ -5,8 +5,10 @@
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
+            [oc.lib.change.resources.follow :as follow]
             [oc.storage.db.common :as storage-db-common]
             [oc.lib.text :as oc-str]
+            [oc.storage.config :as c]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -62,9 +64,51 @@
 (defn timestamp-attachments
   "Add a `:created-at` timestamp with the specified value to any attachment that's missing it."
   ([attachments] (timestamp-attachments attachments (db-common/current-timestamp)))
- 
+
   ([attachments timestamp]
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
+
+(defn update-user-visibility-for-move [entry board-followers to-publisher-board?]
+  (let [uv (:user-visibility entry)]
+    (if (= (keyword (:status entry)) :published)
+      (if to-publisher-board?
+        (let [existing-uv (apply merge
+                           (map (fn [[user-idk v]]
+                                {user-idk
+                                  (if (or (= (-> entry :publisher :user-id keyword) user-idk)
+                                          (some #(= (keyword %) (user-idk)) board-followers))
+                                    (-> v
+                                     (dissoc :unfollow)
+                                     (assoc :follow (or (:follow v) (not (:unfollow v)) true)))
+                                    (-> v
+                                     (dissoc :unfollow)
+                                     (assoc :follow (or (not (:follow v)) (:unfollow v)))))})
+                            uv))]
+          (apply merge
+           (map (fn [user-id]
+                 (if-let [uuv (uv (keyword user-id))]
+                  {(keyword user-id) uuv}
+                  {(keyword user-id) {:follow true}}))
+                board-followers)))
+        (let [existing-uv (apply merge
+                           (map (fn [[user-idk v]]
+                                {user-idk
+                                  (if (or (= (-> entry :publisher :user-id keyword) user-idk)
+                                          (some #(= (keyword %) (user-idk)) board-followers))
+                                    (-> v
+                                     (dissoc :follow)
+                                     (assoc :unfollow (or (:unfollow v) (not (:follow v)) true)))
+                                    (-> v
+                                     (dissoc :follow)
+                                     (assoc :unfollow (or (not (:unfollow v)) (:follow v)))))})
+                            uv))]
+          (apply merge
+           (map (fn [user-id]
+                 (if-let [uuv (uv (keyword user-id))]
+                  {(keyword user-id) uuv}
+                  {(keyword user-id) {:unfollow true}}))
+                board-followers)))))
+     uv))
 
 ;; ----- Entry CRUD -----
 
@@ -78,7 +122,7 @@
   [conn board-uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (if-let [board (if (= board-uuid temp-uuid) 
+  (if-let [board (if (= board-uuid temp-uuid)
                     {:org-uuid temp-uuid} ; board doesn't exist yet, we're checking if this entry will be valid
                     (board-res/get-board conn board-uuid))]
     (let [ts (db-common/current-timestamp)
@@ -190,7 +234,7 @@
   "
   Given the UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org, board, entry, retrieve the entry, or return nil if it doesn't exist. This variant 
+  Or given the UUID of the org, board, entry, retrieve the entry, or return nil if it doesn't exist. This variant
   is used to confirm that the entry belongs to the specified org and board.
   "
   ([conn uuid :- lib-schema/UniqueID]
@@ -205,7 +249,7 @@
   "
   Given the secure UUID of the entry, retrieve the entry, or return nil if it doesn't exist.
 
-  Or given the UUID of the org, and entry, retrieve the entry, or return nil if it doesn't exist. This variant 
+  Or given the UUID of the org, and entry, retrieve the entry, or return nil if it doesn't exist. This variant
   is used to confirm that the entry belongs to the specified org.
   "
   ([conn secure-uuid :- lib-schema/UniqueID]
@@ -295,23 +339,36 @@
   Given the UUID of the entry, an optional updated entry map, and a user (as the publishing author),
   publish the entry and return the updated entry on success.
   "
-  ([conn uuid :- lib-schema/UniqueID user :- lib-schema/User] (publish-entry! conn uuid {} user))
+  ([conn uuid :- lib-schema/UniqueID org :- common/Org user :- lib-schema/User]
+   (publish-entry! conn uuid {} org user false))
 
-  ([conn uuid :- lib-schema/UniqueID entry-props user :- lib-schema/User]
+  ([conn uuid :- lib-schema/UniqueID entry-props org :- common/Org user :- lib-schema/User]
+   (publish-entry! conn uuid {} org user false))
+
+  ([conn uuid :- lib-schema/UniqueID entry-props org :- common/Org user :- lib-schema/User publisher-board? :- schema/Bool]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
   (if-let [original-entry (get-entry conn uuid)]
-    (let [authors (:author original-entry)
+    (let [org ()
+          authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
+          followers (follow/retrieve-followers c/dynamodb-opts (:user-id user) (:slug org))
           old-user-visibility (:user-visibility original-entry)
+          next-user-visibility (if-not publisher-board?
+                                 (assoc old-user-visibility (keyword (:user-id user))
+                                                            {:dismiss-at ts})
+                                 (let [nuv (apply merge (map (fn [[u v]]
+                                                              {u (-> v
+                                                                  (dissoc :unfollow)
+                                                                  (assoc :follow (or (not (:unfollow v)) false)))}))
+                                            old-user-visibility)]
+                                  (merge nuv (into {} (map #(hash-map (keyword %) {:follow true}) (:followers followers))))))
           merged-entry (merge original-entry entry-props {:status :published
                                                           :published-at ts
                                                           :publisher publisher
                                                           :secure-uuid (db-common/unique-id)
-                                                          :user-visibility (assoc old-user-visibility
-                                                                            (keyword (:user-id user))
-                                                                            {:dismiss-at ts})})
+                                                          :user-visibility next-user-visibility})
           updated-authors (conj authors (assoc publisher :updated-at ts))
           entry-update (assoc merged-entry :author updated-authors)]
       (schema/validate common/Entry entry-update)
@@ -405,14 +462,16 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn board-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type {:keys [count] :or {count false}}]
+  [conn board-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type {:keys [count status] :or {count false status :published}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-board-uuid [[:published board-uuid]] order start
-   direction limit sort-type common/interaction-table-name [board-uuid] list-comment-properties {:count count}))
+  (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
+        index-value (if (#{:draft :published} status) [[status board-uuid]] [board-uuid])]
+    (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
+     direction limit sort-type common/interaction-table-name [board-uuid] list-comment-properties {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type allowed-boards :- [lib-schema/UniqueID]]
@@ -439,7 +498,7 @@
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
   ([conn board-uuid :- lib-schema/UniqueID] (list-entries-by-board conn board-uuid {:count false}))
-  
+
   ([conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]

@@ -23,7 +23,8 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]
-            [oc.storage.urls.board :as board-url]))
+            [oc.storage.urls.board :as board-url]
+            [oc.lib.change.resources.follow :as follow]))
 
 ;; ----- Utility functions -----
 
@@ -53,7 +54,7 @@
         user-id (-> ctx :user :user-id)
         order (if (= direction :before) :desc :asc)
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
-                 config/default-activity-limit sort-type {:must-see must-see})]
+                 config/default-activity-limit sort-type {:must-see must-see :status :all})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
@@ -67,7 +68,8 @@
             entry-uuid (:uuid entry)
             found-entry (entry-res/get-entry conn entry-uuid)]
     (merge found-entry (assoc entry :status status))
-    (entry-res/->entry conn entry-res/temp-uuid entry author)))
+    (let [clean-entry (dissoc entry :publisher-board)]
+      (entry-res/->entry conn entry-res/temp-uuid clean-entry author))))
 
 (defn- valid-new-board? [conn org-slug {board-map :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
@@ -146,7 +148,9 @@
         draft-board? (and (pos? (count entries)) (every? #(-> % :status keyword (= :draft)) entries))
         new-board-data (assoc new-board :draft draft-board?)]
     (timbre/info "Creating board, is draft?" draft-board?)
-    (if-let [board-result (board-res/create-board! conn new-board-data)] ; Add the board
+     (if-let [board-result (if (:publisher-board new-board-data)
+                            (entries-api/create-publisher-board conn org user)
+                            (board-res/create-board! conn new-board-data))] ; Add the board
 
       (let [board-uuid (:uuid board-result)
             authors (-> ctx :data :authors)
@@ -160,7 +164,18 @@
         (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
         ;; Add any entries specified in the request
         (doseq [entry entries]
-          (let [fixed-entry (assoc entry :board-uuid board-uuid)
+          (let [old-board (when (and (:uuid entry) (:board-uuid entry))
+                            (board-res/get-board conn (:board-uuid entry)))
+                fixed-entry (-> entry
+                             (assoc :board-uuid board-uuid)
+                             (dissoc :publisher-board)
+                             (update :user-visibility #(if (and old-board
+                                                                (not= (:publisher-board old-board) (:publisher-board board-result)))
+                                                         (entry-res/update-user-visibility-for-move entry
+                                                          (when (:publisher-board board-result)
+                                                           (follow/retrieve config/dynamodb-opts (:user-id user) (:slug org)))
+                                                          (:publisher-board board-result))
+                                                         %)))
                 entry-action (if (entry-res/get-entry conn (:uuid entry))
                                :update
                                :add)
@@ -176,7 +191,7 @@
                        (not (:published-at new-entry)))
                 
                 (do
-                  (entry-res/publish-entry! conn (:uuid new-entry) user)
+                  (entry-res/publish-entry! conn (:uuid new-entry) org user)
                   (timbre/info "Upserted and published entry for new board:" board-uuid "as" (:uuid entry-result)))
                 
                 (timbre/info "Upserted entry for new board:" board-uuid "as" (:uuid entry-result)))

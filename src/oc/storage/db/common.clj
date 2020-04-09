@@ -114,8 +114,17 @@
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
                      (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                     ;; All records with follow false
-                     (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false)))))
+                     ;; All records with follow/unfollow: default to follow
+                     (r/or ;; If :follow is specified we need to use it
+                           (r/and (r/has-fields post-row [:follow])
+                                  (r/get-field post-row [:user-visibility user-id :follow]))
+                           ;; Insead if :follow is not set user :unfollow if present
+                           ;; and fallback to follow by default (opt-in boards, like publisher-boards,
+                           ;; needs to maintain an updated list of followers)
+                           (r/and (r/not (r/has-fields post-row [:follow]))
+                                  (r/default
+                                   (r/not (r/get-field post-row [:user-visibility user-id :unfollow]))
+                                   true))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
@@ -141,7 +150,7 @@
                                    (r/pluck relation-fields)
                                    (r/coerce-to :array))}))
               query)
-            ;; Apply a filter on the last-activity-at date 
+            ;; Apply a filter on the last-activity-at date
             (r/filter query (r/fn [row]
              (r/gt start (r/get-field row :last-activity-at))))
             ;; Sort records when not counting
