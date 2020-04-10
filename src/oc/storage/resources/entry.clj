@@ -349,20 +349,20 @@
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
   (if-let [original-entry (get-entry conn uuid)]
-    (let [org ()
-          authors (:author original-entry)
+    (let [authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
           followers (follow/retrieve-followers c/dynamodb-opts (:user-id user) (:slug org))
-          old-user-visibility (:user-visibility original-entry)
+          old-user-visibility (or (:user-visibility original-entry) {})
           next-user-visibility (if-not publisher-board?
                                  (assoc old-user-visibility (keyword (:user-id user))
                                                             {:dismiss-at ts})
-                                 (let [nuv (apply merge (map (fn [[u v]]
-                                                              {u (-> v
-                                                                  (dissoc :unfollow)
-                                                                  (assoc :follow (or (not (:unfollow v)) false)))}))
-                                            old-user-visibility)]
+                                 (let [nuv (apply merge
+                                            (map (fn [[u v]]
+                                                   {u (-> v
+                                                       (dissoc :unfollow)
+                                                       (assoc :follow (or (not (:unfollow v)) false)))})
+                                             old-user-visibility))]
                                   (merge nuv (into {} (map #(hash-map (keyword %) {:follow true}) (:followers followers))))))
           merged-entry (merge original-entry entry-props {:status :published
                                                           :published-at ts

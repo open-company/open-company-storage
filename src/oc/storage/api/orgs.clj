@@ -238,7 +238,7 @@
                                                   (or (= (:access-level ctx) :author)
                                                       (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author])
                              board-access (map #(board-with-access-level org % user) boards)
                              allowed-boards (filter :access-level board-access)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)

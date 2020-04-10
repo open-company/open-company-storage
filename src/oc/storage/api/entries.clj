@@ -403,7 +403,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) org updated-entry user (:publisher-board board))]
+            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry org user (:publisher-board board))]
     (let [old-board (:moving-board ctx)]
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
@@ -751,7 +751,8 @@
                                _matches? (and (= org-uuid (:org-uuid entry))
                                               (= org-uuid (:org-uuid board))
                                               (= :draft (keyword (:status entry))))] ; sanity check
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                        {:existing-org (api-common/rep org)
+                         :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry)}
                         false))
 
