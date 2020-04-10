@@ -274,7 +274,7 @@
                                                  (assoc :boards (if user-is-member? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :inbox-count inbox-count)
-                                                 (assoc :contributor-count user-count)
+                                                 (assoc :contributions-count user-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
                                              user

@@ -71,17 +71,17 @@
                                                        :board-name (:name board)})))
                                  entries))))
 
-(defn- assemble-contributor
-  "Assemble the requested activity (params) for the provided org published by the given user."
+(defn- assemble-contributions
+  "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
   [conn {start :start direction :direction sort-type :sort-type} org board-by-uuids allowed-boards author-uuid]
   (let [order (if (= direction :before) :desc :asc)
-        total-contributor-count (entry-res/list-entries-by-org-author conn (:uuid org)
+        total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org)
                                  author-uuid order (db-common/current-timestamp) direction 0 sort-type allowed-boards {:count true})
         entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
                  order start direction config/default-activity-limit sort-type allowed-boards)
         activities {:next-count (count entries)
                     :author-uuid author-uuid
-                    :total-count total-contributor-count}]
+                    :total-count total-contributions-count}]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
@@ -245,7 +245,7 @@
                           (activity-rep/render-activity-list params org "inbox" activity boards user))))
 
 ;; A resource to retrieve entries for a given user
-(defresource contributor [conn slug author-uuid]
+(defresource contributions [conn slug author-uuid]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
@@ -287,8 +287,8 @@
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             activity (assemble-contributor conn params org board-by-uuids allowed-boards author-uuid)]
-                          (activity-rep/render-activity-list params org "contributors" activity boards user))))
+                             activity (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]
+                          (activity-rep/render-activity-list params org "contributions" activity boards user))))
 
 ;; ----- Routes -----
 
@@ -311,11 +311,11 @@
       (GET "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (GET "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
 
-      (OPTIONS "/orgs/:slug/contributors/:author-uuid"
-        [slug author-uuid] (pool/with-pool [conn db-pool] (contributor conn slug author-uuid)))
-      (OPTIONS "/orgs/:slug/contributors/:author-uuid/"
-        [slug author-uuid] (pool/with-pool [conn db-pool] (contributor conn slug author-uuid)))
-      (GET "/orgs/:slug/contributors/:author-uuid"
-        [slug author-uuid] (pool/with-pool [conn db-pool] (contributor conn slug author-uuid)))
-      (GET "/orgs/:slug/contributors/:author-uuid/"
-        [slug author-uuid] (pool/with-pool [conn db-pool] (contributor conn slug author-uuid))))))
+      (OPTIONS "/orgs/:slug/contributions/:author-uuid"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      (OPTIONS "/orgs/:slug/contributions/:author-uuid/"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      (GET "/orgs/:slug/contributions/:author-uuid"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      (GET "/orgs/:slug/contributions/:author-uuid/"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid))))))

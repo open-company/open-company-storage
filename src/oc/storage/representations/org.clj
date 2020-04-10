@@ -10,7 +10,7 @@
                                   :boards :created-at :updated-at])
 (def representation-props (concat public-representation-props [:author :authors :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
-                                                               :contributor-count]))
+                                                               :contributions-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -53,12 +53,12 @@
 (defn- recent-activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/entry-collection-media-type}))
 
-(defn- contributor-partial-link [org]
-  (assoc (hateoas/link-map "partial-contributor" hateoas/GET (str (url org) "/contributors/$0") {:accept mt/entry-collection-media-type})
+(defn- contributions-partial-link [org]
+  (assoc (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type})
    :replace {:author-uuid "$0"}))
 
-(defn- recent-contributor-partial-link [org]
-  (assoc (hateoas/link-map "recent-partial-contributor" hateoas/GET (str (url org) "/contributors/$0?sort=activity") {:accept mt/entry-collection-media-type})
+(defn- recent-contributions-partial-link [org]
+  (assoc (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (url org) "/contributions/$0?sort=activity") {:accept mt/entry-collection-media-type})
    :replace {:author-uuid "$0"}))
 
 (defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
@@ -165,8 +165,8 @@
                           (concat links [(active-users-link org)
                                          (activity-link org)
                                          (recent-activity-link org)
-                                         (recent-contributor-partial-link org)
-                                         (contributor-partial-link org)]) ; (calendar-link org) - not currently used
+                                         (recent-contributions-partial-link org)
+                                         (contributions-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
                       (concat activity-links [(board-create-link org)
