@@ -206,7 +206,6 @@
                                (:user-visibility existing-entry))
                               {})
           pb? (:publisher-board existing-board)
-          dismiss-at {:dismiss-at dismiss-at}
           uv-value (cond)
           updated-self-visibility (cond
                                     (= action-type :dismiss)
