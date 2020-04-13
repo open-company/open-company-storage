@@ -79,7 +79,10 @@
                           (:entries board-map))
             board-data (-> board-map
                         (dissoc :private-notifications :note :pre-flight :exclude)
-                        (assoc :entries entry-data))]
+                        (assoc :entries entry-data)
+                        (update :name #(if (:publisher-board board-map)
+                                         (:name author)
+                                         %)))]
         (if (and (:disallow-public-board (or (:content-visibility org) {}))
                  (= (:access board-data) "public"))
           [false, {:reason :disallowed-public-board}]
