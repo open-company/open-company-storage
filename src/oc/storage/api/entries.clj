@@ -142,14 +142,9 @@
                                        (update :status #(if entry-publish? :published %))))
           board-followers (when (:publisher-board new-board)
                             (follow/retrieve config/dynamodb-opts (-> new-board :author :user-id) (:slug org)))
-          updated-entry* (merge existing-entry (entry-res/ignore-props clean-entry-props))
-          updated-entry (-> updated-entry*
+          updated-entry (-> existing-entry
+                         (merge (entry-res/ignore-props clean-entry-props))
                          (update :attachments #(entry-res/timestamp-attachments %))
-                         (update :user-visibility #(if (and moving-board?
-                                                            (not= (:publisher-board old-board)
-                                                                  (:publisher-board new-board)))
-                                                     (entry-res/update-user-visibility-for-move updated-entry* board-followers (:publisher-entry new-board))
-                                                     %))
                          (clean-polls-for-patch existing-entry))
           ts (db-common/current-timestamp)
           ctx-base (if moving-board?
@@ -205,35 +200,22 @@
           self-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v))
                                (:user-visibility existing-entry))
                               {})
-          pb? (:publisher-board existing-board)
           uv-value (cond)
           updated-self-visibility (cond
                                     (= action-type :dismiss)
                                     (assoc self-visibility :dismiss-at dismiss-at)
                                     (= action-type :unread)
-                                    (if pb?
-                                      (-> self-visibility
-                                        (dissoc :unfollow)
-                                        (assoc :follow true))
-                                      (-> self-visibility
+                                    (-> self-visibility
                                         (dissoc :follow)
-                                        (assoc :unfollow false)))
+                                        (assoc :unfollow false))
                                     (= action-type :follow)
-                                    (if pb?
-                                      (-> self-visibility
-                                        (dissoc :unfollow)
-                                        (assoc :follow true))
-                                      (-> self-visibility
+                                    (-> self-visibility
                                         (dissoc :follow)
-                                        (assoc :unfollow false)))
+                                        (assoc :unfollow false))
                                     (= action-type :unfollow)
-                                    (if pb?
-                                      (-> self-visibility
-                                        (dissoc :unfollow)
-                                        (assoc :follow false))
-                                      (-> self-visibility
+                                    (-> self-visibility
                                         (dissoc :follow)
-                                        (assoc :unfollow true))))
+                                        (assoc :unfollow true)))
           updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-self-visibility)]
       (timbre/info "User visibility" self-visibility "updated:" updated-self-visibility)
       (if (and (or (not= action-type :dismiss)
@@ -403,7 +385,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry org user (:publisher-board board))]
+            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry org user)]
     (let [old-board (:moving-board ctx)]
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.

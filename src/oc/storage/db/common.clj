@@ -9,11 +9,17 @@
 
 (defn read-paginated-entries
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  relation-fields {:keys [count] :or {count false}}]
+   relation-fields {:keys [count] :or {count false}}]
  (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  relation-fields nil {:count count}))
+  nil relation-fields nil {:count count}))
+
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  relation-fields user-id {:keys [count] :or {count false}}]
+   relation-fields user-id {:keys [count] :or {count false}}]
+  (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+  nil relation-fields user-id {:count count}))
+
+ ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+  followed-authors relation-fields user-id {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -36,8 +42,11 @@
             ;; Filter on the allowed-boards
             (if (sequential? allowed-boards)
               (r/filter query (r/fn [post-row]
-                ;; All records in boards the user has no access
-                (r/contains allowed-boards (r/get-field post-row :board-uuid))))
+                (r/and ;; All records in boards the user has no access
+                       (r/contains allowed-boards (r/get-field post-row :board-uuid))
+                       ;; Filter on followed authors
+                       (r/or (nil? followed-authors)
+                             (r/contains followed-authors (r/get-field post-row [:publisher :user-id]))))))
               query)
             ;; Merge in a last-activity-at date for each post, which is the
             ;; last comment created-at, with fallback to published-at or created-at for published entries
@@ -91,8 +100,14 @@
               query))))))
 
 (defn read-all-inbox-for-user
- [conn table-name index-name index-value order start limit relation-table-name allowed-boards user-id
-  relation-fields {:keys [count] :or {count false}}]
+
+ ([conn table-name index-name index-value order start limit relation-table-name allowed-boards user-id
+   relation-fields {:keys [count] :or {count false}}]
+  (read-all-inbox-for-user conn table-name index-name index-value order start limit relation-table-name allowed-boards nil
+   user-id relation-fields {:count count}))
+
+ ([conn table-name index-name index-value order start limit relation-table-name allowed-boards followed-authors
+   user-id relation-fields {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -114,17 +129,14 @@
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
                      (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                     ;; All records with follow/unfollow: default to follow
-                     (r/or ;; If :follow is specified we need to use it
-                           (r/and (r/has-fields post-row [:follow])
-                                  (r/get-field post-row [:user-visibility user-id :follow]))
-                           ;; Insead if :follow is not set user :unfollow if present
-                           ;; and fallback to follow by default (opt-in boards, like publisher-boards,
-                           ;; needs to maintain an updated list of followers)
-                           (r/and (r/not (r/has-fields post-row [:follow]))
-                                  (r/default
-                                   (r/not (r/get-field post-row [:user-visibility user-id :unfollow]))
-                                   true))))))
+                     ;; Filter on followed authors
+                     (r/or (nil? followed-authors)
+                           (r/contains followed-authors (r/get-field post-row [:publisher :user-id])))
+                     ;; All records with unfollow: default to follow (unfollow false)
+                     (r/and (r/not (r/has-fields post-row [:follow]))
+                            (r/default
+                             (r/not (r/get-field post-row [:user-visibility user-id :unfollow]))
+                             true)))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
@@ -166,7 +178,7 @@
             (r/run query conn)
             (if (= (type query) rethinkdb.net.Cursor)
               (seq query)
-              query)))))
+              query))))))
 
 (defn update-poll-vote
   "

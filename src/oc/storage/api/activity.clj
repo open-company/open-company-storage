@@ -15,20 +15,29 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.lib.timestamp :as ts]))
+            [oc.storage.lib.timestamp :as ts]
+            [oc.lib.change.resources.follow :as follow]))
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
-  [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type}
+  [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type following :following :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
+        followed-authors (when following
+                           (:publisher-uuids (follow/retrieve config/dynamodb-opts user-id (:slug org))))
         limit (if digest-request 0 config/default-activity-limit)
-        entries (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
-                 {:must-see must-see})
+        entries (if following
+                  (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
+                   followed-authors {:must-see must-see})
+                  (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
+                   {:must-see must-see}))
+        total-count (entry-res/paginated-entries-by-org conn (:uuid org) :asc (db-common/current-timestamp) :before 0 :recent-activity allowed-boards
+                     followed-authors {:count true :must-see must-see})
         activities {:next-count (count entries)
-                    :direction direction}]
+                    :direction direction
+                    :total-count total-count}]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
@@ -112,14 +121,13 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-
                               valid-start? (if start (ts/valid-timestamp? start) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
-                                                    (and (not start) (not direction)))]
+                                                   (and (not start) (not direction)))]
                            (not (and valid-start? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
@@ -138,7 +146,9 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction :sort-type sort-type})
+                             params (merge start-params {:direction direction
+                                                         :sort-type sort-type
+                                                         :following (:following ctx-params)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)

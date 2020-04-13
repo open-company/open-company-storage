@@ -14,6 +14,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
+            [oc.lib.change.resources.follow :as follow]
             [oc.storage.config :as config]
             [oc.storage.async.notification :as notification]
             [oc.storage.api.access :as access]
@@ -254,6 +255,11 @@
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
                                                0 {:count true})
                                               0)
+                             following (when user-is-member?
+                                         (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+                             following-count (if user-is-member?
+                                               (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity (map :uuid allowed-boards) (:publisher-uuids following) {:count true})
+                                               0)
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
                                             0 (map :uuid allowed-boards) {:count true})
@@ -275,6 +281,7 @@
                                                                   board-reps
                                                                   (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
+                                                 (assoc :following-count following-count)
                                                  (assoc :inbox-count inbox-count)
                                                  (assoc :contributions-count user-count)
                                                  (assoc :authors author-reps))

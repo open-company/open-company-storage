@@ -23,8 +23,7 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]
-            [oc.storage.urls.board :as board-url]
-            [oc.lib.change.resources.follow :as follow]))
+            [oc.storage.urls.board :as board-url]))
 
 ;; ----- Utility functions -----
 
@@ -171,14 +170,7 @@
                             (board-res/get-board conn (:board-uuid entry)))
                 fixed-entry (-> entry
                              (assoc :board-uuid board-uuid)
-                             (dissoc :publisher-board)
-                             (update :user-visibility #(if (and old-board
-                                                                (not= (:publisher-board old-board) (:publisher-board board-result)))
-                                                         (entry-res/update-user-visibility-for-move entry
-                                                          (when (:publisher-board board-result)
-                                                           (follow/retrieve config/dynamodb-opts (:user-id user) (:slug org)))
-                                                          (:publisher-board board-result))
-                                                         %)))
+                             (dissoc :publisher-board))
                 entry-action (if (entry-res/get-entry conn (:uuid entry))
                                :update
                                :add)

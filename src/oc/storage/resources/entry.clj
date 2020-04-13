@@ -68,48 +68,6 @@
   ([attachments timestamp]
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
 
-(defn update-user-visibility-for-move [entry board-followers to-publisher-board?]
-  (let [uv (:user-visibility entry)]
-    (if (= (keyword (:status entry)) :published)
-      (if to-publisher-board?
-        (let [existing-uv (apply merge
-                           (map (fn [[user-idk v]]
-                                {user-idk
-                                  (if (or (= (-> entry :publisher :user-id keyword) user-idk)
-                                          (some #(= (keyword %) (user-idk)) board-followers))
-                                    (-> v
-                                     (dissoc :unfollow)
-                                     (assoc :follow (or (:follow v) (not (:unfollow v)) true)))
-                                    (-> v
-                                     (dissoc :unfollow)
-                                     (assoc :follow (or (not (:follow v)) (:unfollow v)))))})
-                            uv))]
-          (apply merge
-           (map (fn [user-id]
-                 (if-let [uuv (uv (keyword user-id))]
-                  {(keyword user-id) uuv}
-                  {(keyword user-id) {:follow true}}))
-                board-followers)))
-        (let [existing-uv (apply merge
-                           (map (fn [[user-idk v]]
-                                {user-idk
-                                  (if (or (= (-> entry :publisher :user-id keyword) user-idk)
-                                          (some #(= (keyword %) (user-idk)) board-followers))
-                                    (-> v
-                                     (dissoc :follow)
-                                     (assoc :unfollow (or (:unfollow v) (not (:follow v)) true)))
-                                    (-> v
-                                     (dissoc :follow)
-                                     (assoc :unfollow (or (not (:unfollow v)) (:follow v)))))})
-                            uv))]
-          (apply merge
-           (map (fn [user-id]
-                 (if-let [uuv (uv (keyword user-id))]
-                  {(keyword user-id) uuv}
-                  {(keyword user-id) {:unfollow true}}))
-                board-followers)))))
-     uv))
-
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -343,27 +301,14 @@
    (publish-entry! conn uuid {} org user false))
 
   ([conn uuid :- lib-schema/UniqueID entry-props org :- common/Org user :- lib-schema/User]
-   (publish-entry! conn uuid {} org user false))
-
-  ([conn uuid :- lib-schema/UniqueID entry-props org :- common/Org user :- lib-schema/User publisher-board? :- schema/Bool]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
   (if-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
-          followers (follow/retrieve-followers c/dynamodb-opts (:user-id user) (:slug org))
           old-user-visibility (or (:user-visibility original-entry) {})
-          next-user-visibility (if-not publisher-board?
-                                 (assoc old-user-visibility (keyword (:user-id user))
-                                                            {:dismiss-at ts})
-                                 (let [nuv (apply merge
-                                            (map (fn [[u v]]
-                                                   {u (-> v
-                                                       (dissoc :unfollow)
-                                                       (assoc :follow (or (not (:unfollow v)) false)))})
-                                             old-user-visibility))]
-                                  (merge nuv (into {} (map #(hash-map (keyword %) {:follow true}) (:followers followers))))))
+          next-user-visibility (assoc old-user-visibility (keyword (:user-id user)) {:dismiss-at ts})
           merged-entry (merge original-entry entry-props {:status :published
                                                           :published-at ts
                                                           :publisher publisher
@@ -448,14 +393,25 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a number of results, return the published entries for the org with any interactions.
   "
-  ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
+    allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+   {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)
+         (integer? limit)
+         (#{:recent-activity :recently-posted} sort-type)]}
+  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
+   limit sort-type common/interaction-table-name allowed-boards nil list-comment-properties nil {:count count}))
+
+  ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
+    allowed-boards :- [lib-schema/UniqueID] followed-authors :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards list-comment-properties {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards followed-authors list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
@@ -471,7 +427,7 @@
   (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
         index-value (if (#{:draft :published} status) [[status board-uuid]] [board-uuid])]
     (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
-     direction limit sort-type common/interaction-table-name [board-uuid] list-comment-properties {:count count})))
+     direction limit sort-type common/interaction-table-name [board-uuid] nil list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate list-entries-by-org-author
   ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type allowed-boards :- [lib-schema/UniqueID]]
@@ -483,7 +439,7 @@
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-publisher [[:published org-uuid author-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards list-comment-properties {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards nil list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate list-drafts-by-org-author
   "
@@ -522,7 +478,7 @@
          (#{:desc :asc} order)
          (integer? limit)]}
   (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
-   common/interaction-table-name allowed-boards user-id list-comment-properties {:count count})))
+   common/interaction-table-name allowed-boards nil user-id list-comment-properties {:count count})))
 
 ;; ----- Entry Bookmarks manipulation -----
 
@@ -536,7 +492,7 @@
          (#{:before :after} direction)]}
   (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
    [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name nil
-   list-comment-properties user-id {:count count})))
+   nil list-comment-properties user-id {:count count})))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"

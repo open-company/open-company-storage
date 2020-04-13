@@ -10,7 +10,7 @@
                                   :boards :created-at :updated-at])
 (def representation-props (concat public-representation-props [:author :authors :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
-                                                               :contributions-count]))
+                                                               :contributions-count :following-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -52,6 +52,9 @@
 
 (defn- recent-activity-link [org]
   (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/entry-collection-media-type}))
+
+(defn- following-link [org]
+  (hateoas/link-map "following" hateoas/GET (str (url org) "/entries?following=true") {:accept mt/entry-collection-media-type}))
 
 (defn- contributions-partial-link [org]
   (assoc (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type})
@@ -164,6 +167,7 @@
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
                           (concat links [(active-users-link org)
                                          (activity-link org)
+                                         (following-link org)
                                          (recent-activity-link org)
                                          (recent-contributions-partial-link org)
                                          (contributions-partial-link org)]) ; (calendar-link org) - not currently used
