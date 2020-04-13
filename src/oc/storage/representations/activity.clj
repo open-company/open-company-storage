@@ -40,8 +40,8 @@
 (defn- is-inbox? [collection-type]
   (= collection-type "inbox"))
 
-(defn- is-contributor? [collection-type]
-  (= collection-type "contributors"))
+(defn- is-contributions? [collection-type]
+  (= collection-type "contributions"))
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
@@ -55,7 +55,7 @@
                    (cond
                      (is-inbox? collection-type)
                      (inbox-url collection-type org {:start last-activity-date :direction direction})
-                     (is-contributor? collection-type)
+                     (is-contributions? collection-type)
                      (contributions-url org author-uuid sort-type {:start last-activity-date :direction direction})
                      :else
                      (url collection-type org sort-type {:start last-activity-date :direction direction})))
@@ -79,11 +79,11 @@
   [params org collection-type activity boards user]
   (let [sort-type (:sort-type params)
         inbox? (is-inbox? collection-type)
-        contributor? (is-contributor? collection-type)
+        contributions? (is-contributions? collection-type)
         collection-url (cond
                         inbox?
                         (inbox-url collection-type org)
-                        contributor?
+                        contributions?
                         (contributions-url org (:author-uuid params) (:sort-type params))
                         :else
                         (url collection-type org sort-type))
@@ -91,7 +91,7 @@
         other-sort-url (cond
                         inbox?
                         nil
-                        contributor?
+                        contributions?
                         (contributions-url org (:author-uuid params) (if recent-activity-sort? :recently-posted :recent-activity))
                         :else
                         (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
