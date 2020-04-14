@@ -20,7 +20,7 @@
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (clojure.set/union reserved-properties #{:team-id}))
+  (clojure.set/union reserved-properties #{:team-id :utm-data}))
 
 ;; ----- Data Defaults -----
 
