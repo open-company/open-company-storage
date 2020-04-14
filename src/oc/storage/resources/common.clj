@@ -76,6 +76,7 @@
   :promoted schema/Bool
   (schema/optional-key :content-visibility) ContentVisibility
   (schema/optional-key :why-carrot) (schema/maybe schema/Str)
+  (schema/optional-key :utm-data) schema/Any
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   :created-at lib-schema/ISO8601
