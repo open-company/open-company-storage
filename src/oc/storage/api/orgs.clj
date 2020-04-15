@@ -258,7 +258,7 @@
                              following (when user-is-member?
                                          (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              following-count (if user-is-member?
-                                               (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity (map :uuid allowed-boards) (:publisher-uuids following) {:count true})
+                                               (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity (map :uuid allowed-boards) following {:count true})
                                                0)
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)

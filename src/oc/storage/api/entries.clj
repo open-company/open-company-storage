@@ -24,8 +24,7 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]
-            [oc.lib.change.resources.follow :as follow]))
+            [oc.storage.resources.reaction :as reaction-res]))
 
 ;; ----- Utility functions -----
 
@@ -140,8 +139,6 @@
                               (not moving-board?) (dissoc :board-uuid)
                               true (-> (dissoc :publisher-board)
                                        (update :status #(if entry-publish? :published %))))
-          board-followers (when (:publisher-board new-board)
-                            (follow/retrieve config/dynamodb-opts (-> new-board :author :user-id) (:slug org)))
           updated-entry (-> existing-entry
                          (merge (entry-res/ignore-props clean-entry-props))
                          (update :attachments #(entry-res/timestamp-attachments %))

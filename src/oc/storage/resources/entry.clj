@@ -5,7 +5,6 @@
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.lib.change.resources.follow :as follow]
             [oc.storage.db.common :as storage-db-common]
             [oc.lib.text :as oc-str]
             [oc.storage.config :as c]
@@ -404,14 +403,14 @@
    limit sort-type common/interaction-table-name allowed-boards nil list-comment-properties nil {:count count}))
 
   ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] followed-authors :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+    allowed-boards :- [lib-schema/UniqueID] following-data {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards followed-authors list-comment-properties nil {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards following-data list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "

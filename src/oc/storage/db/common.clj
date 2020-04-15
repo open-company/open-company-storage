@@ -19,7 +19,7 @@
   nil relation-fields user-id {:count count}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  followed-authors relation-fields user-id {:keys [count] :or {count false}}]
+  following-data relation-fields user-id {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -40,13 +40,15 @@
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
             ;; Filter on the allowed-boards
-            (if (sequential? allowed-boards)
+            (if (or (sequential? allowed-boards)
+                    (map? following-data))
               (r/filter query (r/fn [post-row]
                 (r/and ;; All records in boards the user has no access
-                       (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                       ;; Filter on followed authors
-                       (r/or (nil? followed-authors)
-                             (r/contains followed-authors (r/get-field post-row [:publisher :user-id]))))))
+                       (r/or (not (sequential? allowed-boards))
+                             (r/contains allowed-boards (r/get-field post-row :board-uuid)))
+                       (r/or (not (map? following-data))
+                             (r/contains (vec (:publisher-uuids following-data)) (r/get-field post-row [:publisher :user-id]))
+                             (r/contains (vec (:board-uuids following-data)) (r/get-field post-row :board-uuid))))))
               query)
             ;; Merge in a last-activity-at date for each post, which is the
             ;; last comment created-at, with fallback to published-at or created-at for published entries
@@ -106,7 +108,7 @@
   (read-all-inbox-for-user conn table-name index-name index-value order start limit relation-table-name allowed-boards nil
    user-id relation-fields {:count count}))
 
- ([conn table-name index-name index-value order start limit relation-table-name allowed-boards followed-authors
+ ([conn table-name index-name index-value order start limit relation-table-name allowed-boards following-data
    user-id relation-fields {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
@@ -128,15 +130,14 @@
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
-                     (r/contains allowed-boards (r/get-field post-row :board-uuid))
-                     ;; Filter on followed authors
-                     (r/or (nil? followed-authors)
-                           (r/contains followed-authors (r/get-field post-row [:publisher :user-id])))
-                     ;; All records with unfollow: default to follow (unfollow false)
-                     (r/and (r/not (r/has-fields post-row [:follow]))
-                            (r/default
-                             (r/not (r/get-field post-row [:user-visibility user-id :unfollow]))
-                             true)))))
+                     (r/or (not (sequential? allowed-boards))
+                           (r/contains allowed-boards (r/get-field post-row :board-uuid))
+                     ;; All records with unfollow false or without it
+                     (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false))
+                     ;; Filter on followed boards and authors
+                     (r/or (not (map? following-data))
+                           (r/contains (vec (:publisher-uuids following-data)) (r/get-field post-row [:publisher :user-id]))
+                           (r/contains (vec (:board-uuids following-data)) (r/get-field post-row :board-uuid)))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
