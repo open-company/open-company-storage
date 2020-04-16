@@ -54,7 +54,7 @@
         user-id (-> ctx :user :user-id)
         order (if (= direction :before) :desc :asc)
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
-                 config/default-activity-limit sort-type {:must-see must-see :status :all})]
+                 config/default-activity-limit sort-type {:must-see must-see :status :published})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
