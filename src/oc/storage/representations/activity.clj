@@ -27,20 +27,37 @@
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
     (str (url collection-type org sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
 
+(defn- contributions-url
+
+  ([{slug :slug :as org} author-uuid sort-type]
+  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
+    (str "/orgs/" slug "/contributions/" author-uuid sort-path)))
+
+  ([{slug :slug :as org} author-uuid sort-type {start :start direction :direction}]
+  (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
+    (str (contributions-url org author-uuid sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
+
 (defn- is-inbox? [collection-type]
   (= collection-type "inbox"))
 
+(defn- is-contributions? [collection-type]
+  (= collection-type "contributions"))
+
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [start direction sort-type]} data]
+  [org collection-type {:keys [start direction sort-type author-uuid]} data]
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
         last-activity-date (when activity? (:last-activity-at last-activity))
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next?
-                   (if (is-inbox? collection-type)
+                   (cond
+                     (is-inbox? collection-type)
                      (inbox-url collection-type org {:start last-activity-date :direction direction})
+                     (is-contributions? collection-type)
+                     (contributions-url org author-uuid sort-type {:start last-activity-date :direction direction})
+                     :else
                      (url collection-type org sort-type {:start last-activity-date :direction direction})))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))]
     next-link))
@@ -61,12 +78,22 @@
   [params org collection-type activity boards user]
   (let [sort-type (:sort-type params)
         inbox? (is-inbox? collection-type)
-        collection-url (if inbox?
-                         (inbox-url collection-type org)
-                         (url collection-type org sort-type))
+        contributions? (is-contributions? collection-type)
+        collection-url (cond
+                        inbox?
+                        (inbox-url collection-type org)
+                        contributions?
+                        (contributions-url org (:author-uuid params) (:sort-type params))
+                        :else
+                        (url collection-type org sort-type))
         recent-activity-sort? (= sort-type :recent-activity)
-        other-sort-url (when-not inbox?
-                         (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
+        other-sort-url (cond
+                        inbox?
+                        nil
+                        contributions?
+                        (contributions-url org (:author-uuid params) (if recent-activity-sort? :recently-posted :recent-activity))
+                        :else
+                        (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
         collection-rel (if recent-activity-sort? "activity" "self")
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links (remove nil?

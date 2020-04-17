@@ -71,6 +71,25 @@
                                                        :board-name (:name board)})))
                                  entries))))
 
+(defn- assemble-contributions
+  "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
+  [conn {start :start direction :direction sort-type :sort-type} org board-by-uuids allowed-boards author-uuid]
+  (let [order (if (= direction :before) :desc :asc)
+        total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org)
+                                 author-uuid order (db-common/current-timestamp) direction 0 sort-type allowed-boards {:count true})
+        entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
+                 order start direction config/default-activity-limit sort-type allowed-boards)
+        activities {:next-count (count entries)
+                    :author-uuid author-uuid
+                    :total-count total-contributions-count}]
+    ;; Give each activity its board name
+    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)})))
+                                 entries))))
+
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on the activity of a particular Org
@@ -203,7 +222,6 @@
                               start (:start ctx-params)
                               valid-start? (if start (ts/valid-timestamp? start) true)]
                           (not valid-start?)))
-
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
@@ -226,6 +244,52 @@
                              activity (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "inbox" activity boards user))))
 
+;; A resource to retrieve entries for a given user
+(defresource contributions [conn slug author-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+
+  ;; Check the request
+  :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+                              start (:start ctx-params)
+                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                          (not valid-start?)))
+
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
+                        {:existing-org (api-common/rep org)}
+                        false))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (let [user (:user ctx)
+                             user-id (:user-id ctx)
+                             org (:existing-org ctx)
+                             org-id (:uuid org)
+                             ctx-params (keywordize-keys (-> ctx :request :params))
+                             sort (:sort ctx-params)
+                             sort-type (if (= sort "activity") :recent-activity :recently-posted)
+                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
+                             params (merge start-params {:direction direction :sort-type sort-type :author-uuid author-uuid})
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access])
+                             board-uuids (map :uuid boards)
+                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             activity (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]
+                          (activity-rep/render-activity-list params org "contributions" activity boards user))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -245,4 +309,13 @@
       (OPTIONS "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (OPTIONS "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (GET "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
-      (GET "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug))))))
+      (GET "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
+
+      (OPTIONS "/orgs/:slug/contributions/:author-uuid"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      (OPTIONS "/orgs/:slug/contributions/:author-uuid/"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      (GET "/orgs/:slug/contributions/:author-uuid"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      (GET "/orgs/:slug/contributions/:author-uuid/"
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid))))))

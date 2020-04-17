@@ -249,7 +249,7 @@
                                                     (or (access/allow-authors conn slug user)
                                                         ;; or has at least one board with author access
                                                         (pos? (count author-access-boards))))
-                             draft-entry-count (if show-draft-board? (entry-res/list-entries-by-org-author conn org-id user-id :draft {:count true}) 0)
+                             draft-entry-count (if show-draft-board? (entry-res/list-drafts-by-org-author conn org-id user-id {:count true}) 0)
                              bookmarks-count (if user-is-member?
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
                                                0 {:count true})
@@ -257,6 +257,10 @@
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
                                             0 (map :uuid allowed-boards) {:count true})
+                                           0)
+                             user-count (if user-is-member?
+                                          (entry-res/list-entries-by-org-author conn org-id user-id :asc (db-common/current-timestamp) :before
+                                            0 :recently-posted (map :uuid allowed-boards) {:count true})
                                            0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
@@ -270,6 +274,7 @@
                                                  (assoc :boards (if user-is-member? board-reps (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :inbox-count inbox-count)
+                                                 (assoc :contributions-count user-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
                                              user
