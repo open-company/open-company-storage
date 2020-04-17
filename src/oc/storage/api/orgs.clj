@@ -288,7 +288,7 @@
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :following-count following-count)
                                                  (assoc :inbox-count inbox-count)
-                                                 (assoc :following-inbox-count inbox-count)
+                                                 (assoc :following-inbox-count following-inbox-count)
                                                  (assoc :contributions-count user-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
