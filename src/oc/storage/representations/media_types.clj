@@ -4,6 +4,7 @@
 (def org-media-type "application/vnd.open-company.org.v1+json")
 (def org-collection-media-type "application/vnd.collection+vnd.open-company.org+json;version=1")
 (def org-author-media-type "application/vnd.open-company.org.author.v1")
+(def user-collection-media-type "application/vnd.collection+vnd.open-company.user+json;version=1")
 
 ;; Board media types
 (def board-media-type "application/vnd.open-company.board.v1+json")
