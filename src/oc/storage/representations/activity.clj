@@ -10,10 +10,13 @@
             [oc.storage.config :as config]))
 
 (defn- inbox-url
-  ([collection-type {slug :slug}]
-  (str "/orgs/" slug "/" collection-type))
-  ([collection-type {slug :slug :as org} {start :start}]
-  (str (inbox-url collection-type org) "?start=" start)))
+
+  ([collection-type {slug :slug :as org}]
+  (str "/orgs" slug "/" collection-type))
+
+  ([collection-type {slug :slug :as org} {start :start following :following}]
+  (let [following-concat (if start "?" "&")]
+    (str (inbox-url collection-type org) (when start (str "?start=" start)) (when following (str following-concat "following=true"))))))
 
 (defn- dismiss-all-url [org]
   (str (inbox-url "inbox" org) "/dismiss"))
@@ -63,7 +66,7 @@
         next-url (when next?
                    (cond
                      (is-inbox? collection-type)
-                     (inbox-url collection-type org {:start last-activity-date :direction direction})
+                     (inbox-url collection-type org {:start last-activity-date :direction direction :following following})
                      (is-contributions? collection-type)
                      (contributions-url org author-uuid sort-type {:start last-activity-date :direction direction})
                      following
@@ -94,7 +97,7 @@
         contributions? (is-contributions? collection-type)
         collection-url (cond
                         inbox?
-                        (inbox-url collection-type org)
+                        (inbox-url collection-type org {:following following?})
                         contributions?
                         (contributions-url org (:author-uuid params) (:sort-type params))
                         following?

@@ -131,13 +131,13 @@
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
                      (r/or (not (sequential? allowed-boards))
-                           (r/contains allowed-boards (r/get-field post-row :board-uuid))
+                           (r/contains allowed-boards (r/get-field post-row :board-uuid)))
                      ;; All records with unfollow false or without it
                      (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false))
                      ;; Filter on followed boards and authors
                      (r/or (not (map? following-data))
                            (r/contains (vec (:publisher-uuids following-data)) (r/get-field post-row [:publisher :user-id]))
-                           (r/contains (vec (:board-uuids following-data)) (r/get-field post-row :board-uuid)))))))
+                           (r/contains (vec (:board-uuids following-data)) (r/get-field post-row :board-uuid))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)

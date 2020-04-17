@@ -67,11 +67,13 @@
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
-  (let [total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
-                           0 allowed-boards {:count true})
+  [conn {start :start must-see :must-see following :following} org board-by-uuids allowed-boards user-id]
+  (let [following-data (when following
+                         (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
+                           0 allowed-boards following-data {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
-                 allowed-boards)
+                 allowed-boards following-data {})
         activities {:next-count (count entries)
                     :total-count total-inbox-count}]
     ;; Give each activity its board name
@@ -247,7 +249,8 @@
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              start? (if (:start ctx-params) true false) ; flag if a start was specified
-                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             params (merge ctx-params {:start (or (:start ctx-params) (db-common/current-timestamp))
+                                                       :following (:following ctx-params)}) ; default is now
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))

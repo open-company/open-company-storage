@@ -10,7 +10,7 @@
                                   :boards :created-at :updated-at])
 (def representation-props (concat public-representation-props [:author :authors :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
-                                                               :contributions-count :following-count]))
+                                                               :contributions-count :following-count :following-inbox-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -149,6 +149,18 @@
     (str config/payments-server-url "/teams/" team-id "/customer")
     {:accept mt/payments-customer-media-type}))
 
+(defn- following-inbox-link [org access-level user]
+  (if (and (not (:id-token user))
+           (or (= access-level :author)
+               (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "following-inbox"
+        hateoas/GET
+        (str (url org) "/inbox?following=true")
+        {:accept mt/entry-collection-media-type}))
+    org))
+
 (defn- inbox-link [org access-level user]
   (if (and (not (:id-token user))
            (or (= access-level :author)
@@ -167,9 +179,9 @@
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
                           (concat links [(active-users-link org)
                                          (activity-link org)
-                                         (following-link org)
                                          (recent-activity-link org)
                                          (recent-contributions-partial-link org)
+                                         (following-link org)
                                          (contributions-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
@@ -213,6 +225,7 @@
         (bookmarks-link access-level user)
         (recent-bookmarks-link access-level user)
         (inbox-link access-level user)
+        (following-inbox-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 
