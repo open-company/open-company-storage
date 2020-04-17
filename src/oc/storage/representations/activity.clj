@@ -12,7 +12,7 @@
 (defn- inbox-url
 
   ([collection-type {slug :slug :as org}]
-  (str "/orgs" slug "/" collection-type))
+  (str "/orgs/" slug "/" collection-type))
 
   ([collection-type {slug :slug :as org} {start :start following :following}]
   (let [following-concat (if start "?" "&")]
