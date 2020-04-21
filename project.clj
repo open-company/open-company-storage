@@ -41,7 +41,7 @@
     [zprint "0.5.4"]
     
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    [open-company/lib "0.17.29-alpha4"]
+    [open-company/lib "0.17.29-alpha5"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -189,7 +189,6 @@
                       "OpenCompany Storage REPL\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) or (go-db) as your first command.\n"))
     :init-ns dev
-    :timeout 120000
   }
 
   :aliases {
