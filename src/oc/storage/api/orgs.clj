@@ -289,7 +289,6 @@
                                                                   (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :following-count following-count)
-                                                 (assoc :drafts-count draft-entry-count)
                                                  (assoc :inbox-count inbox-count)
                                                  (assoc :following-inbox-count following-inbox-count)
                                                  (assoc :contributions-count user-count)

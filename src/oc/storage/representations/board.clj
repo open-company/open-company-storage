@@ -10,8 +10,13 @@
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.reaction :as reaction-res]))
 
+(defn drafts-board? [board]
+  (or (= (:uuid board) (:uuid board-res/default-drafts-board))
+      (= (:slug board) (:slug board-res/default-drafts-board))))
+
 (def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft :publisher-board :total-count]))
+(def drafts-board-representation-props (conj public-representation-props :total-count))
 
 (defn- self-link 
   ([org-slug slug sort-type]
@@ -62,13 +67,13 @@
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
-        is-draft-board? (= board-slug (:slug board-res/default-drafts-board))
+        is-drafts-board? (drafts-board? board)
         links (remove nil?
                [(self-link org-slug board-slug :recently-posted options)
-                (when-not is-draft-board?
+                (when-not is-drafts-board?
                   (self-link org-slug board-slug :recent-activity options))])
         full-links (if (and (= :author (:access-level board))
-                            (not is-draft-board?))
+                            (not is-drafts-board?))
           ;; Author gets create link
           (conj links (create-entry-link org-slug board-slug))
           ;; No create link
@@ -78,7 +83,7 @@
 (defn- board-links
   [board org-slug access-level params]
   (let [slug (:slug board)
-        is-drafts-board? (= slug "drafts")
+        is-drafts-board? (drafts-board? board)
         page-link (when-not is-drafts-board? (pagination-link org-slug slug params board))
         ;; Everyone gets these
         links (remove nil? [page-link
@@ -118,7 +123,7 @@
   ([org-slug board] (render-board-for-collection org-slug board 0))
 
   ([org-slug board draft-entry-count]
-  (let [this-board-count (if (= (:uuid board) (:uuid board-res/default-drafts-board)) draft-entry-count 0)]
+  (let [this-board-count (if (drafts-board? board) draft-entry-count 0)]
     (-> board
       (select-keys (conj representation-props :access-level))
       (board-collection-links org-slug this-board-count)
@@ -128,11 +133,15 @@
   "Create a JSON representation of the board for the REST API"
   [org board ctx params]
   (let [access-level (:access-level ctx)
-        rep-props (if (or (= :author access-level) (= :viewer access-level))
-                      representation-props
-                      public-representation-props)
+        viewer-or-author? (or (= :author access-level) (= :viewer access-level))
+        is-drafts-board? (drafts-board? board)
+        rep-props (cond viewer-or-author?
+                        representation-props
+                        is-drafts-board?
+                        drafts-board-representation-props
+                        :else
+                        public-representation-props)
         boards-map (:existing-org-boards ctx)
-        is-drafts-board? (= (:slug board) (:slug board-res/default-drafts-board))
         authors (:authors board)
         author-reps (map #(render-author-for-collection (:slug org) (:slug board) % access-level) authors)
         viewers (:viewers board)

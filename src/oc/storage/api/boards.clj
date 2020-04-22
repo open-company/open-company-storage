@@ -345,14 +345,14 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
-                             drafts-board? (= (:slug board) (:slug board-res/default-drafts-board))
+                             drafts-board? (board-rep/drafts-board? board)
                              ;; For drafts board don't use parameters
                              params (when-not drafts-board?
                                       (merge start-params {:direction direction :sort-type sort-type}))
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
                                           (assemble-board conn org board params ctx))]
-                           (board-rep/render-board org full-board ctx params)))
+                         (board-rep/render-board org full-board ctx params)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
 
