@@ -44,20 +44,24 @@
                   (filterv #(= (:board-uuid %) (:uuid board)) all-drafts)
                   all-drafts)
         sorted-entries (reverse (sort-by :updated-at entries))]
-    (merge board {:entries sorted-entries})))
+    (merge board {:entries sorted-entries
+                  :total-count (count entries)})))
 
   ;; Regular paginated board
   ([conn org :guard map? board :guard map? params :guard map? ctx]
   (let [{start :start direction :direction must-see :must-see sort-type :sort-type} params
         access-level (:access-level ctx)
         user-id (-> ctx :user :user-id)
+        total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (db-common/current-timestamp) :before
+                     0 :recently-posted {:must-see must-see :status :published :count true})
         order (if (= direction :before) :desc :asc)
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
                  config/default-activity-limit sort-type {:must-see must-see :status :published})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
-                  :entries entries}))))
+                  :entries entries
+                  :total-count total-count}))))
 
 ;; ----- Validations -----
 

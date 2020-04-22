@@ -11,7 +11,7 @@
             [oc.storage.resources.reaction :as reaction-res]))
 
 (def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links])
-(def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft :publisher-board]))
+(def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft :publisher-board :total-count]))
 
 (defn- self-link 
   ([org-slug slug sort-type]
