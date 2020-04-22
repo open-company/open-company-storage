@@ -15,7 +15,7 @@
   (str "/orgs/" slug "/" collection-type))
 
   ([collection-type {slug :slug :as org} {start :start following :following}]
-  (let [following-concat (if start "?" "&")]
+  (let [following-concat (if start "&" "?")]
     (str (inbox-url collection-type org) (when start (str "?start=" start)) (when following (str following-concat "following=true"))))))
 
 (defn- dismiss-all-url [org]
