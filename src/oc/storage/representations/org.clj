@@ -10,7 +10,8 @@
                                   :boards :created-at :updated-at])
 (def representation-props (concat public-representation-props [:author :authors :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
-                                                               :contributions-count :following-count :following-inbox-count]))
+                                                               :contributions-count :following-count :following-inbox-count
+                                                               :drafts-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))

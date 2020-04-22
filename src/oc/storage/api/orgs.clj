@@ -250,7 +250,9 @@
                                                     (or (access/allow-authors conn slug user)
                                                         ;; or has at least one board with author access
                                                         (pos? (count author-access-boards))))
-                             draft-entry-count (if show-draft-board? (entry-res/list-drafts-by-org-author conn org-id user-id {:count true}) 0)
+                             draft-entry-count (if show-draft-board?
+                                                 (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
+                                                 0)
                              bookmarks-count (if user-is-member?
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
                                                0 {:count true})
@@ -287,6 +289,7 @@
                                                                   (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :following-count following-count)
+                                                 (assoc :drafts-count draft-entry-count)
                                                  (assoc :inbox-count inbox-count)
                                                  (assoc :following-inbox-count following-inbox-count)
                                                  (assoc :contributions-count user-count)
