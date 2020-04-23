@@ -56,6 +56,9 @@
 (defn- following-link [org]
   (hateoas/link-map "following" hateoas/GET (str (url org) "/entries?following=true") {:accept mt/entry-collection-media-type}))
 
+(defn- recent-following-link [org]
+  (hateoas/link-map "recent-following" hateoas/GET (str (url org) "/entries?sort=activity&following=true") {:accept mt/entry-collection-media-type}))
+
 (defn- contributions-partial-link [org]
   (assoc (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type})
    :replace {:author-uuid "$0"}))
@@ -182,6 +185,7 @@
                                          (recent-activity-link org)
                                          (recent-contributions-partial-link org)
                                          (following-link org)
+                                         (recent-following-link org)
                                          (contributions-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
