@@ -27,7 +27,7 @@
 (def default-promoted false)
 
 (def content-visibility {:disallow-secure-links false
-                         :disallow-public-board false
+                         :disallow-public-board true
                          :disallow-public-share false})
 
 ;; ----- Utility functions -----
