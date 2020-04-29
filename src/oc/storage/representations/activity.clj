@@ -129,17 +129,19 @@
                                                                                      :content-type "text/plain"} {})
                  (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {}))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
-                (pagination-link org collection-type params activity)])]
+                (pagination-link org collection-type params activity)])
+        base-response (if contributions? {:author-uuid (:author-uuid params)} {})]
     (json/generate-string
-      {:collection {:version hateoas/json-collection-version
-                    :href collection-url
-                    :links links
-                    :total-count (:total-count activity)
-                    :items (map (fn [entry]
-                                  (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
-                                        access-level (access/access-level-for org board user)]
-                                   (render-activity-for-collection org entry
-                                     (entry-rep/comments entry)
-                                     (reaction-res/aggregate-reactions (entry-rep/reactions entry))
-                                     (:access-level access-level) (:user-id user)))) (:activity activity))}}
+      {:collection (merge base-response
+                    {:version hateoas/json-collection-version
+                     :href collection-url
+                     :links links
+                     :total-count (:total-count activity)
+                     :items (map (fn [entry]
+                                   (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
+                                         access-level (access/access-level-for org board user)]
+                                    (render-activity-for-collection org entry
+                                      (entry-rep/comments entry)
+                                      (reaction-res/aggregate-reactions (entry-rep/reactions entry))
+                                      (:access-level access-level) (:user-id user)))) (:activity activity))})}
       {:pretty config/pretty?})))
