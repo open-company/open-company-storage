@@ -257,15 +257,15 @@
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
                                                0 {:count true})
                                               0)
-                             following-data (when user-is-member?
-                                              (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+                             follow-data (when user-is-member?
+                                           (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              following-count (if user-is-member?
                                                (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity
-                                                (map :uuid allowed-boards) following-data {:count true})
+                                                (map :uuid allowed-boards) follow-data {:count true})
                                                0)
                              following-inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
-                                            0 (map :uuid allowed-boards) following-data {:count true})
+                                            0 (map :uuid allowed-boards) follow-data {:count true})
                                            0)
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)

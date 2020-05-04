@@ -397,14 +397,14 @@
   (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards nil {:count count :must-see must-see}))
 
   ([conn org-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] following-data {:keys [must-see count] :or {must-see false count false}}]
+    allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards following-data list-comment-properties nil {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards follow-data list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
@@ -470,12 +470,12 @@
    (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count false}))
 
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- lib-schema/ISO8601 limit
-   allowed-boards :- [lib-schema/UniqueID] following-data {:keys [count] :or {count false}}]
+   allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (integer? limit)]}
   (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
-   common/interaction-table-name allowed-boards following-data user-id list-comment-properties {:count count})))
+   common/interaction-table-name allowed-boards follow-data user-id list-comment-properties {:count count})))
 
 ;; ----- Entry Bookmarks manipulation -----
 

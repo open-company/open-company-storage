@@ -25,16 +25,16 @@
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type following :following :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
-        following-data (when following
-                         (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+        follow-data (when following
+                      (follow/retrieve config/dynamodb-opts user-id (:slug org)))
         limit (if digest-request 0 config/default-activity-limit)
         entries (if following
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
-                   following-data {:must-see must-see})
+                   follow-data {:must-see must-see})
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                    {:must-see must-see}))
         total-count (entry-res/paginated-entries-by-org conn (:uuid org) :asc (db-common/current-timestamp) :before 0 :recent-activity allowed-boards
-                     following-data {:count true :must-see must-see})
+                     follow-data {:count true :must-see must-see})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]
@@ -68,12 +68,12 @@
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start must-see :must-see following :following} org board-by-uuids allowed-boards user-id]
-  (let [following-data (when following
-                         (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+  (let [follow-data (when following
+                      (follow/retrieve config/dynamodb-opts user-id (:slug org)))
         total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
-                           0 allowed-boards following-data {:count true})
+                           0 allowed-boards follow-data {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
-                 allowed-boards following-data {})
+                 allowed-boards follow-data {})
         activities {:next-count (count entries)
                     :total-count total-inbox-count}]
     ;; Give each activity its board name
