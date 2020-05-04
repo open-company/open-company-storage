@@ -253,6 +253,10 @@
                              draft-entry-count (if show-draft-board?
                                                  (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
                                                  0)
+                             total-count (if user-is-member?
+                                           (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recently-posted
+                                            (map :uuid allowed-boards) nil {:count true})
+                                           0)
                              bookmarks-count (if user-is-member?
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
                                                0 {:count true})
@@ -261,12 +265,20 @@
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              following-count (if user-is-member?
                                                (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity
-                                                (map :uuid allowed-boards) follow-data {:count true})
+                                                (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
                                                0)
+                             unfollowing-count (if user-is-member?
+                                                 (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity
+                                                  (map :uuid allowed-boards) (assoc follow-data :unfollowing true) {:count true})
+                                                 0)
                              following-inbox-count (if user-is-member?
-                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
-                                            0 (map :uuid allowed-boards) follow-data {:count true})
-                                           0)
+                                                     (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                                      0 (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
+                                                     0)
+                             unfollowing-inbox-count (if user-is-member?
+                                                       (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                                        0 (map :uuid allowed-boards) (assoc follow-data :unfollowing true) {:count true})
+                                                       0)
                              inbox-count (if user-is-member?
                                            (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
                                             0 (map :uuid allowed-boards) nil {:count true})
@@ -287,10 +299,13 @@
                                                  (assoc :boards (if user-is-member?
                                                                   board-reps
                                                                   (map #(dissoc % :authors :viewers) board-reps)))
+                                                 (assoc :total-count total-count)
                                                  (assoc :bookmarks-count bookmarks-count)
                                                  (assoc :following-count following-count)
+                                                 (assoc :unfollowing-count unfollowing-count)
                                                  (assoc :inbox-count inbox-count)
                                                  (assoc :following-inbox-count following-inbox-count)
+                                                 (assoc :unfollowing-inbox-count unfollowing-inbox-count)
                                                  (assoc :contributions-count user-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)

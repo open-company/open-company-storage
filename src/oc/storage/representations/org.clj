@@ -8,9 +8,10 @@
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at])
-(def representation-props (concat public-representation-props [:author :authors :bookmarks-count
+(def representation-props (concat public-representation-props [:author :authors :total-count :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
-                                                               :contributions-count :following-count :following-inbox-count]))
+                                                               :contributions-count :following-count :unfollowing-count
+                                                               :following-inbox-count :unfollowing-inbox-count]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))
@@ -58,6 +59,12 @@
 
 (defn- recent-following-link [org]
   (hateoas/link-map "recent-following" hateoas/GET (str (url org) "/entries?sort=activity&following=true") {:accept mt/entry-collection-media-type}))
+
+(defn- unfollowing-link [org]
+  (hateoas/link-map "unfollowing" hateoas/GET (str (url org) "/entries?unfollowing=true") {:accept mt/entry-collection-media-type}))
+
+(defn- recent-unfollowing-link [org]
+  (hateoas/link-map "recent-unfollowing" hateoas/GET (str (url org) "/entries?sort=activity&unfollowing=true") {:accept mt/entry-collection-media-type}))
 
 (defn- contributions-partial-link [org]
   (assoc (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type})
@@ -164,6 +171,18 @@
         {:accept mt/entry-collection-media-type}))
     org))
 
+(defn- unfollowing-inbox-link [org access-level user]
+  (if (and (not (:id-token user))
+           (or (= access-level :author)
+               (= access-level :viewer)))
+    (update-in org [:links] conj
+      (hateoas/link-map
+        "unfollowing-inbox"
+        hateoas/GET
+        (str (url org) "/inbox?unfollowing=true")
+        {:accept mt/entry-collection-media-type}))
+    org))
+
 (defn- inbox-link [org access-level user]
   (if (and (not (:id-token user))
            (or (= access-level :author)
@@ -186,6 +205,8 @@
                                          (recent-contributions-partial-link org)
                                          (following-link org)
                                          (recent-following-link org)
+                                         (unfollowing-link org)
+                                         (recent-unfollowing-link org)
                                          (contributions-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
@@ -230,6 +251,7 @@
         (recent-bookmarks-link access-level user)
         (inbox-link access-level user)
         (following-inbox-link access-level user)
+        (unfollowing-inbox-link access-level user)
         (select-keys (conj rep-props :links)))
       {:pretty config/pretty?})))
 

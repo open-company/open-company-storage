@@ -14,9 +14,13 @@
   ([collection-type {slug :slug :as org}]
   (str "/orgs/" slug "/" collection-type))
 
-  ([collection-type {slug :slug :as org} {start :start following :following}]
-  (let [following-concat (if start "&" "?")]
-    (str (inbox-url collection-type org) (when start (str "?start=" start)) (when following (str following-concat "following=true"))))))
+  ([collection-type {slug :slug :as org} {start :start following :following unfollowing :unfollowing}]
+  (let [follow-concat (if start "&" "?")]
+    (str (inbox-url collection-type org) (when start (str "?start=" start))
+     (cond
+      following (str follow-concat "following=true")
+      unfollowing (str follow-concat "unfollowing=true")
+      :else "")))))
 
 (defn- dismiss-all-url [org]
   (str (inbox-url "inbox" org) "/dismiss"))
@@ -30,14 +34,32 @@
   (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
     (str (url collection-type org sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
 
+(defn- follow-url
+  ([following? collection-type org-slug sort-type]
+  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")
+        follow-str (str (if sort-path "&" "?")
+                        (if following? "following" "unfollowing")
+                        "=true")]
+    (str "/orgs/" org-slug "/" collection-type sort-path follow-str)))
+
+  ([following? collection-type org-slug sort-type {start :start direction :direction}]
+  (let [start-str (str "&start=" start)
+        direction-str (when direction (str "&direction=" (name direction)))]
+    (str (follow-url following? collection-type org-slug sort-type) start-str direction-str))))
+
 (defn- following-url
   ([collection-type {slug :slug} sort-type]
-  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
-    (str "/orgs/" slug "/" collection-type sort-path)))
+  (follow-url true collection-type slug sort-type))
 
-  ([collection-type {slug :slug :as org} sort-type {start :start direction :direction}]
-  (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-    (str (url collection-type org sort-type) concat-str "following=true&start=" start (when direction (str "&direction=" (name direction)))))))
+  ([collection-type {slug :slug :as org} sort-type params]
+  (follow-url true collection-type slug sort-type params)))
+
+(defn- unfollowing-url
+  ([collection-type {slug :slug} sort-type]
+  (follow-url false collection-type slug sort-type))
+
+  ([collection-type {slug :slug :as org} sort-type params]
+  (follow-url false collection-type slug sort-type params)))
 
 (defn- contributions-url
 
@@ -57,7 +79,7 @@
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [start direction sort-type author-uuid following]} data]
+  [org collection-type {:keys [start direction sort-type author-uuid following unfollowing]} data]
   (let [activity (:activity data)
         activity? (not-empty activity)
         last-activity (last activity)
@@ -66,13 +88,22 @@
         next-url (when next?
                    (cond
                      (is-inbox? collection-type)
-                     (inbox-url collection-type org {:start last-activity-date :direction direction :following following})
+                     (inbox-url collection-type org {:start last-activity-date
+                                                     :direction direction
+                                                     :following following
+                                                     :unfollowing unfollowing})
                      (is-contributions? collection-type)
-                     (contributions-url org author-uuid sort-type {:start last-activity-date :direction direction})
+                     (contributions-url org author-uuid sort-type {:start last-activity-date
+                                                                   :direction direction})
                      following
-                     (following-url collection-type org sort-type {:start last-activity-date :direction direction})
+                     (following-url collection-type org sort-type {:start last-activity-date
+                                                                   :direction direction})
+                     unfollowing
+                     (unfollowing-url collection-type org sort-type {:start last-activity-date
+                                                                     :direction direction})
                      :else
-                     (url collection-type org sort-type {:start last-activity-date :direction direction})))
+                     (url collection-type org sort-type {:start last-activity-date
+                                                         :direction direction})))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))]
     next-link))
 
@@ -93,15 +124,18 @@
   [params org collection-type activity boards user]
   (let [sort-type (:sort-type params)
         following? (:following params)
+        unfollowing? (:unfollowing params)
         inbox? (is-inbox? collection-type)
         contributions? (is-contributions? collection-type)
         collection-url (cond
                         inbox?
-                        (inbox-url collection-type org {:following following?})
+                        (inbox-url collection-type org {:following following? :unfollowing unfollowing?})
                         contributions?
                         (contributions-url org (:author-uuid params) (:sort-type params))
                         following?
                         (following-url collection-type org sort-type)
+                        unfollowing?
+                        (unfollowing-url collection-type org sort-type)
                         :else
                         (url collection-type org sort-type))
         recent-activity-sort? (= sort-type :recent-activity)
@@ -112,11 +146,15 @@
                         (contributions-url org (:author-uuid params) (if recent-activity-sort? :recently-posted :recent-activity))
                         following?
                         (following-url collection-type org (if recent-activity-sort? :recently-posted :recent-activity))
+                        unfollowing?
+                        (unfollowing-url collection-type org (if recent-activity-sort? :recently-posted :recent-activity))
                         :else
                         (url collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
         collection-rel (cond
                          following?
                          "following"
+                         unfollowing?
+                         "unfollowing"
                          recent-activity-sort?
                          "activity"
                          :default

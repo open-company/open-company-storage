@@ -20,15 +20,22 @@
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
+(defn- follow-parameters-map [user-id org-slug following?]
+  (cond-> (follow/retrieve config/dynamodb-opts user-id org-slug)
+    following? (merge {:following true})
+    (not following?) (merge {:unfollowing true})))
+
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
-  [conn {start :start direction :direction must-see :must-see digest-request :digest-request sort-type :sort-type following :following :as params}
+  [conn {start :start direction :direction must-see :must-see digest-request :digest-request
+         sort-type :sort-type following :following unfollowing :unfollowing :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
-        follow-data (when following
-                      (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+        follow? (or following unfollowing)
+        follow-data (when follow?
+                      (follow-parameters-map user-id (:slug org) following))
         limit (if digest-request 0 config/default-activity-limit)
-        entries (if following
+        entries (if follow?
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                    follow-data {:must-see must-see})
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
@@ -67,9 +74,11 @@
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start must-see :must-see following :following} org board-by-uuids allowed-boards user-id]
-  (let [follow-data (when following
-                      (follow/retrieve config/dynamodb-opts user-id (:slug org)))
+  [conn {start :start must-see :must-see following :following
+         unfollowing :unfollowing} org board-by-uuids allowed-boards user-id]
+  (let [follow? (or following unfollowing)
+        follow-data (when follow?
+                      (follow-parameters-map user-id (:slug org) following))
         total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
                            0 allowed-boards follow-data {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
@@ -129,8 +138,12 @@
                               valid-direction? (if direction (#{:before :after} direction) true)
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))]
-                           (not (and valid-start? valid-direction? pairing-allowed?))))
+                                                   (and (not start) (not direction)))
+                              ;; can have :following or :unfollowing or none, but not both
+                              following? (contains? ctx-params :following)
+                              unfollowing? (contains? ctx-params :unfollowing)
+                              valid-follow? (not (and following? unfollowing?))]
+                           (not (and valid-start? valid-direction? pairing-allowed? valid-follow?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -149,8 +162,7 @@
                              start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction
-                                                         :sort-type sort-type
-                                                         :following (:following ctx-params)})
+                                                         :sort-type sort-type})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -234,8 +246,12 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)]
-                          (not valid-start?)))
+                              valid-start? (if start (ts/valid-timestamp? start) true)
+                              ;; can have :following or :unfollowing or none, but not both
+                              following? (contains? ctx-params :following)
+                              unfollowing? (contains? ctx-params :unfollowing)
+                              valid-follow? (not (and following? unfollowing?))]
+                          (not (and valid-start? valid-follow?))))
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
@@ -248,9 +264,7 @@
                              org (:existing-org ctx)
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
-                             start? (if (:start ctx-params) true false) ; flag if a start was specified
-                             params (merge ctx-params {:start (or (:start ctx-params) (db-common/current-timestamp))
-                                                       :following (:following ctx-params)}) ; default is now
+                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))

@@ -39,17 +39,21 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
-            ;; Filter on the allowed-boards
-            (if (or (sequential? allowed-boards)
-                    (map? follow-data))
-              (r/filter query (r/fn [post-row]
-                (r/and ;; All records in boards the user has no access
-                       (r/or (not (sequential? allowed-boards))
-                             (r/contains allowed-boards (r/get-field post-row :board-uuid)))
-                       (r/or (not (map? follow-data))
-                             (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
-                             (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
-              query)
+            (r/filter query (r/fn [post-row]
+              (r/and ;; Filter on allowed-boards if necessary (if not ISequential means no filter needed)
+                     (r/or (not (sequential? allowed-boards))
+                           (r/contains allowed-boards (r/get-field post-row :board-uuid)))
+                     ;; and filter on follow data:
+                     (r/or ;; no filter if it's nil
+                           (not (map? follow-data))
+                           ;; filter on followed authors and on not unfollowed boards
+                           (and (:following follow-data)
+                                (r/or (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
+                                      (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))
+                           ;; filter on not followed authors and on unfollowed boards
+                           (and (:unfollowing follow-data)
+                                (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id])))
+                                (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
             ;; Merge in a last-activity-at date for each post, which is the
             ;; last comment created-at, with fallback to published-at or created-at for published entries
             ;; the entry created-at in all the other cases.
@@ -132,12 +136,18 @@
               (r/and ;; All records in boards the user has no access
                      (r/or (not (sequential? allowed-boards))
                            (r/contains allowed-boards (r/get-field post-row :board-uuid)))
-                     ;; All records with unfollow false or without it
+                     ;; that have unfollow (or :unfollow is not specified)
                      (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false))
-                     ;; Filter on followed boards and authors
-                     (r/or (not (map? follow-data))
-                           (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
-                           (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
+
+                     (r/or ;; No follow data are passed
+                           (not (map? follow-data))
+                           ;; or we are requesting the unfollowed posts
+                           (r/and (:unfollowing follow-data)
+                                  (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id])))
+                                  (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))
+                           (r/and (:following follow-data)
+                                  (r/or (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
+                                        (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
