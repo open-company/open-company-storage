@@ -47,8 +47,8 @@
                        (r/or (not (sequential? allowed-boards))
                              (r/contains allowed-boards (r/get-field post-row :board-uuid)))
                        (r/or (not (map? follow-data))
-                             (r/contains (vec (:publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
-                             (r/not (r/contains (vec (:board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
+                             (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
+                             (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
               query)
             ;; Merge in a last-activity-at date for each post, which is the
             ;; last comment created-at, with fallback to published-at or created-at for published entries
@@ -136,8 +136,8 @@
                      (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false))
                      ;; Filter on followed boards and authors
                      (r/or (not (map? follow-data))
-                           (r/contains (vec (:publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
-                           (r/not (r/contains (vec (:board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
+                           (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
+                           (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
               {:last-activity-at (-> (r/table relation-table-name)
