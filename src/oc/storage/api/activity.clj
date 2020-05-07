@@ -22,6 +22,7 @@
 
 (defn- follow-parameters-map [user-id org-slug following?]
   (cond-> (follow/retrieve config/dynamodb-opts user-id org-slug)
+    true (assoc :user-id user-id)
     following? (merge {:following true})
     (not following?) (merge {:unfollowing true})))
 
