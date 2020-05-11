@@ -328,7 +328,7 @@
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
   (let [read-resources (if config/publisher-board-enabled?
                          (partial db-common/read-resources conn table-name :org-uuid org-uuid)
-                         (partial db-common/filter-resources conn table-name :org-uuid org-uuid {:fn :eq :value true :field :publisher-board}))]
+                         (partial db-common/filter-resources conn table-name :org-uuid org-uuid [{:fn :ne :value true :field :publisher-board}]))]
     (->> (into [primary-key :slug :name :draft] additional-keys)
       read-resources
       (sort-by :slug)
