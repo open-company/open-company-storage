@@ -9,6 +9,7 @@
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
             [oc.lib.text :as str]
+            [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]
             [oc.storage.async.notification :as notification]))
@@ -325,10 +326,13 @@
          (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name :draft] additional-keys)
-    (db-common/read-resources conn table-name :org-uuid org-uuid)
-    (sort-by :slug)
-    vec)))
+  (let [read-resources (if config/publisher-board-enabled?
+                         (partial db-common/read-resources conn table-name :org-uuid org-uuid)
+                         (partial db-common/filter-resources conn table-name :org-uuid org-uuid {:fn :eq :value true :field :publisher-board}))]
+    (->> (into [primary-key :slug :name :draft] additional-keys)
+      read-resources
+      (sort-by :slug)
+      vec))))
 
 (defn list-boards-by-index
   "

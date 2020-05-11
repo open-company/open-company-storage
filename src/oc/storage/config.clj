@@ -95,6 +95,8 @@
 
 (defonce reminders-enabled? (bool (env :reminders-enabled)))
 
+(defonce publisher-board-enabled? (bool (env :publisher-board-enabled)))
+
 ;; DynamoDB
 
 (defonce dynamodb-end-point (or (env :dynamodb-end-point) "http://localhost:8000"))
