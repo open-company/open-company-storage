@@ -86,12 +86,16 @@
                         (update :name #(if (:publisher-board board-map)
                                          (:name author)
                                          %)))]
-        (if (and (:disallow-public-board (or (:content-visibility org) {}))
-                 (= (:access board-data) "public"))
-          [false, {:reason :disallowed-public-board}]
-          {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
-           :existing-org (api-common/rep org)
-           :notifications (api-common/rep notifications)}))
+        (cond (and (:disallow-public-board (or (:content-visibility org) {}))
+                         (= (:access board-data) "public"))
+              [false, {:reason :disallowed-public-board}]
+              (and (:publisher-board board-data)
+                   (not config/publisher-board-enabled?))
+              [false, {:reason :disallowed-publisher-board}]
+              :else
+              {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
+               :existing-org (api-common/rep org)
+               :notifications (api-common/rep notifications)}))
 
       (catch clojure.lang.ExceptionInfo e
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
