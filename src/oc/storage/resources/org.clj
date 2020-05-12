@@ -162,10 +162,6 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
-      ;; Delete reminders
-      (try
-        (db-common/delete-resource conn "reminders" :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; OK if no reminders
       ;; Delete interactions
       (try
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
