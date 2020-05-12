@@ -274,8 +274,7 @@
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
   [conn]
   {:pre [(db-common/conn? conn)]}
-  ;; Delete all reminders, interactions, entries, boards and orgs
-  (db-common/delete-all-resources! conn "reminders")
+  ;; Delete all interactions, entries, boards and orgs
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
