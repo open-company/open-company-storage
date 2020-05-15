@@ -262,8 +262,7 @@
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
-                                           (-> (follow/retrieve config/dynamodb-opts user-id (:slug org))
-                                                (assoc :user-id user-id)))
+                                           (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              following-count (if user-is-member?
                                                (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity
                                                 (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
