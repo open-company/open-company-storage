@@ -48,8 +48,8 @@
                            (not (map? follow-data))
                            ;; filter on followed authors and on not unfollowed boards
                            (r/and (:following follow-data)
+                                  (r/ne (:user-id follow-data) (r/get-field post-row [:publisher :user-id]))
                                   (r/or (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
-                                        (r/eq (:user-id follow-data) (r/get-field post-row [:publisher :user-id]))
                                         (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))
                            ;; filter on not followed authors and on unfollowed boards
                            (r/and (:unfollowing follow-data)
@@ -149,8 +149,8 @@
                                   (r/ne (:user-id follow-data) (r/get-field post-row [:publisher :user-id]))
                                   (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))
                            (r/and (:following follow-data)
+                                  (r/ne (:user-id follow-data) (r/get-field post-row [:publisher :user-id]))
                                   (r/or (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id]))
-                                        (r/eq (:user-id follow-data) (r/get-field post-row [:publisher :user-id]))
                                         (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
