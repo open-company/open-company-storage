@@ -3,6 +3,7 @@
   (:require [clj-time.core :as t]
             [clj-time.format :as f]
             [rethinkdb.query :as r]
+            [oc.lib.schema :as lib-schema]
             [oc.lib.time :as lib-time]
             [oc.storage.config :as config]
             [oc.lib.db.common :as db-common]))
@@ -234,3 +235,94 @@
     (if (or (= 1 (:replaced update)) (= 1 (:unchanged update)))
       (db-common/read-resource conn table-name entry-uuid)
       (throw (RuntimeException. (str "RethinkDB update failure: " update))))))
+
+(defn read-paginated-threads
+  "Query that reads all the threads"
+  ([conn org-uuid allowed-boards user-id follow-data order start direction limit {:keys [count] :or {count false}}]
+   {:pre [(db-common/conn? conn)
+          (lib-schema/unique-id? org-uuid)
+          (or (sequential? allowed-boards)
+              (nil? allowed-boards))
+          (lib-schema/unique-id? user-id)
+          (map? follow-data)
+          (#{:desc :asc} order)
+          (not (nil? start))
+          (#{:after :before} direction)
+          (or (zero? limit) ;; means all
+              (pos? limit))
+          (boolean? count)]}
+    (let [order-fn (if (= order :desc) r/desc r/asc)]
+      (db-common/with-timeout db-common/default-timeout
+        (as-> (r/table "interactions") query
+         (r/get-all query [[org-uuid true true]] {:index :org-uuid-root-comments})
+         ;; Make an initial filter to select only posts the user has access to
+         (r/filter query (r/fn [row]
+          (r/or (not (sequential? allowed-boards))
+                (r/contains allowed-boards (r/get-field row :board-uuid)))))
+         ;; Merge in last-activity-at and entry
+         (r/merge query (r/fn [row]
+          (let [replies-base-q (-> (r/table "interactions")
+                                (r/get-all [(r/get-field row :uuid)] {:index :parent-uuid}))]
+            {;; All child comments of the current thread
+             :replies (-> replies-base-q
+                       (r/order-by (r/asc :created-at))
+                       (r/coerce-to :array))
+             :reply-count (r/count replies-base-q)
+             ;; Date of the last added comment on this thread
+             :last-activity-at (-> replies-base-q
+                                (r/max :created-at)
+                                (r/get-field :created-at)
+                                ;; Default to the root comment created-at
+                                (r/default (r/get-field row :created-at)))
+             ;; Entry data
+             :entry (-> (r/table "entries")
+                     (r/get (r/get-field row [:resource-uuid]))
+                     (r/pluck [:publisher]))})))
+         ;; Filter by user-visibility
+         (r/filter query (r/fn [row]
+          (r/and ;; All records after/before the start
+                 (r/or (r/and (= direction :before)
+                              (r/gt start (r/get-field row :last-activity-at)))
+                       (r/and (= direction :after)
+                              (r/le start (r/get-field row :last-activity-at))))
+                 ;; and filter on follow data:
+                 (r/or ;; no filter if it's nil
+                       (not (map? follow-data))
+                       ;; filter on followed authors and on not unfollowed boards
+                       (r/and (:following follow-data)
+                              (r/or (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field row [:entry :publisher :user-id]))
+                                    (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid)))))
+                       ;; filter on not followed authors and on unfollowed boards
+                       (r/and (:unfollowing follow-data)
+                              (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field row [:entry :publisher :user-id])))
+                              (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid)))))))
+         ;; Sort
+         ; (if-not count (r/order-by query (order-fn :last-activity-at)) query)
+         (if-not count (r/order-by query (order-fn :created-at)) query)
+         ;; Apply limit
+         (if (pos? limit)
+           (r/limit query limit)
+           query)
+         ;; Apply count if needed
+         (if count (r/count query) query)
+         ;; Run!
+         (r/run query conn)
+         ;; Drain cursor
+         (if (= (type query) rethinkdb.net.Cursor)
+           (seq query)
+           query))))))
+
+
+(defn read-entries-list
+  "Given a list of entry uuids return the complete data for them."
+  ([conn org-uuid entry-uuids]
+   (as-> (r/table "entries") query
+    (r/get-all query org-uuid {:index :org-uuid})
+    (r/filter query (r/fn [row] (r/contains entry-uuids (r/get-field row :uuid))))
+    (r/pluck query [:uuid :secure-uuid :status :user-visibility
+                    :headline :body :attachments :publisher :published-at
+                    :created-at :updated-at :revision-id :bookmarks :polls])
+    (r/run query conn)
+    (if (= (type query) rethinkdb.net.Cursor)
+      (seq query)
+      query))))
