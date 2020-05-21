@@ -93,6 +93,29 @@
                                                        :board-name (:name board)})))
                                  entries))))
 
+(defn- assemble-threads
+  "Assemble the requested (by the params) threads for the provided org."
+  [conn {start :start direction :direction following :following unfollowing :unfollowing :as params}
+   org board-by-uuids allowed-boards user-id]
+  (let [order (if (= direction :before) :desc :asc)
+        follow? (or following unfollowing)
+        follow-data (when follow?
+                      (follow-parameters-map user-id (:slug org) following))
+        threads (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data order start direction config/default-activity-limit {})
+        entries (entry-res/entries-list conn (:uuid org) (map :resource-uuid threads))
+        total-count (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data :asc (db-common/current-timestamp) :before 0 {:count true})
+        result {:next-count (count threads)
+                :direction direction
+                :total-count total-count
+                :threads threads}]
+    ;; Give each activity its board name
+    (assoc result :entries (map (fn [entry] (let [board (board-by-uuids (:board-uuid entry))]
+                                                      (merge entry {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)})))
+                                    entries))))
+
 (defn- assemble-contributions
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
   [conn {start :start direction :direction sort-type :sort-type} org board-by-uuids allowed-boards author-uuid]
@@ -273,6 +296,60 @@
                              activity (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "inbox" activity boards user))))
 
+;; A resource to retrieve the threads of a particular Org
+(defresource threads [conn slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/thread-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/thread-collection-media-type)
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+
+  ;; Check the request
+  :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+                              start (:start ctx-params)
+                              valid-start? (if start (ts/valid-timestamp? start) true)
+                              direction (keyword (:direction ctx-params))
+                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
+                              valid-direction? (if direction (#{:before :after} direction) true)
+                              ;; a specified start/direction must be together or ommitted
+                              pairing-allowed? (or (and start direction)
+                                                   (and (not start) (not direction)))
+                              ;; can have :following or :unfollowing or none, but not both
+                              following? (contains? ctx-params :following)
+                              unfollowing? (contains? ctx-params :unfollowing)
+                              valid-follow? (not (and following? unfollowing?))]
+                           (not (and valid-start? valid-direction? pairing-allowed? valid-follow?))))
+
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
+                        {:existing-org (api-common/rep org)}
+                        false))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (let [user (:user ctx)
+                             user-id (:user-id user)
+                             org (:existing-org ctx)
+                             org-id (:uuid org)
+                             ctx-params (keywordize-keys (-> ctx :request :params))
+                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
+                             params (merge start-params {:direction direction})
+                             boards (board-res/list-boards-by-org conn org-id board-props)
+                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             board-uuids (map :uuid boards)
+                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             threads (assemble-threads conn params org board-by-uuids allowed-boards user-id)]
+                          (activity-rep/render-threads-list params org threads boards user))))
+
 ;; A resource to retrieve entries for a given user
 (defresource contributions [conn slug author-uuid]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -339,6 +416,11 @@
       (OPTIONS "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (GET "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (GET "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
+
+      (OPTIONS "/orgs/:slug/threads" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
+      (OPTIONS "/orgs/:slug/threads/" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
+      (GET "/orgs/:slug/threads" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
+      (GET "/orgs/:slug/threads/" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
 
       (OPTIONS "/orgs/:slug/contributions/:author-uuid"
         [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))

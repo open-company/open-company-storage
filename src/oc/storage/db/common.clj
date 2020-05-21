@@ -317,10 +317,10 @@
   "Given a list of entry uuids return the complete data for them."
   ([conn org-uuid entry-uuids]
    (as-> (r/table "entries") query
-    (r/get-all query org-uuid {:index :org-uuid})
+    (r/get-all query [org-uuid] {:index :org-uuid})
     (r/filter query (r/fn [row] (r/contains entry-uuids (r/get-field row :uuid))))
-    (r/pluck query [:uuid :secure-uuid :status :user-visibility
-                    :headline :body :attachments :publisher :published-at
+    (r/pluck query [:uuid :secure-uuid :status :user-visibility :org-uuid :board-uuid
+                    :headline :body :attachments :publisher :published-at :author
                     :created-at :updated-at :revision-id :bookmarks :polls])
     (r/run query conn)
     (if (= (type query) rethinkdb.net.Cursor)

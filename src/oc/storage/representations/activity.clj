@@ -22,6 +22,19 @@
       unfollowing (str follow-concat "unfollowing=true")
       :else "")))))
 
+(defn- threads-url
+
+  ([{slug :slug :as org}]
+  (str "/orgs/" slug "/threads"))
+
+  ([{slug :slug :as org} {start :start following :following unfollowing :unfollowing}]
+  (let [follow-concat (if start "&" "?")]
+    (str (threads-url org) (when start (str "?start=" start))
+     (cond
+      following (str follow-concat "following=true")
+      unfollowing (str follow-concat "unfollowing=true")
+      :else "")))))
+
 (defn- dismiss-all-url [org]
   (str (inbox-url "inbox" org) "/dismiss"))
 
@@ -77,34 +90,44 @@
 (defn- is-contributions? [collection-type]
   (= collection-type "contributions"))
 
+(defn- is-threads? [collection-type]
+  (= collection-type "threads"))
+
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
   [org collection-type {:keys [start direction sort-type author-uuid following unfollowing]} data]
-  (let [activity (:activity data)
-        activity? (not-empty activity)
-        last-activity (last activity)
-        last-activity-date (when activity? (:last-activity-at last-activity))
+  (let [threads? (is-threads? collection-type)
+        resources-list (if threads? (:threads data) (:activity data))
+        activity? (-> data :activity seq)
+        last-resource (last resources-list)
+        last-resource-date (when (or threads? activity?) (:last-activity-at last-resource))
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next?
                    (cond
+                     threads?
+                     (threads-url org {:start last-resource-date
+                                       :direction direction
+                                       :following following
+                                       :unfollowing unfollowing})
                      (is-inbox? collection-type)
-                     (inbox-url collection-type org {:start last-activity-date
+                     (inbox-url collection-type org {:start last-resource-date
                                                      :direction direction
                                                      :following following
                                                      :unfollowing unfollowing})
                      (is-contributions? collection-type)
-                     (contributions-url org author-uuid sort-type {:start last-activity-date
+                     (contributions-url org author-uuid sort-type {:start last-resource-date
                                                                    :direction direction})
                      following
-                     (following-url collection-type org sort-type {:start last-activity-date
+                     (following-url collection-type org sort-type {:start last-resource-date
                                                                    :direction direction})
                      unfollowing
-                     (unfollowing-url collection-type org sort-type {:start last-activity-date
+                     (unfollowing-url collection-type org sort-type {:start last-resource-date
                                                                      :direction direction})
                      :else
-                     (url collection-type org sort-type {:start last-activity-date
+                     (url collection-type org sort-type {:start last-resource-date
                                                          :direction direction})))
-        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))]
+        media-type (if threads? mt/thread-collection-media-type mt/entry-collection-media-type)
+        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept media-type}))]
     next-link))
 
 (defn render-activity-for-collection
@@ -182,4 +205,33 @@
                                       (entry-rep/comments entry)
                                       (reaction-res/aggregate-reactions (entry-rep/reactions entry))
                                       (:access-level access-level) (:user-id user)))) (:activity activity))})}
+      {:pretty config/pretty?})))
+
+(defn render-threads-list
+  "
+  Given an org and a sequence of threads maps and entries maps, create a JSON representation of a list of
+  threads for the API.
+  "
+  [params org {:keys [threads entries] :as threads-data} boards user]
+  (let [following? (:following params)
+        unfollowing? (:unfollowing params)
+        collection-url (threads-url org {:following following? :unfollowing unfollowing?})
+        links (remove nil?
+               [(hateoas/link-map "threads" hateoas/GET collection-url {:accept mt/thread-collection-media-type} {})
+                (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
+                (pagination-link org "threads" params threads-data)])]
+    (json/generate-string
+      {:collection {:version hateoas/json-collection-version
+                    :href collection-url
+                    :links links
+                    :total-count (:total-count threads-data)
+                    :threads threads
+                    :entries (map (fn [entry]
+                                   (let [board (some #(when (= (:slug %) (:board-slug entry)) %) boards)
+                                         access-level (access/access-level-for org board user)]
+                                    (render-activity-for-collection org entry
+                                      (entry-rep/comments entry)
+                                      (reaction-res/aggregate-reactions (entry-rep/reactions entry))
+                                      (:access-level access-level) (:user-id user))))
+                               entries)}}
       {:pretty config/pretty?})))
