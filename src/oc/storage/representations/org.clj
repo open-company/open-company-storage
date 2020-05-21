@@ -48,6 +48,9 @@
 (defn- org-collection-links [org]
   (assoc org :links [(item-link org)]))
 
+(defn- threads-link [org]
+  (hateoas/link-map "threads" hateoas/GET (str (url org) "/threads") {:accept mt/thread-collection-media-type}))
+
 (defn- activity-link [org]
   (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/entry-collection-media-type}))
 
@@ -207,7 +210,8 @@
                                          (recent-following-link org)
                                          (unfollowing-link org)
                                          (recent-unfollowing-link org)
-                                         (contributions-partial-link org)]) ; (calendar-link org) - not currently used
+                                         (contributions-partial-link org)
+                                         (threads-link org)]) ; (calendar-link org) - not currently used
                           links)
         full-links (if (and (not id-token) (= access-level :author) )
                       (concat activity-links [(board-create-link org)
