@@ -225,7 +225,7 @@
                     :href collection-url
                     :links links
                     :total-count (:total-count threads-data)
-                    :threads threads
+                    :items (map #(dissoc % :entry) threads)
                     :entries (map (fn [entry]
                                    (let [board (some #(when (= (:slug %) (:board-slug entry)) %) boards)
                                          access-level (access/access-level-for org board user)]
