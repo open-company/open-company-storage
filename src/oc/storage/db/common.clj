@@ -264,11 +264,7 @@
          (r/merge query (r/fn [row]
           (let [replies-base-q (-> (r/table "interactions")
                                 (r/get-all [(r/get-field row :uuid)] {:index :parent-uuid}))]
-            {;; All child comments of the current thread
-             :replies (-> replies-base-q
-                       (r/order-by (r/asc :created-at))
-                       (r/coerce-to :array))
-             :reply-count (r/count replies-base-q)
+            {:reply-count (r/count replies-base-q)
              ;; Date of the last added comment on this thread
              :last-activity-at (-> replies-base-q
                                 (r/max :created-at)
