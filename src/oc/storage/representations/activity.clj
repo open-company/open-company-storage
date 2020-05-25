@@ -27,13 +27,14 @@
   ([{slug :slug :as org}]
   (str "/orgs/" slug "/threads"))
 
-  ([{slug :slug :as org} {start :start following :following unfollowing :unfollowing}]
-  (let [follow-concat (if start "&" "?")]
-    (str (threads-url org) (when start (str "?start=" start))
-     (cond
-      following (str follow-concat "following=true")
-      unfollowing (str follow-concat "unfollowing=true")
-      :else "")))))
+  ([{slug :slug :as org} {start :start following :following unfollowing :unfollowing direction :direction}]
+  (let [follow-concat (if start "&" "?")
+        direction-concat (if (or start following unfollowing) "&" "?")]
+    (cond-> (threads-url org)
+     start (str "?start=" start)
+     following (str follow-concat "following=true")
+     unfollowing (str follow-concat "unfollowing=true")
+     direction (str direction-concat "direction=" (name direction))))))
 
 (defn- dismiss-all-url [org]
   (str (inbox-url "inbox" org) "/dismiss"))
