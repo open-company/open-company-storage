@@ -556,13 +556,13 @@
   (storage-db-common/read-paginated-threads conn org-uuid allowed-boards user-id follow-data order start direction
    limit {:count count})))
 
-(schema/defn ^:always-validate entries-list :- [(schema/maybe common/Entry)]
+(schema/defn ^:always-validate entries-list
   "
   Given a list of entry UUIDs, retrieve them.
   "
   [conn org-uuid :- lib-schema/UniqueID entry-uuids :- [lib-schema/UniqueID]]
   {:pre [(db-common/conn? conn)]}
-  (storage-db-common/read-entries-list conn org-uuid entry-uuids))
+  (storage-db-common/read-entries-list conn org-uuid entry-uuids list-comment-properties))
 
 ;; ----- Armageddon -----
 

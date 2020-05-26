@@ -312,13 +312,19 @@
 
 (defn read-entries-list
   "Given a list of entry uuids return the complete data for them."
-  ([conn org-uuid entry-uuids]
+  ([conn org-uuid entry-uuids comment-properties]
    (as-> (r/table "entries") query
     (r/get-all query [org-uuid] {:index :org-uuid})
     (r/filter query (r/fn [row] (r/contains entry-uuids (r/get-field row :uuid))))
     (r/pluck query [:uuid :secure-uuid :status :user-visibility :org-uuid :board-uuid
                     :headline :body :attachments :publisher :published-at :author
                     :created-at :updated-at :revision-id :bookmarks :polls])
+    ;; Merge in all the interactions
+    (r/merge query (r/fn [post-row]
+     {:interactions (-> (r/table "interactions")
+                        (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
+                        (r/pluck comment-properties)
+                        (r/coerce-to :array))}))
     (r/run query conn)
     (if (= (type query) rethinkdb.net.Cursor)
       (seq query)
