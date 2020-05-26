@@ -295,7 +295,9 @@
                               (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid)))))))
          ;; Sort
          ; (if-not count (r/order-by query (order-fn :last-activity-at)) query)
-         (if-not count (r/order-by query (order-fn :created-at)) query)
+         (if-not count
+          (r/order-by query (order-fn :last-activity-at))
+          query)
          ;; Apply limit
          (if (pos? limit)
            (r/limit query limit)
