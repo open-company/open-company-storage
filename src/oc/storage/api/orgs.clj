@@ -240,7 +240,8 @@
                                                       (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author])
-                             board-access (map #(board-with-access-level org % user) boards)
+                             boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn (:uuid %) {:count true})) boards)
+                             board-access (map #(board-with-access-level org % user) boards-with-entries-count)
                              allowed-boards (filter :access-level board-access)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)
                                                ;; Add the draft board
