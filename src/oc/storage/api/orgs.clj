@@ -241,7 +241,7 @@
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author :description])
                              boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn (:uuid %) {:count true})) boards)
-                             boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards)
+                             boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
                              board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
                              allowed-boards (filter :access-level board-access)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)
