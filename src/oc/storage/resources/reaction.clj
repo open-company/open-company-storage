@@ -24,6 +24,6 @@
   that include the count of how many times reacted and the list of author names and IDs that reacted.
   "
   [entry-reactions]
-  (let [fixed-entry-reactions (conj (map #(assoc % :count 1) entry-reactions) {:reaction "👍" :count 0})
+  (let [fixed-entry-reactions (conj (map #(assoc % :count 1) entry-reactions) {:reaction "👍🏿" :count 0})
         collapsed-reactions (vals (reduce reaction-collapse {} fixed-entry-reactions))]
     (or collapsed-reactions [])))
