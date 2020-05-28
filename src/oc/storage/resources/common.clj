@@ -49,6 +49,7 @@
   :uuid lib-schema/UniqueID
   :slug Slug
   :name lib-schema/NonBlankStr
+  (schema/optional-key :description) (schema/maybe schema/Str)
   :org-uuid lib-schema/UniqueID
   :access AccessLevel
   :authors [lib-schema/UniqueID]
