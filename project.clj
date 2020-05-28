@@ -189,7 +189,6 @@
                       "OpenCompany Storage REPL\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) or (go-db) as your first command.\n"))
     :init-ns dev
-    :timeout 120000
   }
 
   :aliases {

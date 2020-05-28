@@ -85,7 +85,7 @@
 
 (defonce new-org-board-names #{"General"})
 
-(defonce max-reaction-count 5) 
+(defonce max-reaction-count 3)
 
 (defonce inline-comment-count 10)
 
