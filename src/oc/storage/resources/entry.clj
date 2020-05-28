@@ -422,6 +422,15 @@
     (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
      direction limit sort-type common/interaction-table-name [board-uuid] nil list-comment-properties nil {:count count})))
 
+(schema/defn ^:always-validate last-entry-of-board
+  "
+  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
+  and a limit, return the published entries for the org with any interactions.
+  "
+  [conn board-uuid]
+  {:pre [(db-common/conn? conn)]}
+  (storage-db-common/last-entry-of-board conn board-uuid))
+
 (schema/defn ^:always-validate list-entries-by-org-author
   ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type allowed-boards :- [lib-schema/UniqueID]]
    (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards {:count false}))

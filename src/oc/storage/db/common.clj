@@ -331,3 +331,11 @@
     (if (= (type query) rethinkdb.net.Cursor)
       (seq query)
       query))))
+
+(defn last-entry-of-board
+  [conn board-uuid]
+  (as-> (r/table "entries") query
+   (r/get-all query [board-uuid] {:index :board-uuid})
+   (r/order-by query (r/desc :created-at))
+   (r/default (r/nth query 0) {})
+   (r/run query conn)))

@@ -14,7 +14,7 @@
   (or (= (:uuid board) (:uuid board-res/default-drafts-board))
       (= (:slug board) (:slug board-res/default-drafts-board))))
 
-(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links :description])
+(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links :description :last-entry-at])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft :publisher-board :total-count]))
 (def drafts-board-representation-props (conj public-representation-props :total-count))
 
