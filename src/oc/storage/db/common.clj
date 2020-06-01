@@ -254,7 +254,6 @@
          (or (zero? limit) ;; means all
              (pos? limit))
          (boolean? count)]}
-
   (let [order-fn (if (= order :desc) r/desc r/asc)
         unread-cap-seconds (* 60 60 24 config/threads-unread-cap-days)]
     (db-common/with-timeout db-common/default-timeout
@@ -266,27 +265,37 @@
               (r/contains allowed-boards (r/get-field row :board-uuid)))))
        ;; Merge in last-activity-at and entry
        (r/merge query (r/fn [row]
-        (let [replies-base-q (-> (r/table "interactions")
-                              (r/get-all [(r/get-field row :uuid)] {:index :parent-uuid}))
-              last-activity-at (-> replies-base-q
+        (let [interactions-base (-> (r/table "interactions") (r/get-all [(r/get-field row :uuid)] {:index :parent-uuid}))
+              last-activity-at (-> interactions-base
                                 (r/max :created-at)
                                 (r/get-field :created-at)
                                 ;; Default to the root comment created-at
                                 (r/default (r/get-field row :created-at)))
-              entry-base-q (-> (r/table "entries") (r/get (r/get-field row [:resource-uuid])))]
-          {:reply-count (r/count replies-base-q)
+              sort-value-base (-> interactions-base
+                               (r/max :created-at)
+                               (r/get-field :created-at)
+                               ;; Default to the root comment created-at
+                               (r/default (r/get-field row :created-at))
+                               (r/iso8601)
+                               (r/to-epoch-time))
+              entries-base (-> (r/table "entries") (r/get (r/get-field row [:resource-uuid])))]
+          {:reply-count (r/count interactions-base)
            ;; Date of the last added comment on this thread
            :last-activity-at last-activity-at
+           ; :sort-value (clj-time.coerce/to-long (t/minus (t/now) (t/hours (int (rand 1000)))))
            :sort-value (r/branch (r/and (r/not (r/contains (vec read-items) (r/get-field row :resource-uuid)))
                                         (r/or (r/eq config/threads-unread-cap-days 0)
-                                              (r/gt (-> entry-base-q (r/get-field [:published-at]) (r/iso8601) (r/to-epoch-time))
-                                                    (-> (r/now) (r/to-epoch-time) (r/sub unread-cap-seconds)))))
-                        ;; If the item is unread and was published in the cap window
-                        (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/sum unread-cap-seconds) (r/round))
-                        ;; The timestamp in seconds
-                        (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round)))
+                                              (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
+                                                    (-> (r/now) (r/to-epoch-time) (r/sub unread-cap-seconds) (r/round)))))
+                         ;; If the item is unread and was published in the cap window
+                         ;; let's add the cap window to the publish timestamp so it will sort before the read items
+                         (-> sort-value-base
+                          (r/add unread-cap-seconds)
+                          (r/round))
+                         ;; The timestamp in seconds
+                         (r/round sort-value-base))
            ;; Entry data
-           :entry (r/pluck entry-base-q [:publisher])})))
+           :entry  (r/pluck entries-base [:publisher])})))
        ;; Filter by user-visibility
        (r/filter query (r/fn [row]
         (r/and ;; All records after/before the start
@@ -306,7 +315,6 @@
                             (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field row [:entry :publisher :user-id])))
                             (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid)))))))
        ;; Sort
-       ; (if-not count (r/order-by query (order-fn :last-activity-at)) query)
        (if-not count
         (r/order-by query (order-fn :sort-value))
         query)

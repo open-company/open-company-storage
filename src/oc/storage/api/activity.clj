@@ -96,7 +96,7 @@
                                                        :board-name (:name board)})))
                                  entries))))
 
-(defn- assemble-threads
+(defn assemble-threads
   "Assemble the requested (by the params) threads for the provided org."
   [conn {start :start direction :direction following :following unfollowing :unfollowing :as params}
    org board-by-uuids allowed-boards user-id]
