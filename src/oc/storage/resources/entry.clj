@@ -555,15 +555,16 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a number of results, return the list of threads sorted by recent activity.
   "
-  ([conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID]
-    user-id :- lib-schema/UniqueID follow-data order start :- lib-schema/ISO8601 direction limit
+  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID]
+    user-id :- lib-schema/UniqueID follow-data read-items order start direction limit
     {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
+         (integer? start)
          (integer? limit)]}
-  (storage-db-common/read-paginated-threads conn org-uuid allowed-boards user-id follow-data order start direction
-   limit {:count count})))
+  (storage-db-common/read-paginated-threads conn org-uuid allowed-boards user-id follow-data read-items order start direction
+   limit {:count count}))
 
 (schema/defn ^:always-validate entries-list
   "

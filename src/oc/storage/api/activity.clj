@@ -4,6 +4,8 @@
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
+            [clj-time.core :as t]
+            [clj-time.coerce :as c]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
@@ -16,7 +18,8 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]
-            [oc.lib.change.resources.follow :as follow]))
+            [oc.lib.change.resources.follow :as follow]
+            [oc.lib.change.resources.read :as read]))
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
@@ -101,9 +104,11 @@
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        threads (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data order start direction config/default-activity-limit {})
+        read-data (when user-id
+                    (map :item-id (read/retrieve-by-user-org config/dynamodb-opts (:uuid org) user-id)))
+        threads (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data read-data order start direction config/default-activity-limit {})
         entries (entry-res/entries-list conn (:uuid org) (map :resource-uuid threads))
-        total-count (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data :asc (db-common/current-timestamp) :before 0 {:count true})
+        total-count (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data [] :asc (c/to-long (t/now)) :before 0 {:count true})
         result {:next-count (count threads)
                 :direction direction
                 :total-count total-count
@@ -314,7 +319,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
+                              valid-start? (if start (try (Integer. start) (catch java.lang.NumberFormatException e false)) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -339,7 +344,7 @@
                              org (:existing-org ctx)
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             start-params (update ctx-params :start #(if % (Integer. %) (c/to-long (t/now)))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction})
                              boards (board-res/list-boards-by-org conn org-id board-props)

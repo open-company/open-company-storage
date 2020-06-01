@@ -101,7 +101,9 @@
         resources-list (if threads? (:threads data) (:activity data))
         activity? (-> data :activity seq)
         last-resource (last resources-list)
-        last-resource-date (when (or threads? activity?) (:last-activity-at last-resource))
+        last-resource-date (cond
+                            threads? (:sort-value last-resource)
+                            activity? (:last-activity-at last-resource))
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next?
                    (cond
