@@ -255,7 +255,7 @@
              (pos? limit))
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unread-cap-seconds (* 60 60 24 config/threads-unread-cap-days)
+        unread-cap-ms (* 60 60 24 config/threads-unread-cap-days 1000)
         read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "interactions") query
@@ -278,18 +278,21 @@
                                ;; Default to the root comment created-at
                                (r/default (r/get-field row :created-at))
                                (r/iso8601)
-                               (r/to-epoch-time))
+                               (r/to-epoch-time)
+                               (r/mul 1000)
+                               (r/round))
               entries-base (-> (r/table "entries") (r/get (r/get-field row [:resource-uuid])))
               unread-thread? (r/or (r/not (r/contains (r/keys read-items-map) (r/get-field row :resource-uuid)))
-                                   (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
+                                   (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
                                          (-> (r/get-field row :resource-uuid)
                                           (as-> x (r/get-field read-items-map x))
                                           (r/iso8601)
                                           (r/to-epoch-time)
+                                          (r/mul 1000)
                                           (r/round))))
-              unread-with-cap? (r/or unread-thread?
-                                     (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
-                                           (-> (r/now) (r/to-epoch-time) (r/sub unread-cap-seconds) (r/round))))]
+              unread-with-cap? (r/and unread-thread?
+                                      (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
+                                            (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unread-cap-ms))))]
           {:reply-count (r/count interactions-base)
            ;; Date of the last added comment on this thread
            :last-activity-at last-activity-at
@@ -297,11 +300,9 @@
            :sort-value (r/branch unread-with-cap?
                          ;; If the item is unread and was published in the cap window
                          ;; let's add the cap window to the publish timestamp so it will sort before the read items
-                         (-> sort-value-base
-                          (r/add unread-cap-seconds)
-                          (r/round))
+                         (r/add sort-value-base unread-cap-ms)
                          ;; The timestamp in seconds
-                         (r/round sort-value-base))
+                         sort-value-base)
            ;; Entry data
            :entry  (r/pluck entries-base [:publisher])})))
        ;; Filter by user-visibility
