@@ -255,7 +255,8 @@
              (pos? limit))
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unread-cap-seconds (* 60 60 24 config/threads-unread-cap-days)]
+        unread-cap-seconds (* 60 60 24 config/threads-unread-cap-days)
+        read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "interactions") query
        (r/get-all query [[org-uuid true true]] {:index :org-uuid-root-comments})
@@ -278,15 +279,22 @@
                                (r/default (r/get-field row :created-at))
                                (r/iso8601)
                                (r/to-epoch-time))
-              entries-base (-> (r/table "entries") (r/get (r/get-field row [:resource-uuid])))]
+              entries-base (-> (r/table "entries") (r/get (r/get-field row [:resource-uuid])))
+              unread-thread? (r/or (r/not (r/contains (r/keys read-items-map) (r/get-field row :resource-uuid)))
+                                   (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
+                                         (-> (r/get-field row :resource-uuid)
+                                          (as-> x (r/get-field read-items-map x))
+                                          (r/iso8601)
+                                          (r/to-epoch-time)
+                                          (r/round))))
+              unread-with-cap? (r/or unread-thread?
+                                     (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
+                                           (-> (r/now) (r/to-epoch-time) (r/sub unread-cap-seconds) (r/round))))]
           {:reply-count (r/count interactions-base)
            ;; Date of the last added comment on this thread
            :last-activity-at last-activity-at
-           ; :sort-value (clj-time.coerce/to-long (t/minus (t/now) (t/hours (int (rand 1000)))))
-           :sort-value (r/branch (r/and (r/not (r/contains (vec read-items) (r/get-field row :resource-uuid)))
-                                        (r/or (r/eq config/threads-unread-cap-days 0)
-                                              (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
-                                                    (-> (r/now) (r/to-epoch-time) (r/sub unread-cap-seconds) (r/round)))))
+           :unread-thread unread-with-cap?
+           :sort-value (r/branch unread-with-cap?
                          ;; If the item is unread and was published in the cap window
                          ;; let's add the cap window to the publish timestamp so it will sort before the read items
                          (-> sort-value-base
