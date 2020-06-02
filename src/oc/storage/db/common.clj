@@ -255,7 +255,9 @@
              (pos? limit))
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unread-cap-ms (* 60 60 24 config/threads-unread-cap-days 1000)
+        unread-cap-ms (if (zero? config/threads-unread-cap-days)
+                        (* (c/to-long (t/date-time 0)) 1000)
+                        (* 60 60 24 config/threads-unread-cap-days 1000))
         read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "interactions") query
