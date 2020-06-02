@@ -2,6 +2,7 @@
   "CRUD function to retrieve entries from RethinkDB with pagination."
   (:require [clj-time.core :as t]
             [clj-time.format :as f]
+            [clj-time.coerce :as c]
             [rethinkdb.query :as r]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as lib-time]
