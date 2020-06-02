@@ -257,7 +257,7 @@
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
         unread-cap-ms (if (zero? config/threads-unread-cap-days)
-                        (* (c/to-long (t/date-time 0)) 1000)
+                        (* 60 60 24 365 50 1000) ;; 50 years cap
                         (* 60 60 24 config/threads-unread-cap-days 1000))
         read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)]
     (db-common/with-timeout db-common/default-timeout
@@ -300,6 +300,9 @@
            ;; Date of the last added comment on this thread
            :last-activity-at last-activity-at
            :unread-thread unread-with-cap?
+           :last-read-at (r/branch (r/contains (r/keys read-items-map) (r/get-field row :resource-uuid))
+                           (r/get-field read-items-map (r/get-field row :resource-uuid))
+                           nil)
            :sort-value (r/branch unread-with-cap?
                          ;; If the item is unread and was published in the cap window
                          ;; let's add the cap window to the publish timestamp so it will sort before the read items
