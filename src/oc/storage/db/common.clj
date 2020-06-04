@@ -303,6 +303,10 @@
            :last-read-at (r/branch (r/contains (r/keys read-items-map) (r/get-field row :resource-uuid))
                            (r/get-field read-items-map (r/get-field row :resource-uuid))
                            nil)
+           :reply-authors (-> interactions-base
+                           (r/coerce-to :array)
+                           (r/map (r/fn [inter] (r/get-field inter [:author :user-id])))
+                           (r/default []))
            :sort-value (r/branch unread-with-cap?
                          ;; If the item is unread and was published in the cap window
                          ;; let's add the cap window to the publish timestamp so it will sort before the read items
@@ -313,7 +317,12 @@
            :entry  (r/pluck entries-base [:publisher])})))
        ;; Filter by user-visibility
        (r/filter query (r/fn [row]
-        (r/and ;; All records after/before the start
+        (r/and ;; Filter out threads that have comments only from the current user
+               (r/not (r/and (r/eq (r/get-field row [:author :user-id]) user-id)
+                             (-> (r/get-field row [:reply-authors])
+                               (r/filter user-id)
+                               (r/is-empty))))
+               ;; All records after/before the start
                (r/or (r/and (= direction :before)
                             (r/gt start (r/get-field row :sort-value)))
                      (r/and (= direction :after)
