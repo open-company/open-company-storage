@@ -19,7 +19,6 @@
 (def revert-request-media-type "application/vnd.open-company.revert-request.v1+json")
 (def poll-media-type "application/vnd.open-company.poll.v1+json")
 (def poll-reply-media-type "application/vnd.open-company.poll-reply.v1+json")
-(def thread-collection-media-type "application/vnd.collection+vnd.open-company.thread+json;version=1")
 
 ;; Interaction media types
 (def comment-media-type "application/vnd.open-company.comment.v1+json")

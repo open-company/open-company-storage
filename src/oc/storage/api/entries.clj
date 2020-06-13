@@ -11,7 +11,6 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
-            [oc.lib.user :as user-lib]
             [oc.lib.slugify :as slugify]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
@@ -197,7 +196,6 @@
           self-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v))
                                (:user-visibility existing-entry))
                               {})
-          uv-value (cond)
           updated-self-visibility (cond
                                     (= action-type :dismiss)
                                     (assoc self-visibility :dismiss-at dismiss-at)

@@ -96,8 +96,8 @@
                                                        :board-name (:name board)})))
                                  entries))))
 
-(defn assemble-threads
-  "Assemble the requested (by the params) threads for the provided org."
+(defn assemble-replies
+  "Assemble the requested (by the params) entries for the provided org to populate the replies view."
   [conn {start :start direction :direction following :following unfollowing :unfollowing :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
@@ -105,21 +105,19 @@
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
         read-data (when user-id
-                    (read/retrieve-by-user-org config/dynamodb-opts (:uuid org) user-id))
-        threads (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data read-data order start direction config/default-activity-limit {})
-        entries (entry-res/entries-list conn (:uuid org) (map :resource-uuid threads))
-        total-count (entry-res/paginated-threads conn (:uuid org) allowed-boards user-id follow-data [] :asc (* (c/to-long (t/now)) 1000) :before 0 {:count true})
-        result {:next-count (count threads)
+                    (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
+        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id order start direction config/default-activity-limit follow-data read-data {})
+        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :asc (* (c/to-long (t/now)) 1000) :before 0 follow-data [] {:count true})
+        result {:next-count (count replies)
                 :direction direction
-                :total-count total-count
-                :threads threads}]
+                :total-count total-count}]
     ;; Give each activity its board name
-    (assoc result :entries (map (fn [entry] (let [board (board-by-uuids (:board-uuid entry))]
-                                                      (merge entry {
-                                                       :board-slug (:slug board)
-                                                       :board-access (:access board)
-                                                       :board-name (:name board)})))
-                                    entries))))
+    (assoc result :activity (map (fn [entry] (let [board (board-by-uuids (:board-uuid entry))]
+                                                          (merge entry {
+                                                           :board-slug (:slug board)
+                                                           :board-access (:access board)
+                                                           :board-name (:name board)})))
+                             replies))))
 
 (defn- assemble-contributions
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
@@ -301,15 +299,15 @@
                              activity (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "inbox" activity boards user))))
 
-;; A resource to retrieve the threads of a particular Org
-(defresource threads [conn slug]
+;; A resource to retrieve the replies of a particular Org
+(defresource replies [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
 
   ;; Media type client accepts
-  :available-media-types [mt/thread-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/thread-collection-media-type)
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
 
   ;; Authorization
   :allowed? (by-method {
@@ -325,12 +323,8 @@
                               valid-direction? (if direction (#{:before :after} direction) true)
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
-                                                   (and (not start) (not direction)))
-                              ;; can have :following or :unfollowing or none, but not both
-                              following? (contains? ctx-params :following)
-                              unfollowing? (contains? ctx-params :unfollowing)
-                              valid-follow? (not (and following? unfollowing?))]
-                           (not (and valid-start? valid-direction? pairing-allowed? valid-follow?))))
+                                                   (and (not start) (not direction)))]
+                           (not (and valid-start? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -352,8 +346,8 @@
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             threads (assemble-threads conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-threads-list params org threads boards user))))
+                             activity (assemble-replies conn params org board-by-uuids allowed-boards user-id)]
+                          (activity-rep/render-activity-list params org "replies" activity boards user))))
 
 ;; A resource to retrieve entries for a given user
 (defresource contributions [conn slug author-uuid]
@@ -399,7 +393,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]
-                          (activity-rep/render-activity-list params org "contributions" activity boards user))))
+                          (activity-rep/render-activity-list params org "replies" activity boards user))))
 
 ;; ----- Routes -----
 
@@ -422,10 +416,10 @@
       (GET "/orgs/:slug/inbox" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
       (GET "/orgs/:slug/inbox/" [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
 
-      (OPTIONS "/orgs/:slug/threads" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
-      (OPTIONS "/orgs/:slug/threads/" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
-      (GET "/orgs/:slug/threads" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
-      (GET "/orgs/:slug/threads/" [slug] (pool/with-pool [conn db-pool] (threads conn slug)))
+      (OPTIONS "/orgs/:slug/replies" [slug] (pool/with-pool [conn db-pool] (replies conn slug)))
+      (OPTIONS "/orgs/:slug/replies/" [slug] (pool/with-pool [conn db-pool] (replies conn slug)))
+      (GET "/orgs/:slug/replies" [slug] (pool/with-pool [conn db-pool] (replies conn slug)))
+      (GET "/orgs/:slug/replies/" [slug] (pool/with-pool [conn db-pool] (replies conn slug)))
 
       (OPTIONS "/orgs/:slug/contributions/:author-uuid"
         [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))

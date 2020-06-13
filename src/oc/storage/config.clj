@@ -112,4 +112,4 @@
 
 (defonce unread-days-limit (or (env :unread-days-limit) 30))
 
-(defonce threads-unread-cap-days (or (env :threads-unread-cap-days) 0))
+(defonce replies-unread-cap-days (or (env :replies-unread-cap-days) 0))

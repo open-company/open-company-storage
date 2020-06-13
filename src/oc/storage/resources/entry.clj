@@ -7,7 +7,6 @@
             [oc.lib.db.common :as db-common]
             [oc.storage.db.common :as storage-db-common]
             [oc.lib.text :as oc-str]
-            [oc.storage.config :as c]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -486,6 +485,16 @@
   (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
    common/interaction-table-name allowed-boards follow-data user-id list-comment-properties {:count count})))
 
+(schema/defn ^:always-validate list-entries-for-user-replies
+  ""
+  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] user-id :- lib-schema/UniqueID
+   order start direction limit follow-data read-items {:keys [count] :or {count false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)
+         (integer? limit)]}
+  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data read-items {:count count}))
+
 ;; ----- Entry Bookmarks manipulation -----
 
 (schema/defn ^:always-validate list-all-bookmarked-entries
@@ -547,32 +556,6 @@
   [conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID
    reply-id :- lib-schema/UniqueID user-id :- lib-schema/UniqueID add?]
   (storage-db-common/update-poll-vote conn table-name entry-uuid poll-uuid reply-id user-id add?))
-
-;; ----- Threads ------
-
-(schema/defn ^:always-validate paginated-threads
-  "
-  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
-  and a number of results, return the list of threads sorted by recent activity.
-  "
-  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID]
-    user-id :- lib-schema/UniqueID follow-data read-items order start direction limit
-    {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? start)
-         (integer? limit)]}
-  (storage-db-common/read-paginated-threads conn org-uuid allowed-boards user-id follow-data read-items order start direction
-   limit {:count count}))
-
-(schema/defn ^:always-validate entries-list
-  "
-  Given a list of entry UUIDs, retrieve them.
-  "
-  [conn org-uuid :- lib-schema/UniqueID entry-uuids :- [lib-schema/UniqueID]]
-  {:pre [(db-common/conn? conn)]}
-  (storage-db-common/read-entries-list conn org-uuid entry-uuids list-comment-properties))
 
 ;; ----- Armageddon -----
 
