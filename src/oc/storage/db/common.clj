@@ -322,10 +322,14 @@
                      (r/and (= direction :after)
                             (r/le start (r/get-field row :sort-value))))
                ;; Filter on the user-visibility map
-               (r/or (r/and (r/has-fields (r/get-field row [:user-visibility user-id]) [:follow])
-                            (r/get-field row [:user-visibility user-id :follow]))
-                     (r/and (r/has-fields (r/get-field row [:user-visibility user-id]) [:unfollow])
-                            (r/not (r/get-field row [:user-visibility user-id :unfollow])))))))
+               (r/or (r/and (-> row
+                             (r/get-field [:user-visibility (keyword user-id)])
+                             (r/has-fields [:follow]))
+                            (r/get-field row [:user-visibility (keyword user-id) :follow]))
+                     (r/and (-> row
+                             (r/get-field [:user-visibility (keyword user-id)])
+                             (r/has-fields [:unfollow]))
+                            (r/not (r/get-field row [:user-visibility (keyword user-id) :unfollow])))))))
        ;; Sort
        (if-not count
         (r/order-by query (order-fn :sort-value))
