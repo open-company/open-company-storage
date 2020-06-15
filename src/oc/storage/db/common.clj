@@ -239,7 +239,7 @@
 (defn read-paginated-entries-for-replies
   "Read all entries with at least one comment the user has access to. Filter out those not activily followed
    by the current user. Sort those with unread content at the top and sort everything by last activity descendant."
-  [conn org-uuid allowed-boards user-id order start direction limit follow-data read-items {:keys [count] :or {count false}}]
+  [conn org-uuid allowed-boards user-id order start direction limit follow-data read-items relation-fields {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (lib-schema/unique-id? org-uuid)
          (or (sequential? allowed-boards)
@@ -254,6 +254,8 @@
          (#{:after :before} direction)
          (or (zero? limit) ;; means all
              (pos? limit))
+         (or (nil? relation-fields)
+             (coll? relation-fields))
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
         unread-cap-ms (if (zero? config/replies-unread-cap-days)
@@ -306,6 +308,9 @@
                          (r/add sort-value-base unread-cap-ms)
                          ;; The timestamp in seconds
                          sort-value-base)
+           :interactions (-> interactions-base
+                          (r/pluck relation-fields)
+                          (r/coerce-to :array))
            :debug {:unread-with-cap unread-with-cap?
                    :unread-thread unread-thread?}})))
        ;; Filter by user-visibility
@@ -330,6 +335,11 @@
                              (r/get-field [:user-visibility (keyword user-id)])
                              (r/has-fields [:unfollow]))
                             (r/not (r/get-field row [:user-visibility (keyword user-id) :unfollow])))))))
+       ;; Merge in all the interactions
+       (if-not count
+         (r/merge query (r/fn [post-row]
+           {}))
+         query)
        ;; Sort
        (if-not count
         (r/order-by query (order-fn :sort-value))

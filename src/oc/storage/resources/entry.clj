@@ -493,7 +493,7 @@
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data read-items {:count count}))
+  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data read-items list-comment-properties {:count count}))
 
 ;; ----- Entry Bookmarks manipulation -----
 
