@@ -393,7 +393,7 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              activity (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]
-                          (activity-rep/render-activity-list params org "replies" activity boards user))))
+                          (activity-rep/render-activity-list params org "contributions" activity boards user))))
 
 ;; ----- Routes -----
 
