@@ -331,7 +331,7 @@
                ;; Filter on the user's visibility map:
                ;; - has :follow true
                ;; - and has not :unfollor or :unfollow is false
-               (r/and ;(r/get-field row [:user-visibility (keyword user-id) :follow])
+               (r/and (r/get-field row [:user-visibility (keyword user-id) :follow])
                       (r/or (-> (r/get-field row [:user-visibility (keyword user-id)])
                              (r/has-fields [:unfollow])
                              r/not)
