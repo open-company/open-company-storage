@@ -267,15 +267,12 @@
        (r/get-all query [[:published org-uuid]] {:index :status-org-uuid})
        ;; Make an initial filter to select only posts the user has access to
        (r/filter query (r/fn [row]
-        (r/and (r/or (not (sequential? allowed-boards))
-                     (r/contains allowed-boards (r/get-field row :board-uuid)))
-               (r/or (not (map? follow-data))
-                     ;; filter on not followed boards
-                     (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid)))))))
+        (r/or (not (sequential? allowed-boards))
+              (r/contains allowed-boards (r/get-field row :board-uuid)))))
        ;; Merge in last-activity-at and entry
        (r/merge query (r/fn [row]
         (let [interactions-base (-> (r/table "interactions")
-                                 (r/get-all [(r/get-field row :uuid)] {:index :resource-uuid}))
+                                 (r/get-all [[(r/get-field row :uuid) true]] {:index :resource-uuid-comment}))
               last-activity-at (-> interactions-base
                                  (r/max :created-at)
                                  (r/get-field :created-at)
@@ -308,7 +305,12 @@
                          (r/add sort-value-base unread-cap-ms)
                          ;; The timestamp in seconds
                          sort-value-base)
-           :interactions (-> interactions-base
+           ; :reply-authors (-> interactions-base
+           ;                 (r/coerce-to :array)
+           ;                 (r/map (r/fn [inter] (r/get-field inter [:author :user-id])))
+           ;                 (r/default []))
+           :interactions (-> (r/table "interactions")
+                          (r/get-all [(r/get-field row :uuid)] {:index :resource-uuid})
                           (r/pluck relation-fields)
                           (r/coerce-to :array))
            :debug {:unread-with-cap unread-with-cap?
@@ -317,29 +319,23 @@
        (r/filter query (r/fn [row]
         (r/and (r/gt (r/get-field row [:comments-count]) 0)
                ;; Filter out threads that have comments only from the current user
-               (r/not (r/and (r/eq (r/get-field row [:author :user-id]) user-id)
-                             (-> (r/get-field row [:reply-authors])
-                               (r/filter user-id)
-                               (r/is-empty))))
+               ; (-> (r/get-field row [:reply-authors])
+               ;  (r/filter user-id)
+               ;  (r/is-empty)
+               ;  r/not)
                ;; All records after/before the start
                (r/or (r/and (= direction :before)
                             (r/gt start (r/get-field row :sort-value)))
                      (r/and (= direction :after)
                             (r/le start (r/get-field row :sort-value))))
-               ;; Filter on the user-visibility map
-               (r/or (r/and (-> row
-                             (r/get-field [:user-visibility (keyword user-id)])
-                             (r/has-fields [:follow]))
-                            (r/get-field row [:user-visibility (keyword user-id) :follow]))
-                     (r/and (-> row
-                             (r/get-field [:user-visibility (keyword user-id)])
-                             (r/has-fields [:unfollow]))
+               ;; Filter on the user's visibility map:
+               ;; - has :follow true
+               ;; - and has not :unfollor or :unfollow is false
+               (r/and ;(r/get-field row [:user-visibility (keyword user-id) :follow])
+                      (r/or (-> (r/get-field row [:user-visibility (keyword user-id)])
+                             (r/has-fields [:unfollow])
+                             r/not)
                             (r/not (r/get-field row [:user-visibility (keyword user-id) :unfollow])))))))
-       ;; Merge in all the interactions
-       (if-not count
-         (r/merge query (r/fn [post-row]
-           {}))
-         query)
        ;; Sort
        (if-not count
         (r/order-by query (order-fn :sort-value))

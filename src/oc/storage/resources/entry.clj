@@ -49,6 +49,10 @@
   [entry]
   (apply dissoc entry ignored-properties))
 
+(defn- publisher-user-visibility [author timestamp]
+  {(keyword (:user-id author)) {:dismiss-at timestamp
+                                :follow true}})
+
 (defn- publish-props
   "Provide properties for an initially published entry."
   [entry timestamp author]
@@ -56,7 +60,7 @@
     (-> entry
       (assoc :published-at timestamp)
       (assoc :publisher author)
-      (assoc-in [:user-visibility (keyword (:user-id author))] {:dismiss-at timestamp}))
+      (update :user-visibility merge (publisher-user-visibility author timestamp)))
     entry))
 
 (defn timestamp-attachments
@@ -306,7 +310,7 @@
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
           old-user-visibility (or (:user-visibility original-entry) {})
-          next-user-visibility (assoc old-user-visibility (keyword (:user-id user)) {:dismiss-at ts})
+          next-user-visibility (merge old-user-visibility (publisher-user-visibility publisher ts))
           merged-entry (merge original-entry entry-props {:status :published
                                                           :published-at ts
                                                           :publisher publisher

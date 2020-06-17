@@ -72,9 +72,16 @@
               org (org-res/get-org conn (:org-uuid entry-data))
               board (board-res/get-board conn (:board-uuid entry-data))
               user-visibility (get entry-data :user-visibility {})
+              sub-type (keyword (:sub-type body))
               new-entry-data (reduce (fn [uv user]
                                       (update-in uv [:user-visibility (keyword (:user-id user))]
-                                       #(merge % {:unfollow (not= (:sub-type body) "follow")})))
+                                       #(cond-> (or % {})
+                                         ;; follow
+                                         (= sub-type :follow) (dissoc :unfollow)
+                                         (= sub-type :follow) (assoc :follow true)
+                                         ;; unfollow
+                                         (= sub-type :unfollow) (dissoc :follow)
+                                         (= sub-type :unfollow) (assoc :unfollow true))))
                                      entry-data users)
               entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do
@@ -100,8 +107,7 @@
               user-visibility (get entry-data :user-visibility {})
               new-entry-data (reduce (fn [uv user]
                                       (update-in uv [:user-visibility (keyword (:user-id user))]
-                                       #(merge % {:unfollow (not= (:sub-type body) "follow")
-                                                  :dismiss-at dismiss-at})))
+                                       #(merge % {:dismiss-at dismiss-at})))
                                      entry-data users)
               entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do

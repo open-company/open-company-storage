@@ -193,26 +193,21 @@
             existing-board (or (:existing-board ctx) (board-res/get-board conn (:board-uuid existing-entry)))]
     ;; Merge the existing entry with the new updates
     (let [dismiss-at (when (= action-type :dismiss) (-> ctx :request :body slurp))
-          self-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v))
-                               (:user-visibility existing-entry))
-                              {})
-          updated-self-visibility (cond
-                                    (= action-type :dismiss)
-                                    (assoc self-visibility :dismiss-at dismiss-at)
-                                    (= action-type :unread)
-                                    (-> self-visibility
-                                        (dissoc :follow)
-                                        (assoc :unfollow false))
-                                    (= action-type :follow)
-                                    (-> self-visibility
-                                        (dissoc :follow)
-                                        (assoc :unfollow false))
-                                    (= action-type :unfollow)
-                                    (-> self-visibility
-                                        (dissoc :follow)
-                                        (assoc :unfollow true)))
-          updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-self-visibility)]
-      (timbre/info "User visibility" self-visibility "updated:" updated-self-visibility)
+          update-visibility-fn #(cond-> (or % {})
+                                 ;; dismiss
+                                 (= action-type :dismiss) (assoc :dismiss-at dismiss-at)
+                                 ;; unread
+                                 (= action-type :unread) (dissoc :follow)
+                                 (= action-type :unread) (assoc :unfollow false)
+                                 ;; follow
+                                 (= action-type :follow) (dissoc :follow)
+                                 (= action-type :follow) (assoc :unfollow false)
+                                 ;; unfollow
+                                 (= action-type :unfollow) (dissoc :follow)
+                                 (= action-type :unfollow) (assoc :unfollow true))
+          update-visibility-key [:user-visibility (keyword (:user-id user))]
+          updated-entry (update-in existing-entry update-visibility-key update-visibility-fn)]
+      (timbre/info "User visibility updated:" (get-in updated-entry update-visibility-key))
       (if (and (or (not= action-type :dismiss)
                    (and (= action-type :dismiss)
                         (lib-schema/valid? lib-schema/ISO8601 dismiss-at)))
@@ -234,10 +229,9 @@
           allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
           existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc
                             (db-common/current-timestamp) 0 allowed-boards)
-          updated-entries (mapv
-                           #(-> %
-                             (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
-                             (dissoc :last-activity-at :interactions))
+          updated-entries (map #(-> %
+                                 (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
+                                 (dissoc :last-activity-at :interactions))
                            existing-entries)]
       (if (and (lib-schema/valid? lib-schema/ISO8601 dismiss-at)
                (every? #(lib-schema/valid? common-res/Entry %) updated-entries))
