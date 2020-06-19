@@ -257,9 +257,8 @@
                            :bookmarked-at (:bookmarked-at bookmark)
                            :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
-                                                 (if entry-read
-                                                   (new-comments-count entry-with-comments user-id entry-read)
-                                                   0))
+                                                 (new-comments-count entry-with-comments user-id entry-read)
+                                                   0)
                            :new-at (when enrich-entry?
                                      (entry-new-at user-id entry-with-comments))}
                           entry)
