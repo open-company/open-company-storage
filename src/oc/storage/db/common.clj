@@ -305,6 +305,8 @@
                          (r/add sort-value-base unread-cap-ms)
                          ;; The timestamp in seconds
                          sort-value-base)
+           ;; ***** Commented out since we want every entry no matter who commented *****
+           ;; ***** Uncomment this to show only entries with comments from others   *****
            ; :reply-authors (-> interactions-base
            ;                 (r/coerce-to :array)
            ;                 (r/map (r/fn [inter] (r/get-field inter [:author :user-id])))
@@ -319,6 +321,8 @@
        (r/filter query (r/fn [row]
         (r/and (r/gt (r/get-field row [:comments-count]) 0)
                ;; Filter out threads that have comments only from the current user
+               ;; ***** Commented out since we want every entry no matter who commented *****
+               ;; ***** Uncomment this to show only entries with comments from others   *****
                ; (-> (r/get-field row [:reply-authors])
                ;  (r/filter user-id)
                ;  (r/is-empty)
@@ -330,11 +334,18 @@
                             (r/le start (r/get-field row :sort-value))))
                ;; Filter on the user's visibility map:
                ;; - has :follow true
-               ;; - and has not :unfollor or :unfollow is false
-               (r/and (r/get-field row [:user-visibility (keyword user-id) :follow])
-                      (r/or (-> (r/get-field row [:user-visibility (keyword user-id)])
-                             (r/has-fields [:unfollow])
-                             r/not)
+               ;; - and has not :unfollow or :unfollow is false
+               ; (r/and (r/get-field row [:user-visibility (keyword user-id) :follow])
+               ;        (r/or (-> (r/get-field row [:user-visibility (keyword user-id)])
+               ;               (r/has-fields [:unfollow])
+               ;               r/not)
+               ;              (r/not (r/get-field row [:user-visibility (keyword user-id) :unfollow]))))
+               ;; Filter on user;s visibility map:
+               ;; - or has :follow true
+               ;; - or has :unfollow false
+               (r/or (r/get-field row [:user-visibility (keyword user-id) :follow])
+                     (r/and (-> (r/get-field row [:user-visibility (keyword user-id)])
+                             (r/has-fields [:unfollow]))
                             (r/not (r/get-field row [:user-visibility (keyword user-id) :unfollow])))))))
        ;; Sort
        (if-not count
