@@ -45,6 +45,7 @@
         unread-cap-ms (if (zero? config/unread-cap-days)
                         (* 60 60 24 365 50 1000) ;; default is 50 years cap if no config is set
                         (* 60 60 24 config/unread-cap-days 1000))]
+    (println "DBG read-paginated-entries cap days" config/unread-cap-days "->" unread-cap-ms)
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
@@ -93,14 +94,14 @@
                     unread-entry? (r/not (r/contains (r/keys read-items-map) (r/get-field post-row :uuid)))
                     unread-with-cap? (r/and unread-entry?
                                             (r/gt sort-value-base
-                                                  (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unread-cap-ms))))]
+                                                  (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unread-cap-ms))))
                     sort-value (r/branch unread-with-cap?
                                 ;; If the item is unread and was published (for recently posted) or bookmarked
                                 ;; (for bookmarks) or last activity was (for recent activity) in the cap window
                                 ;; let's add the cap window to the publish timestamp so it will sort before the read ones
                                 (r/add sort-value-base unread-cap-ms)
                                 ;; Or use the plain sort value in case it's read or it's out of the cap window
-                                sort-value-base)
+                                sort-value-base)]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
                  ;; Last read for current user if applicable (we have a user-id and there is a read record)
