@@ -98,9 +98,7 @@
         resources-list (:activity data)
         activity? (-> data :activity seq)
         last-resource (last resources-list)
-        last-resource-date (cond
-                            replies? (:sort-value last-resource)
-                            activity? (:last-activity-at last-resource))
+        last-resource-date (:sort-value last-resource)
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next?
                    (cond

@@ -12,15 +12,15 @@
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
    relation-fields {:keys [count] :or {count false}}]
  (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  nil relation-fields nil {:count count}))
+  nil nil relation-fields nil {:count count}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
    relation-fields user-id {:keys [count] :or {count false}}]
   (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  nil relation-fields user-id {:count count}))
+  nil nil relation-fields user-id {:count count}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  follow-data relation-fields user-id {:keys [count] :or {count false}}]
+  follow-data read-items relation-fields user-id {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -33,10 +33,18 @@
         (or (#{:recent-activity :recently-posted} sort-type)
             (and (= sort-type :bookmarked-at)
                  (seq user-id)))
+        (or (nil? read-items)
+            (coll? read-items))
+        (or (nil? follow-data)
+            (coll? follow-data))
         (sequential? relation-fields)
         (every? db-common/s-or-k? relation-fields)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
-        order-fn (if (= order :desc) r/desc r/asc)]
+        order-fn (if (= order :desc) r/desc r/asc)
+        read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)
+        unread-cap-ms (if (zero? config/unread-cap-days)
+                        (* 60 60 24 365 50 1000) ;; 50 years cap
+                        (* 60 60 24 config/unread-cap-days 1000))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
@@ -55,35 +63,53 @@
                            (r/and (:unfollowing follow-data)
                                   (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id])))
                                   (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
-            ;; Merge in a last-activity-at date for each post, which is the
-            ;; last comment created-at, with fallback to published-at or created-at for published entries
-            ;; the entry created-at in all the other cases.
+            ;; Merge in last-activity-at, last-read-at and sort-value
             (r/merge query (r/fn [post-row]
-              (cond
-                (= sort-type :recent-activity)
-                {:last-activity-at (-> (r/table relation-table-name)
-                                       (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
-                                       (r/max :created-at)
-                                       (r/get-field :created-at)
-                                       (r/default (r/get-field post-row :published-at))
-                                       (r/default (r/get-field post-row :created-at)))}
-                (= sort-type :bookmarked-at)
-                {:last-activity-at (r/default
-                                    (-> (r/get-field post-row [:bookmarks])
-                                        (r/filter {:user-id user-id})
-                                        (r/nth 0)
-                                        (r/get-field :bookmarked-at))
-                                    (r/get-field post-row :published-at))}
-                :else
-                {:last-activity-at (r/default
-                                    (r/get-field post-row :published-at)
-                                    (r/get-field post-row :created-at))})))
+              (let [last-activity-at (-> (r/table relation-table-name)
+                                      (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
+                                      (r/max :created-at)
+                                      (r/get-field :created-at)
+                                      (r/default (r/get-field post-row :published-at))
+                                      (r/default (r/get-field post-row :created-at)))
+                    sort-field (cond
+                                (= sort-type :recent-activity)
+                                last-activity-at
+                                (= sort-type :bookmarked-at)
+                                (-> (r/get-field post-row [:bookmarks])
+                                 (r/filter {:user-id user-id})
+                                 (r/nth 0)
+                                 (r/get-field :bookmarked-at)
+                                 (r/default (r/get-field post-row :published-at))
+                                 (r/default (r/get-field post-row :created-at)))
+                                :else
+                                (r/default
+                                 (r/get-field post-row :published-at)
+                                 (r/get-field post-row :created-at)))
+                    sort-value-base (-> sort-field
+                                     (r/iso8601)
+                                     (r/to-epoch-time)
+                                     (r/mul 1000)
+                                     (r/round))
+                    unread-entry? (r/not (r/contains (r/keys read-items-map) (r/get-field post-row :uuid)))]
+                {;; Date of the last added comment on this thread
+                 :last-activity-at last-activity-at
+                 :last-read-at (r/branch unread-entry?
+                                nil
+                                (r/get-field read-items-map (r/get-field post-row :uuid)))
+                 :sort-value (r/branch unread-entry?
+                               ;; If the item is unread and was published in the cap window
+                               ;; let's add the cap window to the publish timestamp so it will sort before the read items
+                               (r/add sort-value-base unread-cap-ms)
+                               ;; The timestamp in seconds
+                               sort-value-base)
+                })))
             ;; Filter out:
-            (r/filter query (r/fn [post-row]
+            (r/filter query (r/fn [row]
               ;; All records after/before the start
-              (if (= direction :before)
-                (r/gt start (r/get-field post-row :last-activity-at))
-                (r/le start (r/get-field post-row :last-activity-at)))))
+              (r/or (r/and (= direction :before)
+                           (r/gt start (r/get-field row :sort-value)))
+                    (r/and (= direction :after)
+                           (r/le start (r/get-field row :sort-value))))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]
@@ -92,7 +118,9 @@
                                    (r/pluck relation-fields)
                                    (r/coerce-to :array))}))
               query)
-            (if-not count (r/order-by query (order-fn :last-activity-at)) query)
+            (if-not count
+              (r/order-by query (order-fn :sort-value))
+              query)
             ;; Apply count if needed
             (if count (r/count query) query)
             ;; Apply limit
@@ -151,14 +179,21 @@
                                         (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))))
             ;; Merge in a last-activity-at date for each post (last comment created-at, fallback to published-at)
             (r/merge query (r/fn [post-row]
-              {:last-activity-at (-> (r/table relation-table-name)
-                                     (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
-                                     (r/filter (r/fn [interaction-row]
-                                       (r/ne (r/get-field interaction-row [:author :user-id]) user-id)))
-                                     (r/max :created-at)
-                                     (r/get-field [:created-at])
-                                     (r/default (r/get-field post-row :published-at))
-                                     (r/default (r/get-field post-row :created-at)))}))
+              (let [last-activity-at (-> (r/table relation-table-name)
+                                      (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
+                                      (r/filter (r/fn [interaction-row]
+                                        (r/ne (r/get-field interaction-row [:author :user-id]) user-id)))
+                                      (r/max :created-at)
+                                      (r/get-field [:created-at])
+                                      (r/default (r/get-field post-row :published-at))
+                                      (r/default (r/get-field post-row :created-at)))
+                    sort-value (-> last-activity-at
+                                (r/iso8601)
+                                (r/to-epoch-time)
+                                (r/mul 1000)
+                                (r/round))]
+                {:last-activity-at last-activity-at
+                 :sort-value sort-value})))
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; Leave in only posts whose last activity is within a certain amount of time
@@ -176,9 +211,9 @@
               query)
             ;; Apply a filter on the last-activity-at date
             (r/filter query (r/fn [row]
-             (r/gt start (r/get-field row :last-activity-at))))
+             (r/gt start (r/get-field row :sort-value))))
             ;; Sort records when not counting
-            (if-not count (r/order-by query (order-fn :last-activity-at)) query)
+            (if-not count (r/order-by query (order-fn :sort-value)) query)
             ;; Apply count if needed
             (if count (r/count query) query)
             ;; Apply limit
@@ -258,9 +293,9 @@
              (coll? relation-fields))
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unread-cap-ms (if (zero? config/replies-unread-cap-days)
+        unread-cap-ms (if (zero? config/unread-cap-days)
                         (* 60 60 24 365 50 1000) ;; 50 years cap
-                        (* 60 60 24 config/replies-unread-cap-days 1000))
+                        (* 60 60 24 config/unread-cap-days 1000))
         read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "entries") query

@@ -4,6 +4,7 @@
             [if-let.core :refer (if-let*)]
             [clj-time.core :as t]
             [clj-time.format :as f]
+            [clj-time.coerce :as c]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS GET POST DELETE)]
             [liberator.core :refer (defresource by-method)]
@@ -255,38 +256,39 @@
                              draft-entry-count (if show-draft-board?
                                                  (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
                                                  0)
+                             now (* (c/to-long (t/now)) 1000)
                              total-count (if user-is-member?
-                                           (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recently-posted
+                                           (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
                                             (map :uuid allowed-boards) nil {:count true})
                                            0)
                              bookmarks-count (if user-is-member?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc (db-common/current-timestamp) :before
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc now :before
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              following-count (if user-is-member?
-                                               (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity
+                                               (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
                                                 (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
                                                0)
                              unfollowing-count (if user-is-member?
-                                                 (entry-res/paginated-entries-by-org conn org-id :asc (db-common/current-timestamp) :before 0 :recent-activity
+                                                 (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
                                                   (map :uuid allowed-boards) (assoc follow-data :unfollowing true) {:count true})
                                                  0)
                              following-inbox-count (if user-is-member?
-                                                     (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                                     (entry-res/list-all-entries-for-inbox conn org-id user-id :asc now
                                                       0 (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
                                                      0)
                              unfollowing-inbox-count (if user-is-member?
-                                                       (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                                       (entry-res/list-all-entries-for-inbox conn org-id user-id :asc now
                                                         0 (map :uuid allowed-boards) (assoc follow-data :unfollowing true) {:count true})
                                                        0)
                              inbox-count (if user-is-member?
-                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc (db-common/current-timestamp)
+                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc now
                                             0 (map :uuid allowed-boards) nil {:count true})
                                            0)
                              user-count (if user-is-member?
-                                          (entry-res/list-entries-by-org-author conn org-id user-id :asc (db-common/current-timestamp) :before
+                                          (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
                                             0 :recently-posted (map :uuid allowed-boards) {:count true})
                                            0)
                              full-boards (if show-draft-board?

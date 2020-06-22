@@ -22,10 +22,10 @@
 (def representation-props [:uuid :headline :body :abstract :attachments :status :must-see :sample
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name :board-access :publisher-board
-                           :team-id :author :publisher :published-at
-                           :video-id :video-processed :video-image :video-duration
-                           :created-at :updated-at :revision-id
-                           :new-at :new-comments-count :bookmarked-at :polls :last-read-at :last-activity-at])
+                           :team-id :author :publisher :published-at :video-id :video-processed
+                           :video-image :video-duration :created-at :updated-at :revision-id
+                           :new-at :new-comments-count :bookmarked-at :polls :last-read-at
+                           :last-activity-at :sort-value])
 
 ;; ----- Utility functions -----
 

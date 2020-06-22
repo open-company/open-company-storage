@@ -23,6 +23,8 @@
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
+(defn now-ts [] (* (c/to-long (t/now)) 1000))
+
 (defn- follow-parameters-map [user-id org-slug following?]
   (cond-> (follow/retrieve config/dynamodb-opts user-id org-slug)
     following? (merge {:following true})
@@ -37,14 +39,16 @@
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
+        read-data (when follow?
+                    (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
         limit (if digest-request 0 config/default-activity-limit)
         entries (if follow?
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
-                   follow-data {:must-see must-see})
+                   follow-data read-data {:must-see must-see})
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                    {:must-see must-see}))
-        total-count (entry-res/paginated-entries-by-org conn (:uuid org) :asc (db-common/current-timestamp) :before 0 :recent-activity allowed-boards
-                     follow-data {:count true :must-see must-see})
+        total-count (entry-res/paginated-entries-by-org conn (:uuid org) :asc (now-ts) :before 0 :recent-activity allowed-boards
+                     follow-data read-data {:count true :must-see must-see})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]
@@ -61,7 +65,7 @@
   [conn {start :start direction :direction must-see :must-see} org board-by-uuids user-id]
   (let [order (if (= direction :before) :desc :asc)
         total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :asc
-                               (db-common/current-timestamp) :before 0 {:count true})
+                               (now-ts) :before 0 {:count true})
         entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id order start direction
                  config/default-activity-limit {:count false})
         activities {:direction direction
@@ -82,7 +86,7 @@
   (let [follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (db-common/current-timestamp)
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (now-ts)
                            0 allowed-boards follow-data {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
                  allowed-boards follow-data {})
@@ -124,7 +128,7 @@
   [conn {start :start direction :direction sort-type :sort-type} org board-by-uuids allowed-boards author-uuid]
   (let [order (if (= direction :before) :desc :asc)
         total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org)
-                                 author-uuid order (db-common/current-timestamp) direction 0 sort-type allowed-boards {:count true})
+                                 author-uuid order (now-ts) direction 0 sort-type allowed-boards {:count true})
         entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
                  order start direction config/default-activity-limit sort-type allowed-boards)
         activities {:next-count (count entries)
@@ -158,7 +162,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
+                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -185,7 +189,7 @@
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction
                                                          :sort-type sort-type})
@@ -218,7 +222,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
+                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -243,7 +247,7 @@
                              ctx-params (-> ctx :request :params keywordize-keys)
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (-> ctx-params :direction keyword #{:after}) :before) ; default is before
                              params (merge start-params {:direction direction :sort-type sort-type})
                              boards (board-res/list-boards-by-org conn org-id board-props)
@@ -272,7 +276,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)
+                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)
                               ;; can have :following or :unfollowing or none, but not both
                               following? (contains? ctx-params :following)
                               unfollowing? (contains? ctx-params :unfollowing)
@@ -290,7 +294,7 @@
                              org (:existing-org ctx)
                              org-id (:uuid org)
                              ctx-params (keywordize-keys (-> ctx :request :params))
-                             params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
@@ -367,7 +371,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
                               start (:start ctx-params)
-                              valid-start? (if start (ts/valid-timestamp? start) true)]
+                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)]
                           (not valid-start?)))
 
   ;; Existentialism
@@ -384,7 +388,7 @@
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              sort (:sort ctx-params)
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
+                             start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              params (merge start-params {:direction direction :sort-type sort-type :author-uuid author-uuid})
                              boards (board-res/list-boards-by-org conn org-id board-props)
