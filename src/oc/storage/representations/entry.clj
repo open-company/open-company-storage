@@ -24,7 +24,7 @@
                            :board-uuid :board-slug :board-name :board-access :publisher-board
                            :team-id :author :publisher :published-at :video-id :video-processed
                            :video-image :video-duration :created-at :updated-at :revision-id
-                           :new-at :new-comments-count :bookmarked-at :polls :last-read-at
+                           :new-comments-count :bookmarked-at :polls :last-read-at
                            :last-activity-at :sort-value])
 
 ;; ----- Utility functions -----
@@ -191,7 +191,7 @@
       (count (filterv #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
       (count filtered-comments))))
 
-(defn- entry-new-at
+(defn- entry-last-activity-at
   "Return the most recent created-at of the comments, exclude comments from current user if needed."
   [user-id entry]
   (let [all-comments (filterv :body (:interactions entry))
@@ -258,8 +258,8 @@
                            :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
                                                  (new-comments-count entry-with-comments user-id entry-read))
-                           :new-at (when enrich-entry?
-                                     (entry-new-at user-id entry-with-comments))}
+                           :last-activity-at (when enrich-entry?
+                                               (entry-last-activity-at user-id entry-with-comments))}
                           entry)
         reaction-list (if (= access-level :public)
                         []
