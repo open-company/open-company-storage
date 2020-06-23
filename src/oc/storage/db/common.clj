@@ -45,7 +45,6 @@
         unread-cap-ms (if (zero? config/unread-cap-days)
                         (* 60 60 24 365 50 1000) ;; default is 50 years cap if no config is set
                         (* 60 60 24 config/unread-cap-days 1000))]
-    (println "DBG read-paginated-entries cap days" config/unread-cap-days "->" unread-cap-ms)
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
