@@ -140,6 +140,7 @@
   activity for the API.
   "
   [params org collection-type activity boards user]
+  (println "DBG render-activity-list" (:last-seen-at params))
   (let [sort-type (:sort-type params)
         following? (:following params)
         unfollowing? (:unfollowing params)
@@ -192,7 +193,16 @@
                     (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {})))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
                 (pagination-link org collection-type params activity)])
-        base-response (if contributions? {:author-uuid (:author-uuid params)} {})]
+        base-response (as-> {} b
+                        (if (seq (:last-seen-at params))
+                          (assoc b :last-seen-at (:last-seen-at params))
+                          b)
+                        (if contributions?
+                          (assoc b :author-uuid (:author-uuid params))
+                          b)
+                        (if (seq (:container-id params))
+                          (assoc b :container-id (:container-id params))
+                          b))]
     (json/generate-string
       {:collection (merge base-response
                     {:version hateoas/json-collection-version

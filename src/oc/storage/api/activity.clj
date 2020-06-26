@@ -33,22 +33,20 @@
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see digest-request :digest-request
-         sort-type :sort-type following :following unfollowing :unfollowing :as params}
+         sort-type :sort-type following :following unfollowing :unfollowing last-seen-at :last-seen-at :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        seen-data (when follow?
-                    (seen/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
         limit (if digest-request 0 config/default-activity-limit)
         entries (if follow?
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
-                   follow-data seen-data {:must-see must-see})
+                   follow-data last-seen-at {:must-see must-see})
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                    {:must-see must-see}))
         total-count (entry-res/paginated-entries-by-org conn (:uuid org) :asc (now-ts) :before 0 :recent-activity allowed-boards
-                     follow-data seen-data {:count true :must-see must-see})
+                     follow-data nil {:count true :must-see must-see})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]
@@ -102,16 +100,14 @@
 
 (defn assemble-replies
   "Assemble the requested (by the params) entries for the provided org to populate the replies view."
-  [conn {start :start direction :direction following :following unfollowing :unfollowing :as params}
+  [conn {start :start direction :direction following :following unfollowing :unfollowing last-seen-at :last-seen-at :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        seen-data (when user-id
-                    (seen/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
-        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id order start direction config/default-activity-limit follow-data seen-data {})
-        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :asc (* (c/to-long (t/now)) 1000) :before 0 follow-data [] {:count true})
+        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id order start direction config/default-activity-limit follow-data last-seen-at {})
+        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :asc (* (c/to-long (t/now)) 1000) :before 0 follow-data nil {:count true})
         result {:next-count (count replies)
                 :direction direction
                 :total-count total-count}]
@@ -125,12 +121,12 @@
 
 (defn- assemble-contributions
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
-  [conn {start :start direction :direction sort-type :sort-type} org board-by-uuids allowed-boards author-uuid]
+  [conn {start :start direction :direction sort-type :sort-type last-seen-at :last-seen-at} org board-by-uuids allowed-boards author-uuid]
   (let [order (if (= direction :before) :desc :asc)
         total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org)
-                                 author-uuid order (now-ts) direction 0 sort-type allowed-boards {:count true})
+                                 author-uuid order (now-ts) direction 0 sort-type allowed-boards nil {:count true})
         entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
-                 order start direction config/default-activity-limit sort-type allowed-boards)
+                 order start direction config/default-activity-limit sort-type allowed-boards last-seen-at)
         activities {:next-count (count entries)
                     :author-uuid author-uuid
                     :total-count total-contributions-count}]
@@ -191,17 +187,20 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
+                             home-container? (:followinng start-params)
+                             container-seen (when home-container?
+                                              (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
                              params (merge start-params {:direction direction
-                                                         :sort-type sort-type})
+                                                         :sort-type sort-type
+                                                         :digest-request (= (:auth-source user) "digest")
+                                                         :container-id (when home-container? config/seen-home-container-id)
+                                                         :last-seen-at (:seen-at container-seen)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             fixed-params (if (= (:auth-source user) "digest")
-                                            (assoc params :digest-request true)
-                                            params)
-                             activity (assemble-activity conn fixed-params org board-by-uuids allowed-boards user-id)]
+                             activity (assemble-activity conn params org board-by-uuids allowed-boards user-id)]
                           (activity-rep/render-activity-list params org "entries" activity boards user))))
 
 ;; A resource for operations on the activity of a particular Org
@@ -344,7 +343,10 @@
                              ctx-params (keywordize-keys (-> ctx :request :params))
                              start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction})
+                             container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id)
+                             params (merge start-params {:direction direction
+                                                         :container-id config/seen-replies-container-id
+                                                         :last-seen-at (:seen-at container-seen)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -390,7 +392,12 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
-                             params (merge start-params {:direction direction :sort-type sort-type :author-uuid author-uuid})
+                             container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id author-uuid)
+                             params (merge start-params {:direction direction
+                                                         :sort-type sort-type
+                                                         :author-uuid author-uuid
+                                                         :container-id author-uuid
+                                                         :last-seen-at (:seen-at container-seen)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))

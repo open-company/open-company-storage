@@ -414,14 +414,14 @@
   (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards follow-data nil {:count count :must-see must-see}))
 
   ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] follow-data seen-items {:keys [must-see count] :or {must-see false count false}}]
+    allowed-boards :- [lib-schema/UniqueID] follow-data container-last-seen-at {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards follow-data seen-items list-comment-properties nil {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards follow-data container-last-seen-at list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
@@ -449,16 +449,21 @@
   (storage-db-common/last-entry-of-board conn board-uuid))
 
 (schema/defn ^:always-validate list-entries-by-org-author
+
   ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID]]
-   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
+   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards nil {:count false}))
+
+  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at]
+   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards nil {:count false}))
+
+  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-publisher [[:published org-uuid author-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards nil nil list-comment-properties nil {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards nil container-last-seen-at list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate list-drafts-by-org-author
   "
@@ -506,12 +511,13 @@
 (schema/defn ^:always-validate list-entries-for-user-replies
   ""
   [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] user-id :- lib-schema/UniqueID
-   order start direction limit follow-data seen-items {:keys [count] :or {count false}}]
+   order start direction limit follow-data container-last-seen-at {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data seen-items list-comment-properties {:count count}))
+  (println "DBG list-entries-for-user-replies container-last-seen-at" container-last-seen-at)
+  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data container-last-seen-at list-comment-properties {:count count}))
 
 ;; ----- Entry Bookmarks manipulation -----
 

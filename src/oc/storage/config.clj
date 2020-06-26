@@ -110,6 +110,10 @@
     :table-prefix dynamodb-table-prefix
   })
 
+(defonce seen-home-container-id (env :seen-home-container-id))
+
+(defonce seen-replies-container-id (env :seen-replies-container-id))
+
 (defonce unread-days-limit (or (env :unread-days-limit) 30))
 
 (defonce unseen-cap-days (or (env :unseen-cap-days) 0))

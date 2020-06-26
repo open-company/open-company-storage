@@ -10,8 +10,7 @@
             [oc.storage.representations.content :as content]
             [oc.storage.api.access :as access]
             [oc.storage.resources.reaction :as reaction-res]
-            [oc.lib.change.resources.read :as read]
-            [oc.lib.change.resources.seen :as seen]))
+            [oc.lib.change.resources.read :as read]))
 
 (def org-prop-mapping {:uuid :org-uuid
                        :name :org-name
@@ -25,8 +24,7 @@
                            :board-uuid :board-slug :board-name :board-access :publisher-board
                            :team-id :author :publisher :published-at :video-id :video-processed
                            :video-image :video-duration :created-at :updated-at :revision-id
-                           :new-comments-count :bookmarked-at :polls :last-read-at :last-seen-at
-                           :last-activity-at :sort-value])
+                           :new-comments-count :bookmarked-at :polls :last-read-at :last-activity-at :sort-value])
 
 ;; ----- Utility functions -----
 
@@ -184,12 +182,12 @@
     entry
     (assoc entry key-name collection)))
 
-(defn- new-comments-count [entry user-id entry-seen]
+(defn- new-comments-count [entry user-id entry-read]
   (let [all-comments (filterv :body (:interactions entry))
         filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
     (if (and filtered-comments
-             entry-seen)
-      (count (filterv #(pos? (compare (:created-at %) (:seen-at entry-seen))) filtered-comments))
+             entry-read)
+      (count (filterv #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
       (count filtered-comments))))
 
 (defn- entry-last-activity-at
@@ -249,8 +247,6 @@
                            user-id)
         entry-read (when enrich-entry?
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
-        entry-seen (when enrich-entry?
-                     (seen/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         rendered-polls (when (seq (:polls entry))
                          (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id))
         full-entry (merge {:board-slug board-slug
@@ -259,9 +255,8 @@
                            :publisher-board (:publisher-board board)
                            :bookmarked-at (:bookmarked-at bookmark)
                            :last-read-at (:read-at entry-read)
-                           :last-seen-at (:seen-at entry-seen)
                            :new-comments-count (when enrich-entry?
-                                                 (new-comments-count entry-with-comments user-id entry-seen))
+                                                 (new-comments-count entry-with-comments user-id entry-read))
                            :last-activity-at (when enrich-entry?
                                                (entry-last-activity-at user-id entry-with-comments))}
                           entry)
