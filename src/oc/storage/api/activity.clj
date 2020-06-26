@@ -19,7 +19,7 @@
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]
             [oc.lib.change.resources.follow :as follow]
-            [oc.lib.change.resources.read :as read]))
+            [oc.lib.change.resources.seen :as seen]))
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
@@ -39,16 +39,16 @@
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        read-data (when follow?
-                    (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
+        seen-data (when follow?
+                    (seen/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
         limit (if digest-request 0 config/default-activity-limit)
         entries (if follow?
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
-                   follow-data read-data {:must-see must-see})
+                   follow-data seen-data {:must-see must-see})
                   (entry-res/paginated-entries-by-org conn (:uuid org) order start direction limit sort-type allowed-boards
                    {:must-see must-see}))
         total-count (entry-res/paginated-entries-by-org conn (:uuid org) :asc (now-ts) :before 0 :recent-activity allowed-boards
-                     follow-data read-data {:count true :must-see must-see})
+                     follow-data seen-data {:count true :must-see must-see})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]
@@ -108,9 +108,9 @@
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        read-data (when user-id
-                    (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
-        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id order start direction config/default-activity-limit follow-data read-data {})
+        seen-data (when user-id
+                    (seen/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org)))
+        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id order start direction config/default-activity-limit follow-data seen-data {})
         total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :asc (* (c/to-long (t/now)) 1000) :before 0 follow-data [] {:count true})
         result {:next-count (count replies)
                 :direction direction

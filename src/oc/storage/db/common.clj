@@ -20,7 +20,7 @@
   nil nil relation-fields user-id {:count count}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  follow-data read-items relation-fields user-id {:keys [count] :or {count false}}]
+  follow-data seen-items relation-fields user-id {:keys [count] :or {count false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -33,18 +33,18 @@
         (or (#{:recent-activity :recently-posted} sort-type)
             (and (= sort-type :bookmarked-at)
                  (seq user-id)))
-        (or (nil? read-items)
-            (coll? read-items))
+        (or (nil? seen-items)
+            (coll? seen-items))
         (or (nil? follow-data)
             (coll? follow-data))
         (sequential? relation-fields)
         (every? db-common/s-or-k? relation-fields)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
         order-fn (if (= order :desc) r/desc r/asc)
-        read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)
-        unread-cap-ms (if (zero? config/unread-cap-days)
+        seen-items-map (r/coerce-to (zipmap (map :item-id seen-items) (map :seen-at seen-items)) :object)
+        unseen-cap-ms (if (zero? config/unseen-cap-days)
                         (* 60 60 24 365 50 1000) ;; default is 50 years cap if no config is set
-                        (* 60 60 24 config/unread-cap-days 1000))]
+                        (* 60 60 24 config/unseen-cap-days 1000))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
@@ -63,7 +63,7 @@
                            (r/and (:unfollowing follow-data)
                                   (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field post-row [:publisher :user-id])))
                                   (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field post-row :board-uuid)))))))
-            ;; Merge in last-activity-at, last-read-at and sort-value
+            ;; Merge in last-activity-at, last-seen-at and sort-value
             (r/merge query (r/fn [post-row]
               (let [last-activity-at (-> (r/table relation-table-name)
                                       (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
@@ -90,23 +90,23 @@
                                      (r/to-epoch-time)
                                      (r/mul 1000)
                                      (r/round))
-                    unread-entry? (r/not (r/contains (r/keys read-items-map) (r/get-field post-row :uuid)))
-                    unread-with-cap? (r/and unread-entry?
+                    unseen-entry? (r/not (r/contains (r/keys seen-items-map) (r/get-field post-row :uuid)))
+                    unseen-with-cap? (r/and unseen-entry?
                                             (r/gt sort-value-base
-                                                  (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unread-cap-ms))))
-                    sort-value (r/branch unread-with-cap?
-                                ;; If the item is unread and was published (for recently posted) or bookmarked
+                                                  (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))))
+                    sort-value (r/branch unseen-with-cap?
+                                ;; If the item is unseen and was published (for recently posted) or bookmarked
                                 ;; (for bookmarks) or last activity was (for recent activity) in the cap window
-                                ;; let's add the cap window to the publish timestamp so it will sort before the read ones
-                                (r/add sort-value-base unread-cap-ms)
-                                ;; Or use the plain sort value in case it's read or it's out of the cap window
+                                ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
+                                (r/add sort-value-base unseen-cap-ms)
+                                ;; Or use the plain sort value in case it's seen or it's out of the cap window
                                 sort-value-base)]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
-                 ;; Last read for current user if applicable (we have a user-id and there is a read record)
-                 :last-read-at (r/branch unread-entry?
+                 ;; Last seen for current user if applicable (we have a user-id and there is a seen record)
+                 :last-seen-at (r/branch unseen-entry?
                                 nil
-                                (r/get-field read-items-map (r/get-field post-row :uuid)))
+                                (r/get-field seen-items-map (r/get-field post-row :uuid)))
                  :sort-value sort-value
                 })))
             ;; Filter out:
@@ -279,8 +279,8 @@
 
 (defn read-paginated-entries-for-replies
   "Read all entries with at least one comment the user has access to. Filter out those not activily followed
-   by the current user. Sort those with unread content at the top and sort everything by last activity descendant."
-  [conn org-uuid allowed-boards user-id order start direction limit follow-data read-items relation-fields {:keys [count] :or {count false}}]
+   by the current user. Sort those with unseen content at the top and sort everything by last activity descendant."
+  [conn org-uuid allowed-boards user-id order start direction limit follow-data seen-items relation-fields {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (lib-schema/unique-id? org-uuid)
          (or (sequential? allowed-boards)
@@ -288,8 +288,8 @@
          (lib-schema/unique-id? user-id)
          (or (nil? follow-data)
              (map? follow-data))
-         (or (nil? read-items)
-             (coll? read-items))
+         (or (nil? seen-items)
+             (coll? seen-items))
          (#{:desc :asc} order)
          (not (nil? start))
          (#{:after :before} direction)
@@ -299,10 +299,10 @@
              (coll? relation-fields))
          (boolean? count)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unread-cap-ms (if (zero? config/unread-cap-days)
+        unseen-cap-ms (if (zero? config/unseen-cap-days)
                         (* 60 60 24 365 50 1000) ;; 50 years cap
-                        (* 60 60 24 config/unread-cap-days 1000))
-        read-items-map (r/coerce-to (zipmap (map :item-id read-items) (map :read-at read-items)) :object)]
+                        (* 60 60 24 config/unseen-cap-days 1000))
+        seen-items-map (r/coerce-to (zipmap (map :item-id seen-items) (map :seen-at seen-items)) :object)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "entries") query
        (r/get-all query [[:published org-uuid]] {:index :status-org-uuid})
@@ -323,27 +323,27 @@
                                (r/to-epoch-time)
                                (r/mul 1000)
                                (r/round))
-              unread-activity? (r/or (r/not (r/contains (r/keys read-items-map) (r/get-field row :uuid)))
+              unseen-activity? (r/or (r/not (r/contains (r/keys seen-items-map) (r/get-field row :uuid)))
                                      (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
                                            (-> (r/get-field row :uuid)
-                                            (as-> x (r/get-field read-items-map x))
+                                            (as-> x (r/get-field seen-items-map x))
                                             (r/iso8601)
                                             (r/to-epoch-time)
                                             (r/mul 1000)
                                             (r/round))))
-              unread-with-cap? (r/and unread-activity?
+              unseen-with-cap? (r/and unseen-activity?
                                       (r/gt (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
-                                            (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unread-cap-ms))))]
+                                            (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))))]
           {;; Date of the last added comment on this thread
            :last-activity-at last-activity-at
            :comments-count (r/count interactions-base)
-           :last-read-at (r/branch (r/contains (r/keys read-items-map) (r/get-field row :uuid))
-                           (r/get-field read-items-map (r/get-field row :uuid))
+           :last-seen-at (r/branch (r/contains (r/keys seen-items-map) (r/get-field row :uuid))
+                           (r/get-field seen-items-map (r/get-field row :uuid))
                            nil)
-           :sort-value (r/branch unread-with-cap?
-                         ;; If the item is unread and was published in the cap window
-                         ;; let's add the cap window to the publish timestamp so it will sort before the read items
-                         (r/add sort-value-base unread-cap-ms)
+           :sort-value (r/branch unseen-with-cap?
+                         ;; If the item is unseen and was published in the cap window
+                         ;; let's add the cap window to the publish timestamp so it will sort before the seen items
+                         (r/add sort-value-base unseen-cap-ms)
                          ;; The timestamp in seconds
                          sort-value-base)
            ; :reply-authors (-> interactions-base
@@ -355,8 +355,8 @@
                           (r/pluck relation-fields)
                           (r/coerce-to :array))
            ;; FIXME: debug
-           ; :debug {:unread-with-cap unread-with-cap?
-           ;         :unread-activity unread-activity?}
+           ; :debug {:unseen-with-cap unseen-with-cap?
+           ;         :unseen-activity unseen-activity?}
           })))
        ;; Filter by user-visibility
        (r/filter query (r/fn [row]

@@ -414,14 +414,14 @@
   (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards follow-data nil {:count count :must-see must-see}))
 
   ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] follow-data read-items {:keys [must-see count] :or {must-see false count false}}]
+    allowed-boards :- [lib-schema/UniqueID] follow-data seen-items {:keys [must-see count] :or {must-see false count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards follow-data read-items list-comment-properties nil {:count count})))
+   limit sort-type common/interaction-table-name allowed-boards follow-data seen-items list-comment-properties nil {:count count})))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
@@ -506,12 +506,12 @@
 (schema/defn ^:always-validate list-entries-for-user-replies
   ""
   [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] user-id :- lib-schema/UniqueID
-   order start direction limit follow-data read-items {:keys [count] :or {count false}}]
+   order start direction limit follow-data seen-items {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data read-items list-comment-properties {:count count}))
+  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data seen-items list-comment-properties {:count count}))
 
 ;; ----- Entry Bookmarks manipulation -----
 

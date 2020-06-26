@@ -112,4 +112,4 @@
 
 (defonce unread-days-limit (or (env :unread-days-limit) 30))
 
-(defonce unread-cap-days (or (env :unread-cap-days) 0))
+(defonce unseen-cap-days (or (env :unseen-cap-days) 0))
