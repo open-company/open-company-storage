@@ -114,6 +114,6 @@
 
 (defonce seen-replies-container-id (env :seen-replies-container-id))
 
-(defonce unread-days-limit (or (env :unread-days-limit) 30))
+(defonce unread-days-limit (or (read-string (env :unread-days-limit)) 30))
 
-(defonce unseen-cap-days (or (env :unseen-cap-days) 0))
+(defonce unseen-cap-days (or (read-string (env :unseen-cap-days)) 0))
