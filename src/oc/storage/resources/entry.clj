@@ -516,7 +516,6 @@
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (println "DBG list-entries-for-user-replies container-last-seen-at" container-last-seen-at)
   (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit follow-data container-last-seen-at list-comment-properties {:count count}))
 
 ;; ----- Entry Bookmarks manipulation -----

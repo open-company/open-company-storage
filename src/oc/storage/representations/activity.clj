@@ -140,7 +140,6 @@
   activity for the API.
   "
   [params org collection-type activity boards user]
-  (println "DBG render-activity-list" (:last-seen-at params))
   (let [sort-type (:sort-type params)
         following? (:following params)
         unfollowing? (:unfollowing params)
