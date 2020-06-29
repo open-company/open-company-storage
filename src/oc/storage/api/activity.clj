@@ -156,7 +156,7 @@
     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
                               valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)
                               direction (keyword (:direction ctx-params))
@@ -187,13 +187,13 @@
                              sort-type (if (= sort "activity") :recent-activity :recently-posted)
                              start-params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
                              direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
-                             home-container? (:followinng start-params)
-                             container-seen (when home-container?
+                             following? (:following start-params)
+                             container-seen (when following?
                                               (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
                              params (merge start-params {:direction direction
                                                          :sort-type sort-type
                                                          :digest-request (= (:auth-source user) "digest")
-                                                         :container-id (when home-container? config/seen-home-container-id)
+                                                         :container-id (when following? config/seen-home-container-id)
                                                          :last-seen-at (:seen-at container-seen)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
