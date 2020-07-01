@@ -196,6 +196,9 @@
                         (if (seq (:last-seen-at params))
                           (assoc b :last-seen-at (:last-seen-at params))
                           b)
+                        (if (seq (:next-seen-at params))
+                          (assoc b :next-seen-at (:next-seen-at params))
+                          b)
                         (if contributions?
                           (assoc b :author-uuid (:author-uuid params))
                           b)

@@ -194,7 +194,8 @@
                                                          :sort-type sort-type
                                                          :digest-request (= (:auth-source user) "digest")
                                                          :container-id (when following? config/seen-home-container-id)
-                                                         :last-seen-at (:seen-at container-seen)})
+                                                         :last-seen-at (:seen-at container-seen)
+                                                         :next-seen-at (db-common/current-timestamp)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -346,7 +347,8 @@
                              container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id)
                              params (merge start-params {:direction direction
                                                          :container-id config/seen-replies-container-id
-                                                         :last-seen-at (:seen-at container-seen)})
+                                                         :last-seen-at (:seen-at container-seen)
+                                                         :next-seen-at (db-common/current-timestamp)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
@@ -397,7 +399,8 @@
                                                          :sort-type sort-type
                                                          :author-uuid author-uuid
                                                          :container-id author-uuid
-                                                         :last-seen-at (:seen-at container-seen)})
+                                                         :last-seen-at (:seen-at container-seen)
+                                                         :next-seen-at (db-common/current-timestamp)})
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
