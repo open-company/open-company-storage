@@ -10,17 +10,17 @@
 
 (defn read-paginated-entries
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-   relation-fields {:keys [count] :or {count false}}]
+   relation-fields {:keys [count unseen] :or {count false unseen false}}]
  (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  nil nil relation-fields nil {:count count}))
+  nil nil relation-fields nil {:count count :unseen false}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-   relation-fields user-id {:keys [count] :or {count false}}]
+   relation-fields user-id {:keys [count unseen] :or {count false unseen false}}]
   (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  nil nil relation-fields user-id {:count count}))
+  nil nil relation-fields user-id {:count count :unseen false}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
-  follow-data container-last-seen-at relation-fields user-id {:keys [count] :or {count false}}]
+  follow-data container-last-seen-at relation-fields user-id {:keys [count unseen] :or {count false unseen false}}]
  {:pre [(db-common/conn? conn)
         (db-common/s-or-k? table-name)
         (db-common/s-or-k? index-name)
@@ -38,7 +38,9 @@
         (or (nil? follow-data)
             (coll? follow-data))
         (sequential? relation-fields)
-        (every? db-common/s-or-k? relation-fields)]}
+        (every? db-common/s-or-k? relation-fields)
+        (boolean? count)
+        (boolean? unseen)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
         order-fn (if (= order :desc) r/desc r/asc)
         unseen-cap-ms (if (zero? config/unseen-cap-days)
@@ -104,14 +106,18 @@
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
                  :sort-value sort-value
+                 :unseen unseen-with-cap?
                 })))
             ;; Filter out:
             (r/filter query (r/fn [row]
               ;; All records after/before the start
-              (r/or (r/and (= direction :before)
-                           (r/gt start (r/get-field row :sort-value)))
-                    (r/and (= direction :after)
-                           (r/le start (r/get-field row :sort-value))))))
+              (r/and ;; Filter out seen entries if unseen flag is on
+                     (r/or (r/not unseen)
+                           (r/default (r/get-field row :unseen) false))
+                     (r/or (r/and (= direction :before)
+                                  (r/gt start (r/get-field row :sort-value)))
+                           (r/and (= direction :after)
+                                  (r/le start (r/get-field row :sort-value)))))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]
@@ -276,7 +282,7 @@
 (defn read-paginated-entries-for-replies
   "Read all entries with at least one comment the user has access to. Filter out those not activily followed
    by the current user. Sort those with unseen content at the top and sort everything by last activity descendant."
-  [conn org-uuid allowed-boards user-id order start direction limit follow-data container-last-seen-at relation-fields {:keys [count] :or {count false}}]
+  [conn org-uuid allowed-boards user-id order start direction limit follow-data container-last-seen-at relation-fields {:keys [count unseen] :or {count false unseen false}}]
   {:pre [(db-common/conn? conn)
          (lib-schema/unique-id? org-uuid)
          (or (sequential? allowed-boards)
@@ -293,7 +299,8 @@
              (pos? limit))
          (or (nil? relation-fields)
              (coll? relation-fields))
-         (boolean? count)]}
+         (boolean? count)
+         (boolean? unseen)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
         unseen-cap-ms (if (zero? config/unseen-cap-days)
                         (* 60 60 24 365 50 1000) ;; 50 years cap
@@ -344,6 +351,8 @@
            :last-activity-at last-activity-at
            :comments-count (r/count interactions-base)
            :sort-value sort-value
+           :unseen unseen-entry?
+           :unseen-comments unseen-activity?
            ; :reply-authors (-> interactions-base
            ;                 (r/coerce-to :array)
            ;                 (r/map (r/fn [inter] (r/get-field inter [:author :user-id])))
@@ -359,6 +368,9 @@
        ;; Filter by user-visibility
        (r/filter query (r/fn [row]
         (r/and (r/gt (r/get-field row [:comments-count]) 0)
+               ;; Filter out entries without unseen comments if unseen flag is on
+               (r/or (r/not unseen)
+                     (r/default (r/get-field row :unseen-comments) false))
                ;; Filter out threads that have comments only from the current user
                ; (-> (r/get-field row [:reply-authors])
                ;  (r/filter user-id)

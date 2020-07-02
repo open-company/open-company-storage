@@ -25,10 +25,13 @@
 
 (defn now-ts [] (* (c/to-long (t/now)) 1000))
 
-(defn- follow-parameters-map [user-id org-slug following?]
-  (cond-> (follow/retrieve config/dynamodb-opts user-id org-slug)
-    following? (merge {:following true})
-    (not following?) (merge {:unfollowing true})))
+(defn- follow-parameters-map
+  ([user-id org-slug]
+   (follow/retrieve config/dynamodb-opts user-id org-slug))
+  ([user-id org-slug following?]
+   (cond-> (follow/retrieve config/dynamodb-opts user-id org-slug)
+     following? (merge {:following true})
+     (not following?) (merge {:unfollowing true}))))
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
@@ -79,11 +82,8 @@
 
 (defn- assemble-inbox
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start must-see :must-see following :following
-         unfollowing :unfollowing} org board-by-uuids allowed-boards user-id]
-  (let [follow? (or following unfollowing)
-        follow-data (when follow?
-                      (follow-parameters-map user-id (:slug org) following))
+  [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
+  (let [follow-data (follow-parameters-map user-id (:slug org))
         total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (now-ts)
                            0 allowed-boards follow-data {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
@@ -100,12 +100,10 @@
 
 (defn assemble-replies
   "Assemble the requested (by the params) entries for the provided org to populate the replies view."
-  [conn {start :start direction :direction following :following unfollowing :unfollowing last-seen-at :last-seen-at :as params}
+  [conn {start :start direction :direction last-seen-at :last-seen-at :as params}
    org board-by-uuids allowed-boards user-id]
   (let [order (if (= direction :before) :desc :asc)
-        follow? (or following unfollowing)
-        follow-data (when follow?
-                      (follow-parameters-map user-id (:slug org) following))
+        follow-data (follow-parameters-map user-id (:slug org))
         replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id order start direction config/default-activity-limit follow-data last-seen-at {})
         total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :asc (* (c/to-long (t/now)) 1000) :before 0 follow-data nil {:count true})
         result {:next-count (count replies)

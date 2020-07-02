@@ -11,7 +11,8 @@
 (def representation-props (concat public-representation-props [:author :authors :total-count :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
                                                                :contributions-count :following-count :unfollowing-count
-                                                               :following-inbox-count :unfollowing-inbox-count]))
+                                                               :following-inbox-count :unfollowing-inbox-count
+                                                               :badge-following :badge-replies]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))

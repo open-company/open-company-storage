@@ -16,6 +16,7 @@
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.lib.change.resources.follow :as follow]
+            [oc.lib.change.resources.seen :as seen]
             [oc.storage.config :as config]
             [oc.storage.async.notification :as notification]
             [oc.storage.api.access :as access]
@@ -245,6 +246,7 @@
                              boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
                              board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
                              allowed-boards (filter :access-level board-access)
+                             allowed-board-uuids (map :uuid allowed-boards)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)
                                                ;; Add the draft board
                              show-draft-board? (and ;; if user is logged in and
@@ -259,7 +261,7 @@
                              now (* (c/to-long (t/now)) 1000)
                              total-count (if user-is-member?
                                            (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
-                                            (map :uuid allowed-boards) nil {:count true})
+                                            allowed-board-uuids nil {:count true})
                                            0)
                              bookmarks-count (if user-is-member?
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id :asc now :before
@@ -267,33 +269,27 @@
                                               0)
                              follow-data (when user-is-member?
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
-                             following-count (if user-is-member?
-                                               (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
-                                                (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
-                                               0)
-                             unfollowing-count (if user-is-member?
-                                                 (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
-                                                  (map :uuid allowed-boards) (assoc follow-data :unfollowing true) {:count true})
-                                                 0)
-                             following-inbox-count (if user-is-member?
-                                                     (entry-res/list-all-entries-for-inbox conn org-id user-id :asc now
-                                                      0 (map :uuid allowed-boards) (assoc follow-data :following true) {:count true})
-                                                     0)
-                             unfollowing-inbox-count (if user-is-member?
-                                                       (entry-res/list-all-entries-for-inbox conn org-id user-id :asc now
-                                                        0 (map :uuid allowed-boards) (assoc follow-data :unfollowing true) {:count true})
-                                                       0)
-                             inbox-count (if user-is-member?
-                                           (entry-res/list-all-entries-for-inbox conn org-id user-id :asc now
-                                            0 (map :uuid allowed-boards) nil {:count true})
-                                           0)
                              user-count (if user-is-member?
                                           (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
-                                            0 :recently-posted (map :uuid allowed-boards) {:count true})
+                                            0 :recently-posted allowed-board-uuids {:count true})
                                            0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
+                             following-seen (when user-is-member?
+                                         (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
+                             badge-following? (if user-is-member?
+                                                (pos?
+                                                 (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
+                                                  allowed-board-uuids follow-data (:seen-at following-seen) {:unseen true :count true}))
+                                                false)
+                             replies-seen (when user-is-member?
+                                            (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id))
+                             badge-replies? (if user-is-member?
+                                              (pos?
+                                               (entry-res/list-entries-for-user-replies conn org-id allowed-board-uuids user-id :asc
+                                                now :before 0 follow-data (:seen-at replies-seen) {:count true :unseen true}))
+                                              false)
                              board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count)
                                           full-boards)
                              authors (:authors org)
@@ -305,11 +301,8 @@
                                                                   (map #(dissoc % :authors :viewers) board-reps)))
                                                  (assoc :total-count total-count)
                                                  (assoc :bookmarks-count bookmarks-count)
-                                                 (assoc :following-count following-count)
-                                                 (assoc :unfollowing-count unfollowing-count)
-                                                 (assoc :inbox-count inbox-count)
-                                                 (assoc :following-inbox-count following-inbox-count)
-                                                 (assoc :unfollowing-inbox-count unfollowing-inbox-count)
+                                                 (assoc :badge-following badge-following?)
+                                                 (assoc :badge-replies badge-replies?)
                                                  (assoc :contributions-count user-count)
                                                  (assoc :authors author-reps))
                                              (:access-level ctx)
