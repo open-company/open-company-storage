@@ -58,7 +58,8 @@
                                                       (merge activity {
                                                        :board-slug (:slug board)
                                                        :board-access (:access board)
-                                                       :board-name (:name board)})))
+                                                       :board-name (:name board)
+                                                       :container-seen-at last-seen-at})))
                                     entries))))
 
 (defn- assemble-bookmarks
@@ -114,7 +115,8 @@
                                                           (merge entry {
                                                            :board-slug (:slug board)
                                                            :board-access (:access board)
-                                                           :board-name (:name board)})))
+                                                           :board-name (:name board)
+                                                           :container-seen-at last-seen-at})))
                              replies))))
 
 (defn- assemble-contributions

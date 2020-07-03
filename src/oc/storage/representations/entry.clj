@@ -188,7 +188,15 @@
         filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
     (if (and filtered-comments
              entry-read)
-      (count (filterv #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
+      (count (filter #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
+      (count filtered-comments))))
+
+(defn- unseen-comments? [entry user-id container-seen-at]
+  (let [all-comments (filterv :body (:interactions entry))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
+    (if (and filtered-comments
+             (seq container-seen-at))
+      (count (filter #(pos? (compare (:created-at %) container-seen-at)) filtered-comments))
       (count filtered-comments))))
 
 (defn- entry-last-activity-at
@@ -258,6 +266,8 @@
                            :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
                                                  (new-comments-count entry-with-comments user-id entry-read))
+                           :unseen-comments (when enrich-entry?
+                                               (unseen-comments? entry-with-comments user-id (:container-seen-at entry)))
                            :last-activity-at (when enrich-entry?
                                                (entry-last-activity-at user-id entry-with-comments))}
                           entry)

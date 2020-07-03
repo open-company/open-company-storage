@@ -352,7 +352,6 @@
            :comments-count (r/count interactions-base)
            :sort-value sort-value
            :unseen unseen-entry?
-           :unseen-comments unseen-activity?
            ; :reply-authors (-> interactions-base
            ;                 (r/coerce-to :array)
            ;                 (r/map (r/fn [inter] (r/get-field inter [:author :user-id])))
