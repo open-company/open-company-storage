@@ -193,11 +193,13 @@
 
 (defn- unseen-comments? [entry user-id container-seen-at]
   (let [all-comments (filterv :body (:interactions entry))
-        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
-    (if (and filtered-comments
-             (seq container-seen-at))
-      (count (filter #(pos? (compare (:created-at %) container-seen-at)) filtered-comments))
-      (count filtered-comments))))
+        filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)
+        all-unseens (if (and filtered-comments
+                             (seq container-seen-at))
+                      (filter #(pos? (compare (:created-at %) container-seen-at)) filtered-comments)
+                      filtered-comments)]
+
+    (pos? (count filtered-comments))))
 
 (defn- entry-last-activity-at
   "Return the most recent created-at of the comments, exclude comments from current user if needed."
