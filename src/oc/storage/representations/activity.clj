@@ -3,24 +3,35 @@
   (:require [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.api.access :as access]
+            [cuerdas.core :as string]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.config :as config]))
 
+(def allowed-parameter-keys  [:start :sort-type :direction])
+
+(defn- parametrize-url [url parameters-dict]
+  (let [concat? (#{"?" "&"} (last url))
+        has-param? (string/includes? url "?")
+        concat-url (cond concat? url
+                         has-param? (str url "&")
+                         :else (str url "?"))
+        url-params (select-keys parameters-dict allowed-parameter-keys)]
+    (str concat-url
+     (apply str
+      (for [[k v] url-params
+            :when (and v k)]
+        (str (if (keyword? k) (name k) k) "=" (if (keyword? v) (name v) v) "&"))))))
+
 (defn- inbox-url
 
   ([collection-type {slug :slug :as org}]
   (str "/orgs/" slug "/" collection-type))
 
-  ([collection-type {slug :slug :as org} {start :start following :following unfollowing :unfollowing}]
-  (let [follow-concat (if start "&" "?")]
-    (str (inbox-url collection-type org) (when start (str "?start=" start))
-     (cond
-      following (str follow-concat "following=true")
-      unfollowing (str follow-concat "unfollowing=true")
-      :else "")))))
+  ([collection-type {slug :slug :as org} url-params]
+  (parametrize-url (inbox-url collection-type org) url-params)))
 
 (defn- dismiss-all-url [org]
   (str (inbox-url "inbox" org) "/dismiss"))
@@ -30,47 +41,38 @@
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
     (str "/orgs/" slug "/" collection-type sort-path)))
 
-  ([collection-type {slug :slug :as org} sort-type {start :start direction :direction}]
-  (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-    (str (url collection-type org sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
+  ([collection-type {slug :slug :as org} sort-type url-params]
+  (parametrize-url (url collection-type org sort-type) url-params)))
 
 (defn- replies-url
 
   ([{slug :slug :as org}]
   (str "/orgs/" slug "/replies"))
 
-  ([{slug :slug :as org} {start :start direction :direction}]
-  (let [direction-concat (if start "&" "?")]
-    (cond-> (replies-url org)
-     start (str "?start=" start)
-     direction (str direction-concat "direction=" (name direction))))))
+  ([{slug :slug :as org} url-params]
+  (parametrize-url (replies-url org) url-params)))
 
 (defn- follow-url
-  ([following? collection-type org-slug sort-type]
-  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")
-        follow-str (str (if sort-path "&" "?")
-                        (if following? "following" "unfollowing")
-                        "=true")]
-    (str "/orgs/" org-slug "/" collection-type sort-path follow-str)))
+  ([collection-type org-slug sort-type]
+  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity&")]
+    (str "/orgs/" org-slug "/" collection-type sort-path)))
 
-  ([following? collection-type org-slug sort-type {start :start direction :direction}]
-  (let [start-str (str "&start=" start)
-        direction-str (when direction (str "&direction=" (name direction)))]
-    (str (follow-url following? collection-type org-slug sort-type) start-str direction-str))))
+  ([collection-type org-slug sort-type url-params]
+  (parametrize-url (follow-url collection-type org-slug sort-type) url-params)))
 
 (defn- following-url
   ([collection-type {slug :slug} sort-type]
-  (follow-url true collection-type slug sort-type))
+  (follow-url collection-type slug sort-type {:following true}))
 
   ([collection-type {slug :slug :as org} sort-type params]
-  (follow-url true collection-type slug sort-type params)))
+  (follow-url collection-type slug sort-type params)))
 
 (defn- unfollowing-url
   ([collection-type {slug :slug} sort-type]
-  (follow-url false collection-type slug sort-type))
+  (follow-url collection-type slug sort-type {:unfollowing true}))
 
   ([collection-type {slug :slug :as org} sort-type params]
-  (follow-url false collection-type slug sort-type params)))
+  (follow-url collection-type slug sort-type params)))
 
 (defn- contributions-url
 
@@ -78,9 +80,8 @@
   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
     (str "/orgs/" slug "/contributions/" author-uuid sort-path)))
 
-  ([{slug :slug :as org} author-uuid sort-type {start :start direction :direction}]
-  (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-    (str (contributions-url org author-uuid sort-type) concat-str "start=" start (when direction (str "&direction=" (name direction)))))))
+  ([{slug :slug :as org} author-uuid sort-type url-params]
+  (parametrize-url (contributions-url org author-uuid sort-type url-params))))
 
 (defn- is-inbox? [collection-type]
   (= collection-type "inbox"))
@@ -90,6 +91,33 @@
 
 (defn- is-replies? [collection-type]
   (= collection-type "replies"))
+
+(defn- refresh-link
+  "Add `next` and/or `prior` links for pagination as needed."
+  [org collection-type {:keys [start direction sort-type author-uuid limit following unfollowing]} data]
+  (let [resources-list (:activity data)
+        activity? (-> data :activity seq)
+        last-resource (last resources-list)
+        last-resource-date (:sort-value last-resource)
+        next? (= (:next-count data) config/default-activity-limit)
+        replies? (is-replies? collection-type)
+        contributions? (is-contributions? collection-type)
+        inbox? (is-inbox? collection-type)
+        no-collection-type? (and (not replies?)
+                                 (not inbox?)
+                                 (not contributions?)
+                                 (not following)
+                                 (not unfollowing))
+        refresh-url (cond->> {:limit limit :direction :after :start last-resource-date :following following :unfollowing unfollowing}
+                     replies?            (replies-url org)
+                     inbox?              (inbox-url collection-type org)
+                     contributions?      (contributions-url org author-uuid sort-type)
+                     following           (following-url collection-type org sort-type)
+                     unfollowing         (unfollowing-url collection-type org sort-type)
+                     ;; else
+                     no-collection-type? (url collection-type org sort-type))]
+    (when refresh-url
+      (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/entry-collection-media-type}))))
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
@@ -121,9 +149,9 @@
                                                                      :direction direction})
                      :else
                      (url collection-type org sort-type {:start last-resource-date
-                                                         :direction direction})))
-        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))]
-    next-link))
+                                                         :direction direction})))]
+    (when next-url
+      (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))))
 
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
@@ -191,7 +219,8 @@
                   (when-not replies?
                     (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {})))
                 (hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})
-                (pagination-link org collection-type params activity)])
+                (pagination-link org collection-type params activity)
+                (refresh-link org collection-type params activity)])
         base-response (as-> {} b
                         (if (seq (:last-seen-at params))
                           (assoc b :last-seen-at (:last-seen-at params))
