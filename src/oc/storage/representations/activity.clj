@@ -81,7 +81,7 @@
     (str "/orgs/" slug "/contributions/" author-uuid sort-path)))
 
   ([{slug :slug :as org} author-uuid sort-type url-params]
-  (parametrize-url (contributions-url org author-uuid sort-type url-params))))
+  (parametrize-url (contributions-url org author-uuid sort-type) url-params)))
 
 (defn- is-inbox? [collection-type]
   (= collection-type "inbox"))
