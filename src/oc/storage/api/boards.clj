@@ -1,12 +1,13 @@
 (ns oc.storage.api.boards
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
-            [defun.core :refer (defun-)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
             [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
+            [clj-time.core :as t]
+            [clj-time.coerce :as c]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
@@ -29,14 +30,14 @@
 
 (defn- default-board-params []
   {:sort-type :recent-activity
-   :start (db-common/current-timestamp)
+   :start (* (c/to-long (t/now)) 1000)
    :direction :before})
 
-(defun- assemble-board
+(defn- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
 
   ;; Draft board
-  ([conn org :guard map? board :guard #(or (:draft %) (= (:slug %) (:slug board-res/default-drafts-board))) ctx]
+  ([conn org board ctx]
   (let [org-slug (:slug org)
         slug (:slug board)
         all-drafts (entry-res/list-drafts-by-org-author conn (:uuid org) (-> ctx :user :user-id) {})
@@ -48,15 +49,14 @@
                   :total-count (count entries)})))
 
   ;; Regular paginated board
-  ([conn org :guard map? board :guard map? params :guard map? ctx]
-  (let [{start :start direction :direction must-see :must-see sort-type :sort-type} params
-        access-level (:access-level ctx)
+  ([conn org board {start :start direction :direction must-see :must-see sort-type :sort-type limit :limit :as params} ctx]
+  (let [access-level (:access-level ctx)
         user-id (-> ctx :user :user-id)
-        total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (db-common/current-timestamp) :before
+        total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (* (c/to-long (t/now)) 1000) :before
                      0 :recently-posted {:must-see must-see :status :published :count true})
         order (if (= direction :before) :desc :asc)
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
-                 config/default-activity-limit sort-type {:must-see must-see :status :published})]
+                 limit sort-type {:must-see must-see :status :published})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
@@ -296,9 +296,9 @@
 
   :malformed? (by-method {
     :options false
-    :get (fn [ctx] (let [ctx-params (keywordize-keys (-> ctx :request :params))
+    :get (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                          start (:start ctx-params)
-                         valid-start? (if start (ts/valid-timestamp? start) true)
+                         valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)
                          valid-sort? (or (not (contains? ctx-params :sort))
                                          (= (:sort ctx-params) "activity"))
                          direction (keyword (:direction ctx-params))
@@ -342,17 +342,19 @@
   :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
   
   ;; Responses
-  :handle-ok (fn [ctx] (let [org (:existing-org ctx)
+  :handle-ok (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+                             org (:existing-org ctx)
                              board (or (:updated-board ctx) (:existing-board ctx))
-                             ctx-params (keywordize-keys (-> ctx :request :params))
-                             sort (:sort ctx-params)
-                             sort-type (if (= sort "activity") :recent-activity :recently-posted)
-                             start-params (update ctx-params :start #(or % (db-common/current-timestamp))) ; default is now
-                             direction (or (#{:after} (keyword (:direction ctx-params))) :before) ; default is before
                              drafts-board? (board-rep/drafts-board? board)
-                             ;; For drafts board don't use parameters
                              params (when-not drafts-board?
-                                      (merge start-params {:direction direction :sort-type sort-type}))
+                                      (-> ctx-params
+                                       (dissoc :org-slug)
+                                       (update :start #(if % (Long. %) (* (c/to-long (t/now)) 1000)))  ; default is now
+                                       (update :direction #(if % (keyword %) :before)) ; default is before
+                                       (assoc :limit (if (= :after (keyword (:direction ctx-params)))
+                                                       0 ;; In case of a digest request or if a refresh request
+                                                       config/default-activity-limit)) ;; fallback to the default pagination otherwise
+                                       (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted))))
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
                                           (assemble-board conn org board params ctx))]

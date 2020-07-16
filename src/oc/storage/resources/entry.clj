@@ -428,7 +428,7 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn board-uuid :- lib-schema/UniqueID order start :- lib-schema/ISO8601 direction limit sort-type {:keys [count status] :or {count false status :published}}]
+  [conn board-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type {:keys [count status] :or {count false status :published}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)

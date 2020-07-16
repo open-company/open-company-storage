@@ -1,6 +1,7 @@
 (ns oc.storage.representations.board
   "Resource representations for OpenCompany boards."
   (:require [cheshire.core :as json]
+            [cuerdas.core :as string]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
@@ -10,11 +11,26 @@
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.reaction :as reaction-res]))
 
+(def allowed-parameter-keys  [:start :sort-type :direction])
+
+(defn parametrize-url [url parameters-dict]
+  (let [concat? (#{"?" "&"} (last url))
+        has-param? (string/includes? url "?")
+        concat-url (cond concat? url
+                         has-param? (str url "&")
+                         :else (str url "?"))
+        url-params (select-keys parameters-dict allowed-parameter-keys)]
+    (str concat-url
+     (apply str
+      (for [[k v] url-params
+            :when (and v k)]
+        (str (if (keyword? k) (name k) k) "=" (if (keyword? v) (name v) v) "&"))))))
+
 (defn drafts-board? [board]
   (or (= (:uuid board) (:uuid board-res/default-drafts-board))
       (= (:slug board) (:slug board-res/default-drafts-board))))
 
-(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links :description :last-entry-at])
+(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links :description :last-entry-at :direction :start])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft :publisher-board :total-count]))
 (def drafts-board-representation-props (conj public-representation-props :total-count))
 
@@ -58,11 +74,23 @@
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
-        last-activity-date (when activity? (:last-activity-at last-activity))
+        last-activity-date (when activity? (:sort-value last-activity))
         next? (= (:next-count data) config/default-activity-limit)
         next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction direction}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
     next-link))
+
+(defn- refresh-link
+  "Add `next` links for pagination as needed."
+  [org board {:keys [start direction sort-type]} data]
+  (let [activity (:entries data)
+        activity? (not-empty activity)
+        last-activity (last activity)
+        last-activity-date (when activity? (:sort-value last-activity))
+        next? (= (:next-count data) config/default-activity-limit)
+        refresh-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction :after}))
+        ref-link (when refresh-url (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/board-media-type}))]
+    ref-link))
 
 (defn- board-collection-links [board org-slug draft-count]
   (let [board-slug (:slug board)
@@ -85,11 +113,13 @@
   (let [slug (:slug board)
         is-drafts-board? (drafts-board? board)
         page-link (when-not is-drafts-board? (pagination-link org-slug slug params board))
+        ref-link (when-not is-drafts-board? (refresh-link org-slug slug params board))
+        activity-sort-link (when-not is-drafts-board? (self-link org-slug slug :recent-activity))
         ;; Everyone gets these
         links (remove nil? [page-link
+                            ref-link
+                            activity-sort-link
                             (self-link org-slug slug :recently-posted)
-                            (when-not is-drafts-board?
-                              (self-link org-slug slug :recent-activity))
                             (up-link org-slug)])
         ;; Authors get board management links
         full-links (if (= access-level :author)
@@ -150,6 +180,8 @@
       (-> board
         (assoc :authors author-reps)
         (assoc :viewers viewer-reps)
+        (assoc :direction (:direction params))
+        (assoc :start (:start params))
         (board-links (:slug org) access-level params)
         (assoc :entries (map #(let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
                                 (render-entry-for-collection org entry-board % access-level (-> ctx :user :user-id)))
