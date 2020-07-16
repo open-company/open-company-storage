@@ -62,7 +62,7 @@
 (defn- contributions-url
 
   ([{slug :slug :as org} author-uuid sort-type]
-  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
+  (let [sort-path (when (= sort-type :recent-activity) "?sort=activity&")]
     (str "/orgs/" slug "/contributions/" author-uuid sort-path)))
 
   ([{slug :slug :as org} author-uuid sort-type url-params]
@@ -109,32 +109,26 @@
   [org collection-type {:keys [start direction sort-type author-uuid following unfollowing]} data]
   (when (seq (:activity data))
     (let [replies? (is-replies? collection-type)
+          inbox? (is-inbox? collection-type)
+          contributions? (is-contributions? collection-type)
+          no-collection-type? (and (not replies?)
+                                   (not inbox?)
+                                   (not contributions?)
+                                   (not following)
+                                   (not unfollowing))
           resources-list (:activity data)
           last-resource (last resources-list)
           last-resource-date (:sort-value last-resource)
           next? (= (:next-count data) config/default-activity-limit)
           next-url (when next?
-                     (cond
-                       replies?
-                       (replies-url org {:start last-resource-date
-                                         :direction direction})
-                       (is-inbox? collection-type)
-                       (inbox-url collection-type org {:start last-resource-date
-                                                       :direction direction
-                                                       :following following
-                                                       :unfollowing unfollowing})
-                       (is-contributions? collection-type)
-                       (contributions-url org author-uuid sort-type {:start last-resource-date
-                                                                     :direction direction})
-                       following
-                       (following-url collection-type org sort-type {:start last-resource-date
-                                                                     :direction direction})
-                       unfollowing
-                       (unfollowing-url collection-type org sort-type {:start last-resource-date
-                                                                       :direction direction})
-                       :else
-                       (url collection-type org sort-type {:start last-resource-date
-                                                           :direction direction})))]
+                     (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing}
+                       replies?            (replies-url org)
+                       inbox?              (inbox-url collection-type org)
+                       contributions?      (contributions-url org author-uuid sort-type)
+                       following           (following-url collection-type org sort-type)
+                       unfollowing         (unfollowing-url collection-type org sort-type)
+                       ;; else
+                       no-collection-type? (url collection-type org sort-type)))]
       (when next-url
         (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type})))))
 

@@ -11,7 +11,7 @@
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.reaction :as reaction-res]))
 
-(def allowed-parameter-keys  [:start :sort-type :direction])
+(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing])
 
 (defn parametrize-url [url parameters-dict]
   (let [concat? (#{"?" "&"} (last url))
