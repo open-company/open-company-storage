@@ -31,7 +31,8 @@
 (defn- default-board-params []
   {:sort-type :recent-activity
    :start (* (c/to-long (t/now)) 1000)
-   :direction :before})
+   :direction :before
+   :limit 0})
 
 (defn- assemble-board
   "Assemble the entry, author, and viewer data needed for a board response."
