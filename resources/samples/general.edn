@@ -3,23 +3,7 @@
     :time-offset 15 ; 15 minutes ago
     :board-slug "general"
     :headline "Welcome to Wut 👋"
-    :body
-"<p>Wut makes it simple to know what’s happening on your team. Here are some common ways teams use Wut:</p>
-<ul>
-  <li>Team updates</li>
-  <li>CEO updates</li>
-  <li>Announcements</li>
-  <li>Weekly reviews</li>
-  <li>HR and new hires</li>
-  <li>Decisions</li>
-  <li>Product releases</li>
-  <li>Key metrics and results</li>
-  <li>Events</li>
-  <li>News</li>
-</ul>
-</p>
-<p>Wut is ideal for asynchronous updates that don't require immediate attention from your teammates. Scroll through your personalized feed anytime, or set up a digest to receive team updates on your preferred schedule.</p>
-<p>Questions, ideas, or just feeling talkative? <a onclick=\"window.Intercom('showNewMessage');return false;\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"background-color: rgb(251, 250, 249);\">Chat with us!</a> In the meantime, add a sample update and <a href=\"javascript:oc.web.actions.nav_sidebar.open_invite_picker()\" rel=\"noopener noreferrer\" style=\"background-color: rgb(251, 250, 249);\">invite your team</a> to join you.</p>"
+    :body "<p>Wut makes it simple to know what’s happening on your team. Here are some common ways teams use Wut:</p><ul><li>Team updates</li><li>CEO updates</li><li>Announcements</li>  <li>Weekly reviews</li>  <li>HR and new hires</li>  <li>Decisions</li>  <li>Product releases</li>  <li>Key metrics and results</li>  <li>Events</li>  <li>News</li></ul></p><p>Wut is ideal for asynchronous updates that don't require immediate attention from your teammates. Scroll through your personalized feed anytime, or set up a digest to receive team updates on your preferred schedule.</p><p>Questions, ideas, or just feeling talkative? <a onclick=\"window.Intercom('showNewMessage');return false;\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"background-color: rgb(251, 250, 249);\">Chat with us!</a> In the meantime, add a sample update and <a href=\"javascript:oc.web.actions.nav_sidebar.open_invite_picker()\" rel=\"noopener noreferrer\" style=\"background-color: rgb(251, 250, 249);\">invite your team</a> to join you.</p>"
     :author {:name "Yellow Jelly Head" :avatar-url "/img/ML/happy_face_yellow.svg" :user-id "9999-9999-9999"}
     :comments [
       {:time-offset 10 ; 10 minutes ago
