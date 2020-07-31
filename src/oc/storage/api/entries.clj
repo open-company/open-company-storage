@@ -528,7 +528,7 @@
                       (:existing-entry ctx)
                       (:existing-comments ctx)
                       (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                      (:access-level ctx)
+                      (select-keys ctx [:access-level :role])
                       (-> ctx :user :user-id)))
     :patch (fn [ctx] (entry-rep/render-entry
                         (:existing-org ctx)
@@ -536,7 +536,7 @@
                         (:updated-entry ctx)
                         (:existing-comments ctx)
                         (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                        (:access-level ctx)
+                        (select-keys ctx [:access-level :role])
                         (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
@@ -605,8 +605,7 @@
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
                                 (entry-rep/url org-slug (:slug existing-board) (:uuid new-entry))
-                                (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] []
-                                  :author (-> ctx :user :user-id))
+                                (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] [] {:access-level :author} (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
@@ -676,7 +675,7 @@
                                                (:updated-entry ctx)
                                                [] ; no comments since it's always a draft
                                                [] ; no reactions since it's always a draft
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id))))
 
 ;; A resource for operations to publish a particular entry
@@ -736,7 +735,7 @@
                                                (:updated-entry ctx)
                                                [] ; no comments
                                                [] ; no reactions
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id))))
 
 ;; A resource for operations to share a particular entry
@@ -801,7 +800,7 @@
                                                (:updated-entry ctx)
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-requests ctx)))))
@@ -928,7 +927,7 @@
                                                (or (:updated-entry ctx) (:existing-entry ctx))
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
@@ -1041,7 +1040,7 @@
                                                (:updated-entry ctx)
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:updated-entry ctx))))

@@ -227,5 +227,5 @@
                                     (render-activity-for-collection org entry
                                       (entry-rep/comments entry)
                                       (reaction-res/aggregate-reactions (entry-rep/reactions entry))
-                                      (:access-level access-level) (:user-id user)))) (:activity activity))})}
+                                      access-level (:user-id user)))) (:activity activity))})}
       {:pretty config/pretty?})))

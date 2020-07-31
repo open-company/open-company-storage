@@ -242,7 +242,7 @@
   ([org board entry comments reactions access-level user-id] 
   (entry-and-links org board entry comments reactions access-level user-id false))
 
-  ([org board entry comments reactions access-level user-id secure-access?]
+  ([org board entry comments reactions {:keys [access-level role] :as access} user-id secure-access?]
   (let [entry-uuid (:uuid entry)
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
@@ -278,57 +278,65 @@
         comment-list (if (= access-level :public)
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
-        bookmarks-links (when (not= access-level :public)
-                          (if bookmark
-                            (remove-bookmark-link org-slug board-slug entry-uuid)
-                            (add-bookmark-link org-slug board-slug entry-uuid)))
-        links (if secure-access?
-                ;; secure UUID access
-                [(secure-self-link org-slug secure-uuid)]
-                ;; normal access
-                [(self-link org-slug board-slug entry-uuid)
-                 (up-link org-slug board-slug)])
-        more-links (cond 
-                    ;; Accessing their drafts, or access by an author, both get editing links                    
-                    (or (and draft? (not secure-access?)) (= access-level :author))
-                    (concat links [(partial-update-link org-slug board-slug entry-uuid)
-                                   (delete-link org-slug board-slug entry-uuid)
-                                   (secure-link org-slug secure-uuid)
-                                   (revert-link org-slug board-slug entry-uuid)
-                                   (content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
-                                   (content/mark-unread-link entry-uuid)])
-                    ;; Access by viewers get comments
-                    (= access-level :viewer)
-                    (concat links [(content/comment-link org-uuid board-uuid entry-uuid)
-                                   (content/comments-link org-uuid board-uuid entry-uuid comments)
-                                   (content/mark-unread-link entry-uuid)])
-                    ;; Everyone else is read-only
-                    :else links)
-        react-links (if (and
-                          (or (= access-level :author) (= access-level :viewer))
-                          (< (count reaction-list) config/max-reaction-count))
-                      ;; Authors and viewers need a link to post fresh new reactions, unless we're maxed out
-                      (conj more-links (react-link org board entry-uuid))
-                      more-links)
+        bookmarks-link (when (not= access-level :public)
+                         (if bookmark
+                           (remove-bookmark-link org-slug board-slug entry-uuid)
+                           (add-bookmark-link org-slug board-slug entry-uuid)))
         user-visibility (when user-id
                           (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry)))
-        full-links (cond
-              ;; Drafts need a publish link
-              draft?
-              (conj react-links (publish-link org-slug board-slug entry-uuid))
-              ;; Indirect access via the board, rather than direct access by the secure ID
-              ;; needs a share link
-              (and (not secure-access?) (or (= access-level :author) (= access-level :viewer)))
-              (conj react-links (share-link org-slug board-slug entry-uuid)
-               bookmarks-links
-               (inbox-unread-link org-slug board-slug entry-uuid)
-               (inbox-dismiss-link org-slug board-slug entry-uuid)
-               (if (:unfollow user-visibility)
-                 (inbox-follow-link org-slug board-slug entry-uuid)
-                 (inbox-unfollow-link org-slug board-slug entry-uuid)))
-              ;; Otherwise just the links they already have
-              :else react-links)]
+        inbox-link (if (:unfollow user-visibility)
+                     (inbox-follow-link org-slug board-slug entry-uuid)
+                     (inbox-unfollow-link org-slug board-slug entry-uuid))
+        links (cond-> []
+               ;; secure UUID access
+               secure-access?
+               (conj (secure-self-link org-slug secure-uuid))
+               ;; normal access
+               (not secure-access?)
+               (concat [(self-link org-slug board-slug entry-uuid)
+                        (up-link org-slug board-slug)])
+               ;; Generic links for all team members
+               (and (not secure-access?)
+                    (or (= access-level :author)
+                        (= access-level :viewer)))
+               (concat [(share-link org-slug board-slug entry-uuid)
+                         bookmarks-link
+                        (inbox-unread-link org-slug board-slug entry-uuid)
+                        (inbox-dismiss-link org-slug board-slug entry-uuid)
+                        inbox-link])
+               ;; Only admins and the owner can edit or delete the entry
+               (and (not secure-access?)
+                    (or (= role :admin)
+                        (and (= access-level :author)
+                             (= user-id (:user-id (first (:author entry)))))))
+               (concat [(partial-update-link org-slug board-slug entry-uuid)
+                        (delete-link org-slug board-slug entry-uuid)
+                        (revert-link org-slug board-slug entry-uuid)])
+               ;; Secure link only for authors
+               (and (not draft?)
+                    (not secure-access?)
+                    (= access-level :author))
+               (conj (secure-link org-slug secure-uuid))
+               ;; Accessing their drafts, or access by an author, both get interaction links
+               (or (and draft?
+                        (not secure-access?))
+                   (= access-level :author)
+                   (= access-level :viewer))
+               (concat [(content/comment-link org-uuid board-uuid entry-uuid)
+                        (content/comments-link org-uuid board-uuid entry-uuid comments)
+                        (content/mark-unread-link entry-uuid)])
+               ;; Access by viewers get comments
+               (= access-level :viewer)
+               (concat [(content/comment-link org-uuid board-uuid entry-uuid)
+                       (content/comments-link org-uuid board-uuid entry-uuid comments)
+                       (content/mark-unread-link entry-uuid)])
+               ;; All memebers can react but only if there are less than x reactions
+               (and (or (= access-level :author) (= access-level :viewer))
+                    (< (count reaction-list) config/max-reaction-count))
+               (conj (react-link org board entry-uuid))
+               ;; Drafts need a publish link
+               draft?
+               (conj (publish-link org-slug board-slug entry-uuid)))]
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
@@ -340,7 +348,7 @@
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
-      (assoc :links full-links)))))
+      (assoc :links links)))))
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
@@ -385,7 +393,7 @@
                                    (entry-and-links org board %
                                     (or (filter :body (:interactions %)) [])  ; comments only
                                     (reaction-res/aggregate-reactions (or (filter :reaction (:interactions %)) [])) ; reactions only
-                                    access-level (:user-id user)))
+                                    (select-keys ctx [:access-level :role]) (:user-id user)))
                              entries)}}
       {:pretty config/pretty?})))
 

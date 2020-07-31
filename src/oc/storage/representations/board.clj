@@ -162,7 +162,7 @@
 (defn render-board
   "Create a JSON representation of the board for the REST API"
   [org board ctx params]
-  (let [access-level (:access-level ctx)
+  (let [{:keys [access-level] :as access} (select-keys ctx [:access-level :role])
         viewer-or-author? (or (= :author access-level) (= :viewer access-level))
         is-drafts-board? (drafts-board? board)
         rep-props (cond viewer-or-author?
@@ -184,7 +184,7 @@
         (assoc :start (:start params))
         (board-links (:slug org) access-level params)
         (assoc :entries (map #(let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
-                                (render-entry-for-collection org entry-board % access-level (-> ctx :user :user-id)))
+                                (render-entry-for-collection org entry-board % access (-> ctx :user :user-id)))
                          (:entries board)))
         (select-keys rep-props))
       {:pretty config/pretty?})))

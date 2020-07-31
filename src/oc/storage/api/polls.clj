@@ -135,7 +135,7 @@
                      (:updated-entry ctx)
                      (:existing-comments ctx)
                      (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                     (:access-level ctx)
+                     (select-keys ctx [:access-level :role])
                      (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
@@ -187,7 +187,7 @@
                        (:updated-entry ctx)
                        (:existing-comments ctx)
                        (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                       (:access-level ctx)
+                       (select-keys ctx [:access-level :role])
                        (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
@@ -245,7 +245,7 @@
                      (:updated-entry ctx)
                      (:existing-comments ctx)
                      (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                     (:access-level ctx)
+                     (select-keys ctx [:access-level :role])
                      (-> ctx :user :user-id)))
     :delete (fn [ctx] (entry-rep/render-entry
                        (:existing-org ctx)
@@ -253,7 +253,7 @@
                        (:updated-entry ctx)
                        (:existing-comments ctx)
                        (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                       (:access-level ctx)
+                       (select-keys ctx [:access-level :role])
                        (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
