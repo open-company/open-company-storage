@@ -306,7 +306,8 @@
                         inbox-link])
                ;; Only admins and the owner can edit or delete the entry
                (and (not secure-access?)
-                    (or (= role :admin)
+                    (or draft?
+                        (= role :admin)
                         (and (= access-level :author)
                              (= user-id (:user-id (first (:author entry)))))))
                (concat [(partial-update-link org-slug board-slug entry-uuid)
