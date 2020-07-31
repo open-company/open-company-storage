@@ -60,12 +60,11 @@
         org-uuid (:uuid org)
         org-authors (set (:authors org))]
     (cond
+      ;; an admin of this org's team
+      ((set admin) (:team-id org)) {:access-level :author :role :admin}
 
       ;; a named author of this org
       (org-authors user-id) {:access-level :author}
-
-      ;; an admin of this org's team
-      ((set admin) (:team-id org)) {:access-level :author}
 
       ;; a team member of this org
       ((set teams) (:team-id org)) {:access-level :viewer}
@@ -74,7 +73,7 @@
       (and
         (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
         (not (-> org :content-visibility :disallow-public-board)))
-        {:access-level :public}
+      {:access-level :public}
 
       ;; no access
       :else false)))
@@ -119,11 +118,11 @@
            (:publisher-board board))
       {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer)}
 
+      ;; an admin of this org's team for this non-private board
+      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author :role :admin}
+
       ;; an org author of this non-private board
       (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
-
-      ;; an admin of this org's team for this non-private board
-      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author}
 
       ;; a named viewer of this board
       (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
