@@ -258,7 +258,7 @@
                              draft-entry-count (if show-draft-board?
                                                  (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
                                                  0)
-                             now (* (c/to-long (t/now)) 1000)
+                             now (lib-time/now-ts)
                              total-count (if user-is-member?
                                            (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
                                             allowed-board-uuids nil {:count true})

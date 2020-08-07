@@ -4,8 +4,6 @@
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
@@ -18,12 +16,11 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.lib.timestamp :as ts]
+            [oc.lib.time :as oc-time]
             [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.seen :as seen]))
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
-
-(defn now-ts [] (* (c/to-long (t/now)) 1000))
 
 (defn- follow-parameters-map
   ([user-id org-slug]
@@ -47,7 +44,7 @@
                    follow-data last-seen-at {:must-see must-see})
                   (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
                    {:must-see must-see}))
-        total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (now-ts) :before 0 :recent-activity allowed-boards
+        total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
                      follow-data nil {:count true :must-see must-see})
         activities {:next-count (count entries)
                     :direction direction
@@ -65,7 +62,7 @@
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction must-see :must-see limit :limit} org board-by-uuids user-id]
   (let [total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :desc
-                               (now-ts) :before 0 {:count true})
+                               (oc-time/now-ts) :before 0 {:count true})
         entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id :desc start direction
                  limit {:count false})
         activities {:direction direction
@@ -83,7 +80,7 @@
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start must-see :must-see} org board-by-uuids allowed-boards user-id]
   (let [follow-data (follow-parameters-map user-id (:slug org))
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (now-ts)
+        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (oc-time/now-ts)
                            0 allowed-boards follow-data {:count true})
         entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
                  allowed-boards follow-data {})
@@ -103,7 +100,7 @@
    org board-by-uuids allowed-boards user-id]
   (let [follow-data (follow-parameters-map user-id (:slug org))
         replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
-        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (* (c/to-long (t/now)) 1000) :before 0 follow-data nil {:count true})
+        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
         result {:next-count (count replies)
                 :direction direction
                 :total-count total-count}]
@@ -120,7 +117,7 @@
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
   [conn {start :start direction :direction sort-type :sort-type last-seen-at :last-seen-at limit :limit} org board-by-uuids allowed-boards author-uuid]
   (let [total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org)
-                                 author-uuid :desc (now-ts) direction 0 sort-type allowed-boards nil {:count true})
+                                 author-uuid :desc (oc-time/now-ts) direction 0 sort-type allowed-boards nil {:count true})
         entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
                  :desc start direction limit sort-type allowed-boards last-seen-at)
         activities {:next-count (count entries)
@@ -186,7 +183,7 @@
                                               (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
                              params (-> ctx-params
                                      (dissoc :slug)
-                                     (update :start #(if % (Long. %) (* (c/to-long (t/now)) 1000)))  ; default is now
+                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
                                      (assoc :digest-request (= (:auth-source user) "digest"))
                                      (update :direction #(if % (keyword %) :before)) ; default is before
                                      (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
@@ -246,7 +243,7 @@
                              ctx-params (-> ctx :request :params keywordize-keys)
                              params (-> ctx-params
                                      (dissoc :slug)
-                                     (update :start #(if % (Long. %) (* (c/to-long (t/now)) 1000)))  ; default is now
+                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
                                      (update :direction #(if % (keyword %) :before)) ; default is before
                                      (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                                            (= (:auth-source user) :digest-request))
@@ -296,7 +293,7 @@
                              org (:existing-org ctx)
                              org-id (:uuid org)
                              ctx-params (-> ctx :request :params keywordize-keys)
-                             params (update ctx-params :start #(if % (Long. %) (* (c/to-long (t/now)) 1000))) ; default is now
+                             params (update ctx-params :start #(if % (Long. %) (oc-time/now-ts))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
@@ -347,7 +344,7 @@
                              ctx-params (-> ctx :request :params keywordize-keys)
                              params (-> ctx-params
                                      (dissoc :slug)
-                                     (update :start #(if % (Long. %) (* (c/to-long (t/now)) 1000)))  ; default is now
+                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
                                      (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                                            (= (:auth-source user) :digest-request))
                                                      0 ;; In case of a digest request or if a refresh request
@@ -406,7 +403,7 @@
                              ctx-params (-> ctx :request :params keywordize-keys)
                              params (-> ctx-params
                                      (dissoc :slug)
-                                     (update :start #(if % (Long. %) (* (c/to-long (t/now)) 1000)))  ; default is now
+                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
                                      (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                                            (= (:auth-source user) :digest-request))
                                                      0 ;; In case of a digest request or if a refresh request

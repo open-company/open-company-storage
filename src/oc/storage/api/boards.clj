@@ -6,13 +6,12 @@
             [liberator.core :refer (defresource by-method)]
             [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.lib.db.common :as db-common]
+            [oc.lib.time :as oc-time]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.api.entries :as entries-api]
@@ -30,7 +29,7 @@
 
 (defn- default-board-params []
   {:sort-type :recent-activity
-   :start (* (c/to-long (t/now)) 1000)
+   :start (oc-time/now-ts)
    :direction :before
    :limit 0})
 
@@ -53,7 +52,7 @@
   ([conn org board {start :start direction :direction must-see :must-see sort-type :sort-type limit :limit :as params} ctx]
   (let [access-level (:access-level ctx)
         user-id (-> ctx :user :user-id)
-        total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (* (c/to-long (t/now)) 1000) :before
+        total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (oc-time/now-ts) :before
                      0 :recently-posted {:must-see must-see :status :published :count true})
         order (if (= direction :before) :desc :asc)
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
@@ -350,7 +349,7 @@
                              params (when-not drafts-board?
                                       (-> ctx-params
                                        (dissoc :org-slug)
-                                       (update :start #(if % (Long. %) (* (c/to-long (t/now)) 1000)))  ; default is now
+                                       (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
                                        (update :direction #(if % (keyword %) :before)) ; default is before
                                        (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                                        0 ;; In case of a digest request or if a refresh request
