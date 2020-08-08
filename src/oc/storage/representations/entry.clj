@@ -66,13 +66,13 @@
   ([org-slug board-slug entry-uuid _bookmark? :guard true?]
   (str (url org-slug board-slug entry-uuid) "/bookmark/")))
 
-(defn- self-link [org-slug board-slug entry-uuid]
+(defn self-link [org-slug board-slug entry-uuid]
   (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
 
 (defn- secure-self-link [org-slug entry-uuid]
   (hateoas/self-link (org-rep/secure-url org-slug entry-uuid) {:accept mt/entry-media-type}))
 
-(defn- secure-link [org-slug secure-uuid]
+(defn secure-link [org-slug secure-uuid]
   (hateoas/link-map "secure" hateoas/GET (org-rep/secure-url org-slug secure-uuid) {:accept mt/entry-media-type}))
 
 (defn- create-link [org-slug board-slug]
@@ -103,7 +103,7 @@
     {:content-type mt/share-request-media-type
      :accept mt/entry-media-type}))
 
-(defun- up-link 
+(defun up-link 
   ([org-slug nil]
   (hateoas/up-link (str "/" org-slug) {:accept mt/org-media-type}))
   ([org-slug board-slug]
@@ -171,25 +171,30 @@
   (hateoas/link-map "unvote" hateoas/DELETE (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/poll-media-type}))
 
-(defn- include-secure-uuid
+(defn include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid access-level]
   (assoc entry :secure-uuid secure-uuid))
 
-(defn- include-interactions
+(defn include-interactions
   "Include interactions only if we have some."
   [entry collection key-name]
   (if (empty? collection)
     entry
     (assoc entry key-name collection)))
 
-(defn- new-comments-count [entry user-id entry-read]
+(defun new-comments-count
+
+  ([entry user-id entry-read :guard map?]
+   (new-comments-count (:read-at entry-read)))
+
+  ([entry user-id entry-read-at :guard #(or (nil? %) (string? %))]
   (let [all-comments (filterv :body (:interactions entry))
         filtered-comments (filterv #(not= (-> % :author :user-id) user-id) all-comments)]
     (if (and filtered-comments
-             entry-read)
-      (count (filter #(pos? (compare (:created-at %) (:read-at entry-read))) filtered-comments))
-      (count filtered-comments))))
+             entry-read-at)
+      (count (filter #(pos? (compare (:created-at %) entry-read-at)) filtered-comments))
+      (count filtered-comments)))))
 
 (defn- unseen-comments? [entry user-id container-seen-at]
   (let [all-comments (filter :body (:interactions entry))
@@ -200,7 +205,7 @@
                       filtered-comments)]
     (pos? (count all-unseens))))
 
-(defn- entry-last-activity-at
+(defn entry-last-activity-at
   "Return the most recent created-at of the comments, exclude comments from current user if needed."
   [user-id entry]
   (let [all-comments (filterv :body (:interactions entry))
@@ -266,7 +271,7 @@
                            :bookmarked-at (:bookmarked-at bookmark)
                            :last-read-at (:read-at entry-read)
                            :new-comments-count (when enrich-entry?
-                                                 (new-comments-count entry-with-comments user-id entry-read))
+                                                 (new-comments-count entry-with-comments user-id (:read-at entry-read)))
                            :unseen-comments (when enrich-entry?
                                                (unseen-comments? entry-with-comments user-id (:container-seen-at entry)))
                            :last-activity-at (when enrich-entry?

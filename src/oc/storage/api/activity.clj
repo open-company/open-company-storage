@@ -18,11 +18,12 @@
             [oc.storage.lib.timestamp :as ts]
             [oc.lib.time :as oc-time]
             [oc.lib.change.resources.follow :as follow]
+            [oc.lib.change.resources.read :as read]
             [oc.lib.change.resources.seen :as seen]))
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
-(defn- follow-parameters-map
+(defn follow-parameters-map
   ([user-id org-slug]
    (follow/retrieve config/dynamodb-opts user-id org-slug))
   ([user-id org-slug following?]

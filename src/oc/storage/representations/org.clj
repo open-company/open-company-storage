@@ -78,6 +78,10 @@
   (assoc (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (url org) "/contributions/$0?sort=activity") {:accept mt/entry-collection-media-type})
    :replace {:author-uuid "$0"}))
 
+(defn- digest-partial-link [org]
+  (assoc (hateoas/link-map "digest" hateoas/GET (str (url org) "/digest?direction=after&start=$0") {:accept mt/entry-collection-media-type})
+   :replace {:start "$0"}))
+
 (defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
 
 (defn- partial-secure-link []
@@ -214,20 +218,24 @@
                                          (contributions-partial-link org)
                                          (replies-link org)]) ; (calendar-link org) - not currently used
                           links)
-        full-links (if (and (not id-token) (= access-level :author) )
-                      (concat activity-links [(board-create-link org)
-                                              (board-pre-flight-create-link org)
-                                              (partial-update-link org)
-                                              (add-author-link org)])
-                      activity-links)
+        author-links (if (and (not id-token) (= access-level :author) )
+                       (concat activity-links [(board-create-link org)
+                                               (board-pre-flight-create-link org)
+                                               (partial-update-link org)
+                                               (add-author-link org)])
+                       activity-links)
         payments-links (if (and config/payments-enabled?
                                 (#{:viewer :author} access-level)) ; Only for members of current org
-                         (concat full-links [(payments-link org)])
-                         full-links)
-        with-remove-samples-link (if sample-content?
-                                   (concat payments-links [(delete-samples-link org)])
-                                   payments-links)]
-    (assoc org :links with-remove-samples-link)))
+                         (concat author-links [(payments-link org)])
+                         author-links)
+        delete-sample-links (if sample-content?
+                              (concat payments-links [(delete-samples-link org)])
+                              payments-links)
+        digest-links (if (and (= (:auth-source user) :digest-request)
+                              (#{:author :viewer} access-level))
+                       (concat delete-sample-links [(digest-partial-link org)])
+                       delete-sample-links)]
+    (assoc org :links digest-links)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
 
