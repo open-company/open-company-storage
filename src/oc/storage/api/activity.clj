@@ -360,6 +360,9 @@
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              items (assemble-replies conn params org board-by-uuids allowed-boards user-id)]
+                          (println "DBG replies api")
+                          (println "DBG    container-id" config/seen-replies-container-id)
+                          (println "DBG    user container seen" container-seen)
                           (activity-rep/render-activity-list params org "replies" items boards user))))
 
 ;; A resource to retrieve entries for a given user
