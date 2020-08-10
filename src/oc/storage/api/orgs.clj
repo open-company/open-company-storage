@@ -290,8 +290,7 @@
                                                (entry-res/list-entries-for-user-replies conn org-id allowed-board-uuids user-id :asc
                                                 now :before 0 follow-data (:seen-at replies-seen) {:count true :unseen true}))
                                               false)
-                             board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count)
-                                          full-boards)
+                             board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count) full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
