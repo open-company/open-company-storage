@@ -43,9 +43,9 @@
         (boolean? unseen)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
         order-fn (if (= order :desc) r/desc r/asc)
-        unseen-cap-ms (if (zero? config/unseen-cap-days)
-                        (* 60 60 24 365 50 1000) ;; default is 50 years cap if no config is set
-                        (* 60 60 24 config/unseen-cap-days 1000))]
+        unseen-cap-sec (if (zero? config/unseen-cap-days)
+                        (* 60 60 24 365 50) ;; default is 50 years cap if no config is set
+                        (* 60 60 24 config/unseen-cap-days))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
@@ -89,18 +89,17 @@
                     sort-value-base (-> sort-field
                                      (r/iso8601)
                                      (r/to-epoch-time)
-                                     (r/mul 1000)
                                      (r/round))
                     unseen-entry? (r/and (seq container-last-seen-at)
                                          (r/gt (r/get-field post-row :published-at) container-last-seen-at))
                     unseen-with-cap? (r/and unseen-entry?
                                             (r/gt sort-value-base
-                                                  (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))))
+                                                  (-> (r/now) (r/to-epoch-time) (r/round) (r/sub unseen-cap-sec))))
                     sort-value (r/branch unseen-with-cap?
                                 ;; If the item is unseen and was published (for recently posted) or bookmarked
                                 ;; (for bookmarks) or last activity was (for recent activity) in the cap window
                                 ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
-                                (r/add sort-value-base unseen-cap-ms)
+                                (r/add sort-value-base unseen-cap-sec)
                                 ;; Or use the plain sort value in case it's seen or it's out of the cap window
                                 sort-value-base)]
                 {;; Date of the last added comment on this entry
@@ -198,7 +197,6 @@
                     sort-value (-> last-activity-at
                                 (r/iso8601)
                                 (r/to-epoch-time)
-                                (r/mul 1000)
                                 (r/round))]
                 {:last-activity-at last-activity-at
                  :sort-value sort-value})))
@@ -302,9 +300,9 @@
          (boolean? count)
          (boolean? unseen)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unseen-cap-ms (if (zero? config/unseen-cap-days)
-                        (* 60 60 24 365 50 1000) ;; 50 years cap
-                        (* 60 60 24 config/unseen-cap-days 1000))]
+        unseen-cap-sec (if (zero? config/unseen-cap-days)
+                         (* 60 60 24 365 50) ;; 50 years cap
+                         (* 60 60 24 config/unseen-cap-days))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "entries") query
        (r/get-all query [[:published org-uuid]] {:index :status-org-uuid})
@@ -323,28 +321,26 @@
               sort-value-base (-> last-activity-at
                                (r/iso8601)
                                (r/to-epoch-time)
-                               (r/mul 1000)
                                (r/round))
-              published-ms (-> (r/get-field row [:published-at]) (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
+              published-sec (-> (r/get-field row [:published-at]) (r/iso8601) (r/to-epoch-time) (r/round))
               has-seen-at? (seq container-last-seen-at)
-              container-seen-ms (when has-seen-at?
+              container-seen-sec (when has-seen-at?
                                   (-> container-last-seen-at
                                    (r/iso8601)
                                    (r/to-epoch-time)
-                                   (r/mul 1000)
                                    (r/round)))
-              last-activity-ms (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
+              last-activity-sec (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/round))
               unseen-entry? (r/or (r/not has-seen-at?)
-                                  (r/gt published-ms container-seen-ms))
-              unseen-cap-ms (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))
+                                  (r/gt published-sec container-seen-sec))
+              unseen-cap-sec (-> (r/now) (r/to-epoch-time) (r/round) (r/sub unseen-cap-sec))
               unseen-activity? (r/or unseen-entry?
-                                     (r/gt last-activity-ms container-seen-ms))
+                                     (r/gt last-activity-sec container-seen-sec))
               unseen-with-cap? (r/and unseen-activity?
-                                      (r/gt last-activity-ms unseen-cap-ms))
+                                      (r/gt last-activity-sec unseen-cap-sec))
               sort-value (r/branch unseen-with-cap?
                            ;; If the item is unseen and was published in the cap window
                            ;; let's add the cap window to the publish timestamp so it will sort before the seen items
-                           (r/add sort-value-base unseen-cap-ms)
+                           (r/add sort-value-base unseen-cap-sec)
                            ;; The timestamp in seconds
                            sort-value-base)]
           {;; Date of the last added comment on this thread
