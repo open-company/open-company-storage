@@ -79,8 +79,8 @@
    :replace {:author-uuid "$0"}))
 
 (defn- digest-partial-link [org]
-  (assoc (hateoas/link-map "digest" hateoas/GET (str (url org) "/digest?direction=after&start=$0") {:accept mt/entry-collection-media-type})
-   :replace {:start "$0"}))
+  (hateoas/link-map "digest" hateoas/GET (str (url org) "/digest?direction=after&start=$0") {:accept mt/entry-collection-media-type
+                                                                                             :replace {:start "$0"}}))
 
 (defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
 
