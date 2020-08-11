@@ -71,22 +71,22 @@
   (hateoas/link-map "recent-unfollowing" hateoas/GET (str (url org) "/entries?sort=activity&unfollowing=true") {:accept mt/entry-collection-media-type}))
 
 (defn- contributions-partial-link [org]
-  (assoc (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type})
-   :replace {:author-uuid "$0"}))
+  (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type}
+   {:replace {:author-uuid "$0"}}))
 
 (defn- recent-contributions-partial-link [org]
-  (assoc (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (url org) "/contributions/$0?sort=activity") {:accept mt/entry-collection-media-type})
-   :replace {:author-uuid "$0"}))
+  (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (url org) "/contributions/$0?sort=activity") {:accept mt/entry-collection-media-type}
+   {:replace {:author-uuid "$0"}}))
 
 (defn- digest-partial-link [org]
-  (hateoas/link-map "digest" hateoas/GET (str (url org) "/digest?direction=after&start=$0") {:accept mt/entry-collection-media-type
-                                                                                             :replace {:start "$0"}}))
+  (hateoas/link-map "digest" hateoas/GET (str (url org) "/digest?direction=after&start=$0") {:accept mt/entry-collection-media-type}
+   {:replace {:start "$0"}}))
 
 (defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
 
 (defn- partial-secure-link []
-  (assoc (hateoas/link-map "partial-secure" hateoas/GET (secure-url "$0" "$1") {:accept mt/entry-media-type})
-   :replace {:org-slug "$0" :secure-uuid "$1"}))
+  (hateoas/link-map "partial-secure" hateoas/GET (secure-url "$0" "$1") {:accept mt/entry-media-type}
+   {:replace {:org-slug "$0" :secure-uuid "$1"}}))
 
 (defn- change-link [org access-level user]
   (if (or (= access-level :author) (= access-level :viewer))
@@ -216,7 +216,8 @@
                                          (unfollowing-link org)
                                          (recent-unfollowing-link org)
                                          (contributions-partial-link org)
-                                         (replies-link org)]) ; (calendar-link org) - not currently used
+                                         (replies-link org)
+                                         (digest-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
         author-links (if (and (not id-token) (= access-level :author) )
                        (concat activity-links [(board-create-link org)
@@ -230,12 +231,8 @@
                          author-links)
         delete-sample-links (if sample-content?
                               (concat payments-links [(delete-samples-link org)])
-                              payments-links)
-        digest-links (if (and (= (:auth-source user) :digest-request)
-                              (#{:author :viewer} access-level))
-                       (concat delete-sample-links [(digest-partial-link org)])
-                       delete-sample-links)]
-    (assoc org :links digest-links)))
+                              payments-links)]
+    (assoc org :links delete-sample-links)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
 
