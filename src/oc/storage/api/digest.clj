@@ -12,13 +12,15 @@
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.digest :as digest-rep]
+            [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.lib.time :as oc-time]
             [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.read :as read]
-            [clj-time.core :as clj-time]))
+            [clj-time.core :as clj-time]
+            [clj-time.coerce :as clj-coerce]))
 
 ;; ----- Helpers -----
 
@@ -40,6 +42,12 @@
 
         unfollowing-follow-data (assoc follow-data :unfollowing true)
         unfollowing-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :recently-posted allowed-boards unfollowing-follow-data nil {})
+
+        newly-created-boards (->> allowed-boards
+                                  (map #(when-let [b (get board-by-uuids %)] b))
+                                  (remove nil?)
+                                  (filter #(pos? (compare (:created-at %) (oc-time/to-iso (clj-coerce/from-long start)))))
+                                  (sort-by :name))
 
         user-reads (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org))
         user-reads-map (zipmap (map :item-uuid user-reads) user-reads)]
@@ -63,6 +71,7 @@
                                        replies-comments)
                       :comments-authors (map (comp :author first second) replies-authors) ;; Get the first map of each group of authors
                       :entry-count (count replies-data)})
+     (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) %) newly-created-boards))
      (assoc :unfollowing {:board-count (count (group-by :board-uuid unfollowing-data))
                           :entry-count (count unfollowing-data)
                           :entry-author-count (count (group-by #(-> % :author :uuid) unfollowing-data))}))))
@@ -111,11 +120,10 @@
                                      (update :start #(if % (Long. %) (digest-default-start)))  ; default is now
                                      (assoc :limit 0) ;; fallback to the default pagination otherwise
                                      (update :direction keyword)) ; always set to after)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :access :authors :viewers :author :description])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
+                             board-by-uuids (zipmap board-uuids boards)
                              results (assemble-digest conn params org board-by-uuids allowed-boards user-id)]
                           (digest-rep/render-digest params org "digest" results boards user))))
 
