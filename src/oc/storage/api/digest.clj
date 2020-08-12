@@ -61,15 +61,15 @@
                                               :board-name (:name board)
                                               :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
                         following-data))
-     (assoc :replies {:comments-count (reduce
-                                       (fn [partial-count comment]
-                                         (let [entry-read-at (get-in user-reads-map [(:resource-uuid comment) :read-at])]
-                                           (if (pos? (compare (:created-at comment) entry-read-at))
-                                             (inc partial-count)
-                                             partial-count)))
-                                       0
-                                       replies-comments)
-                      :comments-authors (map (comp :author first second) replies-authors) ;; Get the first map of each group of authors
+     (assoc :replies {:comment-count (reduce
+                                      (fn [partial-count comment]
+                                        (let [entry-read-at (get-in user-reads-map [(:resource-uuid comment) :read-at])]
+                                          (if (pos? (compare (:created-at comment) entry-read-at))
+                                            (inc partial-count)
+                                            partial-count)))
+                                      0
+                                      replies-comments)
+                      :comment-authors (map (comp :author first second) replies-authors) ;; Get the first map of each group of authors
                       :entry-count (count replies-data)})
      (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) %) newly-created-boards))
      (assoc :unfollowing {:board-count (count (group-by :board-uuid unfollowing-data))
