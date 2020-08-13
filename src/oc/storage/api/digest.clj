@@ -40,9 +40,6 @@
                           (flatten (map :interactions replies-data)))
         replies-authors (group-by (comp :user-id :author) replies-comments)
 
-        unfollowing-follow-data (assoc follow-data :unfollowing true)
-        unfollowing-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :recently-posted allowed-boards unfollowing-follow-data nil {})
-
         newly-created-boards (->> allowed-boards
                                   (map #(when-let [b (get board-by-uuids %)] b))
                                   (remove nil?)
@@ -71,10 +68,7 @@
                                       replies-comments)
                       :comment-authors (map (comp :author first second) replies-authors) ;; Get the first map of each group of authors
                       :entry-count (count replies-data)})
-     (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) %) newly-created-boards))
-     (assoc :unfollowing {:board-count (count (group-by :board-uuid unfollowing-data))
-                          :entry-count (count unfollowing-data)
-                          :entry-author-count (count (group-by #(-> % :author :uuid) unfollowing-data))}))))
+     (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) %) newly-created-boards)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 

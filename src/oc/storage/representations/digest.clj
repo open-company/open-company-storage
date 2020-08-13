@@ -54,6 +54,5 @@
                                        (entry-for-digest org board entry (entry-rep/comments entry) access-level (:user-id user))))
                                 (:following results))
                     :replies (:replies results)
-                    :new-boards (:new-boards results)
-                    :unfollowing (:unfollowing results)}}
+                    :new-boards (:new-boards results)}}
       {:pretty config/pretty?})))
