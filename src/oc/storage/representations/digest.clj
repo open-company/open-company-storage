@@ -6,7 +6,8 @@
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.entry :as entry-rep]
-            [oc.storage.config :as config]))
+            [oc.storage.config :as config]
+            [oc.storage.representations.content :as content]))
 
 (defn- entry-for-digest
   "
@@ -32,7 +33,8 @@
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
         links [(entry-rep/self-link org-slug board-slug entry-uuid)
-               (entry-rep/up-link org-slug board-slug)]]
+               (entry-rep/up-link org-slug board-slug)
+               (content/comments-link org-uuid board-uuid entry-uuid comments)]]
     (-> full-entry
       (select-keys entry-rep/representation-props)
       (entry-rep/include-secure-uuid secure-uuid access-level)
