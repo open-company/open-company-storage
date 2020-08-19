@@ -122,28 +122,20 @@
       (db-common/create-resource conn versions-table-name revision ts)
       updated-entry)))
 
-(defn- remove-version [conn entry version]
+(defn- delete-version [conn entry version]
   (let [version-uuid (str (:uuid entry) "-v" version)]
     (try
-      (when (db-common/read-resource conn versions-table-name version-uuid)
-        (db-common/delete-resource conn versions-table-name version-uuid))
-      (catch Exception e (timbre/error e)))))
+      (db-common/delete-resource conn versions-table-name version-uuid)
+      (catch Exception e
+       (timbre/error e)
+       false))))
 
 (defn delete-versions [conn entry-data]
-  (let [entry (if (:delete-entry entry-data)
-                ;; increment one to remove all versions when deleting a draft
-                (update-in entry-data [:revision-id] inc)
-                entry-data)]
-    (if (and (= 1 (:revision-id entry))
-             (:delete-entry entry))
-      (remove-version conn entry 1) ;; single entry with deleted draft
-      (when (pos? (:revision-id entry))
-        (doseq [version (range (:revision-id entry))]
-          (remove-version conn entry version))))))
+  (storage-db-common/delete-versions conn versions-table-name (:uuid entry-data)))
 
 (declare get-entry)
 
-(defn- delete-version [conn uuid]
+(defn- deleted-entry-version [conn uuid]
   (let [entry (get-entry conn uuid)
         revision-id (if (zero? (:revision-id entry))
                       (inc (:revision-id entry))
@@ -328,7 +320,7 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
   ;; update versions table as deleted (logical delete)
-  (delete-version conn uuid)
+  (deleted-entry-version conn uuid)
   (db-common/delete-resource conn table-name uuid))
 
 (schema/defn ^:always-validate revert-entry!
