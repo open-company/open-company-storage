@@ -217,16 +217,14 @@
                                  (r/add q 1)
                                  (r/run q conn))
                          versioned-uuid (str (:uuid updated-entry) "-v" rev-id)
-                         ts (db-common/current-timestamp)
-                         latest-author (assoc author :updated-at ts)]
+                         ts (db-common/current-timestamp)]
                      (reset! version versioned-uuid)
                      {:revision-id rev-id
                       :version-uuid versioned-uuid
                       :revision-date ts
-                      :revision-author latest-author
+                      :revision-author author
                       :created-at ts
-                      :updated-at ts
-                      :author (conj (:author updated-entry) latest-author)})))
+                      :updated-at ts})))
                  (r/run conn)))]
     (if (and @version
              (= 1 (:inserted insert)))
