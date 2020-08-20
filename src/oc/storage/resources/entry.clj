@@ -104,23 +104,8 @@
 
 (declare update-entry)
 
-(defn- create-version [conn updated-entry original-entry]
-  (let [ts (db-common/current-timestamp)
-        revision-id (:revision-id original-entry)
-        revision-id-new (inc revision-id)
-        revision (-> original-entry
-                     (assoc :version-uuid (str (:uuid original-entry)
-                                               "-v" revision-id))
-                     (assoc :revision-date ts)
-                     (assoc :revision-author (first (:author original-entry))))]
-    (let [updated-entry (if-not (:deleted original-entry)
-                          (update-entry conn
-                            (assoc updated-entry :revision-id revision-id-new)
-                            updated-entry
-                            ts)
-                          updated-entry)]
-      (db-common/create-resource conn versions-table-name revision ts)
-      updated-entry)))
+(defn- create-version [conn updated-entry & [author]]
+  (storage-db-common/create-version conn updated-entry (or author (first (:author updated-entry)))))
 
 (defn- delete-version [conn entry version]
   (let [version-uuid (str (:uuid entry) "-v" version)]
@@ -136,13 +121,8 @@
 (declare get-entry)
 
 (defn- deleted-entry-version [conn uuid]
-  (let [entry (get-entry conn uuid)
-        revision-id (if (zero? (:revision-id entry))
-                      (inc (:revision-id entry))
-                      (:revision-id entry))]
-    (create-version conn entry (-> entry
-                                   (assoc :revision-id revision-id)
-                                   (assoc :deleted true)))))
+  (let [entry (get-entry conn uuid)]
+    (create-version conn entry (assoc entry :deleted true))))
 
 ;; Sample content handling
 
@@ -271,7 +251,7 @@
           authors-entry (add-author-to-entry original-entry entry user)
           updated-entry (update-entry conn authors-entry original-entry ts)]
         ;; copy current version to versions table, increment revision uuid
-        (create-version conn updated-entry original-entry))))
+        (create-version conn updated-entry (lib-schema/author-for-user user)))))
 
 (defn upsert-entry!
   "
@@ -309,7 +289,7 @@
       (schema/validate common/Entry entry-update)
       (let [updated-entry (db-common/update-resource conn table-name primary-key original-entry entry-update ts)
             ;; copy current version to versions table, increment revision uuid
-            versioned-entry (create-version conn updated-entry entry-update)]
+            versioned-entry (create-version conn updated-entry publisher)]
         ;; Delete the draft entry's interactions
         (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
         versioned-entry)))))
