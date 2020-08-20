@@ -222,9 +222,7 @@
                      {:revision-id rev-id
                       :version-uuid versioned-uuid
                       :revision-date ts
-                      :revision-author author
-                      :created-at ts
-                      :updated-at ts})))
+                      :revision-author author})))
                  (r/run conn)))]
     (if (and @version
              (= 1 (:inserted insert)))
