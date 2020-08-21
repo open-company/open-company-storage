@@ -105,6 +105,7 @@
                                 sort-value-base)]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
+                 :publish-time sort-value-base
                  :sort-value sort-value
                  :unseen unseen-with-cap?
                 })))
@@ -115,9 +116,9 @@
                      (r/or (r/not unseen)
                            (r/default (r/get-field row :unseen) false))
                      (r/or (r/and (= direction :before)
-                                  (r/gt start (r/get-field row :sort-value)))
+                                  (r/gt start (r/get-field row :publish-time)))
                            (r/and (= direction :after)
-                                  (r/le start (r/get-field row :sort-value)))))))
+                                  (r/le start (r/get-field row :publish-time)))))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]
@@ -333,7 +334,11 @@
                                    (r/to-epoch-time)
                                    (r/mul 1000)
                                    (r/round)))
-              last-activity-ms (-> last-activity-at (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
+              last-activity-ms (-> last-activity-at
+                                (r/iso8601)
+                                (r/to-epoch-time)
+                                (r/mul 1000)
+                                (r/round))
               unseen-entry? (r/or (r/not has-seen-at?)
                                   (r/gt published-ms container-seen-ms))
               unseen-cap-ms (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))
@@ -352,6 +357,7 @@
            :comments-count (r/count interactions-base)
            :sort-value sort-value
            :unseen unseen-entry?
+           :last-activity-ms last-activity-ms
            ; :reply-authors (-> interactions-base
            ;                 (r/coerce-to :array)
            ;                 (r/map (r/fn [inter] (r/get-field inter [:author :user-id])))
@@ -377,9 +383,9 @@
                ;  r/not)
                ;; All records after/before the start
                (r/or (r/and (= direction :before)
-                            (r/gt start (r/get-field row :sort-value)))
+                            (r/gt start (r/get-field row :last-activity-ms)))
                      (r/and (= direction :after)
-                            (r/le start (r/get-field row :sort-value))))
+                            (r/le start (r/get-field row :last-activity-ms))))
                ;; Filter on the user's visibility map:
                (r/or ;; has :follow true
                      (-> row
