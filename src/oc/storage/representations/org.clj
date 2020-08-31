@@ -7,12 +7,12 @@
             [oc.storage.representations.media-types :as mt]))
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
-                                  :boards :created-at :updated-at])
+                                  :boards :created-at :updated-at :brand-color])
 (def representation-props (concat public-representation-props [:author :authors :total-count :bookmarks-count
                                                                :content-visibility :inbox-count :why-carrot
                                                                :contributions-count :following-count :unfollowing-count
                                                                :following-inbox-count :unfollowing-inbox-count
-                                                               :badge-following :badge-replies]))
+                                                               :badge-following :badge-replies :brand-color]))
 
 (defun url
   ([slug :guard string?] (str "/orgs/" slug))

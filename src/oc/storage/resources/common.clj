@@ -66,6 +66,25 @@
   (schema/optional-key :disallow-public-board) schema/Bool
   (schema/optional-key :disallow-public-share) schema/Bool})
 
+(defn hex-color? [c]
+  (and (string? c)
+       (re-matches #"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" c)))
+
+(def Color (schema/pred #(<= 0 % 254)))
+
+(def RGBColor
+  {:r Color
+   :g Color
+   :b Color})
+
+(def Color
+  {:rgb RGBColor
+   :hex (schema/pred hex-color?)})
+
+(def BrandColor
+  {:light Color
+   :dark Color})
+
 (def Org {
   :uuid lib-schema/UniqueID
   :name (schema/pred allowed-org-name?)
@@ -80,6 +99,7 @@
   (schema/optional-key :utm-data) schema/Any
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
+  (schema/optional-key :brand-color) BrandColor
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 

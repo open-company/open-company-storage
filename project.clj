@@ -40,6 +40,9 @@
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
     [zprint "0.5.4"]
     
+    ;; General data-binding functionality for Jackson: works on core streaming API https://github.com/FasterXML/jackson-databind
+    [com.fasterxml.jackson.core/jackson-databind "2.11.2"]
+
     ;; Library for OC projects https://github.com/open-company/open-company-lib
     [open-company/lib "0.17.29-alpha27"]
     ;; In addition to common functions, brings in the following common dependencies used by this project:

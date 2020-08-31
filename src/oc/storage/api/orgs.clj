@@ -407,7 +407,7 @@
   ;; Existentialism
   :exists? (by-method {
              :get (fn [ctx] (if-let* [team-id (:team-id ctx)
-                                      orgs (org-res/list-orgs-by-team conn team-id [:logo-url :logo-width :logo-height])]
+                                      orgs (org-res/list-orgs-by-team conn team-id [:logo-url :logo-width :logo-height :brand-color])]
                               (if (empty? orgs) false {:existing-orgs (api-common/rep orgs)})
                               false))})
 
