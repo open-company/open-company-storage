@@ -80,7 +80,7 @@
 (def Color
   {:rgb RGBColor
    :hex (schema/pred hex-color?)
-   (schema/optional-key :button-color) schema/Str})
+   :button-color schema/Str})
 
 (def BrandColor
   {:light Color
