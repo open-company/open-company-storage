@@ -241,7 +241,7 @@
                                                   (or (= (:access-level ctx) :author)
                                                       (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author :description])
+                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
                              boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn (:uuid %) {:count true})) boards)
                              boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
                              board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
@@ -419,7 +419,7 @@
                                   slug (:slug new-org)
                                   org-id (:uuid new-org)
                                   user-id (-> ctx :user :user-id)
-                                  boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :publisher-board :access :slack-mirror])
+                                  boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :publisher-board :access])
                                   board-reps (map #(board-rep/render-board-for-collection slug % 0)
                                                 (map #(assoc % :access-level :author) boards))
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
