@@ -19,7 +19,7 @@
 
 (defonce dsn (or (env :open-company-sentry-storage) false))
 (defonce sentry-release (or (env :sentry-release) ""))
-(defonce sentry-env (or (env :env-name) "local"))
+(defonce sentry-env (or (env :sentry-env) "local"))
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 
