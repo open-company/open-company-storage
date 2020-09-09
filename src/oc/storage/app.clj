@@ -81,7 +81,7 @@
     c/prod?           api-common/wrap-500 ; important that this is first
      ; important that this is second
     c/dsn             (sentry-mw/wrap-sentry c/dsn {:release c/sentry-release
-                                                    :environment c/env-name})
+                                                    :environment c/sentry-env})
     true              wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
