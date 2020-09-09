@@ -79,7 +79,9 @@
 (defn app [sys]
   (cond-> (routes sys)
     c/prod?           api-common/wrap-500 ; important that this is first
-    c/dsn             (sentry-mw/wrap-sentry c/dsn) ; important that this is second
+     ; important that this is second
+    c/dsn             (sentry-mw/wrap-sentry c/dsn {:release c/sentry-release
+                                                    :environment c/env-name})
     true              wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
