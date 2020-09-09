@@ -419,7 +419,7 @@
                                   slug (:slug new-org)
                                   org-id (:uuid new-org)
                                   user-id (-> ctx :user :user-id)
-                                  boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :publisher-board :access])
+                                  boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :publisher-board :access :slack-mirror])
                                   board-reps (map #(board-rep/render-board-for-collection slug % 0)
                                                 (map #(assoc % :access-level :author) boards))
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
