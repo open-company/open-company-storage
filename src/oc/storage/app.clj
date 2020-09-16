@@ -36,7 +36,9 @@
    (uncaughtException [_ thread ex]
      (timbre/error ex "Uncaught exception on" (.getName thread) (.getMessage ex))
      (when c/dsn
-       (sentry/capture c/dsn (-> {:message (.getMessage ex)}
+       (sentry/capture c/dsn (-> {:message (.getMessage ex)
+                                  :release c/sentry-release
+                                  :environment c/sentry-env}
                                  (assoc-in [:extra :exception-data] (ex-data ex))
                                  (sentry-interfaces/stacktrace ex)))))))
 
@@ -71,6 +73,9 @@
     "Trace: " c/liberator-trace "\n"
     "Log level: " c/log-level "\n"
     "Sentry: " c/dsn "\n"
+    "  env: " c/sentry-env "\n"
+    (when-not (clojure.string/blank? c/sentry-release)
+      (str "  release: " c/sentry-release "\n"))
     "Payments?: " c/payments-enabled? "\n"
     "Unread limit: " c/unread-days-limit " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
