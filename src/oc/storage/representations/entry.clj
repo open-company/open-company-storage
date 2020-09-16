@@ -289,9 +289,9 @@
                            (add-bookmark-link org-slug board-slug entry-uuid)))
         user-visibility (when user-id
                           (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry)))
-        inbox-link (if (:unfollow user-visibility)
-                     (inbox-follow-link org-slug board-slug entry-uuid)
-                     (inbox-unfollow-link org-slug board-slug entry-uuid))
+        ; inbox-link (if (:unfollow user-visibility)
+        ;              (inbox-follow-link org-slug board-slug entry-uuid)
+        ;              (inbox-unfollow-link org-slug board-slug entry-uuid))
         links (cond-> []
                ;; secure UUID access
                secure-access?
@@ -306,9 +306,10 @@
                         (= access-level :viewer)))
                (concat [(share-link org-slug board-slug entry-uuid)
                          bookmarks-link
-                        (inbox-unread-link org-slug board-slug entry-uuid)
-                        (inbox-dismiss-link org-slug board-slug entry-uuid)
-                        inbox-link])
+                        ; (inbox-unread-link org-slug board-slug entry-uuid)
+                        ; (inbox-dismiss-link org-slug board-slug entry-uuid)
+                        ; inbox-link
+                        ])
                ;; Only admins and the owner can edit or delete the entry
                (and (not secure-access?)
                     (or draft?
