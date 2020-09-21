@@ -104,7 +104,8 @@
                             (not is-drafts-board?))
           ;; Author gets create link
           (concat links [(create-entry-link org-slug board-slug)
-                         (partial-update-link org-slug board-slug)])
+                         (partial-update-link org-slug board-slug)
+                         (delete-link org-slug board-slug)])
           ;; No create link
           links)]
     (assoc board :links full-links)))
