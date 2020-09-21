@@ -81,17 +81,13 @@
   ;; Stuff logged at error level goes to Sentry
   (if c/dsn
     (timbre/merge-config! {:level (keyword c/log-level)
-                           :appenders {:sentry (sentry/sentry-appender {:dsn c/dsn
-                                                                        :release c/sentry-release
-                                                                        :environment c/sentry-env})}})
+                           :appenders {:sentry (sentry/sentry-appender c/sentry-config)}})
     (timbre/merge-config! {:level (keyword c/log-level)}))
 
   ;; Start the system
   (-> {:handler-fn app
        :port port
-       :sentry {:dsn c/dsn
-                :release c/sentry-release
-                :environment c/sentry-env}
+       :sentry c/sentry-config
        :auth-sqs-queue c/aws-sqs-auth-queue
        :auth-sqs-msg-handler auth-notification/sqs-handler
        :storage-sqs-queue c/aws-sqs-storage-queue
