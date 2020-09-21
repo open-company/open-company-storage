@@ -2,9 +2,7 @@
   "Namespace for the HTTP application which serves the REST API."
   (:gen-class)
   (:require
-    [raven-clj.core :as sentry]
-    [raven-clj.interfaces :as sentry-interfaces]
-    [raven-clj.ring :as sentry-mw]
+    [oc.lib.sentry.core :as sentry]
     [taoensso.timbre :as timbre]
     [ring.logger.timbre :refer (wrap-with-logger)]
     [liberator.dev :refer (wrap-trace)]
@@ -13,7 +11,6 @@
     [ring.middleware.cors :refer (wrap-cors)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
-    [oc.lib.sentry-appender :as sa]
     [oc.lib.api.common :as api-common]
     [oc.storage.components :as components]
     [oc.storage.config :as c]
@@ -26,21 +23,6 @@
     [oc.storage.api.polls :as polls-api]
     [oc.storage.api.activity :as activity-api]
     [oc.storage.api.digest :as digest-api]))
-
-;; ----- Unhandled Exceptions -----
-
-;; Send unhandled exceptions to log and Sentry
-;; See https://stuartsierra.com/2015/05/27/clojure-uncaught-exceptions
-(Thread/setDefaultUncaughtExceptionHandler
- (reify Thread$UncaughtExceptionHandler
-   (uncaughtException [_ thread ex]
-     (timbre/error ex "Uncaught exception on" (.getName thread) (.getMessage ex))
-     (when c/dsn
-       (sentry/capture c/dsn (-> {:message (.getMessage ex)
-                                  :release c/sentry-release
-                                  :environment c/sentry-env}
-                                 (assoc-in [:extra :exception-data] (ex-data ex))
-                                 (sentry-interfaces/stacktrace ex)))))))
 
 ;; ----- Request Routing -----
 
@@ -85,8 +67,7 @@
   (cond-> (routes sys)
     c/prod?           api-common/wrap-500 ; important that this is first
      ; important that this is second
-    c/dsn             (sentry-mw/wrap-sentry c/dsn {:release c/sentry-release
-                                                    :environment c/sentry-env})
+    c/dsn             (sentry/wrap sys)
     true              wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
@@ -99,14 +80,18 @@
 
   ;; Stuff logged at error level goes to Sentry
   (if c/dsn
-    (timbre/merge-config!
-      {:level (keyword c/log-level)
-       :appenders {:sentry (sa/sentry-appender c/dsn)}})
+    (timbre/merge-config! {:level (keyword c/log-level)
+                           :appenders {:sentry (sentry/sentry-appender {:dsn c/dsn
+                                                                        :release c/sentry-release
+                                                                        :environment c/sentry-env})}})
     (timbre/merge-config! {:level (keyword c/log-level)}))
 
   ;; Start the system
   (-> {:handler-fn app
        :port port
+       :sentry {:dsn c/dsn
+                :release c/sentry-release
+                :environment c/sentry-env}
        :auth-sqs-queue c/aws-sqs-auth-queue
        :auth-sqs-msg-handler auth-notification/sqs-handler
        :storage-sqs-queue c/aws-sqs-storage-queue

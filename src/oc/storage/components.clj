@@ -4,6 +4,7 @@
             [org.httpkit.server :as httpkit]
             [oc.lib.db.pool :as pool]
             [oc.lib.sqs :as sqs]
+            [oc.lib.sentry.core :refer (map->SentryCapturer)]
             [oc.storage.async.notification :as notification]
             [oc.storage.async.auth-notification :as auth-notif]
             [oc.storage.async.storage-notification :as storage-notif]
@@ -115,12 +116,15 @@
    :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})))
 
 (defn storage-system [{:keys [host port handler-fn sqs-creds auth-sqs-queue storage-sqs-queue
-                              auth-sqs-msg-handler storage-sqs-msg-handler] :as opts}]
+                              auth-sqs-msg-handler storage-sqs-msg-handler sentry] :as opts}]
   (component/system-map
-    :db-pool (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
+    :sentry-capturer (map->SentryCapturer sentry)
+    :db-pool (component/using
+              (map->RethinkPool {:size c/db-pool-size :regenerate-interval 5})
+              [:sentry-capturer])
     :async-consumers (component/using
                         (map->AsyncConsumers {})
-                        [])
+                        [:sentry-capturer])
     :auth-notification (component/using
                   (map->AuthNotification {:auth-notification-fn auth-sqs-msg-handler})
                   [:db-pool])
@@ -128,7 +132,9 @@
                   (map->StorageNotification {:storage-notification-fn storage-sqs-msg-handler})
                   [:db-pool])
     :auth-sqs (sqs/sqs-listener sqs-creds auth-sqs-queue auth-sqs-msg-handler)
-    :storage-sqs (sqs/sqs-listener sqs-creds storage-sqs-queue storage-sqs-msg-handler)
+    :storage-sqs (component/using
+                  (sqs/sqs-listener sqs-creds storage-sqs-queue storage-sqs-msg-handler)
+                  [:sentry-capturer])
     :handler (component/using
                 (map->Handler {:handler-fn handler-fn})
                 [:db-pool])
