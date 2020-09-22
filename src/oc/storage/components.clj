@@ -26,7 +26,7 @@
         (timbre/info "[http] stopping...")
         (http-kit)
         (timbre/info "[http] stopped")
-        (dissoc component :http-kit))
+        (assoc component :http-kit nil))
       component)))
 
 (defrecord RethinkPool [size regenerate-interval pool]
@@ -45,7 +45,7 @@
         (timbre/info "[rethinkdb-pool] stopping...")
         (pool/shutdown-pool! pool)
         (timbre/info "[rethinkdb-pool] stopped")
-        (dissoc component :pool))
+        (assoc component :pool nil))
       component)))
 
 (defrecord AsyncConsumers []
@@ -63,7 +63,7 @@
         (timbre/info "[async-consumers] stopping")
         (notification/stop) ; core.async channel consumer for notification events
         (timbre/info "[async-consumers] stopped")
-        (dissoc component :async-consumers))
+        (assoc component :async-consumers nil))
     component)))
 
 (defrecord Handler [handler-fn]
@@ -73,7 +73,7 @@
     (assoc component :handler (handler-fn component)))
   (stop [component]
     (timbre/info "[handler] stopped")
-    (dissoc component :handler)))
+    (assoc component :handler nil)))
 
 (defrecord AuthNotification [auth-notification-fn]
   component/Lifecycle
@@ -90,7 +90,7 @@
         (timbre/info "[auth-notification] stopping...")
         (auth-notif/stop)
         (timbre/info "[auth-notification] stopped")
-        (dissoc component :auth-notification))
+        (assoc component :auth-notification nil))
       component)))
 
 (defrecord StorageNotification [storage-notification-fn]
@@ -108,7 +108,7 @@
         (timbre/info "[storage-notification] stopping...")
         (storage-notif/stop)
         (timbre/info "[storage-notification] stopped")
-        (dissoc component :storage-notification))
+        (assoc component :storage-notification nil))
       component)))
 
 (defn db-only-storage-system [_opts]
