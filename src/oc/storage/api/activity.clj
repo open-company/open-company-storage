@@ -1,5 +1,5 @@
 (ns oc.storage.api.activity
-  "Liberator API for org resources."
+  "Liberator API for entry collection resources."
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
