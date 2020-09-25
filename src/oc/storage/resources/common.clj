@@ -153,6 +153,7 @@
   :headline schema/Str
   :body schema/Str
   (schema/optional-key :abstract) (schema/maybe schema/Str)
+  (schema/optional-key :merged-abstract) (schema/maybe schema/Bool)
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
