@@ -19,7 +19,7 @@
                        :logo-width :org-logo-width
                        :logo-height :org-logo-height})
 
-(def representation-props [:uuid :headline :body :abstract :attachments :status :must-see :sample
+(def representation-props [:uuid :headline :body :attachments :status :must-see :sample
                            :org-uuid :org-name :org-slug :org-logo-url :org-logo-width :org-logo-height
                            :board-uuid :board-slug :board-name :board-access :publisher-board
                            :team-id :author :publisher :published-at :video-id :video-processed
