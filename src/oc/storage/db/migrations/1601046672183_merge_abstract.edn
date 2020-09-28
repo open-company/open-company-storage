@@ -9,8 +9,9 @@
   (println "Merge abstract text in the body as the first paragraph.")
   (println (-> (r/table entry-res/table-name)
                (r/filter (r/fn [entry]
-                           (r/and (r/has-fields entry [:abstract])
-                                  (r/not (r/get-field entry :merged-abstract)))))
+                          (r/and (r/ne (r/default (r/get-field entry [:abstract]) "")
+                                       "")
+                                 (r/not (r/default (r/get-field entry :abstract-merged) false)))))
                (r/update (r/fn [entry]
                           {:body (r/add "<p>"
                                         (r/get-field entry :abstract)
