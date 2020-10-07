@@ -132,12 +132,12 @@
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
-(defn- inbox-follow-link [org-slug board-slug entry-uuid]
+(defn- follow-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "follow" hateoas/POST (url org-slug board-slug entry-uuid :follow)
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
-(defn- inbox-unfollow-link [org-slug board-slug entry-uuid]
+(defn- unfollow-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "unfollow" hateoas/POST (url org-slug board-slug entry-uuid :unfollow)
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
@@ -289,9 +289,10 @@
                            (add-bookmark-link org-slug board-slug entry-uuid)))
         user-visibility (when user-id
                           (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry)))
-        ; inbox-link (if (:unfollow user-visibility)
-        ;              (inbox-follow-link org-slug board-slug entry-uuid)
-        ;              (inbox-unfollow-link org-slug board-slug entry-uuid))
+        user-visibility-link (if (:unfollow user-visibility)
+                               (follow-link org-slug board-slug entry-uuid)
+                               (unfollow-link org-slug board-slug entry-uuid))
+        member? (#{:author :viewer} access-level)
         links (cond-> []
                ;; secure UUID access
                secure-access?
@@ -300,16 +301,13 @@
                (not secure-access?)
                (concat [(self-link org-slug board-slug entry-uuid)
                         (up-link org-slug board-slug)])
-               ;; Generic links for all team members
+               ;; Generic links for all team members: share, bookmark and user-visibility
                (and (not secure-access?)
-                    (or (= access-level :author)
-                        (= access-level :viewer)))
+                    member?)
                (concat [(share-link org-slug board-slug entry-uuid)
-                         bookmarks-link
-                        ; (inbox-unread-link org-slug board-slug entry-uuid)
-                        ; (inbox-dismiss-link org-slug board-slug entry-uuid)
-                        ; inbox-link
-                        ])
+                        bookmarks-link
+                        user-visibility-link])
+
                ;; Only admins and the owner can edit or delete the entry
                (and (not secure-access?)
                     (or draft?
@@ -327,18 +325,12 @@
                ;; Accessing their drafts, or access by an author, both get interaction links
                (or (and draft?
                         (not secure-access?))
-                   (= access-level :author)
-                   (= access-level :viewer))
+                   member?)
                (concat [(content/comment-link org-uuid board-uuid entry-uuid)
                         (content/comments-link org-uuid board-uuid entry-uuid comments)
                         (content/mark-unread-link entry-uuid)])
-               ;; Access by viewers get comments
-               (= access-level :viewer)
-               (concat [(content/comment-link org-uuid board-uuid entry-uuid)
-                       (content/comments-link org-uuid board-uuid entry-uuid comments)
-                       (content/mark-unread-link entry-uuid)])
                ;; All memebers can react but only if there are less than x reactions
-               (and (or (= access-level :author) (= access-level :viewer))
+               (and member?
                     (< (count reaction-list) config/max-reaction-count))
                (conj (react-link org board entry-uuid))
                ;; Drafts need a publish link
