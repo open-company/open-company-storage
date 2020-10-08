@@ -40,6 +40,10 @@
    (schema/optional-key :client-id) (schema/maybe lib-schema/UUIDStr)
    (schema/optional-key :comment-add) schema/Bool})
 
+(def NotificationUser (-> common-res/User
+                       (dissoc :updated-at)
+                       (assoc (schema/optional-key :updated-at) lib-schema/ISO8601)))
+
 (def NotificationTrigger
   "
   A trigger for one of the various types of notifications that are published:
@@ -63,7 +67,7 @@
     (schema/optional-key :new) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
-    (schema/optional-key :notifications) (schema/maybe [common-res/User])
+    (schema/optional-key :notifications) (schema/maybe [NotificationUser])
     (schema/optional-key :old) (schema/conditional #(= (resource-type %) :entry) common-res/Entry
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
