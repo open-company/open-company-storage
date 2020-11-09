@@ -271,7 +271,7 @@
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              user-count (if user-is-member?
                                           (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
-                                            0 :recently-posted allowed-board-uuids {:count true})
+                                            0 :recently-posted allowed-board-uuids nil {:count true})
                                            0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
