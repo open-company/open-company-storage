@@ -58,7 +58,6 @@
     "  env: " c/sentry-env "\n"
     (when-not (clojure.string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
-    "Payments?: " c/payments-enabled? "\n"
     "Unread limit: " c/unread-days-limit " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
 

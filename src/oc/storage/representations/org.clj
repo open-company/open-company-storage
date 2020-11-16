@@ -160,13 +160,6 @@
         {:accept mt/entry-collection-media-type}))
     org))
 
-(defn- payments-link [{:keys [team-id]}]
-  (hateoas/link-map 
-    "payments"
-    hateoas/GET
-    (str config/payments-server-url "/teams/" team-id "/customer")
-    {:accept mt/payments-customer-media-type}))
-
 (defn- following-inbox-link [org access-level user]
   (if (and (not (:id-token user))
            (or (= access-level :author)
@@ -225,13 +218,9 @@
                                                (partial-update-link org)
                                                (add-author-link org)])
                        activity-links)
-        payments-links (if (and config/payments-enabled?
-                                (#{:viewer :author} access-level)) ; Only for members of current org
-                         (concat author-links [(payments-link org)])
-                         author-links)
         delete-sample-links (if sample-content?
-                              (concat payments-links [(delete-samples-link org)])
-                              payments-links)]
+                              (concat author-links [(delete-samples-link org)])
+                              author-links)]
     (assoc org :links delete-sample-links)))
 
 (def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
