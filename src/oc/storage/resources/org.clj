@@ -267,9 +267,11 @@
 ;; ----- Armageddon -----
 
 (defn delete-all-orgs!
-  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-  [conn]
-  {:pre [(db-common/conn? conn)]}
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
+   Second parameter has to be delete-them-all! to avoid confusing this with the delete-org! function."
+  [conn security-check]
+  {:pre [(db-common/conn? conn)
+         (= security-check "delete-them-all!")]}
   ;; Delete all interactions, entries, boards and orgs
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
