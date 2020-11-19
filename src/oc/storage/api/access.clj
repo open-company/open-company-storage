@@ -23,6 +23,9 @@
       (do (timbre/warn "Request body not processable as a user-id: " e)
         true))))
 
+(defn premium-org? [org user]
+  ((set (:premium-teams user)) (:team-id org)))
+
 ;; ----- Authorization -----
 
 (defun access-level-for
@@ -58,16 +61,17 @@
         teams (:teams user)
         admin (:admin user)
         org-uuid (:uuid org)
-        org-authors (set (:authors org))]
+        org-authors (set (:authors org))
+        premium? (premium-org? org user)]
     (cond
       ;; an admin of this org's team
-      ((set admin) (:team-id org)) {:access-level :author :role :admin}
+      ((set admin) (:team-id org)) {:access-level :author :role :admin :premium? premium?}
 
       ;; a named author of this org
-      (org-authors user-id) {:access-level :author}
+      (org-authors user-id) {:access-level :author :premium? premium?}
 
       ;; a team member of this org
-      ((set teams) (:team-id org)) {:access-level :viewer}
+      ((set teams) (:team-id org)) {:access-level :viewer :premium? premium?}
 
       ;; public access to orgs w/ at least 1 public board AND that allow public boards
       (and
@@ -108,27 +112,28 @@
         org-authors (set (:authors org))
         board-access (keyword (:access board))
         board-authors (set (:authors board))
-        board-viewers (set (:viewers board))]
+        board-viewers (set (:viewers board))
+        premium? (premium-org? org user)]
     (cond
 
       ;; a named author of this private board
-      (and (= board-access :private) (board-authors user-id)) {:access-level :author}
+      (and (= board-access :private) (board-authors user-id)) {:access-level :author :premium? premium?}
 
       (and (= board-access :team)
            (:publisher-board board))
-      {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer)}
+      {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer) :premium? premium?}
 
       ;; an admin of this org's team for this non-private board
-      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author :role :admin}
+      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author :role :admin :premium? premium?}
 
       ;; an org author of this non-private board
-      (and (not= board-access :private) (org-authors user-id)) {:access-level :author}
+      (and (not= board-access :private) (org-authors user-id)) {:access-level :author :premium? premium?}
 
       ;; a named viewer of this board
-      (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer}
+      (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer :premium? premium?}
 
       ;; a team member on a non-private board
-      (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer}
+      (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer :premium? premium?}
 
       ;; anyone else on a public board IF the org allows public boards
       (and (= board-access :public) (not (-> org :content-visibility :disallow-public-board)))
@@ -151,6 +156,14 @@
   [conn org-slug user]
   (let [access (access-level-for conn org-slug user)]
     (if (= (:access-level access) :public)
+      false
+      access)))
+
+(defn allow-premium
+  [conn org-slug user]
+  (let [access (access-level-for conn org-slug user)]
+    (if (or (= (:access-level access) :premium)
+            (not (:premium? access)))
       false
       access)))
 

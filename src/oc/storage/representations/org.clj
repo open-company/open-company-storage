@@ -3,6 +3,8 @@
   (:require [defun.core :refer (defun)]
             [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
+            [oc.storage.urls.board :as board-url]
+            [oc.storage.api.access :as access]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
@@ -32,13 +34,40 @@
 (defn partial-update-link [org] (hateoas/partial-update-link (url org) {:content-type mt/org-media-type
                                                                         :accept mt/org-media-type}))
 
-(defn- board-create-link [org] (hateoas/create-link (str (url org) "/boards/") {:content-type mt/board-media-type
-                                                                                :accept mt/board-media-type}))
+(defn- create-board-link [org] (hateoas/create-link (board-url/create-url (:slug org)) {:content-type mt/board-media-type
+                                                                                        :accept mt/board-media-type}))
+
+(defn- create-private-board-link [org]
+  (-> (str (board-url/create-url (:slug org)) "/private")
+      (hateoas/create-link {:content-type mt/board-media-type
+                            :accept mt/board-media-type})
+      (assoc :rel "create-private")))
+
+(defn- create-public-board-link [org]
+  (-> (str (board-url/create-url (:slug org)) "/public")
+      (hateoas/create-link {:content-type mt/board-media-type
+                            :accept mt/board-media-type})
+      (assoc :rel "create-public")))
 
 (defn- delete-samples-link [org]
   (hateoas/link-map "delete-samples" hateoas/DELETE (str (url org) "/entries/samples") {:content-type mt/entry-collection-media-type}))
 
-(defn- board-pre-flight-create-link [org] (dissoc (assoc (board-create-link org) :rel "pre-flight-create") :accept))
+(defn- create-board-pre-flight-link [org]
+  (-> (create-board-link org)
+      (assoc :rel "pre-flight-create")))
+
+(defn- create-board-links [org premium?]
+  (let [links [(create-board-pre-flight-link org)
+               (create-board-link org)
+               (when premium?
+                 (create-private-board-link org))
+               (when (and premium?
+                          (-> org
+                              :content-visibility
+                              :disallow-public-board
+                              not))
+                 (create-public-board-link org))]]
+    (remove nil? links)))
 
 (defn- add-author-link [org] 
   (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type}))
@@ -199,6 +228,7 @@
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
+        premium? (access/premium-org? org user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
                           (concat links [(active-users-link org)
                                          (activity-link org)
@@ -212,11 +242,12 @@
                                          (replies-link org)
                                          (digest-partial-link org)]) ; (calendar-link org) - not currently used
                           links)
+        board-links (create-board-links org premium?)
         author-links (if (and (not id-token) (= access-level :author) )
-                       (concat activity-links [(board-create-link org)
-                                               (board-pre-flight-create-link org)
-                                               (partial-update-link org)
-                                               (add-author-link org)])
+                       (concat activity-links
+                               [(partial-update-link org)
+                                (add-author-link org)]
+                               board-links)
                        activity-links)
         delete-sample-links (if sample-content?
                               (concat author-links [(delete-samples-link org)])

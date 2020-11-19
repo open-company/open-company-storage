@@ -48,7 +48,7 @@
   :allowed-methods [:options :get]
   
   ;; Media type client accepts
-  :allowed? (fn [ctx] (api-common/allow-anonymous ctx))
+  :allowed? api-common/allow-anonymous
 
   :available-media-types ["application/json" mt/org-collection-media-type]
   :handle-not-acceptable (fn [_] (api-common/only-accept 406 ["application/json" mt/org-collection-media-type]))

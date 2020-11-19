@@ -74,7 +74,7 @@
     (let [clean-entry (dissoc entry :publisher-board)]
       (entry-res/->entry conn entry-res/temp-uuid clean-entry author))))
 
-(defn- valid-new-board? [conn org-slug {board-map :data author :user}]
+(defn- valid-new-board? [conn org-slug board-access {board-map :data author :user}]
   (if-let [org (org-res/get-org conn org-slug)]
     (try
       (let [notifications (:private-notifications board-map)
@@ -87,11 +87,13 @@
                                          (:name author)
                                          %)))]
         (cond (and (:disallow-public-board (or (:content-visibility org) {}))
-                         (= (:access board-data) "public"))
+                   (= (:access board-data) "public"))
               [false, {:reason :disallowed-public-board}]
               (and (:publisher-board board-data)
                    (not config/publisher-board-enabled?))
               [false, {:reason :disallowed-publisher-board}]
+              (not= (keyword (:access board-data)) board-access)
+              [false, {:reason (keyword (str (:access board-data) "-acess-on-" (name board-access) "-endpoint"))}]
               :else
               {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
                :existing-org (api-common/rep org)
@@ -364,7 +366,7 @@
 
 
 ;; A resource for operations on a list of boards
-(defresource board-list [conn org-slug]
+(defresource board-create [conn org-slug board-access]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :post]
@@ -381,13 +383,15 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+    :post (fn [ctx] (if (= board-access :team)
+                      (access/allow-members conn org-slug (:user ctx))
+                      (access/allow-premium conn org-slug (:user ctx))))})
 
   ;; Validations
   :processable? (by-method {
     :options true
     :post (fn [ctx] (and (slugify/valid-slug? org-slug)
-                         (valid-new-board? conn org-slug ctx)))})
+                         (valid-new-board? conn org-slug board-access ctx)))})
   :conflict? (fn [ctx] (let [data (:data ctx)
                              new-slug (-> ctx :new-board :slug) ; proposed new slug
                              ;; some new slugs can be excluded from being checked during a pre-flight check only
@@ -396,12 +400,10 @@
                              excluded? (when exclude-slugs (exclude-slugs new-slug))] ; excluded slugs don't need checked
                         (not (or excluded?
                                  (board-res/slug-available? conn (org-res/uuid-for conn org-slug) new-slug)))))
-
   ;; Actions
   :post! (fn [ctx] (if (-> ctx :data :pre-flight)
                         true ; we were just checking if this would work
                         (create-board conn ctx org-slug)))
-
   ;; Responses
   :handle-created (fn [ctx] (let [pre-flight? (-> ctx :data :pre-flight)
                                   org (:existing-org ctx)
@@ -409,10 +411,9 @@
                                   board-slug (:slug new-board)]
                               (if pre-flight?
                                 (api-common/blank-response)
-                                (api-common/location-response
-                                  (board-url/url org-slug board-slug)
-                                  (board-rep/render-board org new-board ctx (default-board-params))
-                                  mt/board-media-type))))
+                                (api-common/location-response (board-url/url org-slug board-slug)
+                                                              (board-rep/render-board org new-board ctx (default-board-params))
+                                                              mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
@@ -482,22 +483,25 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Board operations
-      (ANY "/orgs/:org-slug/boards/:slug" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
-      (ANY "/orgs/:org-slug/boards/:slug/" [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
-      ;; Board creation
-      (OPTIONS "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
-      (POST "/orgs/:org-slug/boards/" [org-slug] (pool/with-pool [conn db-pool] (board-list conn org-slug)))
+     (ANY (board-url/url ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
+     (ANY (board-url/url ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
+      ;; Team board creation
+     (OPTIONS (board-url/create-url ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
+     (POST (board-url/create-url ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
+     ;; Public/Private board creation
+     (OPTIONS (board-url/create-url ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
+     (POST (board-url/create-url ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
       ;; Board author operations
-      (ANY "/orgs/:org-slug/boards/:slug/authors" [org-slug slug]
-        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
-      (ANY "/orgs/:org-slug/boards/:slug/authors/" [org-slug slug]
-        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
-      (ANY "/orgs/:org-slug/boards/:slug/authors/:user-id" [org-slug slug user-id]
-        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors user-id)))
+     (ANY (board-url/author-url ":org-slug" ":slug") [org-slug slug]
+       (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
+     (ANY (str (board-url/author-url ":org-slug" ":slug") "/") [org-slug slug]
+       (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
+     (ANY (board-url/author-url ":org-slug" ":slug" ":user-id") [org-slug slug user-id]
+       (pool/with-pool [conn db-pool] (member conn org-slug slug :authors user-id)))
       ;; Board viewer operations
-      (ANY "/orgs/:org-slug/boards/:slug/viewers" [org-slug slug]
-        (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers nil)))
-      (ANY "/orgs/:org-slug/boards/:slug/viewers/" [org-slug slug]
-        (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers nil)))
-      (ANY "/orgs/:org-slug/boards/:slug/viewers/:user-id" [org-slug slug user-id]
-        (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers user-id))))))
+     (ANY (board-url/viewer-url ":org-slug" ":slug") [org-slug slug]
+       (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers nil)))
+     (ANY (str (board-url/viewer-url ":org-slug" ":slug") "/") [org-slug slug]
+       (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers nil)))
+     (ANY (board-url/viewer-url ":org-slug" ":slug" ":user-id") [org-slug slug user-id]
+       (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers user-id))))))
