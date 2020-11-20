@@ -117,7 +117,6 @@
   (let [user-id (:user-id user)
         teams (:teams user)
         admin (:admin user)
-        org-uuid (:uuid org)
         org-authors (set (:authors org))
         board-access (keyword (:access board))
         board-authors (set (:authors board))
@@ -164,7 +163,7 @@
 
 (defn allow-team-admins-or-no-org
   ""
-  [conn user]
+  [_conn _user]
   ;; TODO
   {:access-level :author})
 

@@ -28,7 +28,7 @@
 
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."
-  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
+  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id ctx]
   (let [follow-data (activity-api/follow-parameters-map user-id (:slug org))
 
         following-follow-data (assoc follow-data :following true)
@@ -67,7 +67,7 @@
                                       replies-comments)
                       :comment-authors (map (comp :author first second) replies-authors) ;; Get the first map of each group of authors
                       :entry-count (count replies-data)})
-     (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) %) newly-created-boards)))))
+     (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) % ctx) newly-created-boards)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -117,7 +117,7 @@
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
                              board-uuids (map :uuid boards)
                              board-by-uuids (zipmap board-uuids boards)
-                             results (assemble-digest conn params org board-by-uuids allowed-boards user-id)]
+                             results (assemble-digest conn params org board-by-uuids allowed-boards user-id ctx)]
                           (digest-rep/render-digest params org "digest" results boards user))))
 
 ;; ----- Routes -----

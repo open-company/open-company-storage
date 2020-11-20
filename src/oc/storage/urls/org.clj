@@ -11,53 +11,41 @@
   ([org-map :guard map?] (org (:slug org-map))))
 
 (defun org-container
-  ([slug :guard string? container-slug :guard string?] (str (org slug) "/" container-slug))
-  ([slug :guard string? container-slug-kw :guard keyword?] (org-container slug (name container-slug-kw)))
-  ([org-map :guard map? container-slug] (org-container (:slug org-map) container-slug)))
+  ([o container-slug :guard string?] (str (org o) "/" container-slug))
+  ([o container-slug-kw :guard keyword?] (org-container o (name container-slug-kw))))
 
-(defun org-authors
-  ([slug :guard string?] (str (org-container slug :authors) "/"))
-  ([org-map :guard map?] (org-authors (:slug org-map))))
+(defn org-authors [org]
+  (str (org-container org :authors) "/"))
 
-(defun org-author
-  ([slug :guard string? user-id :guard string?] (str (org-authors slug) user-id))
-  ([org-map :guard map? user-id :guard string?] (org-author (:slug org-map) user-id)))
+(defn org-author [org user-id]
+  (str (org-authors org) user-id))
 
-(defun replies
-  ([slug :guard string?] (org-container slug :replies))
-  ([org-map :guard map?] (replies (:slug org-map))))
+(defn replies [org]
+  (org-container org :replies))
 
-(defun entries
-  ([slug :guard string?] (org-container slug :entries))
-  ([org-map :guard map?] (entries (:slug org-map))))
+(defn entries [org]
+  (org-container org :entries))
 
-(defun sample-entries
-  ([slug :guard string?] (str (entries slug) "/samples"))
-  ([org-map :guard map?] (sample-entries (:slug org-map))))
+(defn sample-entries [org]
+  (str (entries org) "/samples"))
 
-(defun contributions
-  ([slug :guard string?] (org-container slug :contributions))
-  ([org-map :guard map?] (contributions (:slug org-map))))
+(defn contributions [org]
+  (org-container org :contributions))
 
-(defun contribution
-  ([slug :guard string? contribution-id :guard string?] (str (org-container slug :contributions) "/" contribution-id))
-  ([org-map :guard map? contribution-id :guard string?] (contribution (:slug org-map) contribution-id)))
+(defn contribution [org contribution-id]
+  (str (org-container org :contributions) "/" contribution-id))
 
-(defun digest
-  ([slug :guard string?] (org-container slug :digest))
-  ([org-map :guard map?] (digest (:slug org-map))))
+(defn digest [org]
+  (org-container org :digest))
 
-(defun bookmarks
-  ([slug :guard string?] (org-container slug :bookmarks))
-  ([org-map :guard map?] (bookmarks (:slug org-map))))
+(defn bookmarks [org]
+  (org-container org :bookmarks))
 
-(defun inbox
-  ([slug :guard string?] (org-container slug :inbox))
-  ([org-map :guard map?] (inbox (:slug org-map))))
+(defn inbox [org]
+  (org-container org :inbox))
 
-(defun boards
-  ([slug :guard string?] (org-container slug :boards))
-  ([org-map :guard map?] (boards (:slug org-map))))
+(defn boards [org]
+  (org-container org :boards))
 
 (defn active-users
   [{:keys [team-id]}] (str config/auth-server-url "/teams/" team-id "/active-users"))

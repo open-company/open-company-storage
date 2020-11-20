@@ -103,7 +103,7 @@
             board (board-res/get-board conn (:uuid org) slug)
             board-data (dissoc board-props :private-notifications :note)]
     (if (and (:disallow-public-board (or (:content-visibility org) {}))
-             (not= (:access board) "public")
+             (not= (:access board-data) "public")
              (= (:access board-data) "public"))
       [false, {:reason :disallowed-public-board}]
       (let [updated-board (merge board (board-res/clean board-data))]

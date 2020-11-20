@@ -254,30 +254,36 @@
   {:user-id user-id
    :links (if (= access-level :author) [(remove-author-link org user-id)] [])})
 
+(defn- premium-filter [org-map premium?]
+  (if premium?
+    org-map
+    (dissoc org-map :brand-color)))
+
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
-  [org access-level user sample-content?]
-  (let [rep-props (if (or (= :author access-level) (= :viewer access-level))
+  [org {:keys [access-level user premium?]} sample-content?]
+  (let [rep-props (if (or (= :author access-level)
+                          (= :viewer access-level))
                     representation-props
-                    public-representation-props)]
-    (json/generate-string
-      (-> org
-        (org-links access-level user sample-content?)
-        (change-link access-level user)
-        (notify-link access-level user)
-        (interactions-link access-level user)
-        (reminders-link access-level user)
-        (bookmarks-link access-level user)
-        (recent-bookmarks-link access-level user)
-        ; (inbox-link access-level user)
-        ; (following-inbox-link access-level user)
-        ; (unfollowing-inbox-link access-level user)
-        (select-keys (conj rep-props :links)))
-      {:pretty config/pretty?})))
+                    public-representation-props)
+        org-repr (-> org
+                     (org-links access-level user sample-content?)
+                     (change-link access-level user)
+                     (notify-link access-level user)
+                     (interactions-link access-level user)
+                     (reminders-link access-level user)
+                     (bookmarks-link access-level user)
+                     (recent-bookmarks-link access-level user)
+                     ; (inbox-link access-level user)
+                     ; (following-inbox-link access-level user)
+                     ; (unfollowing-inbox-link access-level user)
+                     (select-keys (conj rep-props :links))
+                     (premium-filter premium?))]
+    (json/generate-string org-repr {:pretty config/pretty?})))
 
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
-  [orgs authed?]
+  [orgs {authed? :user}]
   (let [links [(hateoas/self-link org-urls/entry-point {:accept mt/org-collection-media-type}) auth-link
                (partial-secure-link)]
         full-links (if authed?

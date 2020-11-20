@@ -180,12 +180,16 @@
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
 
-(defn- valid-org-update? [conn slug org-props]
+(defn- valid-org-update? [conn slug ctx]
   (if-let [org (org-res/get-org conn slug)]
-    (let [updated-org (merge org (org-res/ignore-props org-props))
+    (let [org-props (:data ctx)
+          updated-org (merge org (org-res/ignore-props org-props))
           updating-org-name? (contains? org-props :name)
-          org-name (:name org-props)]
+          org-name (:name org-props)
+          premium-org? (:premium? ctx)]
       (if (and (lib-schema/valid? common-res/Org updated-org)
+               (or premium-org?
+                   (not (contains? org-props :brand-color)))
                (or (not updating-org-name?)
                    (and updating-org-name?
                         (<= (count org-name) org-name-max-length)
@@ -198,7 +202,7 @@
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
 ;; A resource for operations on a particular Org
-(defresource org [conn slug]
+(defresource org-item [conn slug]
   (api-common/open-company-anonymous-resource config/passphrase) ; verify validity of optional JWToken
 
   :allowed-methods [:options :get :patch]
@@ -223,7 +227,7 @@
   :processable? (by-method {
     :options true
     :get true
-    :patch (fn [ctx] (and (slugify/valid-slug? slug) (valid-org-update? conn slug (:data ctx))))})
+    :patch (fn [ctx] (and (slugify/valid-slug? slug) (valid-org-update? conn slug ctx)))})
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -291,23 +295,21 @@
                                                (entry-res/list-entries-for-user-replies conn org-id allowed-board-uuids user-id :asc
                                                 now :before 0 follow-data (:seen-at replies-seen) {:count true :unseen true}))
                                               false)
-                             board-reps (map #(board-rep/render-board-for-collection slug % draft-entry-count) full-boards)
+                             board-reps (map #(board-rep/render-board-for-collection slug % ctx draft-entry-count) full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
-                             has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
-                         (org-rep/render-org (-> org
-                                                 (assoc :boards (if user-is-member?
-                                                                  board-reps
-                                                                  (map #(dissoc % :authors :viewers) board-reps)))
-                                                 (assoc :total-count total-count)
-                                                 (assoc :bookmarks-count bookmarks-count)
-                                                 (assoc :badge-following badge-following?)
-                                                 (assoc :badge-replies badge-replies?)
-                                                 (assoc :contributions-count user-count)
-                                                 (assoc :authors author-reps))
-                                             (:access-level ctx)
-                                             user
-                                             has-sample-content?)))
+                             has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)
+                             org-map (-> org
+                                         (assoc :boards (if user-is-member?
+                                                          board-reps
+                                                          (map #(dissoc % :authors :viewers) board-reps)))
+                                         (assoc :total-count total-count)
+                                         (assoc :bookmarks-count bookmarks-count)
+                                         (assoc :badge-following badge-following?)
+                                         (assoc :badge-replies badge-replies?)
+                                         (assoc :contributions-count user-count)
+                                         (assoc :authors author-reps))]
+                         (org-rep/render-org org-map ctx has-sample-content?)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
 
@@ -421,7 +423,7 @@
                                   org-id (:uuid new-org)
                                   user-id (-> ctx :user :user-id)
                                   boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :publisher-board :access :slack-mirror])
-                                  board-reps (map #(board-rep/render-board-for-collection slug % 0)
+                                  board-reps (map #(board-rep/render-board-for-collection slug % ctx 0)
                                                 (map #(assoc % :access-level :author) boards))
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
                                   org-for-rep (-> new-org
@@ -430,10 +432,10 @@
                                   has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                               (api-common/location-response
                                 (org-urls/org slug)
-                                (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)
+                                (org-rep/render-org org-for-rep (assoc ctx :access-level :author) has-sample-content?)
                                   mt/org-media-type)))
   :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
-                         (org-rep/render-org-list existing-orgs (:user ctx))))
+                         (org-rep/render-org-list existing-orgs ctx)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
@@ -446,8 +448,8 @@
       (ANY org-urls/orgs [] (pool/with-pool [conn db-pool] (org-list conn)))
       (ANY org-urls/orgs [] (pool/with-pool [conn db-pool] (org-list conn)))
       ;; Org operations
-      (ANY (org-urls/org ":slug") [slug] (pool/with-pool [conn db-pool] (org conn slug)))
-      (ANY (str (org-urls/org ":slug") "/") [slug] (pool/with-pool [conn db-pool] (org conn slug)))
+      (ANY (org-urls/org ":slug") [slug] (pool/with-pool [conn db-pool] (org-item conn slug)))
+      (ANY (str (org-urls/org ":slug") "/") [slug] (pool/with-pool [conn db-pool] (org-item conn slug)))
       ;; Org author operations
       (OPTIONS (org-urls/org-authors ":slug") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
       (OPTIONS (str (org-urls/org-authors ":slug") "/") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))

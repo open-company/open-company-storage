@@ -76,22 +76,30 @@
         ref-link (when refresh-url (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/board-media-type}))]
     ref-link))
 
-(defn- board-collection-links [board org-slug draft-count]
+(defn- board-collection-links [board org-slug draft-count ctx]
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
         is-drafts-board? (drafts-board? board)
         links (remove nil?
-               [(self-link org-slug board-slug :recently-posted options)
-                (when-not is-drafts-board?
-                  (self-link org-slug board-slug :recent-activity options))])
-        full-links (if (and (= :author (:access-level board))
-                            (not is-drafts-board?))
-          ;; Author gets create link
-          (concat links [(create-entry-link org-slug board-slug)
-                         (partial-update-link org-slug board-slug)
-                         (delete-link org-slug board-slug)])
-          ;; No create link
-          links)]
+                      [(self-link org-slug board-slug :recently-posted options)
+                       (when-not is-drafts-board?
+                         (self-link org-slug board-slug :recent-activity options))])
+        author? (= :author (:access-level board))
+        can-create-entry? (or (:premium? ctx)
+                              (= "team" (:access board)))
+        full-links (cond-> links
+                     (and (not is-drafts-board?)
+                          author?
+                          can-create-entry?)
+                     ;; User is author and can create posts (premium org or team board)
+                     (concat [(create-entry-link org-slug board-slug)
+                              (partial-update-link org-slug board-slug)
+                              (delete-link org-slug board-slug)])
+                     (and (not is-drafts-board?)
+                          author?)
+                     ;; User is author but no premium (no team board)
+                     (concat [(partial-update-link org-slug board-slug)
+                              (delete-link org-slug board-slug)]))]
     (assoc board :links full-links)))
 
 (defn- board-links
@@ -119,9 +127,9 @@
 
 (defn render-author-for-collection
   "Create a map of the board author for use in a collection in the REST API"
-  [org-slug slug user-id access-level]
+  [org-slug board-slug user-id access-level]
   {:user-id user-id
-   :links (if (= access-level :author) [(remove-author-link org-slug slug user-id)] [])})
+   :links (if (= access-level :author) [(remove-author-link org-slug board-slug user-id)] [])})
 
 (defn render-viewer-for-collection
   "Create a map of the board viewer for use in a collection in the REST API"
@@ -136,13 +144,13 @@
 
 (defn render-board-for-collection
   "Create a map of the board for use in a collection in the REST API"
-  ([org-slug board] (render-board-for-collection org-slug board 0))
+  ([org-slug board ctx] (render-board-for-collection org-slug board ctx 0))
 
-  ([org-slug board draft-entry-count]
+  ([org-slug board ctx draft-entry-count]
   (let [this-board-count (if (drafts-board? board) draft-entry-count 0)]
     (-> board
       (select-keys (conj representation-props :access-level))
-      (board-collection-links org-slug this-board-count)
+      (board-collection-links org-slug this-board-count ctx)
       (dissoc :access-level)))))
 
 (defn render-board
