@@ -20,8 +20,8 @@
       [false {:data user-id}]
       true)
     (catch Exception e
-      (do (timbre/warn "Request body not processable as a user-id: " e)
-        true))))
+      (timbre/warn "Request body not processable as a user-id: " e)
+      true)))
 
 (defn premium-org? [org user]
   ((set (:premium-teams user)) (:team-id org)))
@@ -62,22 +62,31 @@
         admin (:admin user)
         org-uuid (:uuid org)
         org-authors (set (:authors org))
-        premium? (premium-org? org user)]
+        premium? (premium-org? org user)
+        member? ((set teams) (:team-id org))
+        admin? ((set admin) (:team-id org))
+        role (cond admin?  :admin
+                   member? :member
+                   :else   :anonymous)
+        base-access {:role role :premium? premium?}]
     (cond
       ;; an admin of this org's team
-      ((set admin) (:team-id org)) {:access-level :author :role :admin :premium? premium?}
+      ((set admin) (:team-id org))
+      (merge base-access {:access-level :author})
 
       ;; a named author of this org
-      (org-authors user-id) {:access-level :author :premium? premium?}
+      (org-authors user-id)
+      (merge base-access {:access-level :author})
 
       ;; a team member of this org
-      ((set teams) (:team-id org)) {:access-level :viewer :premium? premium?}
+      ((set teams) (:team-id org))
+      (merge base-access {:access-level :viewer})
 
       ;; public access to orgs w/ at least 1 public board AND that allow public boards
       (and
         (seq (board-res/list-boards-by-index conn "org-uuid-access" [[org-uuid "public"]]))
         (not (-> org :content-visibility :disallow-public-board)))
-      {:access-level :public}
+      (merge base-access {:access-level :public})
 
       ;; no access
       :else false)))
@@ -113,31 +122,42 @@
         board-access (keyword (:access board))
         board-authors (set (:authors board))
         board-viewers (set (:viewers board))
-        premium? (premium-org? org user)]
+        premium? (premium-org? org user)
+        member? ((set teams) (:team-id org))
+        admin? ((set admin) (:team-id org))
+        role (cond admin?  :admin
+                   member? :member
+                   :else   :anonymous)
+        base-access {:role role :premium? premium?}]
     (cond
 
       ;; a named author of this private board
-      (and (= board-access :private) (board-authors user-id)) {:access-level :author :premium? premium?}
+      (and (= board-access :private) (board-authors user-id))
+      (merge base-access {:access-level :author})
 
       (and (= board-access :team)
            (:publisher-board board))
-      {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer) :premium? premium?}
+      (merge base-access {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer)})
 
       ;; an admin of this org's team for this non-private board
-      (and (not= board-access :private) ((set admin) (:team-id org))) {:access-level :author :role :admin :premium? premium?}
+      (and (not= board-access :private) ((set admin) (:team-id org)))
+      (merge base-access {:access-level :author})
 
       ;; an org author of this non-private board
-      (and (not= board-access :private) (org-authors user-id)) {:access-level :author :premium? premium?}
+      (and (not= board-access :private) (org-authors user-id))
+      (merge base-access {:access-level :author})
 
       ;; a named viewer of this board
-      (and (= board-access :private) (board-viewers user-id)) {:access-level :viewer :premium? premium?}
+      (and (= board-access :private) (board-viewers user-id))
+      (merge base-access {:access-level :viewer})
 
       ;; a team member on a non-private board
-      (and (not= board-access :private) ((set teams) (:team-id org))) {:access-level :viewer :premium? premium?}
+      (and (not= board-access :private) ((set teams) (:team-id org)))
+      (merge base-access {:access-level :viewer})
 
       ;; anyone else on a public board IF the org allows public boards
       (and (= board-access :public) (not (-> org :content-visibility :disallow-public-board)))
-      {:access-level :public}
+      (merge base-access {:access-level :public})
 
       ;; no access
       :else false))))
