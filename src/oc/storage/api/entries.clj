@@ -2,7 +2,7 @@
   "Liberator API for entry resources."
   (:require [clojure.string :as s]
             [defun.core :refer (defun-)]
-            [if-let.core :refer (if-let* when-let*)]
+            [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
@@ -23,7 +23,10 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]))
+            [oc.storage.resources.reaction :as reaction-res]
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.activity :as activity-urls]))
 
 ;; ----- Utility functions -----
 
@@ -68,8 +71,7 @@
       (try
         ;; Create the new entry from the URL and data provided
         (let [clean-entry-map (dissoc entry-map :publisher-board)
-              new-entry (entry-res/->entry conn (:uuid existing-board) clean-entry-map author)
-              ts (db-common/current-timestamp)]
+              new-entry (entry-res/->entry conn (:uuid existing-board) clean-entry-map author)]
           {:new-entry (api-common/rep new-entry)
            :existing-board (api-common/rep existing-board)
            :existing-org (api-common/rep org)})
@@ -132,7 +134,6 @@
                            (not= new-board-slug (:slug old-board))
                            (not new-board*))
                       (create-publisher-board conn org user))
-          new-board-uuid (:uuid new-board)
           clean-entry-props (cond-> entry-props
                               moving-board? (assoc :board-uuid (:uuid new-board))
                               (not moving-board?) (dissoc :board-uuid)
@@ -142,7 +143,6 @@
                          (merge (entry-res/ignore-props clean-entry-props))
                          (update :attachments #(entry-res/timestamp-attachments %))
                          (clean-polls-for-patch existing-entry))
-          ts (db-common/current-timestamp)
           ctx-base (if moving-board?
                      {:moving-board (api-common/rep old-board)}
                      {})]
@@ -283,7 +283,7 @@
                         (assoc :auto-share true))]
       (share-entry conn share-ctx (:uuid entry-result)))))
 
-(defn undraft-board [conn user org board]
+(defn undraft-board [conn _user _org board]
   (when (:draft board)
     (let [updated-board (assoc board :draft false)]
       (timbre/info "Unsetting draft for board:" (:slug board))
@@ -604,7 +604,7 @@
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
-                                (entry-rep/url org-slug (:slug existing-board) (:uuid new-entry))
+                                (entry-urls/entry org-slug (:slug existing-board) (:uuid new-entry))
                                 (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] [] {:access-level :author} (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
@@ -1051,114 +1051,114 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Delete sample posts
-      (OPTIONS "/orgs/:org-slug/entries/samples"
+      (OPTIONS (org-urls/sample-entries ":org-slug")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (OPTIONS "/orgs/:org-slug/entries/samples/"
+      (OPTIONS (str (org-urls/sample-entries ":org-slug") "/")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (DELETE "/orgs/:org-slug/entries/samples"
+      (DELETE (org-urls/sample-entries ":org-slug")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (DELETE "/orgs/:org-slug/entries/samples/"
+      (DELETE (str (org-urls/sample-entries ":org-slug") "/")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
       ;; Secure UUID access
-      (ANY "/orgs/:org-slug/entries/:secure-uuid"
+      (ANY (entry-urls/secure-entry ":org-slug" ":secure-uuid")
         [org-slug secure-uuid]
         (pool/with-pool [conn db-pool]
           (entry-access conn org-slug secure-uuid)))
-      (ANY "/orgs/:org-slug/entries/:secure-uuid/"
+      (ANY (str (entry-urls/secure-entry ":org-slug" ":secure-uuid") "/")
         [org-slug secure-uuid]
         (pool/with-pool [conn db-pool]
           (entry-access conn org-slug secure-uuid)))
       ;; Entry list operations
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries"
+      (ANY (entry-urls/entries ":org-slug" ":board-slug")
         [org-slug board-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug board-slug)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/"
+      (ANY (str (entry-urls/entries ":org-slug" ":board-slug") "/")
         [org-slug board-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug board-slug)))
       ;; Entry operations
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid"
+      (ANY (entry-urls/entry ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (entry conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish"
+      (ANY (entry-urls/publish ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish/"
+      (ANY (str (entry-urls/publish ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert"
+      (ANY (entry-urls/revert ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (revert-version conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert/"
+      (ANY (str (entry-urls/revert ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (revert-version conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
+      (ANY (entry-urls/share ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (share conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
+      (ANY (str (entry-urls/share ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (share conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark"
+      (ANY (entry-urls/bookmark ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (bookmark conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark/"
+      (ANY (str (entry-urls/bookmark ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (bookmark conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/inbox/dismiss"
+      (ANY (activity-urls/inbox-dismiss-all ":org-slug")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (inbox-dismiss-all conn org-slug)))
-      (ANY "/orgs/:org-slug/inbox/dismiss/"
+      (ANY (str (activity-urls/inbox-dismiss-all ":org-slug") "/")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (inbox-dismiss-all conn org-slug)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/dismiss"
+      (ANY (entry-urls/inbox-dismiss ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/dismiss/"
+      (ANY (str (entry-urls/inbox-dismiss ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unread"
+      (ANY (entry-urls/inbox-unread ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unread/"
+      (ANY (str (entry-urls/inbox-unread ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow"
+      (ANY (entry-urls/inbox-follow ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :follow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow/"
+      (ANY (str (entry-urls/inbox-follow ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :follow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unfollow"
+      (ANY (entry-urls/inbox-unfollow ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unfollow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unfollow/"
+      (ANY (str (entry-urls/inbox-unfollow ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unfollow))))))

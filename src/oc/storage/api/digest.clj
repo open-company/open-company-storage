@@ -17,7 +17,6 @@
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.lib.time :as oc-time]
-            [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.read :as read]
             [clj-time.core :as clj-time]
             [clj-time.coerce :as clj-coerce]))
@@ -29,7 +28,7 @@
 
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."
-  [conn {start :start direction :direction limit :limit :as params} org board-by-uuids allowed-boards user-id]
+  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
   (let [follow-data (activity-api/follow-parameters-map user-id (:slug org))
 
         following-follow-data (assoc follow-data :following true)
@@ -91,7 +90,7 @@
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
                               ;; Start is always set for digest
-                              valid-start? (try (Long. start) (catch java.lang.NumberFormatException e false))
+                              valid-start? (try (Long. start) (catch java.lang.NumberFormatException _ false))
                               direction (keyword (:direction ctx-params))
                               ;; direction is always set to after for digest
                               valid-direction? (= direction :after)]

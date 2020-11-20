@@ -4,6 +4,8 @@
   (:require
     [oc.lib.sentry.core :as sentry]
     [taoensso.timbre :as timbre]
+    [clojure.string :as clj-string]
+    [clojure.java.io :as j-io]
     [ring.logger.timbre :refer (wrap-with-logger)]
     [liberator.dev :refer (wrap-trace)]
     [ring.middleware.params :refer (wrap-params)]
@@ -56,7 +58,7 @@
     "Log level: " c/log-level "\n"
     "Sentry: " c/dsn "\n"
     "  env: " c/sentry-env "\n"
-    (when-not (clojure.string/blank? c/sentry-release)
+    (when-not (clj-string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
     "Unread limit: " c/unread-days-limit " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
@@ -98,7 +100,7 @@
 
   ;; Echo config information
   (println (str "\n"
-    (when c/intro? (str (slurp (clojure.java.io/resource "oc/assets/ascii_art.txt")) "\n"))
+    (when c/intro? (str (slurp (j-io/resource "oc/assets/ascii_art.txt")) "\n"))
     "OpenCompany Storage Service\n"))
   (echo-config port))
   

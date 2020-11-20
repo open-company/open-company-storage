@@ -1,6 +1,7 @@
 (ns oc.storage.resources.entry
   (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let* when-let*)]
+            [if-let.core :refer (if-let*)]
+            [clojure.set :as clj-set]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
             [oc.lib.schema :as lib-schema]
@@ -33,7 +34,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  (clojure.set/union common/reserved-properties #{:board-slug :published-at :publisher :secure-uuid :user-visibility}))
+  (clj-set/union common/reserved-properties #{:board-slug :published-at :publisher :secure-uuid :user-visibility}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
@@ -125,15 +126,15 @@
                      (assoc :version-uuid (str (:uuid original-entry)
                                                "-v" revision-id))
                      (assoc :revision-date ts)
-                     (assoc :revision-author (first (:author original-entry))))]
-    (let [updated-entry (if-not (:deleted original-entry)
-                          (update-entry conn
-                            (assoc updated-entry :revision-id revision-id-new)
-                            updated-entry
-                            ts)
-                          updated-entry)]
-      (db-common/create-resource conn versions-table-name revision ts)
-      updated-entry)))
+                     (assoc :revision-author (first (:author original-entry))))
+        updated-entry (if-not (:deleted original-entry)
+                        (update-entry conn
+                                      (assoc updated-entry :revision-id revision-id-new)
+                                      updated-entry
+                                      ts)
+                        updated-entry)]
+    (db-common/create-resource conn versions-table-name revision ts)
+    updated-entry))
 
 (defn- remove-version [conn entry version]
   (let [version-uuid (str (:uuid entry) "-v" version)]
@@ -258,7 +259,7 @@
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry)]}
-  (if-let [original-entry (get-entry conn uuid)]
+  (when-let [original-entry (get-entry conn uuid)]
    (let [updated-entry (add-author-to-entry original-entry entry user)]
      (update-entry conn updated-entry original-entry (db-common/current-timestamp)))))
 
@@ -273,7 +274,7 @@
   [conn uuid :- lib-schema/UniqueID entry]
   {:pre [(db-common/conn? conn)
          (map? entry)]}
-  (if-let [original-entry (get-entry conn uuid)]
+  (when-let [original-entry (get-entry conn uuid)]
     (update-entry conn entry original-entry (db-common/current-timestamp))))
 
 (schema/defn ^:always-validate update-entry! :- (schema/maybe common/Entry)
@@ -299,7 +300,7 @@
   If entry is found update otherwise create the new entry.
   "
   [conn entry user]
-  (if-let [original-entry (get-entry conn (:uuid entry))]
+  (if (get-entry conn (:uuid entry))
     (update-entry! conn (:uuid entry) entry user)
     (create-entry! conn entry)))
 
@@ -309,12 +310,12 @@
   publish the entry and return the updated entry on success.
   "
   ([conn uuid :- lib-schema/UniqueID org :- common/Org user :- lib-schema/User]
-   (publish-entry! conn uuid {} org user false))
+   (publish-entry! conn uuid {} org user))
 
-  ([conn uuid :- lib-schema/UniqueID entry-props org :- common/Org user :- lib-schema/User]
+  ([conn uuid :- lib-schema/UniqueID entry-props _org :- common/Org user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
-  (if-let [original-entry (get-entry conn uuid)]
+  (when-let [original-entry (get-entry conn uuid)]
     (let [authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
@@ -346,7 +347,7 @@
 
 (schema/defn ^:always-validate revert-entry!
   "Given the UUID of the entry and revision, replace current revision with specified. Return `true` on success."
-  [conn entry entry-version user]
+  [conn _entry entry-version user]
   {:pre [(db-common/conn? conn)]}
   (let [new-entry (dissoc entry-version
                           :revision-id
@@ -453,7 +454,7 @@
    (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards nil {:count false}))
 
   ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at]
-   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards nil {:count false}))
+   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards container-last-seen-at {:count false}))
 
   ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
@@ -499,7 +500,7 @@
 
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
     allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
-   (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count false}))
+   (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count count}))
 
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
    allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [count] :or {count false}}]
@@ -524,14 +525,14 @@
 
 (schema/defn ^:always-validate list-all-bookmarked-entries
   "Given the UUID of the user, return all the published entries with a bookmark for the given user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber direction limit]
-    (list-all-bookmarked-entries conn org-uuid user-id order start direction limit :bookmarked-at {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber direction limit {:keys [count] :or {count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] order start :- LongNumber direction limit]
+    (list-all-bookmarked-entries conn org-uuid user-id allowed-boards order start direction limit {:count false}))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] order start :- LongNumber direction limit {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)]}
   (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
-   [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name nil
+   [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name allowed-boards
    nil nil list-comment-properties user-id {:count count})))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
@@ -561,7 +562,7 @@
   ([conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID]
    {:pre [(db-common/conn? conn)]}
    (get-poll conn (get-entry conn entry-uuid) poll-uuid))
-  ([conn entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID]
+  ([conn _entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID]
    {:pre [(db-common/conn? conn)]}
    (get-in entry [:polls (keyword poll-uuid)])))
 
@@ -573,7 +574,7 @@
   ([conn entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID reply-id :- lib-schema/UniqueID]
    {:pre [(db-common/conn? conn)]}
    (get-poll-reply conn entry-uuid entry poll-uuid (get-poll conn entry-uuid entry poll-uuid) reply-id))
-  ([conn entry-uuid :- lib-schema/UniqueID entry :- common/Entry poll-uuid :- lib-schema/UniqueID poll :- common/Poll reply-id :- lib-schema/UniqueID]
+  ([conn _entry-uuid :- lib-schema/UniqueID _entry :- common/Entry _poll-uuid :- lib-schema/UniqueID poll :- common/Poll reply-id :- lib-schema/UniqueID]
    {:pre [(db-common/conn? conn)]}
    (get-in poll [:replies (keyword reply-id)])))
 

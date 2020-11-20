@@ -2,13 +2,14 @@
   "Resource representations for OpenCompany entries."
   (:require [defun.core :refer (defun defun-)]
             [cheshire.core :as json]
+            [clojure.set :as clj-set]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
+            [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.board :as board-urls]
+            [oc.storage.urls.org :as org-urls]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]
-            [oc.storage.urls.board :as board-url]
             [oc.storage.representations.content :as content]
-            [oc.storage.api.access :as access]
             [oc.storage.resources.reaction :as reaction-res]
             [oc.lib.change.resources.read :as read]))
 
@@ -46,48 +47,28 @@
 
 ;; ----- Representation -----
 
-(defun url
-
-  ([org-slug nil]
-  (str "/orgs/" org-slug  "/bookmarks"))
-
-  ([org-slug board-slug]
-  (str (board-url/url org-slug board-slug) "/entries"))
-  
-  ([org-slug board-slug entry :guard map?] (url org-slug board-slug (:uuid entry)))
-
-  ([org-slug board-slug entry-uuid]
-  (str (url org-slug board-slug) "/" entry-uuid))
-
-  ([org-slug board-slug entry-uuid inbox-action :guard #(and (keyword? %)
-                                                             #{:dismiss :unread :follow :unfollow} %)]
-  (str (url org-slug board-slug entry-uuid) "/" (name inbox-action)))
-
-  ([org-slug board-slug entry-uuid _bookmark? :guard true?]
-  (str (url org-slug board-slug entry-uuid) "/bookmark/")))
-
 (defn self-link [org-slug board-slug entry-uuid]
-  (hateoas/self-link (url org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
+  (hateoas/self-link (entry-urls/entry org-slug board-slug entry-uuid) {:accept mt/entry-media-type}))
 
 (defn- secure-self-link [org-slug entry-uuid]
-  (hateoas/self-link (org-rep/secure-url org-slug entry-uuid) {:accept mt/entry-media-type}))
+  (hateoas/self-link (entry-urls/secure-entry org-slug entry-uuid) {:accept mt/entry-media-type}))
 
 (defn secure-link [org-slug secure-uuid]
-  (hateoas/link-map "secure" hateoas/GET (org-rep/secure-url org-slug secure-uuid) {:accept mt/entry-media-type}))
+  (hateoas/link-map "secure" hateoas/GET (entry-urls/secure-entry org-slug secure-uuid) {:accept mt/entry-media-type}))
 
 (defn- create-link [org-slug board-slug]
-  (hateoas/create-link (str (url org-slug board-slug) "/") {:content-type mt/entry-media-type
-                                                            :accept mt/entry-media-type}))
+  (hateoas/create-link (str (entry-urls/entries org-slug board-slug) "/") {:content-type mt/entry-media-type
+                                                                           :accept mt/entry-media-type}))
 
 (defn- partial-update-link [org-slug board-slug entry-uuid]
-  (hateoas/partial-update-link (url org-slug board-slug entry-uuid) {:content-type mt/entry-media-type
-                                                                     :accept mt/entry-media-type}))
+  (hateoas/partial-update-link (entry-urls/entry org-slug board-slug entry-uuid) {:content-type mt/entry-media-type
+                                                                                  :accept mt/entry-media-type}))
 
 (defn- delete-link [org-slug board-slug entry-uuid]
-  (hateoas/delete-link (url org-slug board-slug entry-uuid)))
+  (hateoas/delete-link (entry-urls/entry org-slug board-slug entry-uuid)))
 
 (defn- publish-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "publish" hateoas/POST (str (url org-slug board-slug entry-uuid) "/publish")
+  (hateoas/link-map "publish" hateoas/POST (entry-urls/publish org-slug board-slug entry-uuid)
     {:content-type mt/entry-media-type
      :accept mt/entry-media-type}))
 
@@ -99,81 +80,69 @@
      :accept mt/reaction-media-type}))
 
 (defn- share-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "share" hateoas/POST (str (url org-slug board-slug entry-uuid) "/share")
+  (hateoas/link-map "share" hateoas/POST (entry-urls/share org-slug board-slug entry-uuid)
     {:content-type mt/share-request-media-type
      :accept mt/entry-media-type}))
 
 (defun up-link 
   ([org-slug nil]
-  (hateoas/up-link (str "/" org-slug) {:accept mt/org-media-type}))
+  (hateoas/up-link (org-urls/org org-slug) {:accept mt/org-media-type}))
   ([org-slug board-slug]
-  (hateoas/up-link (board-url/url org-slug board-slug) {:accept mt/board-media-type})))
+  (hateoas/up-link (board-urls/board org-slug board-slug) {:accept mt/board-media-type})))
 
 (defn- revert-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "revert" hateoas/POST (str (url org-slug board-slug entry-uuid) "/revert")
+  (hateoas/link-map "revert" hateoas/POST (entry-urls/revert org-slug board-slug entry-uuid)
     {:content-type mt/revert-request-media-type
      :accept mt/entry-media-type}))
 
 (defn- add-bookmark-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "bookmark" hateoas/POST (url org-slug board-slug entry-uuid true)
+  (hateoas/link-map "bookmark" hateoas/POST (entry-urls/bookmark org-slug board-slug entry-uuid)
     {:accept mt/entry-media-type}))
 
 (defn- remove-bookmark-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "bookmark" hateoas/DELETE (url org-slug board-slug entry-uuid true)
+  (hateoas/link-map "bookmark" hateoas/DELETE (entry-urls/bookmark org-slug board-slug entry-uuid)
     {:accept mt/entry-media-type}))
 
-(defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "dismiss" hateoas/POST (url org-slug board-slug entry-uuid :dismiss)
-    {:accept mt/entry-media-type
-     :content-type "text/plain"}))
+;; (defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
+;;   (hateoas/link-map "dismiss" hateoas/POST (entry-urls/inbox-dismiss org-slug board-slug entry-uuid)
+;;     {:accept mt/entry-media-type
+;;      :content-type "text/plain"}))
 
-(defn- inbox-unread-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "unread" hateoas/POST (url org-slug board-slug entry-uuid :unread)
-    {:accept mt/entry-media-type
-     :content-type "text/plain"}))
+;; (defn- inbox-unread-link [org-slug board-slug entry-uuid]
+;;   (hateoas/link-map "unread" hateoas/POST (entry-urls/inbox-unread org-slug board-slug entry-uuid)
+;;     {:accept mt/entry-media-type
+;;      :content-type "text/plain"}))
 
 (defn- follow-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "follow" hateoas/POST (url org-slug board-slug entry-uuid :follow)
+  (hateoas/link-map "follow" hateoas/POST (entry-urls/inbox-follow org-slug board-slug entry-uuid)
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
 (defn- unfollow-link [org-slug board-slug entry-uuid]
-  (hateoas/link-map "unfollow" hateoas/POST (url org-slug board-slug entry-uuid :unfollow)
+  (hateoas/link-map "unfollow" hateoas/POST (entry-urls/inbox-unfollow org-slug board-slug entry-uuid)
     {:accept mt/entry-media-type
      :content-type "text/plain"}))
 
-(defn- poll-url [org-slug board-slug entry-uuid poll-uuid]
-  (str (url org-slug board-slug entry-uuid) "/polls/" poll-uuid))
-
-(defn- poll-replies-url [org-slug board-slug entry-uuid poll-uuid]
-  (str (poll-url org-slug board-slug entry-uuid poll-uuid) "/replies"))
-
-(defn- poll-reply-url [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (str (poll-replies-url org-slug board-slug entry-uuid poll-uuid) "/" reply-id))
-
-(defn- poll-reply-vote-url [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (str (poll-reply-url org-slug board-slug entry-uuid poll-uuid reply-id) "/vote"))
-
 (defn- poll-add-reply-link [org-slug board-slug entry-uuid poll-uuid]
-  (hateoas/link-map "reply" hateoas/POST (poll-replies-url org-slug board-slug entry-uuid poll-uuid)
+  (hateoas/link-map "reply" hateoas/POST (entry-urls/poll-reply org-slug board-slug entry-uuid poll-uuid)
     {:accept mt/poll-reply-media-type
      :content-type "text/plain"}))
 
 (defn- poll-delete-reply-link [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (hateoas/link-map "delete" hateoas/DELETE (poll-reply-url org-slug board-slug entry-uuid poll-uuid reply-id)
+  (hateoas/link-map "delete" hateoas/DELETE (entry-urls/poll-reply org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/poll-reply-media-type}))
 
 (defn- poll-vote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (hateoas/link-map "vote" hateoas/POST (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+  (hateoas/link-map "vote" hateoas/POST (entry-urls/poll-reply-vote org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/poll-media-type}))
 
 (defn- poll-unvote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (hateoas/link-map "unvote" hateoas/DELETE (poll-reply-vote-url org-slug board-slug entry-uuid poll-uuid reply-id)
+  (hateoas/link-map "unvote" hateoas/DELETE (entry-urls/poll-reply-vote org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/poll-media-type}))
 
 (defn include-secure-uuid
   "Include secure UUID property for authors."
-  [entry secure-uuid access-level]
+  [entry secure-uuid _access-level]
   (assoc entry :secure-uuid secure-uuid))
 
 (defn include-interactions
@@ -247,7 +216,7 @@
   ([org board entry comments reactions access-level user-id] 
   (entry-and-links org board entry comments reactions access-level user-id false))
 
-  ([org board entry comments reactions {:keys [access-level role] :as access} user-id secure-access?]
+  ([org board entry comments reactions {:keys [access-level role]} user-id secure-access?]
   (let [entry-uuid (:uuid entry)
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
@@ -339,7 +308,7 @@
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
-            (clojure.set/rename-keys org-prop-mapping)
+            (clj-set/rename-keys org-prop-mapping)
             (merge full-entry))
           full-entry)
       (assoc :polls rendered-polls)
@@ -363,10 +332,9 @@
   (render-entry org board entry comments reactions access-level user-id false))
 
   ([org board entry comments reactions access-level user-id secure-access?]
-  (let [entry-uuid (:uuid entry)]
-    (json/generate-string
-      (render-entry-for-collection org board entry comments reactions access-level user-id secure-access?)
-      {:pretty config/pretty?}))))
+  (json/generate-string
+    (render-entry-for-collection org board entry comments reactions access-level user-id secure-access?)
+    {:pretty config/pretty?})))
 
 (defn render-entry-list
   "
@@ -376,7 +344,7 @@
   [org board-or-boards entries ctx]
   (let [org-slug (:slug org)
         board-slug (:slug board-or-boards)
-        collection-url (url org-slug board-slug)
+        collection-url (entry-urls/entries org-slug board-slug)
         links [(hateoas/self-link collection-url {:accept mt/entry-collection-media-type})
                (up-link org-slug board-slug)]
         full-links (if (= (:access-level ctx) :author)
@@ -387,8 +355,7 @@
       {:collection {:version hateoas/json-collection-version
                     :href collection-url
                     :links full-links
-                    :items (map #(let [board (board-of board-or-boards %)
-                                       access-level (:access-level (access/access-level-for org board user))]
+                    :items (map #(let [board (board-of board-or-boards %)]
                                    (entry-and-links org board %
                                     (or (filter :body (:interactions %)) [])  ; comments only
                                     (reaction-res/aggregate-reactions (or (filter :reaction (:interactions %)) [])) ; reactions only
@@ -396,7 +363,7 @@
                              entries)}}
       {:pretty config/pretty?})))
 
-(defn render-entry-poll [entry poll ct]
+(defn render-entry-poll [_entry poll _ct]
   (json/generate-string
     poll
     {:pretty config/pretty?}))

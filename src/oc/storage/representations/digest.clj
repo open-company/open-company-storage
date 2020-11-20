@@ -4,7 +4,7 @@
             [oc.lib.hateoas :as hateoas]
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]
+            [oc.storage.urls.org :as org-urls]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.config :as config]
             [oc.storage.representations.content :as content]))
@@ -44,7 +44,7 @@
 (defn render-digest
   ""
   [params org collection-type results boards user]
-  (let [links [(hateoas/up-link (org-rep/url org) {:accept mt/org-media-type})]]
+  (let [links [(hateoas/up-link (org-urls/org org) {:accept mt/org-media-type})]]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :links links

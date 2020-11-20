@@ -1,30 +1,15 @@
 (ns oc.storage.representations.board
   "Resource representations for OpenCompany boards."
   (:require [cheshire.core :as json]
-            [cuerdas.core :as string]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]
-            [oc.storage.representations.org :as org-rep]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.urls.board :as board-url]
+            [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.board :as board-urls]
+            [oc.storage.urls.org :as org-urls]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.reaction :as reaction-res]))
-
-(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing])
-
-(defn parametrize-url [url parameters-dict]
-  (let [concat? (#{"?" "&"} (last url))
-        has-param? (string/includes? url "?")
-        concat-url (cond concat? url
-                         has-param? (str url "&")
-                         :else (str url "?"))
-        url-params (select-keys parameters-dict allowed-parameter-keys)]
-    (str concat-url
-     (apply str
-      (for [[k v] url-params
-            :when (and v k)]
-        (str (if (keyword? k) (name k) k) "=" (if (keyword? v) (name v) v) "&"))))))
 
 (defn drafts-board? [board]
   (or (= (:uuid board) (:uuid board-res/default-drafts-board))
@@ -39,56 +24,55 @@
     (self-link org-slug slug sort-type {}))
   ([org-slug slug sort-type options]
   (let [rel (if (= sort-type :recent-activity) "activity" "self")
-        board-url (board-url/url org-slug slug sort-type)]
+        board-url (board-urls/board org-slug slug sort-type)]
     (hateoas/link-map rel hateoas/GET board-url {:accept mt/board-media-type} options))))
 
+(defn- create-entry-link [org-slug slug] (hateoas/create-link (str (entry-urls/entries org-slug slug) "/")
+                                                              {:content-type mt/entry-media-type
+                                                               :accept mt/entry-media-type}))
 
-(defn- create-entry-link [org-slug slug] (hateoas/create-link (str (board-url/url org-slug slug) "/entries/")
-                                                {:content-type mt/entry-media-type
-                                                 :accept mt/entry-media-type}))
-
-(defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (board-url/url org-slug slug)
-                                              {:content-type mt/board-media-type
-                                               :accept mt/board-media-type}))
+(defn- partial-update-link [org-slug slug] (hateoas/partial-update-link (board-urls/board org-slug slug)
+                                                                        {:content-type mt/board-media-type
+                                                                         :accept mt/board-media-type}))
 
 (defn- delete-link [org-slug slug]
-  (hateoas/delete-link (board-url/url org-slug slug)))
+  (hateoas/delete-link (board-urls/board org-slug slug)))
 
 (defn- add-author-link [org-slug slug] 
-  (hateoas/add-link hateoas/POST (str (board-url/url org-slug slug) "/authors/") {:content-type mt/board-author-media-type}))
+  (hateoas/add-link hateoas/POST (str (board-urls/author org-slug slug) "/") {:content-type mt/board-author-media-type}))
 
 (defn- add-viewer-link [org-slug slug] 
-  (hateoas/add-link hateoas/POST (str (board-url/url org-slug slug) "/viewers/") {:content-type mt/board-viewer-media-type}))
+  (hateoas/add-link hateoas/POST (str (board-urls/viewer org-slug slug) "/") {:content-type mt/board-viewer-media-type}))
 
 (defn- remove-author-link [org-slug slug user-id]
-  (hateoas/remove-link (str (board-url/url org-slug slug) "/authors/" user-id)))
+  (hateoas/remove-link (board-urls/author org-slug slug user-id)))
 
 (defn- remove-viewer-link [org-slug slug user-id]
-  (hateoas/remove-link (str (board-url/url org-slug slug) "/viewers/" user-id)))
+  (hateoas/remove-link (board-urls/viewer org-slug slug user-id)))
 
-(defn- up-link [org-slug] (hateoas/up-link (org-rep/url org-slug) {:accept mt/org-media-type}))
+(defn- up-link [org-slug] (hateoas/up-link (org-urls/org org-slug) {:accept mt/org-media-type}))
 
 (defn- pagination-link
   "Add `next` links for pagination as needed."
-  [org board {:keys [start direction sort-type]} data]
+  [org board {:keys [direction sort-type]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
         last-activity-date (when activity? (:sort-value last-activity))
         next? (= (:next-count data) config/default-activity-limit)
-        next-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction direction}))
+        next-url (when next? (board-urls/board org board sort-type {:start last-activity-date :direction direction}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
     next-link))
 
 (defn- refresh-link
   "Add `next` links for pagination as needed."
-  [org board {:keys [start direction sort-type]} data]
+  [org board {:keys [sort-type]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
         last-activity-date (when activity? (:sort-value last-activity))
         next? (= (:next-count data) config/default-activity-limit)
-        refresh-url (when next? (board-url/url org board sort-type {:start last-activity-date :direction :after}))
+        refresh-url (when next? (board-urls/board org board sort-type {:start last-activity-date :direction :after}))
         ref-link (when refresh-url (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/board-media-type}))]
     ref-link))
 

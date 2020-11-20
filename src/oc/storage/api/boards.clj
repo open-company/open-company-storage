@@ -2,7 +2,8 @@
   "Liberator API for board resources."
   (:require [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (defroutes ANY OPTIONS POST)]
+            [clojure.set :as clj-set]
+            [compojure.core :as compojure :refer (ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
             [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
@@ -10,7 +11,6 @@
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
-            [oc.lib.db.common :as db-common]
             [oc.lib.time :as oc-time]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
@@ -22,8 +22,7 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.lib.timestamp :as ts]
-            [oc.storage.urls.board :as board-url]))
+            [oc.storage.urls.board :as board-urls]))
 
 ;; ----- Utility functions -----
 
@@ -38,9 +37,7 @@
 
   ;; Draft board
   ([conn org board ctx]
-  (let [org-slug (:slug org)
-        slug (:slug board)
-        all-drafts (entry-res/list-drafts-by-org-author conn (:uuid org) (-> ctx :user :user-id) {})
+  (let [all-drafts (entry-res/list-drafts-by-org-author conn (:uuid org) (-> ctx :user :user-id) {})
         entries (if (:draft board)
                   (filterv #(= (:board-uuid %) (:uuid board)) all-drafts)
                   all-drafts)
@@ -49,10 +46,8 @@
                   :total-count (count entries)})))
 
   ;; Regular paginated board
-  ([conn org board {start :start direction :direction must-see :must-see sort-type :sort-type limit :limit :as params} ctx]
-  (let [access-level (:access-level ctx)
-        user-id (-> ctx :user :user-id)
-        total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (oc-time/now-ts) :before
+  ([conn _org board {start :start direction :direction must-see :must-see sort-type :sort-type limit :limit} _ctx]
+  (let [total-count (entry-res/paginated-entries-by-board conn (:uuid board) :asc (oc-time/now-ts) :before
                      0 :recently-posted {:must-see must-see :status :published :count true})
         order (if (= direction :before) :desc :asc)
         entries (entry-res/paginated-entries-by-board conn (:uuid board) order start direction
@@ -176,8 +171,8 @@
         (doseq [viewer viewers] (add-member conn ctx (:slug org) (:slug board-result) :viewers viewer))
         ;; Add any entries specified in the request
         (doseq [entry entries]
-          (let [old-board (when (and (:uuid entry) (:board-uuid entry))
-                            (board-res/get-board conn (:board-uuid entry)))
+          (let [_old-board (when (and (:uuid entry) (:board-uuid entry))
+                             (board-res/get-board conn (:board-uuid entry)))
                 fixed-entry (-> entry
                              (assoc :board-uuid board-uuid)
                              (dissoc :publisher-board))
@@ -242,15 +237,15 @@
           (add-member conn ctx org-slug slug :authors user-id)) ; make the current user an author
         ;; If authors are specified, make any requested author changes as a "sync"
         (when new-authors
-          (doseq [author (clojure.set/difference (set new-authors) current-authors)]
+          (doseq [author (clj-set/difference (set new-authors) current-authors)]
             (add-member conn ctx (:slug org) (:slug updated-result) :authors author))
-          (doseq [author (clojure.set/difference current-authors (set new-authors))]
+          (doseq [author (clj-set/difference current-authors (set new-authors))]
             (remove-member conn ctx (:slug org) (:slug updated-result) :authors author)))
         ;; If viewers are specified, make any requested viewer changes as a "sync"
         (when new-viewers
-          (doseq [viewer (clojure.set/difference (set new-viewers) current-viewers)]
+          (doseq [viewer (clj-set/difference (set new-viewers) current-viewers)]
             (add-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))
-          (doseq [viewer (clojure.set/difference current-viewers (set new-viewers))]
+          (doseq [viewer (clj-set/difference current-viewers (set new-viewers))]
             (remove-member conn ctx (:slug org) (:slug updated-result) :viewers viewer))))
       (let [final-result (board-res/get-board conn (:uuid updated-result))]
         (notification/send-trigger! (notification/->trigger :update org {:old board :new final-result :notifications notifications} user invitation-note))
@@ -300,7 +295,7 @@
     :options false
     :get (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                          start (:start ctx-params)
-                         valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException e false)) true)
+                         valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
                          valid-sort? (or (not (contains? ctx-params :sort))
                                          (= (:sort ctx-params) "activity"))
                          direction (keyword (:direction ctx-params))
@@ -411,7 +406,7 @@
                                   board-slug (:slug new-board)]
                               (if pre-flight?
                                 (api-common/blank-response)
-                                (api-common/location-response (board-url/url org-slug board-slug)
+                                (api-common/location-response (board-urls/board org-slug board-slug)
                                                               (board-rep/render-board org new-board ctx (default-board-params))
                                                               mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
@@ -457,9 +452,9 @@
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing? ((set (member-type board)) user-id)}
                         false))
-    :delete (fn [ctx] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
-                                board (and (slugify/valid-slug? slug) (board-res/get-board conn (:uuid org) slug))
-                                exists? ((set (member-type board)) user-id)] ; short circuits the delete w/ a 404
+    :delete (fn [_] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
+                              board (and (slugify/valid-slug? slug) (board-res/get-board conn (:uuid org) slug))
+                              _exists? ((set (member-type board)) user-id)] ; short circuits the delete w/ a 404
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board) :existing? true}
                         false))}) ; org or author doesn't exist
 
@@ -483,25 +478,25 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Board operations
-     (ANY (board-url/url ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
-     (ANY (board-url/url ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
+     (ANY (board-urls/board ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
+     (ANY (board-urls/board ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
       ;; Team board creation
-     (OPTIONS (board-url/create-url ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
-     (POST (board-url/create-url ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
+     (OPTIONS (board-urls/create ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
+     (POST (board-urls/create ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
      ;; Public/Private board creation
-     (OPTIONS (board-url/create-url ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
-     (POST (board-url/create-url ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
+     (OPTIONS (board-urls/create ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
+     (POST (board-urls/create ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
       ;; Board author operations
-     (ANY (board-url/author-url ":org-slug" ":slug") [org-slug slug]
+     (ANY (board-urls/author ":org-slug" ":slug") [org-slug slug]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
-     (ANY (str (board-url/author-url ":org-slug" ":slug") "/") [org-slug slug]
+     (ANY (str (board-urls/author ":org-slug" ":slug") "/") [org-slug slug]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
-     (ANY (board-url/author-url ":org-slug" ":slug" ":user-id") [org-slug slug user-id]
+     (ANY (board-urls/author ":org-slug" ":slug" ":user-id") [org-slug slug user-id]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors user-id)))
       ;; Board viewer operations
-     (ANY (board-url/viewer-url ":org-slug" ":slug") [org-slug slug]
+     (ANY (board-urls/viewer ":org-slug" ":slug") [org-slug slug]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers nil)))
-     (ANY (str (board-url/viewer-url ":org-slug" ":slug") "/") [org-slug slug]
+     (ANY (str (board-urls/viewer ":org-slug" ":slug") "/") [org-slug slug]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers nil)))
-     (ANY (board-url/viewer-url ":org-slug" ":slug" ":user-id") [org-slug slug user-id]
+     (ANY (board-urls/viewer ":org-slug" ":slug" ":user-id") [org-slug slug user-id]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :viewers user-id))))))

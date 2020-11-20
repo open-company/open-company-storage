@@ -2,11 +2,11 @@
   "Liberator API for org resources."
   (:require [clojure.walk :refer (keywordize-keys)]
             [if-let.core :refer (if-let*)]
+            [clojure.java.io :as j-io]
             [clj-time.core :as t]
             [clj-time.format :as f]
-            [clj-time.coerce :as c]
             [taoensso.timbre :as timbre]
-            [compojure.core :as compojure :refer (ANY OPTIONS GET POST DELETE)]
+            [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.time :as lib-time]
@@ -26,7 +26,8 @@
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]))
+            [oc.storage.resources.entry :as entry-res]
+            [oc.storage.urls.org :as org-urls]))
 
 ;; ----- Utility functions -----
 
@@ -51,10 +52,10 @@
     (->> board-name
       (slugify/slugify)
       (format "samples/%s.edn")
-      (clojure.java.io/resource)
+      (j-io/resource)
       (slurp)
       (read-string))
-    (catch Exception e
+    (catch Exception _
       [])))
 
 (defn- create-interaction
@@ -135,7 +136,7 @@
 
     (do (timbre/error "Failed updating org:" slug) false)))
 
-(defn- add-author [conn ctx slug user-id]
+(defn- add-author [conn _ctx slug user-id]
   (timbre/info "Adding author:" user-id "to org:" slug)
   (if-let [updated-org (org-res/add-author conn slug user-id)]
     (do
@@ -146,7 +147,7 @@
       (timbre/error "Failed adding author:" user-id "to org:" slug)
       false)))
 
-(defn- remove-author [conn ctx slug user-id]
+(defn- remove-author [conn _ctx slug user-id]
   (timbre/info "Removing author:" user-id "from org:" slug)
   (if-let [updated-org (org-res/remove-author conn slug user-id)]
     (do
@@ -164,7 +165,7 @@
   (let [authed-orgs (org-res/list-orgs-by-teams conn (:teams user))]
     (zero? (count authed-orgs))))
 
-(defn- valid-new-org? [conn ctx]
+(defn- valid-new-org? [_conn ctx]
   (try
     ;; Create the new org from the data provided
     (let [org-map (:data ctx)
@@ -264,7 +265,7 @@
                                             allowed-board-uuids nil {:count true})
                                            0)
                              bookmarks-count (if user-is-member?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id :asc now :before
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id allowed-board-uuids :asc now :before
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
@@ -342,10 +343,10 @@
                         {:existing-org (api-common/rep org)
                          :existing-author? (api-common/rep ((set (:authors org)) (:data ctx)))}
                         false))
-    :delete (fn [ctx] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
-                                exists? ((set (:authors org)) user-id)] ; short circuits the delete w/ a 404
-                        {:existing-org (api-common/rep org) :existing-author? true}
-                        false))}) ; org or author doesn't exist
+    :delete (fn [_] (if-let* [org (and (slugify/valid-slug? org-slug) (org-res/get-org conn org-slug))
+                              _exists? ((set (:authors org)) user-id)] ; short circuits the delete w/ a 404
+                      {:existing-org (api-common/rep org) :existing-author? true}
+                      false))}) ; org or author doesn't exist
 
   ;; Actions
   :post! (fn [ctx] (when-not (:existing-author? ctx) (add-author conn ctx org-slug (:data ctx))))
@@ -428,7 +429,7 @@
                                                 (assoc :boards (map #(dissoc % :authors :viewers) board-reps)))
                                   has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)]
                               (api-common/location-response
-                                (org-rep/url slug)
+                                (org-urls/org slug)
                                 (org-rep/render-org org-for-rep :author (:user ctx) has-sample-content?)
                                   mt/org-media-type)))
   :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
@@ -442,21 +443,21 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Org creation and lookup
-      (ANY "/orgs" [] (pool/with-pool [conn db-pool] (org-list conn)))
-      (ANY "/orgs/" [] (pool/with-pool [conn db-pool] (org-list conn)))
+      (ANY org-urls/orgs [] (pool/with-pool [conn db-pool] (org-list conn)))
+      (ANY org-urls/orgs [] (pool/with-pool [conn db-pool] (org-list conn)))
       ;; Org operations
-      (ANY "/orgs/:slug" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
-      (ANY "/orgs/:slug/" [slug] (pool/with-pool [conn db-pool] (org conn slug)))
+      (ANY (org-urls/org ":slug") [slug] (pool/with-pool [conn db-pool] (org conn slug)))
+      (ANY (str (org-urls/org ":slug") "/") [slug] (pool/with-pool [conn db-pool] (org conn slug)))
       ;; Org author operations
-      (OPTIONS "/orgs/:slug/authors" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
-      (OPTIONS "/orgs/:slug/authors/" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
-      (POST "/orgs/:slug/authors" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
-      (POST "/orgs/:slug/authors/" [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
-      (OPTIONS "/orgs/:slug/authors/:user-id" [slug user-id] (pool/with-pool [conn db-pool]
+      (OPTIONS (org-urls/org-authors ":slug") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (OPTIONS (str (org-urls/org-authors ":slug") "/") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (POST (org-urls/org-authors ":slug") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (POST (str (org-urls/org-authors ":slug") "/") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
+      (OPTIONS (org-urls/org-author ":slug" ":user-id") [slug user-id] (pool/with-pool [conn db-pool]
         (author conn slug user-id)))
-      (OPTIONS "/orgs/:slug/authors/:user-id/" [slug user-id]
+      (OPTIONS (str (org-urls/org-author ":slug" ":user-id") "/") [slug user-id]
         (pool/with-pool [conn db-pool] (author conn slug user-id)))
-      (DELETE "/orgs/:slug/authors/:user-id" [slug user-id]
+      (DELETE (org-urls/org-author ":slug" ":user-id") [slug user-id]
         (pool/with-pool [conn db-pool] (author conn slug user-id)))
-      (DELETE "/orgs/:slug/authors/:user-id/" [slug user-id] (pool/with-pool [conn db-pool]
+      (DELETE (str (org-urls/org-author ":slug" ":user-id") "/") [slug user-id] (pool/with-pool [conn db-pool]
         (author conn slug user-id))))))

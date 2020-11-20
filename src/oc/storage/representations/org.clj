@@ -1,9 +1,10 @@
 (ns oc.storage.representations.org
   "Resource representations for OpenCompany orgs."
-  (:require [defun.core :refer (defun)]
-            [cheshire.core :as json]
+  (:require [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
-            [oc.storage.urls.board :as board-url]
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.board :as board-urls]
+            [oc.storage.urls.entry :as entry-urls]
             [oc.storage.api.access :as access]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
@@ -16,41 +17,34 @@
                                                                :following-inbox-count :unfollowing-inbox-count
                                                                :badge-following :badge-replies :brand-color]))
 
-(defun url
-  ([slug :guard string?] (str "/orgs/" slug))
-  ([org :guard map?] (url (:slug org))))
+(defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 
-(defn- active-users-url
-  [{:keys [team-id]}]
-  (str config/auth-server-url "/teams/" team-id "/active-users"))
-
-(defn- self-link [org] (hateoas/self-link (url org) {:accept mt/org-media-type}))
-
-(defn- item-link [org] (hateoas/item-link (url org) {:accept mt/org-media-type}))
+(defn- item-link [org] (hateoas/item-link (org-urls/org org) {:accept mt/org-media-type}))
 
 (defn- active-users-link [org]
-  (hateoas/link-map "active-users" hateoas/GET (active-users-url org) {:accept mt/user-collection-media-type}))
+  (hateoas/link-map "active-users" hateoas/GET (org-urls/active-users org) {:accept mt/user-collection-media-type}))
 
-(defn partial-update-link [org] (hateoas/partial-update-link (url org) {:content-type mt/org-media-type
-                                                                        :accept mt/org-media-type}))
+(defn partial-update-link [org] (hateoas/partial-update-link (org-urls/org org) {:content-type mt/org-media-type
+                                                                                :accept mt/org-media-type}))
 
-(defn- create-board-link [org] (hateoas/create-link (board-url/create-url (:slug org)) {:content-type mt/board-media-type
-                                                                                        :accept mt/board-media-type}))
+(defn- create-board-link [org] (hateoas/create-link (board-urls/create (:slug org))
+                                                    {:content-type mt/board-media-type
+                                                     :accept mt/board-media-type}))
 
 (defn- create-private-board-link [org]
-  (-> (str (board-url/create-url (:slug org)) "/private")
+  (-> (board-urls/create (:slug org) :private)
       (hateoas/create-link {:content-type mt/board-media-type
                             :accept mt/board-media-type})
       (assoc :rel "create-private")))
 
 (defn- create-public-board-link [org]
-  (-> (str (board-url/create-url (:slug org)) "/public")
+  (-> (board-urls/create (:slug org) :public)
       (hateoas/create-link {:content-type mt/board-media-type
                             :accept mt/board-media-type})
       (assoc :rel "create-public")))
 
 (defn- delete-samples-link [org]
-  (hateoas/link-map "delete-samples" hateoas/DELETE (str (url org) "/entries/samples") {:content-type mt/entry-collection-media-type}))
+  (hateoas/link-map "delete-samples" hateoas/DELETE (org-urls/sample-entries org) {:content-type mt/entry-collection-media-type}))
 
 (defn- create-board-pre-flight-link [org]
   (-> (create-board-link org)
@@ -70,51 +64,49 @@
     (remove nil? links)))
 
 (defn- add-author-link [org] 
-  (hateoas/add-link hateoas/POST (str (url org) "/authors/") {:content-type mt/org-author-media-type}))
+  (hateoas/add-link hateoas/POST (org-urls/org-authors org) {:content-type mt/org-author-media-type}))
 
 (defn- remove-author-link [org user-id]
-  (hateoas/remove-link (str (url org) "/authors/" user-id)))
+  (hateoas/remove-link (org-urls/org-author org user-id)))
 
 (defn- org-collection-links [org]
   (assoc org :links [(item-link org)]))
 
 (defn- replies-link [org]
-  (hateoas/link-map "replies" hateoas/GET (str (url org) "/replies") {:accept mt/entry-collection-media-type}))
+  (hateoas/link-map "replies" hateoas/GET (org-urls/replies org) {:accept mt/entry-collection-media-type}))
 
 (defn- activity-link [org]
-  (hateoas/link-map "entries" hateoas/GET (str (url org) "/entries") {:accept mt/entry-collection-media-type}))
+  (hateoas/link-map "entries" hateoas/GET (org-urls/entries org) {:accept mt/entry-collection-media-type}))
 
-(defn- recent-activity-link [org]
-  (hateoas/link-map "activity" hateoas/GET (str (url org) "/entries?sort=activity") {:accept mt/entry-collection-media-type}))
+;; (defn- recent-activity-link [org]
+;;   (hateoas/link-map "activity" hateoas/GET (str (org-urls/entries org) "?sort=activity") {:accept mt/entry-collection-media-type}))
 
 (defn- following-link [org]
-  (hateoas/link-map "following" hateoas/GET (str (url org) "/entries?following=true") {:accept mt/entry-collection-media-type}))
+  (hateoas/link-map "following" hateoas/GET (str (org-urls/entries org) "?following=true") {:accept mt/entry-collection-media-type}))
 
-(defn- recent-following-link [org]
-  (hateoas/link-map "recent-following" hateoas/GET (str (url org) "/entries?sort=activity&following=true") {:accept mt/entry-collection-media-type}))
+;; (defn- recent-following-link [org]
+;;   (hateoas/link-map "recent-following" hateoas/GET (str (org-urls/entries org) "?sort=activity&following=true") {:accept mt/entry-collection-media-type}))
 
-(defn- unfollowing-link [org]
-  (hateoas/link-map "unfollowing" hateoas/GET (str (url org) "/entries?unfollowing=true") {:accept mt/entry-collection-media-type}))
+;; (defn- unfollowing-link [org]
+;;   (hateoas/link-map "unfollowing" hateoas/GET (str (org-urls/entries org) "?unfollowing=true") {:accept mt/entry-collection-media-type}))
 
-(defn- recent-unfollowing-link [org]
-  (hateoas/link-map "recent-unfollowing" hateoas/GET (str (url org) "/entries?sort=activity&unfollowing=true") {:accept mt/entry-collection-media-type}))
+;; (defn- recent-unfollowing-link [org]
+;;   (hateoas/link-map "recent-unfollowing" hateoas/GET (str (org-urls/entries org) "?sort=activity&unfollowing=true") {:accept mt/entry-collection-media-type}))
 
 (defn- contributions-partial-link [org]
-  (hateoas/link-map "partial-contributions" hateoas/GET (str (url org) "/contributions/$0") {:accept mt/entry-collection-media-type}
+  (hateoas/link-map "partial-contributions" hateoas/GET (org-urls/contribution org "$0") {:accept mt/entry-collection-media-type}
    {:replace {:author-uuid "$0"}}))
 
-(defn- recent-contributions-partial-link [org]
-  (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (url org) "/contributions/$0?sort=activity") {:accept mt/entry-collection-media-type}
-   {:replace {:author-uuid "$0"}}))
+;; (defn- recent-contributions-partial-link [org]
+;;   (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (org-urls/contribution org "$0") "?sort=activity") {:accept mt/entry-collection-media-type}
+;;    {:replace {:author-uuid "$0"}}))
 
 (defn- digest-partial-link [org]
-  (hateoas/link-map "digest" hateoas/GET (str (url org) "/digest?direction=after&start=$0") {:accept mt/entry-collection-media-type}
+  (hateoas/link-map "digest" hateoas/GET (str (org-urls/digest org) "?direction=after&start=$0") {:accept mt/entry-collection-media-type}
    {:replace {:start "$0"}}))
 
-(defn secure-url [org-slug secure-uuid] (str (url org-slug) "/entries/" secure-uuid))
-
 (defn- partial-secure-link []
-  (hateoas/link-map "partial-secure" hateoas/GET (secure-url "$0" "$1") {:accept mt/entry-media-type}
+  (hateoas/link-map "partial-secure" hateoas/GET (entry-urls/secure-entry "$0" "$1") {:accept mt/entry-media-type}
    {:replace {:org-slug "$0" :secure-uuid "$1"}}))
 
 (defn- change-link [org access-level user]
@@ -175,7 +167,7 @@
       (hateoas/link-map
         "bookmarks"
         hateoas/GET
-        (str (url org) "/bookmarks")
+        (org-urls/bookmarks org)
         {:accept mt/entry-collection-media-type}))
     org))
 
@@ -185,45 +177,45 @@
       (hateoas/link-map
         "bookmarks-activity"
         hateoas/GET
-        (str (url org) "/bookmarks?sort=activity")
+        (str (org-urls/bookmarks org) "?sort=activity")
         {:accept mt/entry-collection-media-type}))
     org))
 
-(defn- following-inbox-link [org access-level user]
-  (if (and (not (:id-token user))
-           (or (= access-level :author)
-               (= access-level :viewer)))
-    (update-in org [:links] conj
-      (hateoas/link-map
-        "following-inbox"
-        hateoas/GET
-        (str (url org) "/inbox?following=true")
-        {:accept mt/entry-collection-media-type}))
-    org))
+;; (defn- following-inbox-link [org access-level user]
+;;   (if (and (not (:id-token user))
+;;            (or (= access-level :author)
+;;                (= access-level :viewer)))
+;;     (update-in org [:links] conj
+;;       (hateoas/link-map
+;;         "following-inbox"
+;;         hateoas/GET
+;;         (str (org-urls/inbox org) "?following=true")
+;;         {:accept mt/entry-collection-media-type}))
+;;     org))
 
-(defn- unfollowing-inbox-link [org access-level user]
-  (if (and (not (:id-token user))
-           (or (= access-level :author)
-               (= access-level :viewer)))
-    (update-in org [:links] conj
-      (hateoas/link-map
-        "unfollowing-inbox"
-        hateoas/GET
-        (str (url org) "/inbox?unfollowing=true")
-        {:accept mt/entry-collection-media-type}))
-    org))
+;; (defn- unfollowing-inbox-link [org access-level user]
+;;   (if (and (not (:id-token user))
+;;            (or (= access-level :author)
+;;                (= access-level :viewer)))
+;;     (update-in org [:links] conj
+;;       (hateoas/link-map
+;;         "unfollowing-inbox"
+;;         hateoas/GET
+;;         (str (org-urls/inbox org) "?unfollowing=true")
+;;         {:accept mt/entry-collection-media-type}))
+;;     org))
 
-(defn- inbox-link [org access-level user]
-  (if (and (not (:id-token user))
-           (or (= access-level :author)
-               (= access-level :viewer)))
-    (update-in org [:links] conj
-      (hateoas/link-map
-        "inbox"
-        hateoas/GET
-        (str (url org) "/inbox")
-        {:accept mt/entry-collection-media-type}))
-    org))
+;; (defn- inbox-link [org access-level user]
+;;   (if (and (not (:id-token user))
+;;            (or (= access-level :author)
+;;                (= access-level :viewer)))
+;;     (update-in org [:links] conj
+;;       (hateoas/link-map
+;;         "inbox"
+;;         hateoas/GET
+;;         (org-urls/inbox org)
+;;         {:accept mt/entry-collection-media-type}))
+;;     org))
 
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
@@ -265,11 +257,9 @@
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
   [org access-level user sample-content?]
-  (let [slug (:slug org)
-        rep-props (if (or (= :author access-level) (= :viewer access-level))
+  (let [rep-props (if (or (= :author access-level) (= :viewer access-level))
                     representation-props
-                    public-representation-props)
-        user-id (:user-id user)]
+                    public-representation-props)]
     (json/generate-string
       (-> org
         (org-links access-level user sample-content?)
@@ -288,7 +278,7 @@
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
   [orgs authed?]
-  (let [links [(hateoas/self-link "/" {:accept mt/org-collection-media-type}) auth-link
+  (let [links [(hateoas/self-link org-urls/entry-point {:accept mt/org-collection-media-type}) auth-link
                (partial-secure-link)]
         full-links (if authed?
                       (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
