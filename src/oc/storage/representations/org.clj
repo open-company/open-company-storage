@@ -287,9 +287,10 @@
   (let [links [(hateoas/self-link org-urls/entry-point {:accept mt/org-collection-media-type}) auth-link
                (partial-secure-link)]
         full-links (if authed?
-                      (conj links (hateoas/create-link "/orgs/" {:content-type mt/org-media-type
-                                                                 :accept mt/org-media-type}))
-                      links)]
+                     (conj links
+                           (hateoas/create-link org-urls/orgs {:content-type mt/org-media-type
+                                                               :accept mt/org-media-type}))
+                     links)]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :href "/"

@@ -16,6 +16,7 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
+            [oc.storage.urls.org :as org-urls]
             [oc.lib.time :as oc-time]
             [oc.lib.change.resources.read :as read]
             [clj-time.core :as clj-time]
@@ -126,7 +127,7 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Digest endpoint
-      (OPTIONS "/orgs/:slug/digest" [slug] (pool/with-pool [conn db-pool] (digest conn slug)))
-      (OPTIONS "/orgs/:slug/digest/" [slug] (pool/with-pool [conn db-pool] (digest conn slug)))
-      (GET "/orgs/:slug/digest" [slug] (pool/with-pool [conn db-pool] (digest conn slug)))
-      (GET "/orgs/:slug/digest/" [slug] (pool/with-pool [conn db-pool] (digest conn slug))))))
+      (OPTIONS (org-urls/digest ":slug") [slug] (pool/with-pool [conn db-pool] (digest conn slug)))
+      (OPTIONS (str (org-urls/digest ":slug") "/") [slug] (pool/with-pool [conn db-pool] (digest conn slug)))
+      (GET (org-urls/digest ":slug") [slug] (pool/with-pool [conn db-pool] (digest conn slug)))
+      (GET (str (org-urls/digest ":slug") "/") [slug] (pool/with-pool [conn db-pool] (digest conn slug))))))

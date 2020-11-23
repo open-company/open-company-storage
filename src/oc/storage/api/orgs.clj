@@ -446,7 +446,7 @@
     (compojure/routes
       ;; Org creation and lookup
       (ANY org-urls/orgs [] (pool/with-pool [conn db-pool] (org-list conn)))
-      (ANY org-urls/orgs [] (pool/with-pool [conn db-pool] (org-list conn)))
+      (ANY (str org-urls/orgs "/") [] (pool/with-pool [conn db-pool] (org-list conn)))
       ;; Org operations
       (ANY (org-urls/org ":slug") [slug] (pool/with-pool [conn db-pool] (org-item conn slug)))
       (ANY (str (org-urls/org ":slug") "/") [slug] (pool/with-pool [conn db-pool] (org-item conn slug)))
@@ -455,11 +455,11 @@
       (OPTIONS (str (org-urls/org-authors ":slug") "/") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
       (POST (org-urls/org-authors ":slug") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
       (POST (str (org-urls/org-authors ":slug") "/") [slug] (pool/with-pool [conn db-pool] (author conn slug nil)))
-      (OPTIONS (org-urls/org-author ":slug" ":user-id") [slug user-id] (pool/with-pool [conn db-pool]
-        (author conn slug user-id)))
+      (OPTIONS (org-urls/org-author ":slug" ":user-id") [slug user-id]
+        (pool/with-pool [conn db-pool] (author conn slug user-id)))
       (OPTIONS (str (org-urls/org-author ":slug" ":user-id") "/") [slug user-id]
         (pool/with-pool [conn db-pool] (author conn slug user-id)))
       (DELETE (org-urls/org-author ":slug" ":user-id") [slug user-id]
         (pool/with-pool [conn db-pool] (author conn slug user-id)))
-      (DELETE (str (org-urls/org-author ":slug" ":user-id") "/") [slug user-id] (pool/with-pool [conn db-pool]
-        (author conn slug user-id))))))
+      (DELETE (str (org-urls/org-author ":slug" ":user-id") "/")
+        [slug user-id] (pool/with-pool [conn db-pool] (author conn slug user-id))))))
