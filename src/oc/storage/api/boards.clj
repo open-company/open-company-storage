@@ -98,20 +98,36 @@
         [false, {:reason (.getMessage e)}])) ; Not a valid new board
     [false, {:reason :invalid-org}])) ; couldn't find the specified org
 
-(defn- valid-board-update? [conn org-slug slug board-props]
-  (if-let* [org (org-res/get-org conn org-slug)
-            board (board-res/get-board conn (:uuid org) slug)
-            board-data (dissoc board-props :private-notifications :note)]
-    (if (and (:disallow-public-board (or (:content-visibility org) {}))
-             (not= (:access board-data) "public")
-             (= (:access board-data) "public"))
-      [false, {:reason :disallowed-public-board}]
-      (let [updated-board (merge board (board-res/clean board-data))]
+(defn- valid-board-access-update?
+  "If changing access of a board, make sure the change is allowed:
+   - no public boards if disallowed by org settings
+   - no private or public boards if not on premium."
+  [premium? disallow-public-board original-access updating-access]
+  (if (= original-access updating-access)
+    true
+    (let [public-access-check (or (not disallow-public-board)
+                                  (not= updating-access "public"))
+          premium-access-check (or premium?
+                                   (= updating-access "team"))]
+      (and public-access-check
+           premium-access-check))))
+
+(defn- valid-board-update? [conn org-slug slug ctx]
+  (if-let* [updating-board (-> ctx
+                               :data
+                               (dissoc :private-notifications :note))
+            org (org-res/get-org conn org-slug)
+            original-board (board-res/get-board conn (:uuid org) slug)]
+    ;; Check public board change
+    (if (valid-board-access-update? (:premium? ctx) (:disallow-public-board (:content-visibility org))
+                                    (:access original-board) (:access updating-board))
+      [false, {:reason :board-access-not-allowed}]
+      (let [updated-board (merge original-board (board-res/clean updating-board))]
         (if (lib-schema/valid? common-res/Board updated-board)
           {:existing-org (api-common/rep org)
-           :existing-board (api-common/rep board)
+           :existing-board (api-common/rep original-board)
            :board-update (api-common/rep updated-board)
-           :notifications (api-common/rep (:private-notifications board-props))}
+           :notifications (api-common/rep (:private-notifications updating-board))}
           [false, {:board-update (api-common/rep updated-board)}]))) ; invalid update
     true)) ; No org or board, so this will fail existence check later
 
@@ -314,7 +330,7 @@
     :get true
     :patch (fn [ctx] (and (slugify/valid-slug? org-slug)
                           (slugify/valid-slug? slug)
-                          (valid-board-update? conn org-slug slug (:data ctx))))
+                          (valid-board-update? conn org-slug slug ctx)))
     :delete true})
 
   ;; Existentialism
