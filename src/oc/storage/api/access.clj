@@ -68,7 +68,9 @@
         role (cond admin?  :admin
                    member? :member
                    :else   :anonymous)
-        base-access {:role role :premium? premium?}]
+        base-access {:role role
+                     :premium? premium?}
+        premium-viewer-access (if premium? :viewer :author)]
     (cond
       ;; an admin of this org's team
       ((set admin) (:team-id org))
@@ -80,7 +82,7 @@
 
       ;; a team member of this org
       ((set teams) (:team-id org))
-      (merge base-access {:access-level :viewer})
+      (merge base-access {:access-level premium-viewer-access})
 
       ;; public access to orgs w/ at least 1 public board AND that allow public boards
       (and
@@ -122,21 +124,28 @@
         board-authors (set (:authors board))
         board-viewers (set (:viewers board))
         premium? (premium-org? org user)
-        member? ((set teams) (:team-id org))
+        org-member? ((set teams) (:team-id org))
         admin? ((set admin) (:team-id org))
-        role (cond admin?  :admin
-                   member? :member
-                   :else   :anonymous)
-        base-access {:role role :premium? premium?}]
+        role (cond admin?      :admin
+                   org-member? :member
+                   :else       :anonymous)
+        publisher-board-role (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board))
+                               :author
+                               :viewer)
+        base-access {:role     role
+                     :premium? premium?}
+        ;; viewer role is allowed only on premium
+        premium-viewer-role (if premium? :viewer :author)]
     (cond
 
       ;; a named author of this private board
-      (and (= board-access :private) (board-authors user-id))
+      (and (= board-access :private)
+           (board-authors user-id))
       (merge base-access {:access-level :author})
 
       (and (= board-access :team)
            (:publisher-board board))
-      (merge base-access {:access-level (if (= (str board-res/publisher-board-slug-prefix user-id) (:slug board)) :author :viewer)})
+      (merge base-access {:access-level publisher-board-role})
 
       ;; an admin of this org's team for this non-private board
       (and (not= board-access :private) ((set admin) (:team-id org)))
@@ -148,11 +157,11 @@
 
       ;; a named viewer of this board
       (and (= board-access :private) (board-viewers user-id))
-      (merge base-access {:access-level :viewer})
+      (merge base-access {:access-level premium-viewer-role})
 
       ;; a team member on a non-private board
       (and (not= board-access :private) ((set teams) (:team-id org)))
-      (merge base-access {:access-level :viewer})
+      (merge base-access {:access-level premium-viewer-role})
 
       ;; anyone else on a public board IF the org allows public boards
       (and (= board-access :public) (not (-> org :content-visibility :disallow-public-board)))
@@ -179,12 +188,17 @@
       access)))
 
 (defn allow-premium
+  "
+  Given an org slug and a user map, return an access level of :author or :viewer if the user is a team member
+  of a premium org, false otherwise.
+  "
   [conn org-slug user]
-  (let [access (access-level-for conn org-slug user)]
-    (if (or (= (:access-level access) :premium)
-            (not (:premium? access)))
-      false
-      access)))
+  (let [access (allow-members conn org-slug user)]
+    (if (and (:access-level access)
+             (not= (:access-level access) :public)
+             (:premium? access))
+      access
+      false)))
 
 (defn allow-authors
   "
@@ -196,6 +210,7 @@
   (let [access (access-level-for conn org-slug user)
         access-level (:access-level access)]
     (if (or (= access-level :author)
+            ;; Allow to fail existence check later
             (= access-level :does-not-exist))
       access
       false)))
