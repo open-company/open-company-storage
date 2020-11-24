@@ -69,8 +69,7 @@
                    member? :member
                    :else   :anonymous)
         base-access {:role role
-                     :premium? premium?}
-        premium-viewer-access (if premium? :viewer :author)]
+                     :premium? premium?}]
     (cond
       ;; an admin of this org's team
       ((set admin) (:team-id org))
@@ -82,7 +81,7 @@
 
       ;; a team member of this org
       ((set teams) (:team-id org))
-      (merge base-access {:access-level premium-viewer-access})
+      (merge base-access {:access-level :viewer})
 
       ;; public access to orgs w/ at least 1 public board AND that allow public boards
       (and
@@ -133,9 +132,7 @@
                                :author
                                :viewer)
         base-access {:role     role
-                     :premium? premium?}
-        ;; viewer role is allowed only on premium
-        premium-viewer-role (if premium? :viewer :author)]
+                     :premium? premium?}]
     (cond
 
       ;; a named author of this private board
@@ -157,11 +154,11 @@
 
       ;; a named viewer of this board
       (and (= board-access :private) (board-viewers user-id))
-      (merge base-access {:access-level premium-viewer-role})
+      (merge base-access {:access-level :viewer})
 
       ;; a team member on a non-private board
       (and (not= board-access :private) ((set teams) (:team-id org)))
-      (merge base-access {:access-level premium-viewer-role})
+      (merge base-access {:access-level :viewer})
 
       ;; anyone else on a public board IF the org allows public boards
       (and (= board-access :public) (not (-> org :content-visibility :disallow-public-board)))
