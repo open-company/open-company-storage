@@ -87,8 +87,11 @@
               (and (:publisher-board board-data)
                    (not config/publisher-board-enabled?))
               [false, {:reason :disallowed-publisher-board}]
-              (not= (keyword (:access board-data)) board-access)
-              [false, {:reason (keyword (str (:access board-data) "-acess-on-" (name board-access) "-endpoint"))}]
+              (and (not (:pre-flight board-map))
+                   (not= (keyword (:access board-data)) board-access))
+              [false, {:reason (keyword (str (when (:access board-data)
+                                               (str (:access board-data) "-"))
+                                             "acess-on-" (name board-access) "-endpoint"))}]
               :else
               {:new-board (api-common/rep (board-res/->board (:uuid org) board-data author))
                :existing-org (api-common/rep org)
@@ -119,16 +122,19 @@
             org (org-res/get-org conn org-slug)
             original-board (board-res/get-board conn (:uuid org) slug)]
     ;; Check public board change
-    (if (valid-board-access-update? (:premium? ctx) (:disallow-public-board (:content-visibility org))
-                                    (:access original-board) (:access updating-board))
-      [false, {:reason :board-access-not-allowed}]
-      (let [updated-board (merge original-board (board-res/clean updating-board))]
-        (if (lib-schema/valid? common-res/Board updated-board)
-          {:existing-org (api-common/rep org)
-           :existing-board (api-common/rep original-board)
-           :board-update (api-common/rep updated-board)
-           :notifications (api-common/rep (:private-notifications updating-board))}
-          [false, {:board-update (api-common/rep updated-board)}]))) ; invalid update
+    (let [valid-access-update? (valid-board-access-update? (:premium? ctx) (:disallow-public-board (:content-visibility org))
+                                                           `(:access original-board) (:access updating-board))
+          updated-board (merge original-board (board-res/clean updating-board))
+          valid-updated-board? (lib-schema/valid? common-res/Board updated-board)]
+      (cond (not valid-access-update?)
+            [false, {:reason :board-access-not-allowed}]
+            (not valid-updated-board?)
+            [false, {:board-update (api-common/rep updated-board)}]
+            :else
+            {:existing-org (api-common/rep org)
+             :existing-board (api-common/rep original-board)
+             :board-update (api-common/rep updated-board)
+             :notifications (api-common/rep (:private-notifications updating-board))}))
     true)) ; No org or board, so this will fail existence check later
 
 ;; ----- Actions -----
