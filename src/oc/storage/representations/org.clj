@@ -27,7 +27,7 @@
 (defn partial-update-link [org] (hateoas/partial-update-link (org-urls/org org) {:content-type mt/org-media-type
                                                                                 :accept mt/org-media-type}))
 
-(defn- create-board-link [org] (hateoas/create-link (board-urls/create (:slug org))
+(defn- create-board-link [org] (hateoas/create-link (board-urls/create (:slug org) :team)
                                                     {:content-type mt/board-media-type
                                                      :accept mt/board-media-type}))
 
@@ -43,15 +43,17 @@
                             :accept mt/board-media-type})
       (assoc :rel "create-public")))
 
+(defn- create-board-preflight-link [org]
+  (-> (board-urls/create-preflight org)
+      (hateoas/create-link {:content-type mt/board-media-type
+                            :accept mt/board-media-type})
+      (assoc :rel "create-preflight")))
+
 (defn- delete-samples-link [org]
   (hateoas/link-map "delete-samples" hateoas/DELETE (org-urls/sample-entries org) {:content-type mt/entry-collection-media-type}))
 
-(defn- create-board-pre-flight-link [org]
-  (-> (create-board-link org)
-      (assoc :rel "pre-flight-create")))
-
 (defn- create-board-links [org premium?]
-  (let [links [(create-board-pre-flight-link org)
+  (let [links [(create-board-preflight-link org)
                (create-board-link org)
                (when premium?
                  (create-private-board-link org))

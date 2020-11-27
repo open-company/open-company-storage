@@ -18,12 +18,14 @@
     (board org slug :recently-posted)))
 
 (defn create
-  ([org]
-   (board org "create-board"))
-  ([org board-type]
-   (str (create org)
-        (when board-type
-          (str "/" (if (keyword? board-type) (name board-type) board-type))))))
+  [org board-type]
+  (str (org-urls/boards org)
+       "/create-board/"
+       (if (keyword? board-type) (name board-type) board-type)))
+
+(defn create-preflight
+  [org]
+  (str (create org :team) "/preflight"))
 
 (defn viewer
   ([org board-slug]

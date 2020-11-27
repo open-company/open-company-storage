@@ -407,14 +407,14 @@
                              new-slug (-> ctx :new-board :slug) ; proposed new slug
                              ;; some new slugs can be excluded from being checked during a pre-flight check only
                              ;; right now, these prevent us from denying the UI a name update back to the current name
-                             exclude-slugs (when (:pre-flight data) (set (map slugify/slugify (:exclude data))))
+                             exclude-slugs (when (-> ctx :data :pre-flight) (set (map slugify/slugify (:exclude data))))
                              excluded? (when exclude-slugs (exclude-slugs new-slug))] ; excluded slugs don't need checked
                         (not (or excluded?
                                  (board-res/slug-available? conn (org-res/uuid-for conn org-slug) new-slug)))))
   ;; Actions
   :post! (fn [ctx] (if (-> ctx :data :pre-flight)
-                        true ; we were just checking if this would work
-                        (create-board conn ctx org-slug)))
+                     true ; we were just checking if this would work
+                     (create-board conn ctx org-slug)))
   ;; Responses
   :handle-created (fn [ctx] (let [pre-flight? (-> ctx :data :pre-flight)
                                   org (:existing-org ctx)
@@ -496,12 +496,12 @@
       ;; Board operations
      (ANY (board-urls/board ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
      (ANY (board-urls/board ":org-slug" ":slug") [org-slug slug] (pool/with-pool [conn db-pool] (board conn org-slug slug)))
-      ;; Team board creation
-     (OPTIONS (board-urls/create ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
-     (POST (board-urls/create ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
      ;; Public/Private board creation
      (OPTIONS (board-urls/create ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
      (POST (board-urls/create ":org-slug" ":board-access") [org-slug board-access] (pool/with-pool [conn db-pool] (board-create conn org-slug (keyword board-access))))
+     ;; Board creation preflight check
+     (OPTIONS (board-urls/create-preflight ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
+     (POST (board-urls/create-preflight ":org-slug") [org-slug] (pool/with-pool [conn db-pool] (board-create conn org-slug :team)))
       ;; Board author operations
      (ANY (board-urls/author ":org-slug" ":slug") [org-slug slug]
        (pool/with-pool [conn db-pool] (member conn org-slug slug :authors nil)))
