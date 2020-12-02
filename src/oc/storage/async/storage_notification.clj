@@ -11,6 +11,7 @@
    [cheshire.core :as json]
    [oc.lib.sqs :as sqs]
    [oc.lib.db.pool :as pool]
+   [oc.lib.sentry.core :as sentry]
    [taoensso.timbre :as timbre]
    [oc.storage.resources.entry :as entry-res]
    [oc.storage.resources.org :as org-res]
@@ -180,19 +181,22 @@
   "Start a core.async consumer of the storage notification channel."
   [db-pool]
   (reset! storage-notification-go true)
-  (async/go (while @storage-notification-go
+  (async/go
+    (while @storage-notification-go
       (timbre/info "Waiting for message on storage notification channel...")
       (let [msg (<!! storage-notification-chan)]
         (timbre/trace "Processing message on storage notification channel...")
         (if (:stop msg)
           (do (reset! storage-notification-go false) (timbre/info "Storage notification stopped."))
-          (try
-            (when (= (:type msg) "inbox-action")
-              (timbre/trace "Storage notification handling:" msg)
-              (action-event db-pool msg))
-            (timbre/trace "Processing complete.")
-            (catch Exception e
-              (timbre/error e))))))))
+          (async/thread
+            (try
+              (when (= (:type msg) "inbox-action")
+                (timbre/trace "Storage notification handling:" msg)
+                (action-event db-pool msg))
+              (timbre/trace "Processing complete.")
+              (catch Exception e
+                (timbre/warn e)
+                (sentry/capture e)))))))))
 
 ;; ----- Component start/stop -----
 

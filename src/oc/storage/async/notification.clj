@@ -9,6 +9,7 @@
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
+            [oc.lib.sentry.core :as sentry]
             [oc.lib.text :as str]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common-res]))
@@ -127,7 +128,8 @@
           (try
             (handle-notification-message message)
           (catch Exception e
-            (timbre/error e)))))))))
+            (timbre/warn e)
+            (sentry/capture e)))))))))
 
 ;; ----- Notification triggering -----
 
