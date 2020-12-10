@@ -34,6 +34,7 @@
 
         following-follow-data (assoc follow-data :following true)
         following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :recently-posted allowed-boards following-follow-data nil {})
+        following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :recently-posted allowed-boards following-follow-data nil {:count true})
 
         replies-data (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data nil {})
         replies-comments (filter #(and (contains? % :body) (not= (-> % :author :user-id) user-id))
@@ -50,7 +51,8 @@
         user-reads-map (zipmap (map :item-uuid user-reads) user-reads)]
     ;; Give each activity its board name
     (-> {:start start
-         :direction direction}
+         :direction direction
+         :total-following-count following-count}
      (assoc :following (map (fn [entry]
                               (let [board (board-by-uuids (:board-uuid entry))]
                                 (merge entry {:board-slug (:slug board)
@@ -112,7 +114,7 @@
                              params (-> ctx-params
                                      (dissoc :slug)
                                      (update :start #(if % (Long. %) (digest-default-start)))  ; default is now
-                                     (assoc :limit 0) ;; fallback to the default pagination otherwise
+                                     (assoc :limit 10) ;; use a limit of 10 posts since digest can't be too long anyway
                                      (update :direction keyword)) ; always set to after)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :access :authors :viewers :author :description])
                              allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
