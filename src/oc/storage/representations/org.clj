@@ -256,10 +256,13 @@
   {:user-id user-id
    :links (if (= access-level :author) [(remove-author-link org user-id)] [])})
 
-(defn- premium-filter [org-map premium?]
+(defn- premium-filter
+  ([org-map user]
+   (premium-filter org-map user ((set (:premium-teams user)) (:team-id org-map))))
+  ([org-map _user premium?]
   (if premium?
     org-map
-    (dissoc org-map :brand-color)))
+    (dissoc org-map :brand-color))))
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
@@ -280,15 +283,16 @@
                      ; (following-inbox-link access-level user)
                      ; (unfollowing-inbox-link access-level user)
                      (select-keys (conj rep-props :links))
-                     (premium-filter premium?))]
+                     (premium-filter user premium?))]
     (json/generate-string org-repr {:pretty config/pretty?})))
 
 (defn render-org-list
   "Given a sequence of org maps, create a JSON representation of a list of orgs for the REST API."
-  [orgs {authed? :user}]
+  [orgs {user :user}]
   (let [links [(hateoas/self-link org-urls/entry-point {:accept mt/org-collection-media-type}) auth-link
                (partial-secure-link)]
-        full-links (if authed?
+        with-premium-filter (map #(premium-filter % user) orgs)
+        full-links (if user
                      (conj links
                            (hateoas/create-link org-urls/orgs {:content-type mt/org-media-type
                                                                :accept mt/org-media-type}))
@@ -297,5 +301,5 @@
       {:collection {:version hateoas/json-collection-version
                     :href "/"
                     :links full-links
-                    :items (map org-collection-links orgs)}}
+                    :items (map org-collection-links with-premium-filter)}}
       {:pretty config/pretty?})))

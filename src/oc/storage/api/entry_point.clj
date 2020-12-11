@@ -27,7 +27,7 @@
 (defn- render-entry-point [conn {:keys [user request] :as ctx}]
   (let [authed-orgs (if user
                 ;; Auth'd user
-                (org-res/list-orgs-by-teams conn (:teams user) [:uuid :team-id :logo-url :logo-width :logo-height :created-at :updated-at])
+                (org-res/list-orgs-by-teams conn (:teams user) [:uuid :team-id :logo-url :logo-width :logo-height :created-at :updated-at :brand-color])
                 ;; Not auth'd
                 [])
         org-uuids (set (map :uuid authed-orgs))
