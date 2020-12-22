@@ -81,6 +81,8 @@
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
   (schema/optional-key :brand-color) lib-schema/BrandColor
+  (schema/optional-key :new-entry-placeholder) (schema/maybe schema/Str)
+  (schema/optional-key :new-entry-cta) (schema/maybe schema/Str)
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
@@ -202,3 +204,8 @@
    :status schema/Str
    :created-at lib-schema/ISO8601
    schema/Keyword schema/Any}) ; and whatever else
+
+;; Defaults
+
+(def default-entry-placeholder "What's happening...")
+(def default-entry-cta "New update")

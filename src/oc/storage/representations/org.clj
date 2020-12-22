@@ -7,6 +7,7 @@
             [oc.storage.urls.entry :as entry-urls]
             [oc.storage.api.access :as access]
             [oc.storage.config :as config]
+            [oc.storage.resources.common :as common]
             [oc.storage.representations.media-types :as mt]))
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
@@ -15,7 +16,8 @@
                                                                :content-visibility :inbox-count :why-carrot
                                                                :contributions-count :following-count :unfollowing-count
                                                                :following-inbox-count :unfollowing-inbox-count
-                                                               :badge-following :badge-replies :brand-color]))
+                                                               :badge-following :badge-replies :brand-color
+                                                               :new-entry-placeholder :new-entry-cta]))
 
 (defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 
@@ -272,6 +274,8 @@
                     representation-props
                     public-representation-props)
         org-repr (-> org
+                     (update :new-entry-cta #(or % common/default-entry-cta))
+                     (update :new-entry-placeholder #(or % common/default-entry-placeholder))
                      (org-links access-level user sample-content?)
                      (change-link access-level user)
                      (notify-link access-level user)

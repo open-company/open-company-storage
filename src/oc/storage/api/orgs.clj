@@ -423,8 +423,9 @@
                                   org-id (:uuid new-org)
                                   user-id (-> ctx :user :user-id)
                                   boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :publisher-board :access :slack-mirror])
-                                  board-reps (map #(board-rep/render-board-for-collection slug % ctx 0)
-                                                (map #(assoc % :access-level :author) boards))
+                                  board-reps (->> boards
+                                                  (map #(assoc % :access-level :author))
+                                                  (map #(board-rep/render-board-for-collection slug % ctx 0)))
                                   author-reps [(org-rep/render-author-for-collection new-org user-id :author)]
                                   org-for-rep (-> new-org
                                                 (assoc :authors author-reps)
