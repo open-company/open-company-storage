@@ -65,7 +65,7 @@
   ([db-pool body :guard #(and (= (:type %) "inbox-action")
                               (or (= (:sub-type %) "follow")
                                   (= (:sub-type %) "unfollow")))]
-  (timbre/debug "Got inbox-action message of type 'follow' from Interaction:" body)
+  (timbre/debug "Got inbox-action message of type 'follow' or 'unfollow' from Interaction:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
               users (:users body)
@@ -97,7 +97,7 @@
 
   ([db-pool body :guard #(and (= (:type %) "inbox-action")
                               (= (:sub-type %) "dismiss"))]
-  (timbre/debug "Got inbox-action message of type 'follow' from Interaction:" body)
+  (timbre/debug "Got inbox-action message of type 'dismiss' from Interaction:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
               users (:users body)
