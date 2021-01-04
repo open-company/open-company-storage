@@ -49,6 +49,60 @@
 
 ;; ----- Validations -----
 
+(defn entry-exists? [conn ctx org-slug board-slug entry-uuid user]
+  (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
+                         (slugify/valid-slug? board-slug))
+            org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            entry (or (:existing-entry ctx)
+                      (entry-res/get-entry conn entry-uuid))
+            board (or (:existing-board ctx)
+                      (board-res/get-board conn (:board-uuid entry)))
+            _matches? (and (= org-uuid (:org-uuid entry))
+                           (= org-uuid (:org-uuid board))
+                           (= :draft (keyword (:status entry)))) ; sanity check
+            access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)]
+           {:existing-org (api-common/rep org)
+            :existing-board (api-common/rep board)
+            :existing-entry (api-common/rep entry)
+            :access-level access-level}
+           false))
+
+(defn full-entry-exists? [conn ctx org-slug board-slug-or-uuid entry-uuid user]
+  (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
+            org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            board (or (:existing-board ctx)
+                      (board-res/get-board conn org-uuid board-slug-or-uuid))
+            entry (or (:existing-entry ctx)
+                      (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
+            comments (or (:existing-comments ctx)
+                          (entry-res/list-comments-for-entry conn (:uuid entry)))
+            reactions (or (:existing-reactions ctx)
+                          (entry-res/list-reactions-for-entry conn (:uuid entry)))
+            access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)]
+            {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+             :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+             :existing-reactions (api-common/rep reactions)
+             :access-level access-level}
+            false))
+
+(defn- secure-entry-exists? [conn ctx org-slug secure-uuid user]
+  (if-let* [org (or (:existing-org ctx)
+                    (org-res/get-org conn org-slug))
+            org-uuid (:uuid org)
+            entry (or (:existing-entry ctx)
+                      (entry-res/get-entry-by-secure-uuid conn org-uuid secure-uuid))
+            board (board-res/get-board conn (:board-uuid entry))
+            _matches? (= org-uuid (:org-uuid board)) ; sanity check
+            access-level (or (:access-level (access/access-level-for org board user)) :public)]
+            {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+             :existing-entry (api-common/rep entry)
+             :access-level access-level}
+            false))
+
 (defn create-publisher-board [conn org author]
   (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
     (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
@@ -499,22 +553,7 @@
     :delete true})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_entry-id (lib-schema/unique-id? entry-uuid)
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               board (or (:existing-board ctx)
-                                         (board-res/get-board conn org-uuid board-slug-or-uuid))
-                               entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn org-uuid (:uuid board) entry-uuid))
-                               comments (or (:existing-comments ctx)
-                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
-                               reactions (or (:existing-reactions ctx)
-                                            (entry-res/list-reactions-for-entry conn (:uuid entry)))]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)}
-                        false))
+  :exists? (fn [ctx] (full-entry-exists? conn ctx org-slug board-slug-or-uuid entry-uuid (:user ctx)))
 
   ;; Actions
   :patch! (fn [ctx] (update-entry conn ctx (s/join " " [org-slug board-slug-or-uuid entry-uuid])))
@@ -709,22 +748,7 @@
 
   ;; Existentialism
   :can-post-to-missing? false
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn entry-uuid))
-                               board (or (:existing-board ctx)
-                                         (board-res/get-board conn (:board-uuid entry)))
-                               _matches? (and (= org-uuid (:org-uuid entry))
-                                              (= org-uuid (:org-uuid board))
-                                              (= :draft (keyword (:status entry))))] ; sanity check
-                        {:existing-org (api-common/rep org)
-                         :existing-board (api-common/rep board)
-                         :existing-entry (api-common/rep entry)}
-                        false))
+  :exists? (fn [ctx] (entry-exists? conn ctx org-slug board-slug entry-uuid (:user ctx)))
 
   ;; Actions
   :post! (fn [ctx] (publish-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
@@ -771,25 +795,7 @@
 
   ;; Existentialism
   :can-post-to-missing? false
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn entry-uuid))
-                               board (board-res/get-board conn (:board-uuid entry))
-                               _matches? (and (= org-uuid (:org-uuid entry))
-                                              (= org-uuid (:org-uuid board))
-                                              (= :published (keyword (:status entry)))) ; sanity check
-                               comments (or (:existing-comments ctx)
-                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
-                               reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)}
-                        false))
+  :exists? (fn [ctx] (full-entry-exists? conn ctx org-slug board-slug entry-uuid (:user ctx)))
 
   ;; Actions
   :post! (fn [ctx] (share-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
@@ -829,28 +835,7 @@
                             :get (api-common/only-accept 406 mt/entry-media-type)})
 
   ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? org-slug)
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry-by-secure-uuid conn org-uuid secure-uuid))
-                               board (board-res/get-board conn (:board-uuid entry))
-                               _matches? (= org-uuid (:org-uuid board)) ; sanity check
-                               access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)
-                               comments (if (or (= :author access-level) (= :viewer access-level))
-                                          (or (:existing-comments ctx)
-                                              (entry-res/list-comments-for-entry conn (:uuid entry)))
-                                          [])
-                               reactions (if (or (= :author access-level) (= :viewer access-level))
-                                          (or (:existing-reactions ctx)
-                                              (entry-res/list-reactions-for-entry conn (:uuid entry)))
-                                          [])]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)
-                         :access-level access-level}
-                        false))
+  :exists? (fn [ctx] (secure-entry-exists? conn ctx org-slug secure-uuid (:user ctx)))
 
   ;; Responses
   :handle-ok (fn [ctx] (let [access-level (:access-level ctx)]
@@ -894,28 +879,7 @@
 
   ;; Existentialism
   :can-post-to-missing? false
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn entry-uuid))
-                               board (board-res/get-board conn (:board-uuid entry))
-                               _matches? (and (= org-uuid (:org-uuid entry))
-                                              (= org-uuid (:org-uuid board))
-                                              (= :published (keyword (:status entry)))) ; sanity check
-                               comments (or (:existing-comments ctx)
-                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
-                               reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))
-                               access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-entry (api-common/rep entry)
-                         :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)
-                         :access-level access-level}
-                        false))
+  :exists? (fn [ctx] (entry-exists? conn ctx org-slug board-slug entry-uuid (:user ctx)))
 
   ;; Actions
   :post! (fn [ctx] (add-bookmark conn ctx (s/join " " [org-slug board-slug entry-uuid])))
@@ -969,8 +933,8 @@
                                org (or (:existing-org ctx)
                                        (org-res/get-org conn org-slug))
                                org-uuid (:uuid org)]
-                        {:existing-org (api-common/rep org)}
-                        false))
+                       {:existing-org (api-common/rep org)}
+                       false))
 
   ;; Actions
   :post! (fn [ctx]
@@ -1012,23 +976,7 @@
 
   ;; Existentialism
   :can-post-to-missing? false
-  :exists? (fn [ctx] (if-let* [_slugs? (and (slugify/valid-slug? org-slug)
-                                            (slugify/valid-slug? board-slug))
-                               org (or (:existing-org ctx)
-                                       (org-res/get-org conn org-slug))
-                               org-uuid (:uuid org)
-                               entry (or (:existing-entry ctx)
-                                         (entry-res/get-entry conn entry-uuid))
-                               board (board-res/get-board conn (:board-uuid entry))
-                               comments (or (:existing-comments ctx)
-                                            (entry-res/list-comments-for-entry conn (:uuid entry)))
-                               reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-entry (api-common/rep entry)
-                         :existing-comments (api-common/rep comments)
-                         :existing-reactions (api-common/rep reactions)}
-                        false))
+  :exists? (fn [ctx] (full-entry-exists? conn ctx org-slug board-slug entry-uuid (:user ctx)))
 
   ;; Actions
   :post! (fn [ctx]

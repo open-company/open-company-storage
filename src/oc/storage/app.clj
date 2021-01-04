@@ -24,7 +24,8 @@
     [oc.storage.api.entries :as entries-api]
     [oc.storage.api.polls :as polls-api]
     [oc.storage.api.activity :as activity-api]
-    [oc.storage.api.digest :as digest-api]))
+    [oc.storage.api.digest :as digest-api]
+    [oc.storage.api.pins :as pins-api]))
 
 ;; ----- Request Routing -----
 
@@ -39,7 +40,8 @@
     (entries-api/routes sys)
     (activity-api/routes sys)
     (digest-api/routes sys)
-    (polls-api/routes sys)))
+    (polls-api/routes sys)
+    (pins-api/routes sys)))
 
 ;; ----- System Startup -----
 
@@ -60,7 +62,9 @@
     "  env: " c/sentry-env "\n"
     (when-not (clj-string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
-    "Unread limit: " c/unread-days-limit " days\n\n"
+    "Unread limit: " c/unread-days-limit " days\n"
+    "Unseen cap days: " c/unseen-cap-days " days\n"
+    "Pins sort pivot days: " c/pins-sort-pivot-days " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition

@@ -293,7 +293,7 @@
                              badge-replies? (if user-is-member?
                                               (pos?
                                                (entry-res/list-entries-for-user-replies conn org-id allowed-board-uuids user-id :asc
-                                                now :before 0 follow-data (:seen-at replies-seen) {:count true :unseen true}))
+                                                now :before 0 follow-data (:seen-at replies-seen) {:unseen true :count true}))
                                               false)
                              board-reps (map #(board-rep/render-board-for-collection slug % ctx draft-entry-count) full-boards)
                              authors (:authors org)
@@ -438,7 +438,6 @@
   :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
                          (org-rep/render-org-list existing-orgs ctx)))
   :handle-unprocessable-entity (fn [ctx]
-                                 (println "DBG render unproc entity" (:reason ctx))
     (api-common/unprocessable-entity-response (:reason ctx))))
 
 ;; ----- Routes -----

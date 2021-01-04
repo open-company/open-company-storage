@@ -15,7 +15,7 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at})
+  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at :pins})
 
 ;; ----- Data Schemas -----
 
@@ -137,6 +137,19 @@
   :completed? schema/Bool
   (schema/optional-key :completed-at) (schema/maybe lib-schema/ISO8601)})
 
+(def PinValue
+  {:author lib-schema/Author
+   :pinned-at lib-schema/ISO8601})
+
+(def PinKey
+  (schema/pred #(and (keyword? %)
+                     (-> %
+                         name
+                         lib-schema/unique-id?))))
+
+(def EntryPins
+  {PinKey PinValue})
+
 (def Bookmark
   "A bookmark item"
   {:user-id lib-schema/UniqueID
@@ -186,7 +199,8 @@
   (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
 
   (schema/optional-key :polls) (schema/maybe {schema/Keyword Poll})
-})
+
+  (schema/optional-key :pins) (schema/maybe EntryPins)})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."

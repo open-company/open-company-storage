@@ -19,6 +19,7 @@
 (def revert-request-media-type "application/vnd.open-company.revert-request.v1+json")
 (def poll-media-type "application/vnd.open-company.poll.v1+json")
 (def poll-reply-media-type "application/vnd.open-company.poll-reply.v1+json")
+(def pin-media-type "application/vnd.open-company.pin.v1+json")
 
 ;; Interaction media types
 (def comment-media-type "application/vnd.open-company.comment.v1+json")

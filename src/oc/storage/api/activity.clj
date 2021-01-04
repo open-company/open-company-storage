@@ -32,7 +32,7 @@
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
-  [conn {start :start direction :direction must-see :must-see
+  [conn {start :start direction :direction must-see :must-see container-id :container-id
          sort-type :sort-type following :following unfollowing :unfollowing last-seen-at :last-seen-at
          limit :limit}
    org board-by-uuids allowed-boards user-id]
@@ -41,11 +41,11 @@
                       (follow-parameters-map user-id (:slug org) following))
         entries (if follow?
                   (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
-                   follow-data last-seen-at {:must-see must-see})
+                   follow-data last-seen-at {:must-see must-see :container-id container-id})
                   (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
-                   {:must-see must-see}))
+                   {:must-see must-see :container-id container-id}))
         total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
-                     follow-data nil {:count true :must-see must-see})
+                     follow-data nil {:count true :must-see must-see :container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]

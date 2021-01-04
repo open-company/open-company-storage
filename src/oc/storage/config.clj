@@ -117,4 +117,5 @@
 
 (defonce unread-days-limit (or (env :unread-days-limit) 30))
 
-(defonce unseen-cap-days (or (env :unseen-cap-days) 0))
+(defonce unseen-cap-days (Integer/parseInt (or (env :unseen-cap-days) (* 365 50))))
+(defonce pins-sort-pivot-days (Integer/parseInt (or (env :pins-sort-pivot-days) (* 365 100))))

@@ -5,6 +5,7 @@
             [clojure.set :as clj-set]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
+            [oc.storage.urls.pin :as pin-urls]
             [oc.storage.urls.entry :as entry-urls]
             [oc.storage.urls.board :as board-urls]
             [oc.storage.urls.org :as org-urls]
@@ -26,7 +27,7 @@
                            :team-id :author :publisher :published-at :video-id :video-processed
                            :video-image :video-duration :created-at :updated-at :revision-id
                            :new-comments-count :bookmarked-at :polls :last-read-at :last-activity-at :sort-value
-                           :unseen-comments])
+                           :unseen-comments :pins])
 
 ;; ----- Utility functions -----
 
@@ -139,6 +140,10 @@
 (defn- poll-unvote-link [org-slug board-slug entry-uuid poll-uuid reply-id]
   (hateoas/link-map "unvote" hateoas/DELETE (entry-urls/poll-reply-vote org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/poll-media-type}))
+
+(defn- pin-link [rel org-slug board-slug entry-uuid pin-container-uuid]
+  (hateoas/link-map rel hateoas/POST (pin-urls/pin org-slug board-slug entry-uuid pin-container-uuid)
+   {:accept mt/pin-media-type}))
 
 (defn include-secure-uuid
   "Include secure UUID property for authors."
@@ -261,6 +266,8 @@
         user-visibility-link (if (:unfollow user-visibility)
                                (follow-link org-slug board-slug entry-uuid)
                                (unfollow-link org-slug board-slug entry-uuid))
+        home-pin-link (pin-link "home-pin" org-slug board-slug entry-uuid config/seen-home-container-id)
+        board-pin-link (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid)
         member? (#{:author :viewer} access-level)
         links (cond-> []
                ;; secure UUID access
@@ -276,7 +283,12 @@
                (concat [(share-link org-slug board-slug entry-uuid)
                         bookmarks-link
                         user-visibility-link])
-
+               ;; Add home pin link only if it's a non private board and user is member
+               (and member? (not= board-access :private))
+               (concat [home-pin-link])
+                ;; Add board pin link only if user is member
+               member?
+               (concat [board-pin-link])
                ;; Only admins and the owner can edit or delete the entry
                (and (not secure-access?)
                     (or draft?
