@@ -284,7 +284,7 @@
                         bookmarks-link
                         user-visibility-link])
                ;; Add home pin link only if it's a non private board and user is member
-               (and member? (not= board-access :private))
+               (and member? (not= board-access "private"))
                (concat [home-pin-link])
                 ;; Add board pin link only if user is member
                member?
