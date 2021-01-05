@@ -21,7 +21,7 @@
 
 (defn bookmark
    [org-slug board-slug entry-uuid]
-   (str (entry org-slug board-slug entry-uuid) "/bookmark/"))
+   (str (entry org-slug board-slug entry-uuid) "/bookmark"))
 
 (defn revert
   [org-slug board-slug entry-uuid]
