@@ -25,7 +25,7 @@
   (or (get-in entry [:pins (keyword pin-container-uuid)]) true))
 
 (defn- pin-exists? [conn ctx org-slug board-slug-or-uuid entry-uuid pin-container-uuid]
-  (let [{:keys [existing-entry] :as next-ctx} (entries-api/full-entry-exists? conn ctx org-slug board-slug-or-uuid entry-uuid (:user ctx))
+  (let [{:keys [existing-entry] :as next-ctx} (entries-api/published-entry-exists? conn ctx org-slug board-slug-or-uuid entry-uuid (:user ctx))
         entry-pin (get-entry-pin existing-entry pin-container-uuid)]
     (if-let* [existing-org (:existing-org next-ctx)
               boards (board-res/list-boards-by-org conn (:uuid existing-org))
