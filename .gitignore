@@ -19,6 +19,7 @@ pom.xml.asc
 .calva/
 .lsp/
 .clj-kondo/
+.clojure-lsp/
 
 .eastwood
 
