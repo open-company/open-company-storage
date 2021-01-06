@@ -30,7 +30,7 @@
 
 ;; ----- Data schema -----
 
-(defn- notification-type? [notification-type] (#{:add :update :delete :nux :comment-add :dismiss :unread :follow :unfollow} notification-type))
+(defn- notification-type? [notification-type] (#{:add :update :delete :pin-toggle :nux :comment-add :dismiss :unread :follow :unfollow} notification-type))
 
 (defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
 
@@ -73,7 +73,8 @@
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
     (schema/optional-key :inbox-action) InboxAction
-    (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
+    (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]
+    (schema/optional-key :pin-container-uuid) lib-schema/UniqueID}
 
    (schema/optional-key :user) {:user-id lib-schema/UniqueID
                                  schema/Keyword schema/Any}

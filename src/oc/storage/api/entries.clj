@@ -62,7 +62,7 @@
             _matches? (and (= org-uuid (:org-uuid entry))
                            (= org-uuid (:org-uuid board))
                            (= :draft (keyword (:status entry)))) ; sanity check
-            access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)]
+            access-level (or (:access-level (access/access-level-for org board user)) :public)]
     {:existing-org (api-common/rep org)
      :existing-board (api-common/rep board)
      :existing-entry (api-common/rep entry)
@@ -85,7 +85,7 @@
             _matches? (and (= org-uuid (:org-uuid entry))
                            (= org-uuid (:org-uuid board))
                            (not= :draft (keyword (:status entry)))) ; sanity check
-            access-level (or (:access-level (access/access-level-for org board (:user ctx))) :public)]
+            access-level (or (:access-level (access/access-level-for org board user)) :public)]
     {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
      :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
      :existing-reactions (api-common/rep reactions)

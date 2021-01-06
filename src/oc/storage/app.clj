@@ -31,17 +31,17 @@
 
 (defn routes [sys]
   (compojure/routes
-    (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
-    (GET "/---error-test---" [] (/ 1 0))
-    (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
-    (entry-point-api/routes sys)
-    (orgs-api/routes sys)
-    (boards-api/routes sys)
-    (entries-api/routes sys)
-    (activity-api/routes sys)
-    (digest-api/routes sys)
-    (polls-api/routes sys)
-    (pins-api/routes sys)))
+   (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
+   (GET "/---error-test---" [] (/ 1 0))
+   (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
+   (entry-point-api/routes sys)
+   (orgs-api/routes sys)
+   (boards-api/routes sys)
+   (entries-api/routes sys)
+   (activity-api/routes sys)
+   (digest-api/routes sys)
+   (polls-api/routes sys)
+   (pins-api/routes sys)))
 
 ;; ----- System Startup -----
 
