@@ -213,6 +213,13 @@
                (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
      (vals polls))))
 
+(defn- filter-pins [entry]
+  (if-not (= (:board-access entry) "private")
+    entry
+    (update entry
+            :pins
+            #(into {} (filter (fn [[k _]] (not= k (keyword config/seen-home-container-id))) %)))))
+
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -283,12 +290,9 @@
                (concat [(share-link org-slug board-slug entry-uuid)
                         bookmarks-link
                         user-visibility-link])
-               ;; Add home pin link only if it's a non private board and user is member
-               (and member? (not= board-access "private"))
-               (concat [home-pin-link])
-                ;; Add board pin link only if user is member
+               ;; Add home and board pin links if user is a member (clients will limit home pins from private boards)
                member?
-               (concat [board-pin-link])
+               (concat [home-pin-link board-pin-link])
                ;; Only admins and the owner can edit or delete the entry
                (and (not secure-access?)
                     (or draft?
@@ -325,6 +329,7 @@
           full-entry)
       (assoc :polls rendered-polls)
       (select-keys representation-props)
+      (filter-pins)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)

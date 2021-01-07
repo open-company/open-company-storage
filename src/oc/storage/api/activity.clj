@@ -60,7 +60,7 @@
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction limit :limit} org board-by-uuids  allowed-boards user-id]
+  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
   (let [total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc
                                (oc-time/now-ts) :before 0 {:count true})
         entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
@@ -194,7 +194,7 @@
                                      (assoc :last-seen-at (:seen-at container-seen))
                                      (assoc :next-seen-at (db-common/current-timestamp)))
                              boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -249,7 +249,7 @@
                                                      0 ;; In case of a digest request or if a refresh request
                                                      config/default-activity-limit))) ;; fallback to the default pagination otherwise
                              boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -295,7 +295,7 @@
                              params (update ctx-params :start #(if % (Long. %) (oc-time/now-ts))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                             items (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
@@ -353,7 +353,7 @@
                                      (assoc :last-seen-at (:seen-at container-seen))
                                      (assoc :next-seen-at (db-common/current-timestamp)))
                              boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -416,7 +416,7 @@
 
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              items (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]

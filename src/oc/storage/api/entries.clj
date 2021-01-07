@@ -245,8 +245,7 @@
                     (org-res/get-org conn org-slug))
             org-uuid (:uuid org)
             board (board-res/get-board conn org-uuid board-slug-or-uuid)
-            board-uuid (:uuid board)
-            entries (entry-res/list-entries-by-board conn board-uuid {})]
+            entries (entry-res/list-entries-by-board conn board {})]
     {:existing-org (api-common/rep org)
      :existing-board (api-common/rep board)
      :existing-entries (api-common/rep entries)}
@@ -292,7 +291,7 @@
   (if-let* [existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
             dismiss-at (-> ctx :request :body slurp)]
     (let [boards (board-res/list-boards-by-org conn (:uuid existing-org) [:created-at :updated-at :authors :viewers :access])
-          allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
+          allowed-boards (filter #(access/access-level-for existing-org % user) boards)
           existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc
                             (db-common/current-timestamp) 0 allowed-boards)
           updated-entries (map #(-> %

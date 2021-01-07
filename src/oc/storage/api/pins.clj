@@ -27,8 +27,9 @@
         entry-pin (get-entry-pin existing-entry pin-container-uuid)]
     (if-let* [existing-org (:existing-org next-ctx)
               boards (board-res/list-boards-by-org conn (:uuid existing-org))
-              allowed-boards (map :uuid (filter #(access/access-level-for existing-org % (:user ctx)) boards))
-              _allowed-containers-set (set (conj allowed-boards pin-container-uuid))]
+              allowed-boards (filter #(access/access-level-for existing-org % (:user ctx)) boards)
+              allowed-board-uuids (map :uuid allowed-boards)
+              _allowed-containers-set (set (conj (map :uuid allowed-board-uuids) pin-container-uuid))]
       (merge next-ctx {:existing-pin entry-pin})
       false)))
 
@@ -42,7 +43,7 @@
         user (:user ctx)
         updated-entry (entry-res/toggle-pin! conn entry-uuid pin-container-uuid (:user ctx))]
     (timbre/info "Entry" entry-uuid (if (map? (get-in entry [:pins (keyword pin-container-uuid)])) "pinned" "unpinned") "to container" pin-container-uuid "by" (:user-id user))
-    ;; (notification/send-trigger! (notification/->trigger :pin-toggle org board {:pin-container-uuid pin-container-uuid :old entry :new updated-entry} user nil (api-common/get-change-client-id ctx)))
+    (notification/send-trigger! (notification/->trigger :pin-toggle org board {:pin-container-uuid pin-container-uuid :old entry :new updated-entry} user nil (api-common/get-change-client-id ctx)))
     {:updated-entry (api-common/rep updated-entry)}))
 
 ;; A resource for adding replies to a poll

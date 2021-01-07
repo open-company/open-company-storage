@@ -117,7 +117,7 @@
                                      (assoc :limit 10) ;; use a limit of 10 posts since digest can't be too long anyway
                                      (update :direction keyword)) ; always set to after)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :access :authors :viewers :author :description])
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-by-uuids (zipmap board-uuids boards)
                              results (assemble-digest conn params org board-by-uuids allowed-boards user-id ctx)]

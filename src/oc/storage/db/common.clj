@@ -45,8 +45,10 @@
         order-fn (if (= order :desc) r/desc r/asc)
         unseen-cap-ms (* 1000 60 60 24 config/unseen-cap-days)
         pins-sort-pivot-ms (* 1000 60 60 24 config/pins-sort-pivot-days)
+        allowed-board-uuids (map :uuid allowed-boards)
+        private-board-uuids (map :uuid (filter #(= (:access %) "private") allowed-boards))
         pins-allowed-boards (when container-id
-                              (set (conj allowed-boards config/seen-home-container-id)))
+                              (set (conj allowed-board-uuids config/seen-home-container-id)))
         fixed-container-id (when (and pins-allowed-boards
                                       (pins-allowed-boards container-id))
                              container-id)]
@@ -55,8 +57,8 @@
             (r/get-all query index-values {:index index-name})
             (r/filter query (r/fn [post-row]
               (r/and ;; Filter on allowed-boards if necessary (if not ISequential means no filter needed)
-                     (r/or (not (sequential? allowed-boards))
-                           (r/contains allowed-boards (r/get-field post-row :board-uuid)))
+                     (r/or (not (sequential? allowed-board-uuids))
+                           (r/contains allowed-board-uuids (r/get-field post-row :board-uuid)))
                      ;; and filter on follow data:
                      (r/or ;; no filter if it's nil
                            (not (map? follow-data))
@@ -77,26 +79,26 @@
                                          (r/default (r/get-field post-row :published-at))
                                          (r/default (r/get-field post-row :created-at)))
                     container-pin (r/default (r/get-field post-row [:pins fixed-container-id]) nil)
-                    sort-field (r/branch
-                                (r/eq sort-type :recent-activity)
-                                last-activity-at
-                                (r/branch
-                                 (r/eq sort-type :bookmarked-at)
-                                 (-> (r/get-field post-row [:bookmarks])
-                                     (r/filter {:user-id user-id})
-                                     (r/nth 0)
-                                     (r/get-field :bookmarked-at)
-                                     (r/default (r/get-field post-row :published-at))
-                                     (r/default (r/get-field post-row :created-at)))
-                                 (r/branch
-                                  container-pin
-                                  (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
-                                      (r/default (r/get-field post-row :published-at))
-                                      (r/default (r/get-field post-row :created-at)))
-                                  ;:else
-                                  (r/default
-                                   (r/get-field post-row :published-at)
-                                   (r/get-field post-row :created-at)))))
+                    can-pin-to-container? (r/and container-pin
+                                                 (r/or (r/ne container-id config/seen-home-container-id)
+                                                       (r/not (r/contains (r/coerce-to private-board-uuids :array) (r/get-field post-row [:board-uuid])))))
+                    sort-field (r/branch (r/eq sort-type :recent-activity)
+                                         last-activity-at
+                                         (r/branch (r/eq sort-type :bookmarked-at)
+                                                   (-> (r/get-field post-row [:bookmarks])
+                                                       (r/filter {:user-id user-id})
+                                                       (r/nth 0)
+                                                       (r/get-field :bookmarked-at)
+                                                       (r/default (r/get-field post-row :published-at))
+                                                       (r/default (r/get-field post-row :created-at)))
+                                                   (r/branch can-pin-to-container?
+                                                             (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
+                                                                 (r/default (r/get-field post-row :published-at))
+                                                                 (r/default (r/get-field post-row :created-at)))
+                                                             ;:else
+                                                             (r/default
+                                                             (r/get-field post-row :published-at)
+                                                             (r/get-field post-row :created-at)))))
                     sort-value-base (-> sort-field
                                      (r/iso8601)
                                      (r/to-epoch-time)
@@ -107,20 +109,18 @@
                     unseen-with-cap? (r/and unseen-entry?
                                             (r/gt sort-value-base
                                                   (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))))
-                    sort-value (r/branch
-                                container-pin
-                                ;; If the item is pinned and was published (for recently posted) in the cap window
-                                ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
-                                (r/add sort-value-base pins-sort-pivot-ms)
-                                ;; :else
-                                (r/branch
-                                 unseen-with-cap?
-                                 ;; If the item is unseen and was published (for recently posted) or bookmarked
-                                 ;; (for bookmarks) or last activity was (for recent activity) in the cap window
-                                 ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
-                                 (r/add sort-value-base unseen-cap-ms)
-                                 ;; :else
-                                 sort-value-base))]
+                    sort-value (r/branch can-pin-to-container?
+                                         ;; If the item is pinned and was published (for recently posted) in the cap window
+                                         ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
+                                         (r/add sort-value-base pins-sort-pivot-ms)
+                                         ;; :else
+                                         (r/branch unseen-with-cap?
+                                                   ;; If the item is unseen and was published (for recently posted) or bookmarked
+                                                   ;; (for bookmarks) or last activity was (for recent activity) in the cap window
+                                                   ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
+                                                   (r/add sort-value-base unseen-cap-ms)
+                                                   ;; :else
+                                                   sort-value-base))]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
                  :publish-time sort-value-base
@@ -182,15 +182,16 @@
         (every? db-common/s-or-k? relation-fields)]}
   (let [index-values (if (sequential? index-value) index-value [index-value])
         order-fn (if (= order :desc) r/desc r/asc)
-        minimum-date-timestamp (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/days config/unread-days-limit)))]
+        minimum-date-timestamp (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/days config/unread-days-limit)))
+        allowed-board-uuids (map :uuid allowed-boards)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
             (r/get-all query index-values {:index index-name})
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
-                     (r/or (not (sequential? allowed-boards))
-                           (r/contains allowed-boards (r/get-field post-row :board-uuid)))
+                     (r/or (not (sequential? allowed-board-uuids))
+                           (r/contains allowed-board-uuids (r/get-field post-row :board-uuid)))
                      ;; that have unfollow (or :unfollow is not specified)
                      (r/not (r/default (r/get-field post-row [:user-visibility user-id :unfollow]) false))
 
@@ -320,14 +321,15 @@
          (boolean? count)
          (boolean? unseen)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        unseen-cap-ms (* 1000 60 60 24 config/unseen-cap-days)]
+        unseen-cap-ms (* 1000 60 60 24 config/unseen-cap-days)
+        allowed-board-uuids (map :uuid allowed-boards)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "entries") query
        (r/get-all query [[:published org-uuid]] {:index :status-org-uuid})
        ;; Make an initial filter to select only posts the user has access to
        (r/filter query (r/fn [row]
-        (r/or (not (sequential? allowed-boards))
-              (r/contains allowed-boards (r/get-field row :board-uuid)))))
+        (r/or (not (sequential? allowed-board-uuids))
+              (r/contains allowed-board-uuids (r/get-field row :board-uuid)))))
        ;; Merge in last-activity-at and entry
        (r/merge query (r/fn [row]
         (let [interactions-base (-> (r/table "interactions")
