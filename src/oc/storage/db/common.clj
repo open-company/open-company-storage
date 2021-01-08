@@ -123,7 +123,7 @@
                                                    sort-value-base))]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
-                 :publish-time sort-value-base
+                 :sort-base sort-value-base
                  :sort-value sort-value
                  :unseen unseen-with-cap?})))
             ;; Filter out:
@@ -132,10 +132,14 @@
               (r/and ;; Filter out seen entries if unseen flag is on
                      (r/or (r/not unseen)
                            (r/default (r/get-field row :unseen) false))
+                     ;; When sorting from most recent and using before limit
+                     ;; it's necessary to use the sort-base value to avoid cutting out posts sorted at the top
                      (r/or (r/and (= direction :before)
-                                  (r/gt start (r/get-field row :publish-time)))
+                                  (r/gt start (r/get-field row :sort-base)))
+                           ;; for after instead we can use the sort-value since
+                           ;; there is no top limit
                            (r/and (= direction :after)
-                                  (r/le start (r/get-field row :publish-time)))))))
+                                  (r/le start (r/get-field row :sort-value)))))))
             ;; Merge in all the interactions
             (if-not count
               (r/merge query (r/fn [post-row]
