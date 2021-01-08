@@ -425,7 +425,7 @@
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
+         (#{:recent-activity :recently-posted :digest} sort-type)]}
   (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
    limit sort-type common/interaction-table-name allowed-boards follow-data container-last-seen-at list-comment-properties nil {:count count :unseen unseen :container-id container-id})))
 

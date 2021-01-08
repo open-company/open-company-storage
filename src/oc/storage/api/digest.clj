@@ -33,8 +33,8 @@
   (let [follow-data (activity-api/follow-parameters-map user-id (:slug org))
 
         following-follow-data (assoc follow-data :following true)
-        following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :recently-posted allowed-boards following-follow-data nil {:container-id config/seen-home-container-id})
-        following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :recently-posted allowed-boards following-follow-data nil {:count true :container-id config/seen-home-container-id})
+        following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :digest allowed-boards following-follow-data nil {:container-id config/seen-home-container-id})
+        following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :digest allowed-boards following-follow-data nil {:count true :container-id config/seen-home-container-id})
 
         replies-data (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data nil {})
         replies-comments (filter #(and (contains? % :body) (not= (-> % :author :user-id) user-id))

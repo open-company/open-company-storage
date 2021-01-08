@@ -30,7 +30,7 @@
         (not (nil? start))
         (#{:after :before} direction)
         (integer? limit)
-        (or (#{:recent-activity :recently-posted} sort-type)
+        (or (#{:recent-activity :recently-posted :digest} sort-type)
             (and (= sort-type :bookmarked-at)
                  (seq user-id)))
         (or (nil? container-last-seen-at)
@@ -84,21 +84,25 @@
                                                        (r/not (r/contains (r/coerce-to private-board-uuids :array) (r/get-field post-row [:board-uuid])))))
                     sort-field (r/branch (r/eq sort-type :recent-activity)
                                          last-activity-at
-                                         (r/branch (r/eq sort-type :bookmarked-at)
-                                                   (-> (r/get-field post-row [:bookmarks])
-                                                       (r/filter {:user-id user-id})
-                                                       (r/nth 0)
-                                                       (r/get-field :bookmarked-at)
-                                                       (r/default (r/get-field post-row :published-at))
-                                                       (r/default (r/get-field post-row :created-at)))
-                                                   (r/branch can-pin-to-container?
-                                                             (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
+                                         (r/branch (r/eq sort-type :digest)
+                                                   (r/default
+                                                     (r/get-field post-row :published-at)
+                                                     (r/get-field post-row :created-at))
+                                                   (r/branch (r/eq sort-type :bookmarked-at)
+                                                             (-> (r/get-field post-row [:bookmarks])
+                                                                 (r/filter {:user-id user-id})
+                                                                 (r/nth 0)
+                                                                 (r/get-field :bookmarked-at)
                                                                  (r/default (r/get-field post-row :published-at))
                                                                  (r/default (r/get-field post-row :created-at)))
-                                                             ;:else
-                                                             (r/default
-                                                             (r/get-field post-row :published-at)
-                                                             (r/get-field post-row :created-at)))))
+                                                             (r/branch can-pin-to-container?
+                                                                       (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
+                                                                           (r/default (r/get-field post-row :published-at))
+                                                                           (r/default (r/get-field post-row :created-at)))
+                                                                       ;:else
+                                                                       (r/default
+                                                                        (r/get-field post-row :published-at)
+                                                                        (r/get-field post-row :created-at))))))
                     sort-value-base (-> sort-field
                                      (r/iso8601)
                                      (r/to-epoch-time)
@@ -109,18 +113,20 @@
                     unseen-with-cap? (r/and unseen-entry?
                                             (r/gt sort-value-base
                                                   (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))))
-                    sort-value (r/branch can-pin-to-container?
-                                         ;; If the item is pinned and was published (for recently posted) in the cap window
-                                         ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
-                                         (r/add sort-value-base pins-sort-pivot-ms)
-                                         ;; :else
-                                         (r/branch unseen-with-cap?
-                                                   ;; If the item is unseen and was published (for recently posted) or bookmarked
-                                                   ;; (for bookmarks) or last activity was (for recent activity) in the cap window
+                    sort-value (r/branch (r/eq sort-type :digest)
+                                         sort-value-base
+                                         (r/branch can-pin-to-container?
+                                                   ;; If the item is pinned and was published (for recently posted) in the cap window
                                                    ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
-                                                   (r/add sort-value-base unseen-cap-ms)
+                                                   (r/add sort-value-base pins-sort-pivot-ms)
                                                    ;; :else
-                                                   sort-value-base))]
+                                                   (r/branch unseen-with-cap?
+                                                             ;; If the item is unseen and was published (for recently posted) or bookmarked
+                                                             ;; (for bookmarks) or last activity was (for recent activity) in the cap window
+                                                             ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
+                                                             (r/add sort-value-base unseen-cap-ms)
+                                                             ;; :else
+                                                             sort-value-base)))]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
                  :sort-base sort-value-base
