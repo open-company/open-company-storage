@@ -383,7 +383,7 @@
     (let [old-board (:moving-board ctx)]
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
-        (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+        (let [remaining-entries (entry-res/list-all-entries-by-board conn old-board)]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (timbre/info "Updated entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil (api-common/get-change-client-id ctx)))
@@ -444,7 +444,7 @@
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
-        (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+        (let [remaining-entries (entry-res/list-all-entries-by-board conn old-board)]
           (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
       (entry-res/delete-versions conn final-entry)
       (auto-share-on-publish conn ctx final-entry)
@@ -462,7 +462,7 @@
     (do
       ;; If deleting a draft on a draft board
       (when (= (keyword (:status entry)) :draft)
-        (let [remaining-entries (entry-res/list-all-entries-by-board conn (:uuid board))]
+        (let [remaining-entries (entry-res/list-all-entries-by-board conn board)]
           (board-res/maybe-delete-draft-board conn org board remaining-entries (:user ctx))))
       (when (not= (keyword (:status entry)) :published)
         (entry-res/delete-versions conn (assoc entry :delete-entry true)))
