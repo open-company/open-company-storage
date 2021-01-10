@@ -5,7 +5,8 @@
             [oc.storage.config :as config]))
 
 (defn up [conn]
+  (println (m/remove-index conn entry/table-name "publisher-uuid"))
   ;; Do great things
   (println (m/create-compound-index conn entry/table-name "publisher-uuid"
-                                    (r/fn [row] [(r/get-field row ["publisher" "uuid"])])))
+                                    (r/fn [row] [(r/get-field row ["publisher" "user-id"])])))
   true) ; return true on success
