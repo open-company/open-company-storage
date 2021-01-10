@@ -1,0 +1,11 @@
+(ns oc.storage.db.migrations.add-publisher-uuid-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.resources.entry :as entry]
+            [oc.storage.config :as config]))
+
+(defn up [conn]
+  ;; Do great things
+  (println (m/create-compound-index conn entry/table-name "publisher-uuid"
+                                    (r/fn [row] [(r/get-field row ["publisher" "uuid"])])))
+  true) ; return true on success
