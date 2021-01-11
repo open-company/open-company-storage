@@ -49,6 +49,7 @@
   :uuid lib-schema/UniqueID
   :slug Slug
   :name lib-schema/NonBlankStr
+  (schema/optional-key :description) (schema/maybe schema/Str)
   :org-uuid lib-schema/UniqueID
   :access AccessLevel
   :authors [lib-schema/UniqueID]
@@ -57,7 +58,8 @@
   :author lib-schema/Author
   (schema/optional-key :draft) schema/Bool
   :created-at lib-schema/ISO8601
-  :updated-at lib-schema/ISO8601})
+  :updated-at lib-schema/ISO8601
+  (schema/optional-key :publisher-board) schema/Bool})
 
 (def ContentVisibility {
   (schema/optional-key :disallow-secure-links) schema/Bool
@@ -78,6 +80,9 @@
   (schema/optional-key :utm-data) schema/Any
   :authors [lib-schema/UniqueID]
   :author lib-schema/Author
+  (schema/optional-key :brand-color) lib-schema/BrandColor
+  (schema/optional-key :new-entry-placeholder) (schema/maybe schema/Str)
+  (schema/optional-key :new-entry-cta) (schema/maybe schema/Str)
   :created-at lib-schema/ISO8601
   :updated-at lib-schema/ISO8601})
 
@@ -119,7 +124,8 @@
 (def UserVisibility
   "A user-visibility item."
   {(schema/optional-key :dismiss-at) (schema/maybe lib-schema/ISO8601)
-   (schema/optional-key :unfollow) schema/Bool})
+   (schema/optional-key :unfollow) schema/Bool
+   (schema/optional-key :follow) schema/Bool})
 
 (def FollowUp
   "A follow-up item."
@@ -149,6 +155,7 @@
   :headline schema/Str
   :body schema/Str
   (schema/optional-key :abstract) (schema/maybe schema/Str)
+  (schema/optional-key :abstract-merged) (schema/maybe schema/Bool)
   
   ;; Attachments
   (schema/optional-key :attachments) [Attachment]
@@ -197,3 +204,8 @@
    :status schema/Str
    :created-at lib-schema/ISO8601
    schema/Keyword schema/Any}) ; and whatever else
+
+;; Defaults
+
+(def default-entry-placeholder "What's happening...")
+(def default-entry-cta "New update")
