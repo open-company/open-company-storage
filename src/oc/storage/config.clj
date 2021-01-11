@@ -18,6 +18,11 @@
 ;; ----- Sentry -----
 
 (defonce dsn (or (env :open-company-sentry-storage) false))
+(defonce sentry-release (or (env :release) ""))
+(defonce sentry-env (or (env :environment) "local"))
+(defonce sentry-config {:dsn dsn
+                        :release sentry-release
+                        :environment sentry-env})
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 
@@ -48,7 +53,6 @@
 (defonce auth-server-url (or (env :auth-server-url) (str "http://" host ":3003")))
 (defonce interaction-server-url (or (env :interaction-server-url) (str "http://" host ":3002")))
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) (str "ws://" host ":3002")))
-(defonce payments-server-url (or (env :payments-server-url) (str "http://" host ":3004")))
 (defonce change-server-url (or (env :change-server-url) (str "http://" host ":3006")))
 (defonce change-server-ws-url (or (env :change-server-ws-url) (str "ws://" host ":3006")))
 (defonce notify-server-ws-url (or (env :notify-server-ws-url) (str "ws://" host ":3010")))
@@ -85,15 +89,15 @@
 
 (defonce new-org-board-names #{"General"})
 
-(defonce max-reaction-count 5) 
+(defonce max-reaction-count 3)
 
 (defonce inline-comment-count 10)
 
 (defonce default-activity-limit 10)
 
-(defonce payments-enabled? (bool (env :payments-enabled)))
-
 (defonce reminders-enabled? (bool (env :reminders-enabled)))
+
+(defonce publisher-board-enabled? (bool (env :publisher-board-enabled)))
 
 ;; DynamoDB
 
@@ -108,4 +112,9 @@
     :table-prefix dynamodb-table-prefix
   })
 
+(defonce seen-home-container-id (or (env :seen-home-container-id) "1111-1111-1111"))
+(defonce seen-replies-container-id (or (env :seen-replies-container-id) "1111-1111-2222"))
+
 (defonce unread-days-limit (or (env :unread-days-limit) 30))
+
+(defonce unseen-cap-days (or (env :unseen-cap-days) 0))

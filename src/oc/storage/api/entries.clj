@@ -2,7 +2,7 @@
   "Liberator API for entry resources."
   (:require [clojure.string :as s]
             [defun.core :refer (defun-)]
-            [if-let.core :refer (if-let* when-let*)]
+            [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
@@ -23,7 +23,10 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.reaction :as reaction-res]))
+            [oc.storage.resources.reaction :as reaction-res]
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.activity :as activity-urls]))
 
 ;; ----- Utility functions -----
 
@@ -46,48 +49,111 @@
 
 ;; ----- Validations -----
 
-(defn- valid-new-entry? [conn org-slug board-slug ctx]
-  (if-let [board (board-res/get-board conn (org-res/uuid-for conn org-slug) board-slug)]
-    (try
-      ;; Create the new entry from the URL and data provided
-      (let [entry-map (:data ctx)
-            author (:user ctx)
-            new-entry (entry-res/->entry conn (:uuid board) entry-map author)
-            ts (db-common/current-timestamp)]
-        {:new-entry (api-common/rep new-entry) :existing-board (api-common/rep board)})
+(defn create-publisher-board [conn org author]
+  (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
+    (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
+    created-board))
 
-      (catch clojure.lang.ExceptionInfo e
-        [false, {:reason (.getMessage e)}])) ; Not a valid new entry
-    [false, {:reason "Invalid board."}])) ; couldn't find the specified board
+(defn- valid-new-entry? [conn org-slug board-slug ctx]
+  (let [org (org-res/get-org conn org-slug)
+        board (board-res/get-board conn (:uuid org) board-slug)
+        entry-map (:data ctx)
+        author (:user ctx)
+        existing-board (cond
+                        board
+                        board
+
+                        (and (not board)
+                             (:publisher-board entry-map)
+                             (= (:user-id author) (:board-slug entry-map)))
+                        (create-publisher-board conn org author))]
+    (if board
+      (try
+        ;; Create the new entry from the URL and data provided
+        (let [clean-entry-map (dissoc entry-map :publisher-board)
+              new-entry (entry-res/->entry conn (:uuid existing-board) clean-entry-map author)]
+          {:new-entry (api-common/rep new-entry)
+           :existing-board (api-common/rep existing-board)
+           :existing-org (api-common/rep org)})
+        (catch clojure.lang.ExceptionInfo e
+          [false, {:reason (.getMessage e)}])) ; Not a valid new entry))
+      [false, {:reason "Invalid board."}]))) ; couldn't find the specified board
+
+(defn- clean-poll-reply
+  "Copy the votes from the existing poll's reply if any, into the new reply."
+  [existing-poll reply-id reply-data]
+  (let [existing-reply (get existing-poll reply-id)
+        reply-votes (if existing-reply (:votes existing-reply) (:votes reply-data))]
+    (assoc reply-data :votes reply-votes)))
+
+(defn- clean-poll-for-patch
+  "Update a poll without overriding the votes but preserve the added/removed/updated replies."
+  [existing-entry poll-data]
+  (if-let [existing-poll (get-in existing-entry [:polls (:poll-uuid poll-data)])]
+    ;; Make sure we keep the votes that are currently saved,
+    ;; client can't update votes with an entry patch
+    ;; but can add/delete/update replies.
+    (let [updated-replies (map (fn [[reply-id reply-data]]
+                                 (clean-poll-reply existing-poll reply-id reply-data))
+                           (:replies poll-data))]
+      (assoc poll-data :replies (zipmap (map (comp keyword :reply-id) updated-replies)
+                                         updated-replies)))
+    poll-data))
+
+(defn- clean-polls-for-patch
+  "Given the existing entry and the patched entry, clean the polls contained in the
+   the new data."
+  [entry existing-entry]
+  (update entry :polls (fn [polls]
+    (let [updated-polls (map (partial clean-poll-for-patch existing-entry) (vals polls))
+          poll-uuids (map (comp keyword :poll-uuid) updated-polls)]
+      (zipmap poll-uuids updated-polls)))))
 
 (defn- valid-entry-update? [conn entry-uuid entry-props user entry-publish?]
   (if-let [existing-entry (entry-res/get-entry conn entry-uuid)]
     ;; Merge the existing entry with the new updates
-    (let [new-board-slug (:board-slug entry-props) ; check if they are moving the entry
-          new-board (when new-board-slug ; look up the board it's being moved to
-                          (board-res/get-board conn (:org-uuid existing-entry) new-board-slug))
-          old-board (when new-board
-                      (board-res/get-board conn (:board-uuid existing-entry)))
-          new-board-uuid (:uuid new-board)
-          without-status-props (dissoc entry-props :status)
-          with-status-props (if entry-publish?
-                              (assoc without-status-props :status :published)
-                              (assoc without-status-props :status (:status existing-entry)))
-          props (if new-board-uuid
-                  (assoc with-status-props :board-uuid new-board-uuid)
-                  (dissoc with-status-props :board-uuid))
-          merged-entry (merge existing-entry (entry-res/ignore-props props))
-          updated-entry (update merged-entry :attachments #(entry-res/timestamp-attachments %))
-          ts (db-common/current-timestamp)]
+    (let [org (org-res/get-org conn (:org-uuid existing-entry))
+          new-board-slug (:board-slug entry-props) ; check if they are moving the entry
+          old-board (board-res/get-board conn (:board-uuid existing-entry))
+          moving-board? (not= (:slug old-board) new-board-slug)
+          new-board* (board-res/get-board conn (:uuid org) new-board-slug)
+          new-board (cond
+                      ;; Entry not moved from old board
+                      (and new-board-slug
+                           (= new-board-slug (:slug old-board)))
+                      old-board
+                      ;; Entry moved to another existing board
+                      (and new-board-slug
+                           (not= new-board-slug (:slug old-board))
+                           (map? new-board*))
+                      new-board*
+                      ;; Entry moved to a new board: if the board doesn't exists
+                      ;; it means it's a publisher-board since the endpoint
+                      ;; needed to create a new board with entries is another
+                      (and new-board-slug
+                           (not= new-board-slug (:slug old-board))
+                           (not new-board*))
+                      (create-publisher-board conn org user))
+          clean-entry-props (cond-> entry-props
+                              moving-board? (assoc :board-uuid (:uuid new-board))
+                              (not moving-board?) (dissoc :board-uuid)
+                              true (-> (dissoc :publisher-board)
+                                       (update :status #(if entry-publish? :published %))))
+          updated-entry (-> existing-entry
+                         (merge (entry-res/ignore-props clean-entry-props))
+                         (update :attachments #(entry-res/timestamp-attachments %))
+                         (clean-polls-for-patch existing-entry))
+          ctx-base (if moving-board?
+                     {:moving-board (api-common/rep old-board)}
+                     {})]
       (if (lib-schema/valid? common-res/Entry updated-entry)
-        {:existing-entry (api-common/rep existing-entry)
-         :existing-board (api-common/rep new-board)
-         :moving-board (api-common/rep old-board)
-         :updated-entry (api-common/rep updated-entry)}
-        (do
-         (println (lib-schema/valid? common-res/Entry updated-entry))
-         [false, {:updated-entry (api-common/rep updated-entry)}]))) ; invalid update
-    
+        (merge ctx-base
+         {:existing-entry (api-common/rep existing-entry)
+          :existing-board (api-common/rep new-board)
+          :existing-org (api-common/rep org)
+          :updated-entry (api-common/rep updated-entry)})
+        [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
+
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- valid-entry-revert? [entry-props]
@@ -101,7 +167,7 @@
     (if (every? #(lib-schema/valid? common-res/ShareRequest %) share-requests)
         {:existing-entry (api-common/rep existing-entry) :share-requests (api-common/rep share-requests)}
         [false, {:share-requests (api-common/rep share-requests)}]) ; invalid share request
-    
+
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- entry-list-for-board
@@ -127,19 +193,21 @@
             existing-board (or (:existing-board ctx) (board-res/get-board conn (:board-uuid existing-entry)))]
     ;; Merge the existing entry with the new updates
     (let [dismiss-at (when (= action-type :dismiss) (-> ctx :request :body slurp))
-          user-visibility (or (some (fn [[k v]] (when (= k (-> user :user-id keyword)) v)) (:user-visibility existing-entry))
-                              {})
-          updated-user-visibility (cond
-                                    (= action-type :dismiss)
-                                    (assoc user-visibility :dismiss-at dismiss-at)
-                                    (= action-type :unread)
-                                    (merge user-visibility {:dismiss-at nil :unfollow false})
-                                    (= action-type :follow)
-                                    (assoc user-visibility :unfollow false)
-                                    (= action-type :unfollow)
-                                    (assoc user-visibility :unfollow true))
-          updated-entry (assoc-in existing-entry [:user-visibility (keyword (:user-id user))] updated-user-visibility)]
-      (timbre/info "User visibility" user-visibility "updated:" updated-user-visibility)
+          update-visibility-fn #(cond-> (or % {})
+                                 ;; dismiss
+                                 (= action-type :dismiss) (assoc :dismiss-at dismiss-at)
+                                 ;; unread
+                                 (= action-type :unread) (dissoc :follow)
+                                 (= action-type :unread) (assoc :unfollow false)
+                                 ;; follow
+                                 (= action-type :follow) (dissoc :follow)
+                                 (= action-type :follow) (assoc :unfollow false)
+                                 ;; unfollow
+                                 (= action-type :unfollow) (dissoc :follow)
+                                 (= action-type :unfollow) (assoc :unfollow true))
+          update-visibility-key [:user-visibility (keyword (:user-id user))]
+          updated-entry (update-in existing-entry update-visibility-key update-visibility-fn)]
+      (timbre/info "User visibility updated:" (get-in updated-entry update-visibility-key))
       (if (and (or (not= action-type :dismiss)
                    (and (= action-type :dismiss)
                         (lib-schema/valid? lib-schema/ISO8601 dismiss-at)))
@@ -150,7 +218,7 @@
          :updated-entry (api-common/rep updated-entry)
          :dismiss-at dismiss-at}
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
-    
+
     true)) ; no existing entry, so this will fail existence check later
 
 (defn- valid-dismiss-all-update? [conn ctx org-slug user]
@@ -161,10 +229,9 @@
           allowed-boards (map :uuid (filter #(access/access-level-for existing-org % user) boards))
           existing-entries (entry-res/list-all-entries-for-inbox conn (:uuid existing-org) (:user-id user) :desc
                             (db-common/current-timestamp) 0 allowed-boards)
-          updated-entries (mapv
-                           #(-> %
-                             (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
-                             (dissoc :last-activity-at :interactions))
+          updated-entries (map #(-> %
+                                 (assoc-in [:user-visibility (keyword (:user-id user)) :dismiss-at] dismiss-at)
+                                 (dissoc :last-activity-at :interactions))
                            existing-entries)]
       (if (and (lib-schema/valid? lib-schema/ISO8601 dismiss-at)
                (every? #(lib-schema/valid? common-res/Entry %) updated-entries))
@@ -216,7 +283,7 @@
                         (assoc :auto-share true))]
       (share-entry conn share-ctx (:uuid entry-result)))))
 
-(defn undraft-board [conn user org board]
+(defn undraft-board [conn _user _org board]
   (when (:draft board)
     (let [updated-board (assoc board :draft false)]
       (timbre/info "Unsetting draft for board:" (:slug board))
@@ -228,7 +295,7 @@
             org (:existing-org ctx)
             board (:existing-board ctx)
             new-entry (:new-entry ctx)
-            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry    
+            entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
       (when (= (keyword (:status entry-result)) :published)
@@ -307,7 +374,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             updated-entry (:updated-entry ctx)
-            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry user)]
+            final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry org user)]
     (let [old-board (:moving-board ctx)]
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
@@ -407,7 +474,7 @@
   ;; Media type client accepts
   :available-media-types [mt/entry-media-type]
   :handle-not-acceptable (api-common/only-accept 406 mt/entry-media-type)
-  
+
   ;; Media type client sends
   :known-content-type? (by-method {
     :options true
@@ -455,13 +522,13 @@
 
   ;; Responses
   :handle-ok (by-method {
-    :get (fn [ctx] (entry-rep/render-entry 
+    :get (fn [ctx] (entry-rep/render-entry
                       (:existing-org ctx)
                       (:existing-board ctx)
                       (:existing-entry ctx)
                       (:existing-comments ctx)
                       (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                      (:access-level ctx)
+                      (select-keys ctx [:access-level :role])
                       (-> ctx :user :user-id)))
     :patch (fn [ctx] (entry-rep/render-entry
                         (:existing-org ctx)
@@ -469,7 +536,7 @@
                         (:updated-entry ctx)
                         (:existing-comments ctx)
                         (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                        (:access-level ctx)
+                        (select-keys ctx [:access-level :role])
                         (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
@@ -517,7 +584,7 @@
   :exists? (by-method {
     :options true
     :post (partial entry-list-for-board conn org-slug board-slug-or-uuid)
-    :get (fn [ctx] (entry-list-for-board conn org-slug board-slug-or-uuid))
+    :get (partial entry-list-for-board conn org-slug board-slug-or-uuid)
     :delete (fn [ctx]
               (if-let* [_slugs? (slugify/valid-slug? org-slug)
                         org (or (:existing-org ctx)
@@ -537,9 +604,8 @@
   :handle-created (fn [ctx] (let [new-entry (:created-entry ctx)
                                   existing-board (:existing-board ctx)]
                               (api-common/location-response
-                                (entry-rep/url org-slug (:slug existing-board) (:uuid new-entry))
-                                (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] []
-                                  :author (-> ctx :user :user-id))
+                                (entry-urls/entry org-slug (:slug existing-board) (:uuid new-entry))
+                                (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] [] {:access-level :author} (-> ctx :user :user-id))
                                 mt/entry-media-type)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
@@ -609,7 +675,7 @@
                                                (:updated-entry ctx)
                                                [] ; no comments since it's always a draft
                                                [] ; no reactions since it's always a draft
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id))))
 
 ;; A resource for operations to publish a particular entry
@@ -655,10 +721,11 @@
                                _matches? (and (= org-uuid (:org-uuid entry))
                                               (= org-uuid (:org-uuid board))
                                               (= :draft (keyword (:status entry))))] ; sanity check
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                        {:existing-org (api-common/rep org)
+                         :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry)}
                         false))
-  
+
   ;; Actions
   :post! (fn [ctx] (publish-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
 
@@ -668,7 +735,7 @@
                                                (:updated-entry ctx)
                                                [] ; no comments
                                                [] ; no reactions
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id))))
 
 ;; A resource for operations to share a particular entry
@@ -718,12 +785,12 @@
                                comments (or (:existing-comments ctx)
                                             (entry-res/list-comments-for-entry conn (:uuid entry)))
                                reactions (or (:existing-reactions ctx)
-                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))] 
+                                             (entry-res/list-reactions-for-entry conn (:uuid entry)))]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
                          :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
                          :existing-reactions (api-common/rep reactions)}
                         false))
-  
+
   ;; Actions
   :post! (fn [ctx] (share-entry conn ctx (s/join " " [org-slug board-slug entry-uuid])))
 
@@ -733,7 +800,7 @@
                                                (:updated-entry ctx)
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-requests ctx)))))
@@ -748,11 +815,11 @@
   ;; Authorization
   :allowed? (fn [ctx]
               (let [org (or (:existing-org ctx)
-                            (org-res/get-org conn org-slug))]                
+                            (org-res/get-org conn org-slug))]
                 (if (:id-token ctx) ; access by secure link
                   (= secure-uuid (:secure-uuid (:user ctx))) ; ensure secured UUID from secure link is for this entry
                   (if (-> org :content-visibility :disallow-public-share)
-                    false ; org doesn't allow secure links                  
+                    false ; org doesn't allow secure links
                     true)))) ; not logged in are allowed by using the secure link
 
   ;; Media type client accepts
@@ -784,7 +851,7 @@
                          :existing-reactions (api-common/rep reactions)
                          :access-level access-level}
                         false))
-  
+
   ;; Responses
   :handle-ok (fn [ctx] (let [access-level (:access-level ctx)]
                           (entry-rep/render-entry (:existing-org ctx)
@@ -860,7 +927,7 @@
                                                (or (:updated-entry ctx) (:existing-entry ctx))
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
@@ -973,7 +1040,7 @@
                                                (:updated-entry ctx)
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
-                                               (:access-level ctx)
+                                               (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:updated-entry ctx))))
@@ -984,114 +1051,114 @@
   (let [db-pool (-> sys :db-pool :pool)]
     (compojure/routes
       ;; Delete sample posts
-      (OPTIONS "/orgs/:org-slug/entries/samples"
+      (OPTIONS (org-urls/sample-entries ":org-slug")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (OPTIONS "/orgs/:org-slug/entries/samples/"
+      (OPTIONS (str (org-urls/sample-entries ":org-slug") "/")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (DELETE "/orgs/:org-slug/entries/samples"
+      (DELETE (org-urls/sample-entries ":org-slug")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
-      (DELETE "/orgs/:org-slug/entries/samples/"
+      (DELETE (str (org-urls/sample-entries ":org-slug") "/")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (entry-list conn org-slug nil)))
       ;; Secure UUID access
-      (ANY "/orgs/:org-slug/entries/:secure-uuid"
+      (ANY (entry-urls/secure-entry ":org-slug" ":secure-uuid")
         [org-slug secure-uuid]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-access conn org-slug secure-uuid)))
-      (ANY "/orgs/:org-slug/entries/:secure-uuid/"
+      (ANY (str (entry-urls/secure-entry ":org-slug" ":secure-uuid") "/")
         [org-slug secure-uuid]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-access conn org-slug secure-uuid)))
       ;; Entry list operations
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries"
+      (ANY (entry-urls/entries ":org-slug" ":board-slug")
         [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-list conn org-slug board-slug)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/"
+      (ANY (str (entry-urls/entries ":org-slug" ":board-slug") "/")
         [org-slug board-slug]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry-list conn org-slug board-slug)))
       ;; Entry operations
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid"
+      (ANY (entry-urls/entry ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool] 
+        (pool/with-pool [conn db-pool]
           (entry conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish"
+      (ANY (entry-urls/publish ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/publish/"
+      (ANY (str (entry-urls/publish ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (publish conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert"
+      (ANY (entry-urls/revert ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (revert-version conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/revert/"
+      (ANY (str (entry-urls/revert ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (revert-version conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share"
+      (ANY (entry-urls/share ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (share conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/share/"
+      (ANY (str (entry-urls/share ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (share conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark"
+      (ANY (entry-urls/bookmark ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (bookmark conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/bookmark/"
+      (ANY (str (entry-urls/bookmark ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (bookmark conn org-slug board-slug entry-uuid)))
-      (ANY "/orgs/:org-slug/inbox/dismiss"
+      (ANY (activity-urls/inbox-dismiss-all ":org-slug")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (inbox-dismiss-all conn org-slug)))
-      (ANY "/orgs/:org-slug/inbox/dismiss/"
+      (ANY (str (activity-urls/inbox-dismiss-all ":org-slug") "/")
         [org-slug]
         (pool/with-pool [conn db-pool]
           (inbox-dismiss-all conn org-slug)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/dismiss"
+      (ANY (entry-urls/inbox-dismiss ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/dismiss/"
+      (ANY (str (entry-urls/inbox-dismiss ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :dismiss)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unread"
+      (ANY (entry-urls/inbox-unread ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unread/"
+      (ANY (str (entry-urls/inbox-unread ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unread)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow"
+      (ANY (entry-urls/inbox-follow ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :follow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/follow/"
+      (ANY (str (entry-urls/inbox-follow ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :follow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unfollow"
+      (ANY (entry-urls/inbox-unfollow ":org-slug" ":board-slug" ":entry-uuid")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unfollow)))
-      (ANY "/orgs/:org-slug/boards/:board-slug/entries/:entry-uuid/unfollow/"
+      (ANY (str (entry-urls/inbox-unfollow ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unfollow))))))

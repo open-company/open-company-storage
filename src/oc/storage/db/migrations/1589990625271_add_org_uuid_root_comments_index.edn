@@ -1,0 +1,14 @@
+(ns oc.storage.db.migrations.add-org-uuid-root-comments-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.resources.common :as common]))
+
+(defn up [conn]
+  ;; Do great things
+  (println "Create org-uuid-root-comments index...")
+  (println (m/create-compound-index conn common/interaction-table-name :org-uuid-root-comments
+            (r/fn [row]
+              [(r/get-field row :org-uuid)
+               (-> (r/get-field row :body) (r/default false) (r/coerce-to :bool))
+               (-> (r/get-field row :parent-uuid) (r/default false) (r/coerce-to :bool) r/not)])))
+  true) ; return true on success

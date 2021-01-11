@@ -7,6 +7,7 @@
    [cheshire.core :as json]
    [oc.lib.sqs :as sqs]
    [oc.lib.db.pool :as pool]
+   [oc.lib.sentry.core :as sentry]
    [taoensso.timbre :as timbre]
    [oc.storage.async.notification :as notification]
    [oc.storage.resources.org :as org-res]
@@ -148,7 +149,7 @@
   ([db-pool body :guard #(and (= (:type %) "inbox-action")
                               (or (= (:sub-type %) "follow")
                                   (= (:sub-type %) "unfollow")))]
-  (timbre/debug "Got inbox-action message of type 'follow' from Interaction:" body)
+  (timbre/debug "Got inbox-action message of type 'follow' or 'unfollow' from Interaction:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
               users (:users body)
@@ -156,9 +157,16 @@
               org (org-res/get-org conn (:org-uuid entry-data))
               board (board-res/get-board conn (:board-uuid entry-data))
               user-visibility (get entry-data :user-visibility {})
+              sub-type (keyword (:sub-type body))
               new-entry-data (reduce (fn [uv user]
                                       (update-in uv [:user-visibility (keyword (:user-id user))]
-                                       #(merge % {:unfollow (not= (:sub-type body) "follow")})))
+                                       #(cond-> (or % {})
+                                         ;; follow
+                                         (= sub-type :follow) (dissoc :unfollow)
+                                         (= sub-type :follow) (assoc :follow true)
+                                         ;; unfollow
+                                         (= sub-type :unfollow) (dissoc :follow)
+                                         (= sub-type :unfollow) (assoc :unfollow true))))
                                      entry-data users)
               entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do
@@ -173,7 +181,7 @@
 
   ([db-pool body :guard #(and (= (:type %) "inbox-action")
                               (= (:sub-type %) "dismiss"))]
-  (timbre/debug "Got inbox-action message of type 'follow' from Interaction:" body)
+  (timbre/debug "Got inbox-action message of type 'dismiss' from Interaction:" body)
   (pool/with-pool [conn db-pool]
     (if-let* [entry-uuid (:item-id body)
               users (:users body)
@@ -184,8 +192,7 @@
               user-visibility (get entry-data :user-visibility {})
               new-entry-data (reduce (fn [uv user]
                                       (update-in uv [:user-visibility (keyword (:user-id user))]
-                                       #(merge % {:unfollow (not= (:sub-type body) "follow")
-                                                  :dismiss-at dismiss-at})))
+                                       #(merge % {:dismiss-at dismiss-at})))
                                      entry-data users)
               entry-result (entry-res/update-entry-no-user! conn entry-uuid new-entry-data)]
       (do
@@ -258,24 +265,27 @@
   "Start a core.async consumer of the storage notification channel."
   [db-pool]
   (reset! storage-notification-go true)
-  (async/go (while @storage-notification-go
+  (async/go
+    (while @storage-notification-go
       (timbre/info "Waiting for message on storage notification channel...")
       (let [msg (<!! storage-notification-chan)]
         (timbre/trace "Processing message on storage notification channel...")
         (if (:stop msg)
           (do (reset! storage-notification-go false) (timbre/info "Storage notification stopped."))
-          (try
-            (when (= (:type msg) "new-entry")
-              (timbre/trace "Storage notification handling:" msg)
-              (slack-action-event db-pool msg))
+          (async/thread
+            (try
+              (when (= (:type msg) "new-entry")
+                (timbre/trace "Storage notification handling:" msg)
+                (slack-action-event db-pool msg))
 
-            (when (= (:type msg) "inbox-action")
-              (timbre/trace "Storage notification handling:" msg)
-              (action-event db-pool msg))
+              (when (= (:type msg) "inbox-action")
+                (timbre/trace "Storage notification handling:" msg)
+                (action-event db-pool msg))
 
-            (timbre/trace "Processing complete.")
-            (catch Exception e
-              (timbre/error e))))))))
+              (timbre/trace "Processing complete.")
+              (catch Exception e
+                (timbre/warn e)
+                (sentry/capture e)))))))))
 
 ;; ----- Component start/stop -----
 

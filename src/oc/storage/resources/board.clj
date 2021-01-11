@@ -4,10 +4,13 @@
             [defun.core :refer (defun)]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
+            [clojure.set :as clj-set]
+            [oc.lib.user :as user-lib]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
             [oc.lib.text :as str]
+            [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]
             [oc.storage.async.notification :as notification]))
@@ -17,13 +20,15 @@
 (def table-name common/board-table-name)
 (def primary-key :uuid)
 
+(def publisher-board-slug-prefix "publisher-board-")
+
 ;; ----- Metadata -----
 
 (def access #{:private :team :public})
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  (clojure.set/union common/reserved-properties #{:authors :viewers}))
+  (clj-set/union common/reserved-properties #{:authors :viewers}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
@@ -68,7 +73,7 @@
 
 ;; ----- Board Slug -----
 
-(def reserved-slugs #{"create-board" "settings" "boards" "all-posts" "drafts" "must-see" "follow-ups" "bookmarks" "inbox" "new"})
+(def reserved-slugs #{"create-board" "settings" "boards" "all-posts" "drafts" "must-see" "bookmarks" "inbox" "new" "following" "unfollowing" "home" "topics" "activity"})
 
 (declare list-boards-by-org)
 (defn taken-slugs
@@ -128,6 +133,20 @@
   (db-common/create-resource conn table-name
     (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
     (db-common/current-timestamp)))
+
+(defn- publisher-board-slug [taken-slugs user-id]
+  (slug/find-available-slug (str publisher-board-slug-prefix user-id) taken-slugs))
+
+(schema/defn ^:always-validate create-publisher-board!
+  [conn org-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  {:pre [(db-common/conn? conn)]}
+  (let [taken-slugs (taken-slugs conn org-uuid)
+        board-map {:slug (publisher-board-slug taken-slugs (:user-id user))
+                   :publisher-board true
+                   :access :team
+                   :name (user-lib/name-for user)}
+        new-board (->board org-uuid board-map user)]
+   (create-board! conn new-board)))
 
 (schema/defn ^:always-validate get-board :- (schema/maybe common/Board)
   "
@@ -196,11 +215,11 @@
         (update-board! conn (:uuid board) (assoc board :draft true))))))
 
   ([conn :guard db-common/conn? org-uuid :guard #(schema/validate lib-schema/UniqueID %) slug :guard slug/valid-slug? entries :guard sequential?]
-  (if-let [board (get-board conn org-uuid slug)]
+  (when-let [board (get-board conn org-uuid slug)]
     (delete-board! conn board entries)))
 
   ([conn :guard db-common/conn? uuid :guard #(schema/validate lib-schema/UniqueID %) entries :guard sequential?]
-  (if-let [board (get-board conn uuid)]
+  (when-let [board (get-board conn uuid)]
     (delete-board! conn board entries))))
 
 ;; ----- Board's set operations -----
@@ -308,10 +327,13 @@
          (schema/validate lib-schema/UniqueID org-uuid)
          (sequential? additional-keys)
          (every? #(or (string? %) (keyword? %)) additional-keys)]}
-  (->> (into [primary-key :slug :name :draft] additional-keys)
-    (db-common/read-resources conn table-name :org-uuid org-uuid)
-    (sort-by :slug)
-    vec)))
+  (let [read-resources (if config/publisher-board-enabled?
+                         (partial db-common/read-resources conn table-name :org-uuid org-uuid)
+                         (partial db-common/filter-resources conn table-name :org-uuid org-uuid [{:fn :ne :value true :field :publisher-board}]))]
+    (->> (into [primary-key :slug :name :draft] additional-keys)
+      read-resources
+      (sort-by :slug)
+      vec))))
 
 (defn list-boards-by-index
   "

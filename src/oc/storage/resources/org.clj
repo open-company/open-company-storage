@@ -1,6 +1,6 @@
 (ns oc.storage.resources.org
   (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (when-let*)]
+            [clojure.set :as clj-set]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
@@ -16,11 +16,11 @@
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  (clojure.set/union common/reserved-properties #{:authors}))
+  (clj-set/union common/reserved-properties #{:authors}))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (clojure.set/union reserved-properties #{:team-id}))
+  (clj-set/union reserved-properties #{:team-id :utm-data}))
 
 ;; ----- Data Defaults -----
 
@@ -149,7 +149,7 @@
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)
          (map? org)]}
-  (if-let [original-org (get-org conn slug)]
+  (when-let [original-org (get-org conn slug)]
     (let [updated-org (merge original-org (ignore-props org))]
       (schema/validate common/Org updated-org)
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
@@ -162,22 +162,18 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
-      ;; Delete reminders
-      (try
-        (db-common/delete-resource conn "reminders" :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; OK if no reminders
       ;; Delete interactions
       (try
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; OK if no interactions
+        (catch java.lang.RuntimeException _)) ; OK if no interactions
       ;; Delete entries
       (try 
         (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; OK if no entries
+        (catch java.lang.RuntimeException _)) ; OK if no entries
       ;; Delete boards
       (try
         (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
-        (catch java.lang.RuntimeException e)) ; OK if no boards
+        (catch java.lang.RuntimeException _)) ; OK if no boards
       ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
     
@@ -193,7 +189,7 @@
   [conn slug user-id :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
-  (when-let* [org (get-org conn slug)]
+  (when (get-org conn slug)
     (db-common/add-to-set conn table-name slug "authors" user-id)))
 
 (schema/defn ^:always-validate remove-author :- (schema/maybe common/Org)
@@ -204,7 +200,7 @@
   [conn slug user-id :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
-  (if-let [org (get-org conn slug)]
+  (when (get-org conn slug)
     (db-common/remove-from-set conn table-name slug "authors" user-id)))
 
 ;; ----- Collection of orgs -----
@@ -271,11 +267,12 @@
 ;; ----- Armageddon -----
 
 (defn delete-all-orgs!
-  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-  [conn]
-  {:pre [(db-common/conn? conn)]}
-  ;; Delete all reminders, interactions, entries, boards and orgs
-  (db-common/delete-all-resources! conn "reminders")
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
+   Second parameter has to be delete-them-all! to avoid confusing this with the delete-org! function."
+  [conn security-check]
+  {:pre [(db-common/conn? conn)
+         (= security-check "delete-them-all!")]}
+  ;; Delete all interactions, entries, boards and orgs
   (db-common/delete-all-resources! conn common/interaction-table-name)
   (db-common/delete-all-resources! conn common/entry-table-name)
   (db-common/delete-all-resources! conn common/board-table-name)
