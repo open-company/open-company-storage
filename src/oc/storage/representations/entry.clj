@@ -213,12 +213,15 @@
                (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
      (vals polls))))
 
-(defn- filter-pins [entry]
-  (if-not (= (:board-access entry) "private")
-    entry
-    (update entry
-            :pins
-            #(into {} (filter (fn [[k _]] (not= k (keyword config/seen-home-container-id))) %)))))
+(defn- filter-pins [entry member?]
+  (if member?
+    (if-not (= (:board-access entry) "private")
+      entry
+      (update entry
+              :pins
+              #(into {} (filter (fn [[k _]] (not= k (keyword config/seen-home-container-id))) %))))
+    ;; Remove pins for non members
+    (dissoc entry :pins)))
 
 (defn- entry-and-links
   "
@@ -329,7 +332,7 @@
           full-entry)
       (assoc :polls rendered-polls)
       (select-keys representation-props)
-      (filter-pins)
+      (filter-pins member?)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
