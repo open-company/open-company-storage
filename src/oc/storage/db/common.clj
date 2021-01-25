@@ -78,36 +78,37 @@
                                          (r/get-field :created-at)
                                          (r/default (r/get-field post-row :published-at))
                                          (r/default (r/get-field post-row :created-at)))
-                    container-pin (r/default (r/get-field post-row [:pins fixed-container-id]) nil)
-                    can-pin-to-container? (r/and container-pin
+                    can-pin-to-container? (r/and (r/default (r/get-field post-row [:pins fixed-container-id]) nil)
                                                  (r/or (r/ne container-id config/seen-home-container-id)
                                                        (r/not (r/contains (r/coerce-to private-board-uuids :array) (r/get-field post-row [:board-uuid])))))
-                    sort-field (r/branch (r/eq sort-type :recent-activity)
-                                         last-activity-at
-                                         (r/branch (r/eq sort-type :digest)
-                                                   (r/default
-                                                     (r/get-field post-row :published-at)
-                                                     (r/get-field post-row :created-at))
-                                                   (r/branch (r/eq sort-type :bookmarked-at)
-                                                             (-> (r/get-field post-row [:bookmarks])
-                                                                 (r/filter {:user-id user-id})
-                                                                 (r/nth 0)
-                                                                 (r/get-field :bookmarked-at)
-                                                                 (r/default (r/get-field post-row :published-at))
-                                                                 (r/default (r/get-field post-row :created-at)))
-                                                             (r/branch can-pin-to-container?
-                                                                       (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
-                                                                           (r/default (r/get-field post-row :published-at))
-                                                                           (r/default (r/get-field post-row :created-at)))
-                                                                       ;:else
-                                                                       (r/default
-                                                                        (r/get-field post-row :published-at)
-                                                                        (r/get-field post-row :created-at))))))
+                    sort-field (cond ;; Recent activity sort
+                                     (= sort-type :recent-activity)
+                                     last-activity-at
+                                     ;; Digest sort (recently published without pins at the top)
+                                     (= sort-type :digest)
+                                     (r/default (r/get-field post-row :published-at)
+                                                (r/get-field post-row :created-at))
+                                     (= sort-type :bookmarked-at)
+                                     (-> (r/get-field post-row [:bookmarks])
+                                         (r/filter {:user-id user-id})
+                                         (r/nth 0)
+                                         (r/get-field :bookmarked-at)
+                                         (r/default (r/get-field post-row :published-at))
+                                         (r/default (r/get-field post-row :created-at)))
+                                     ;; In all other cases, check if container can contain pins
+                                     :else
+                                     (r/branch can-pin-to-container?
+                                               (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
+                                                   (r/default (r/get-field post-row :published-at))
+                                                   (r/default (r/get-field post-row :created-at)))
+                                               ;:else
+                                               (r/default (r/get-field post-row :published-at)
+                                                          (r/get-field post-row :created-at))))
                     sort-value-base (-> sort-field
-                                     (r/iso8601)
-                                     (r/to-epoch-time)
-                                     (r/mul 1000)
-                                     (r/round))
+                                        (r/iso8601)
+                                        (r/to-epoch-time)
+                                        (r/mul 1000)
+                                        (r/round))
                     unseen-entry? (r/and (seq container-last-seen-at)
                                          (r/gt (r/get-field post-row :published-at) container-last-seen-at))
                     unseen-with-cap? (r/and unseen-entry?
@@ -129,8 +130,11 @@
                                                              sort-value-base)))]
                 {;; Date of the last added comment on this entry
                  :last-activity-at last-activity-at
+                 ;; Sorting base value: the timestamp of the event without pins or unseen changes
                  :sort-base sort-value-base
+                 ;; The real value used for the sort
                  :sort-value sort-value
+                 ;; If the entry is unseen
                  :unseen unseen-with-cap?})))
             ;; Filter out:
             (r/filter query (r/fn [row]
@@ -343,17 +347,21 @@
        ;; Merge in last-activity-at and entry
        (r/merge query (r/fn [row]
         (let [interactions-base (-> (r/table "interactions")
-                                 (r/get-all [[(r/get-field row :uuid) true]] {:index :resource-uuid-comment}))
+                                    (r/get-all [[(r/get-field row :uuid) true]] {:index :resource-uuid-comment}))
               last-activity-at (-> interactions-base
-                                 (r/max :created-at)
-                                 (r/get-field :created-at)
-                                 (r/default (r/get-field row [:published-at])))
+                                   (r/max :created-at)
+                                   (r/get-field :created-at)
+                                   (r/default (r/get-field row [:published-at])))
               sort-value-base (-> last-activity-at
+                                  (r/iso8601)
+                                  (r/to-epoch-time)
+                                  (r/mul 1000)
+                                  (r/round))
+              published-ms (-> (r/get-field row [:published-at])
                                (r/iso8601)
                                (r/to-epoch-time)
                                (r/mul 1000)
                                (r/round))
-              published-ms (-> (r/get-field row [:published-at]) (r/iso8601) (r/to-epoch-time) (r/mul 1000) (r/round))
               has-seen-at? (seq container-last-seen-at)
               container-seen-ms (when has-seen-at?
                                   (-> container-last-seen-at
