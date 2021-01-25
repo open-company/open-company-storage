@@ -250,12 +250,9 @@
                              boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn % {:count true})) boards)
                              boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
                              board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
-                             _ (println "DBG board-access" board-access)
                              allowed-boards (filter :access-level board-access)
-                             _ (println "DBG    allowed-boards" allowed-boards)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)
-                             _ (println "DBG    author-access-boards" author-access-boards)
-                                               ;; Add the draft board
+                             ;; Add the draft board
                              show-draft-board? (and ;; if user is logged in and
                                                     (seq user-id)
                                                     ;; or is an author of the org

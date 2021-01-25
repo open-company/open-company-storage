@@ -62,11 +62,11 @@
             _matches? (and (= org-uuid (:org-uuid entry))
                            (= org-uuid (:org-uuid board))
                            (= :draft (keyword (:status entry)))) ; sanity check
-            access-level (or (:access-level (access/access-level-for org board user)) :public)]
-    {:existing-org (api-common/rep org)
-     :existing-board (api-common/rep board)
-     :existing-entry (api-common/rep entry)
-     :access-level access-level}
+            access-level (or (access/access-level-for org board user) {:access-level :public})]
+    (merge access-level
+           {:existing-org (api-common/rep org)
+            :existing-board (api-common/rep board)
+            :existing-entry (api-common/rep entry)})
     false))
 
 (defn published-entry-exists? [conn ctx org-slug board-slug-or-uuid entry-uuid user]
@@ -85,11 +85,11 @@
             _matches? (and (= org-uuid (:org-uuid entry))
                            (= org-uuid (:org-uuid board))
                            (not= :draft (keyword (:status entry)))) ; sanity check
-            access-level (or (:access-level (access/access-level-for org board user)) :public)]
-    {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-     :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
-     :existing-reactions (api-common/rep reactions)
-     :access-level access-level}
+            access-level (or (access/access-level-for org board user) {:access-level :public})]
+    (merge access-level
+           {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+            :existing-entry (api-common/rep entry) :existing-comments (api-common/rep comments)
+            :existing-reactions (api-common/rep reactions)})
     false))
 
 (defn entry-exists? [conn ctx org-slug board-slug-or-uuid entry-uuid user]
@@ -109,11 +109,12 @@
                       (entry-res/get-entry-by-secure-uuid conn org-uuid secure-uuid))
             board (board-res/get-board conn (:board-uuid entry))
             _matches? (= org-uuid (:org-uuid board)) ; sanity check
-            access-level (or (:access-level (access/access-level-for org board user)) :public)]
-            {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-             :existing-entry (api-common/rep entry)
-             :access-level access-level}
-            false))
+            access-level (or (access/access-level-for org board user) {:access-level :public})]
+    (merge access-level
+           {:existing-org (api-common/rep org)
+            :existing-board (api-common/rep board)
+            :existing-entry (api-common/rep entry)})
+    false))
 
 (defn create-publisher-board [conn org author]
   (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
@@ -857,7 +858,7 @@
                                                   (if (or (= :author access-level) (= :viewer access-level))
                                                     (reaction-res/aggregate-reactions (:existing-reactions ctx))
                                                     [])
-                                                  access-level
+                                                  (select-keys ctx [:access-level :role])
                                                   (-> ctx :user :user-id)
                                                   :secure))))
 
