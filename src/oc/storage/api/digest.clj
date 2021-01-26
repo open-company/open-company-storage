@@ -33,8 +33,8 @@
   (let [follow-data (activity-api/follow-parameters-map user-id (:slug org))
 
         following-follow-data (assoc follow-data :following true)
-        following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :recently-posted allowed-boards following-follow-data nil {})
-        following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :recently-posted allowed-boards following-follow-data nil {:count true})
+        following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :digest allowed-boards following-follow-data nil {:container-id config/seen-home-container-id})
+        following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :digest allowed-boards following-follow-data nil {:count true :container-id config/seen-home-container-id})
 
         replies-data (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data nil {})
         replies-comments (filter #(and (contains? % :body) (not= (-> % :author :user-id) user-id))
@@ -117,7 +117,7 @@
                                      (assoc :limit 10) ;; use a limit of 10 posts since digest can't be too long anyway
                                      (update :direction keyword)) ; always set to after)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :access :authors :viewers :author :description])
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-by-uuids (zipmap board-uuids boards)
                              results (assemble-digest conn params org board-by-uuids allowed-boards user-id ctx)]

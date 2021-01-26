@@ -5,6 +5,7 @@
             [clojure.set :as clj-set]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
+            [oc.storage.urls.pin :as pin-urls]
             [oc.storage.urls.entry :as entry-urls]
             [oc.storage.urls.board :as board-urls]
             [oc.storage.urls.org :as org-urls]
@@ -26,7 +27,7 @@
                            :team-id :author :publisher :published-at :video-id :video-processed
                            :video-image :video-duration :created-at :updated-at :revision-id
                            :new-comments-count :bookmarked-at :polls :last-read-at :last-activity-at :sort-value
-                           :unseen-comments])
+                           :unseen-comments :pins])
 
 ;; ----- Utility functions -----
 
@@ -41,7 +42,7 @@
   (filter :reaction interactions))
 
 (defun- board-of
-  ([boards :guard map? entry] 
+  ([boards :guard map? entry]
     (boards (:board-uuid entry)))
   ([board _entry] board))
 
@@ -140,6 +141,10 @@
   (hateoas/link-map "unvote" hateoas/DELETE (entry-urls/poll-reply-vote org-slug board-slug entry-uuid poll-uuid reply-id)
     {:accept mt/poll-media-type}))
 
+(defn- pin-link [rel org-slug board-slug entry-uuid pin-container-uuid]
+  (hateoas/link-map rel hateoas/POST (pin-urls/pin org-slug board-slug entry-uuid pin-container-uuid)
+   {:accept mt/pin-media-type}))
+
 (defn include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid _access-level]
@@ -208,13 +213,23 @@
                (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
      (vals polls))))
 
+(defn- filter-pins [entry member?]
+  (if member?
+    (if-not (= (:board-access entry) "private")
+      entry
+      (update entry
+              :pins
+              #(into {} (filter (fn [[k _]] (not= k (keyword config/seen-home-container-id))) %))))
+    ;; Remove pins for non members
+    (dissoc entry :pins)))
+
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
   for use in an API response.
   "
-  ([org board entry comments reactions access-level user-id] 
-  (entry-and-links org board entry comments reactions access-level user-id false))
+  ([org board entry comments reactions access-map user-id]
+   (entry-and-links org board entry comments reactions access-map user-id false))
 
   ([org board entry comments reactions {:keys [access-level role]} user-id secure-access?]
   (let [entry-uuid (:uuid entry)
@@ -261,7 +276,9 @@
         user-visibility-link (if (:unfollow user-visibility)
                                (follow-link org-slug board-slug entry-uuid)
                                (unfollow-link org-slug board-slug entry-uuid))
-        member? (#{:author :viewer} access-level)
+        home-pin-link (pin-link "home-pin" org-slug board-slug entry-uuid config/seen-home-container-id)
+        board-pin-link (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid)
+        member? (or (= role :member) (#{:author :viewer} access-level))
         links (cond-> []
                ;; secure UUID access
                secure-access?
@@ -276,7 +293,10 @@
                (concat [(share-link org-slug board-slug entry-uuid)
                         bookmarks-link
                         user-visibility-link])
-
+               ;; Add home and board pin links if user is a member (clients will limit home pins from private boards)
+               (and (not secure-access?)
+                    member?)
+               (concat [home-pin-link board-pin-link])
                ;; Only admins and the owner can edit or delete the entry
                (and (not secure-access?)
                     (or draft?
@@ -291,13 +311,14 @@
                     (not secure-access?)
                     (= access-level :author))
                (conj (secure-link org-slug secure-uuid))
-               ;; Accessing their drafts, or access by an author, both get interaction links
-               (or (and draft?
-                        (not secure-access?))
-                   member?)
+               ;; Team members always get links to read and add comments
+               member?
                (concat [(content/comment-link org-uuid board-uuid entry-uuid)
-                        (content/comments-link org-uuid board-uuid entry-uuid comments)
-                        (content/mark-unread-link entry-uuid)])
+                        (content/comments-link org-uuid board-uuid entry-uuid comments)])
+               ;; Team members always get the mark unread except on secure access
+               (and member?
+                    (not secure-access?))
+               (conj (content/mark-unread-link entry-uuid))
                ;; All memebers can react but only if there are less than x reactions
                (and member?
                     (< (count reaction-list) config/max-reaction-count))
@@ -313,6 +334,7 @@
           full-entry)
       (assoc :polls rendered-polls)
       (select-keys representation-props)
+      (filter-pins member?)
       (include-secure-uuid secure-uuid access-level)
       (include-interactions reaction-list :reactions)
       (include-interactions comment-list :comments)
@@ -320,20 +342,20 @@
 
 (defn render-entry-for-collection
   "Create a map of the entry for use in a collection in the API"
-  ([org board entry comments reactions access-level user-id]
-  (render-entry-for-collection org board entry comments reactions access-level user-id false))
+  ([org board entry comments reactions access-map user-id]
+  (render-entry-for-collection org board entry comments reactions access-map user-id false))
 
-  ([org board entry comments reactions access-level user-id secure-access?]
-  (entry-and-links org board entry comments reactions access-level user-id secure-access?)))
+  ([org board entry comments reactions access-map user-id secure-access?]
+  (entry-and-links org board entry comments reactions access-map user-id secure-access?)))
 
 (defn render-entry
   "Create a JSON representation of the entry for the API"
-  ([org board entry comments reactions access-level user-id]
-  (render-entry org board entry comments reactions access-level user-id false))
+  ([org board entry comments reactions access-map user-id]
+  (render-entry org board entry comments reactions access-map user-id false))
 
-  ([org board entry comments reactions access-level user-id secure-access?]
+  ([org board entry comments reactions access-map user-id secure-access?]
   (json/generate-string
-    (render-entry-for-collection org board entry comments reactions access-level user-id secure-access?)
+    (render-entry-for-collection org board entry comments reactions access-map user-id secure-access?)
     {:pretty config/pretty?})))
 
 (defn render-entry-list

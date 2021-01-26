@@ -24,22 +24,24 @@
     [oc.storage.api.entries :as entries-api]
     [oc.storage.api.polls :as polls-api]
     [oc.storage.api.activity :as activity-api]
-    [oc.storage.api.digest :as digest-api]))
+    [oc.storage.api.digest :as digest-api]
+    [oc.storage.api.pins :as pins-api]))
 
 ;; ----- Request Routing -----
 
 (defn routes [sys]
   (compojure/routes
-    (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
-    (GET "/---error-test---" [] (/ 1 0))
-    (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
-    (entry-point-api/routes sys)
-    (orgs-api/routes sys)
-    (boards-api/routes sys)
-    (entries-api/routes sys)
-    (activity-api/routes sys)
-    (digest-api/routes sys)
-    (polls-api/routes sys)))
+   (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
+   (GET "/---error-test---" [] (/ 1 0))
+   (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
+   (entry-point-api/routes sys)
+   (orgs-api/routes sys)
+   (boards-api/routes sys)
+   (entries-api/routes sys)
+   (activity-api/routes sys)
+   (digest-api/routes sys)
+   (polls-api/routes sys)
+   (pins-api/routes sys)))
 
 ;; ----- System Startup -----
 
@@ -60,7 +62,9 @@
     "  env: " c/sentry-env "\n"
     (when-not (clj-string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
-    "Unread limit: " c/unread-days-limit " days\n\n"
+    "Unread limit: " c/unread-days-limit " days\n"
+    "Unseen cap days: " c/unseen-cap-days " days\n"
+    "Pins sort pivot days: " c/pins-sort-pivot-days " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition
@@ -78,12 +82,7 @@
 (defn start
   "Start a development server"
   [port]
-
-  ;; Stuff logged at error level goes to Sentry
-  (if c/dsn
-    (timbre/merge-config! {:level (keyword c/log-level)
-                           :appenders {:sentry (sentry/sentry-appender c/sentry-config)}})
-    (timbre/merge-config! {:level (keyword c/log-level)}))
+  (timbre/merge-config! {:level (keyword c/log-level)})
 
   ;; Start the system
   (-> {:handler-fn app

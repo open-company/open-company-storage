@@ -247,13 +247,12 @@
                                                       (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
-                             boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn (:uuid %) {:count true})) boards)
+                             boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn % {:count true})) boards)
                              boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
                              board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
                              allowed-boards (filter :access-level board-access)
-                             allowed-board-uuids (map :uuid allowed-boards)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)
-                                               ;; Add the draft board
+                             ;; Add the draft board
                              show-draft-board? (and ;; if user is logged in and
                                                     (seq user-id)
                                                     ;; or is an author of the org
@@ -266,34 +265,34 @@
                              now (lib-time/now-ts)
                              total-count (if user-is-member?
                                            (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
-                                            allowed-board-uuids nil {:count true})
+                                            allowed-boards nil {:count true})
                                            0)
                              bookmarks-count (if user-is-member?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id allowed-board-uuids :asc now :before
+                                              (entry-res/list-all-bookmarked-entries conn org-id user-id allowed-boards :asc now :before
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
                              user-count (if user-is-member?
                                           (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
-                                            0 :recently-posted allowed-board-uuids nil {:count true})
+                                            0 :recently-posted allowed-boards nil {:count true})
                                            0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
                              following-seen (when user-is-member?
-                                         (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
+                                              (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
                              badge-following? (if user-is-member?
                                                 (pos?
                                                  (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
-                                                  allowed-board-uuids follow-data (:seen-at following-seen) {:unseen true :count true}))
+                                                  allowed-boards follow-data (:seen-at following-seen) {:unseen true :count true}))
                                                 false)
                              replies-seen (when user-is-member?
                                             (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id))
                              badge-replies? (if user-is-member?
                                               (pos?
-                                               (entry-res/list-entries-for-user-replies conn org-id allowed-board-uuids user-id :asc
-                                                now :before 0 follow-data (:seen-at replies-seen) {:count true :unseen true}))
+                                               (entry-res/list-entries-for-user-replies conn org-id allowed-boards user-id :asc
+                                                now :before 0 follow-data (:seen-at replies-seen) {:unseen true :count true}))
                                               false)
                              board-reps (map #(board-rep/render-board-for-collection slug % ctx draft-entry-count) full-boards)
                              authors (:authors org)
@@ -438,7 +437,6 @@
   :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
                          (org-rep/render-org-list existing-orgs ctx)))
   :handle-unprocessable-entity (fn [ctx]
-                                 (println "DBG render unproc entity" (:reason ctx))
     (api-common/unprocessable-entity-response (:reason ctx))))
 
 ;; ----- Routes -----

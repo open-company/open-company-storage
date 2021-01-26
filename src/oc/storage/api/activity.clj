@@ -32,7 +32,7 @@
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
-  [conn {start :start direction :direction must-see :must-see
+  [conn {start :start direction :direction must-see :must-see container-id :container-id
          sort-type :sort-type following :following unfollowing :unfollowing last-seen-at :last-seen-at
          limit :limit}
    org board-by-uuids allowed-boards user-id]
@@ -41,11 +41,11 @@
                       (follow-parameters-map user-id (:slug org) following))
         entries (if follow?
                   (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
-                   follow-data last-seen-at {:must-see must-see})
+                   follow-data last-seen-at {:must-see must-see :container-id container-id})
                   (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
-                   {:must-see must-see}))
+                   {:must-see must-see :container-id container-id}))
         total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
-                     follow-data nil {:count true :must-see must-see})
+                     follow-data nil {:count true :must-see must-see :container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]
@@ -60,7 +60,7 @@
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction limit :limit} org board-by-uuids  allowed-boards user-id]
+  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
   (let [total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc
                                (oc-time/now-ts) :before 0 {:count true})
         entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
@@ -194,7 +194,7 @@
                                      (assoc :last-seen-at (:seen-at container-seen))
                                      (assoc :next-seen-at (db-common/current-timestamp)))
                              boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -249,7 +249,7 @@
                                                      0 ;; In case of a digest request or if a refresh request
                                                      config/default-activity-limit))) ;; fallback to the default pagination otherwise
                              boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -295,7 +295,7 @@
                              params (update ctx-params :start #(if % (Long. %) (oc-time/now-ts))) ; default is now
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                             items (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
@@ -353,7 +353,7 @@
                                      (assoc :last-seen-at (:seen-at container-seen))
                                      (assoc :next-seen-at (db-common/current-timestamp)))
                              boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-uuids (map :uuid boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
@@ -416,7 +416,7 @@
 
                              boards (board-res/list-boards-by-org conn org-id board-props)
                              board-uuids (map :uuid boards)
-                             allowed-boards (map :uuid (filter #(access/access-level-for org % user) boards))
+                             allowed-boards (filter #(access/access-level-for org % user) boards)
                              board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
                              board-by-uuids (zipmap board-uuids board-slugs-and-names)
                              items (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]

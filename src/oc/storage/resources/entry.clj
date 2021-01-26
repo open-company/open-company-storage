@@ -11,6 +11,11 @@
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
+(defn- log-query-time
+  "Log the current time, the timestamp is in nanoseconds, 1/1000000000 to get seconds."
+  [step]
+  (timbre/info (str "StorageQueryTiming, " step ", " (. System (nanoTime)))))
+
 (def temp-uuid "9999-9999-9999")
 
 ;; ----- RethinkDB metadata -----
@@ -29,6 +34,11 @@
 ;       false)))
 
 (def LongNumber (schema/pred #(instance? java.lang.Long %)))
+
+(def AllowedBoard
+  {:uuid lib-schema/UniqueID
+   :access common/AccessLevel
+   schema/Keyword schema/Any})
 
 ;; ----- Metadata -----
 
@@ -241,12 +251,15 @@
                            (str uuid "-v" revision-id)))
 
 (defn- update-entry [conn entry original-entry ts]
+  (log-query-time "update-entry, start")
   (let [merged-entry (merge original-entry (ignore-props entry))
         attachments (:attachments merged-entry)
         authors-entry (assoc merged-entry :author (:author entry))
-        updated-entry (assoc authors-entry :attachments (timestamp-attachments attachments ts))]
-    (schema/validate common/Entry updated-entry)
-    (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
+        updated-entry (assoc authors-entry :attachments (timestamp-attachments attachments ts))
+        _valid? (schema/validate common/Entry updated-entry)
+        result (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)]
+    (log-query-time "update-entry, finish")
+    result))
 
 (defn- add-author-to-entry
   [original-entry entry user]
@@ -259,6 +272,7 @@
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry)]}
+  (log-query-time "update-entry-no-version!")
   (when-let [original-entry (get-entry conn uuid)]
    (let [updated-entry (add-author-to-entry original-entry entry user)]
      (update-entry conn updated-entry original-entry (db-common/current-timestamp)))))
@@ -274,6 +288,7 @@
   [conn uuid :- lib-schema/UniqueID entry]
   {:pre [(db-common/conn? conn)
          (map? entry)]}
+  (log-query-time "update-entry-no-user!")
   (when-let [original-entry (get-entry conn uuid)]
     (update-entry conn entry original-entry (db-common/current-timestamp))))
 
@@ -288,6 +303,7 @@
   [conn uuid :- lib-schema/UniqueID entry user :- lib-schema/User]
   {:pre [(db-common/conn? conn)
          (map? entry)]}
+  (log-query-time "update-entry!")
   (when-let [original-entry (get-entry conn uuid)]
     (let [ts (db-common/current-timestamp)
           authors-entry (add-author-to-entry original-entry entry user)
@@ -316,6 +332,7 @@
   {:pre [(db-common/conn? conn)
          (map? entry-props)]}
   (when-let [original-entry (get-entry conn uuid)]
+    (log-query-time "publish-entry!, start")
     (let [authors (:author original-entry)
           ts (db-common/current-timestamp)
           publisher (lib-schema/author-for-user user)
@@ -334,6 +351,7 @@
             versioned-entry (create-version conn updated-entry entry-update)]
         ;; Delete the draft entry's interactions
         (db-common/delete-resource conn common/interaction-table-name :resource-uuid uuid)
+        (log-query-time "publish-entry!, finish")
         versioned-entry)))))
 
 (schema/defn ^:always-validate delete-entry!
@@ -365,13 +383,19 @@
   "Given the UUID of the entry, return a list of the comments for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid list-comment-properties)))
+  (log-query-time "list-comments-for-entry, start")
+  (let [comments (filter :body (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid list-comment-properties))]
+    (log-query-time "list-comments-for-entry, finish")
+    comments))
 
 (schema/defn ^:always-validate list-reactions-for-entry
   "Given the UUID of the entry, return a list of the reactions for the entry."
   [conn uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction :created-at])))
+  (log-query-time "list-reactions-for-entry, start")
+  (let [reactions (filter :reaction (db-common/read-resources conn common/interaction-table-name "resource-uuid" uuid [:uuid :author :reaction :created-at]))]
+    (log-query-time "list-reactions-for-entry, finish")
+    reactions))
 
 ;; ----- Collection of entries -----
 
@@ -382,23 +406,29 @@
   "
   ([conn org-uuid :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources conn table-name :org-uuid org-uuid))
+  (log-query-time "list-entries-by-org(2), start")
+  (let [entry (db-common/read-resources conn table-name :org-uuid org-uuid)]
+    (log-query-time "list-entries-by-org(2), finish")
+    entry))
 
-  ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber
+    direction allowed-boards :- [AllowedBoard] {:keys [must-see count container-id] :or {must-see false count false container-id nil}}]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
+  (log-query-time "list-entries-by-org(7), start")
   (let [filter-map (if-not must-see
-                     [{:fn :contains :value allowed-boards :field :board-uuid}]
-                     [{:fn :contains :value allowed-boards :field :board-uuid}
-                      {:fn :eq :field :must-see :value (boolean (#{true "true"} must-see))}]
-                     )]
-    (db-common/read-all-resources-and-relations conn table-name
-      :status-org-uuid [[:published org-uuid]]
-      "published-at" order start direction
-      filter-map
-      :interactions common/interaction-table-name :uuid :resource-uuid
-      list-comment-properties {:count count}))))
+                     [{:fn :contains :value (map :uuid allowed-boards) :field :board-uuid}]
+                     [{:fn :contains :value (map :uuid allowed-boards) :field :board-uuid}
+                      {:fn :eq :field :must-see :value (boolean (#{true "true"} must-see))}])
+        result (db-common/read-all-resources-and-relations conn table-name
+                                                           :status-org-uuid [[:published org-uuid]]
+                                                           "published-at" order start direction
+                                                           filter-map
+                                                           :interactions common/interaction-table-name :uuid :resource-uuid
+                                                           list-comment-properties {:count count :container-id container-id})]
+    (log-query-time "list-entries-by-org(7), finish")
+    result)))
 
 (schema/defn ^:always-validate paginated-entries-by-org
   "
@@ -406,38 +436,47 @@
   and a number of results, return the published entries for the org with any interactions.
   "
   ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] {:keys [count unseen] :or {count false unseen false}}]
-  (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards nil nil {:count count :unseen unseen}))
+    allowed-boards :- [AllowedBoard] {:keys [count unseen container-id] :or {count false unseen false container-id nil}}]
+   (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards nil nil {:count count :unseen unseen :container-id container-id}))
 
   ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [count unseen] :or {count false unseen false}}]
-  (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards follow-data nil {:count count :unseen unseen}))
+    allowed-boards :- [AllowedBoard] follow-data {:keys [count unseen container-id] :or {count false unseen false container-id nil}}]
+   (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards follow-data nil {:count count :unseen unseen :container-id container-id}))
 
   ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] follow-data container-last-seen-at {:keys [count unseen] :or {count false unseen false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards follow-data container-last-seen-at list-comment-properties nil {:count count :unseen unseen})))
+    allowed-boards :- [AllowedBoard] follow-data container-last-seen-at {:keys [count unseen container-id] :or {count false unseen false container-id nil}}]
+   {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)
+          (integer? limit)
+          (#{:recent-activity :recently-posted :digest} sort-type)]}
+   (log-query-time "paginated-entries-by-org, start")
+   (let [result (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
+                                                          limit sort-type common/interaction-table-name allowed-boards follow-data
+                                                          container-last-seen-at list-comment-properties nil
+                                                          {:count count :unseen unseen :container-id container-id})]
+     (log-query-time "paginated-entries-by-org, finish")
+     result)))
 
 (schema/defn ^:always-validate paginated-entries-by-board
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn board-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type {:keys [count status] :or {count false status :published}}]
+  [conn board :- AllowedBoard order start :- LongNumber direction limit sort-type {:keys [count status] :or {count false status :published}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)
          (#{:recent-activity :recently-posted} sort-type)]}
+  (log-query-time "paginated-entries-by-board, start")
   (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
-        index-value (if (#{:draft :published} status) [[status board-uuid]] [board-uuid])]
-    (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
-     direction limit sort-type common/interaction-table-name [board-uuid] nil nil list-comment-properties nil {:count count})))
+        index-value (if (#{:draft :published} status) [[status (:uuid board)]] [(:uuid board)])
+        result (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
+                                                         direction limit sort-type common/interaction-table-name
+                                                         [board] nil nil list-comment-properties nil {:count count})]
+    (log-query-time "paginated-entries-by-board, finish")
+    result))
 
 (schema/defn ^:always-validate last-entry-of-board
   "
@@ -450,20 +489,27 @@
 
 (schema/defn ^:always-validate list-entries-by-org-author
 
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID]]
+  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber
+    direction limit sort-type allowed-boards :- [AllowedBoard]]
    (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards nil {:count false}))
 
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at]
+  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber
+    direction limit sort-type allowed-boards :- [AllowedBoard] container-last-seen-at]
    (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards container-last-seen-at {:count false}))
 
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-publisher [[:published org-uuid author-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards nil container-last-seen-at list-comment-properties nil {:count count})))
+  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber
+    direction limit sort-type allowed-boards :- [AllowedBoard] container-last-seen-at {:keys [count container-id] :or {count false}}]
+   {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)
+          (integer? limit)
+          (#{:recent-activity :recently-posted} sort-type)]}
+   (log-query-time "list-entries-by-org-author, start")
+   (let [result (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-publisher [[:published org-uuid author-uuid]] order start direction
+                                                          limit sort-type common/interaction-table-name allowed-boards nil container-last-seen-at
+                                                          list-comment-properties nil {:count count :container-id container-id})]
+     (log-query-time "list-entries-by-org-author, finish")
+     result)))
 
 (schema/defn ^:always-validate list-drafts-by-org-author
   "
@@ -471,69 +517,89 @@
   "
   [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID {:keys [count] :or {count false}}]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[:draft org-uuid user-id]]
-                                          :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-comment-properties {:count count}))
+  (log-query-time "list-drafts-by-org-author, start")
+  (let [result (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[:draft org-uuid user-id]]
+                                                       :interactions common/interaction-table-name :uuid :resource-uuid
+                                                       list-comment-properties {:count count})]
+    (log-query-time "list-drafts-by-org-author, finish")
+    result))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  ([conn board-uuid :- lib-schema/UniqueID] (list-entries-by-board conn board-uuid {:count false}))
+  ([conn board :- AllowedBoard] (list-entries-by-board conn board {:count false}))
 
-  ([conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
-                                          :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-comment-properties {:count count})))
+  ([conn board :- AllowedBoard {:keys [count] :or {count false}}]
+   {:pre [(db-common/conn? conn)]}
+   (log-query-time (str "list-entries-by-board(" (:uuid board) "), start"))
+   (let [result (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published (:uuid board)]]
+                                                        :interactions common/interaction-table-name :uuid :resource-uuid
+                                                        list-comment-properties {:count count})]
+     (log-query-time (str "list-entries-by-board(" (:uuid board) "), finish"))
+     result)))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
-  [conn board-uuid :- lib-schema/UniqueID]
+  [conn board :- AllowedBoard]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
+  (log-query-time "list-all-entries-by-board, start")
+  (let [result (db-common/read-resources conn table-name :board-uuid [board] ["uuid" "status"])]
+    (log-query-time "list-all-entries-by-board, finish")
+    result))
 
 (schema/defn ^:always-validate list-all-entries-for-inbox
   "Given the UUID of the user, return all the entries the user has access to that have been published
    or have had activity in the last config/unread-days-limit days, then filter by user-visibility on the remaining."
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
-    allowed-boards :- [lib-schema/UniqueID]]
+    allowed-boards :- [AllowedBoard]]
    (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count false}))
 
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
-    allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
+    allowed-boards :- [AllowedBoard] {:keys [count] :or {count false}}]
    (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count count}))
 
   ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
-   allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (integer? limit)]}
-  (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
-   common/interaction-table-name allowed-boards follow-data user-id list-comment-properties {:count count})))
+    allowed-boards :- [AllowedBoard] follow-data {:keys [count] :or {count false}}]
+   {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (integer? limit)]}
+   (log-query-time "list-all-entries-for-inbox, start")
+   (let [result (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
+                                                           common/interaction-table-name allowed-boards follow-data user-id
+                                                           list-comment-properties {:count count})]
+     (log-query-time "list-all-entries-for-inbox, finish")
+     result)))
 
 (schema/defn ^:always-validate list-entries-for-user-replies
   ""
-  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] user-id :- lib-schema/UniqueID
+  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] user-id :- lib-schema/UniqueID
    order start direction limit follow-data container-last-seen-at {:keys [count unseen] :or {count false unseen false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit
-   follow-data container-last-seen-at list-comment-properties {:count count :unseen unseen}))
+  (log-query-time "list-entries-for-user-replies, start")
+  (let [result (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit
+                                                                     follow-data container-last-seen-at list-comment-properties
+                                                                     {:count count :unseen unseen})]
+    (log-query-time "list-entries-for-user-replies, finish")
+    result))
 
 ;; ----- Entry Bookmarks manipulation -----
 
 (schema/defn ^:always-validate list-all-bookmarked-entries
   "Given the UUID of the user, return all the published entries with a bookmark for the given user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] order start :- LongNumber direction limit]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] order start :- LongNumber direction limit]
     (list-all-bookmarked-entries conn org-uuid user-id allowed-boards order start direction limit {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] order start :- LongNumber direction limit {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)]}
-  (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
-   [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name allowed-boards
-   nil nil list-comment-properties user-id {:count count})))
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] order start :- LongNumber direction limit {:keys [count] :or {count false}}]
+   {:pre [(db-common/conn? conn)
+          (#{:desc :asc} order)
+          (#{:before :after} direction)]}
+   (log-query-time "list-all-bookmarked-entries, start")
+   (let [result (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
+                                                          [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name allowed-boards
+                                                          nil nil list-comment-properties user-id {:count count})]
+     (log-query-time "list-all-bookmarked-entries, finish")
+     result)))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"
@@ -582,6 +648,26 @@
   [conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID
    reply-id :- lib-schema/UniqueID user-id :- lib-schema/UniqueID add?]
   (storage-db-common/update-poll-vote conn table-name entry-uuid poll-uuid reply-id user-id add?))
+
+;; ----- Pins -----
+
+(defn- pin-for [user ts]
+  {:author (lib-schema/author-for-user user)
+   :pinned-at ts})
+
+(schema/defn ^:always-validate toggle-pin! :- common/Entry
+  [conn entry-uuid :- lib-schema/UniqueID pin-container-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  (when-let [original-entry (get-entry conn entry-uuid)]
+    (let [ts (db-common/current-timestamp)
+          current-pins (or (:pins original-entry) {})
+          pin-container-kw (keyword pin-container-uuid)
+          remove-pin? (contains? current-pins pin-container-kw)
+          updated-pins (if remove-pin?
+                         (dissoc current-pins pin-container-kw)
+                         (assoc current-pins pin-container-kw (pin-for user ts)))
+          updated-entry (assoc original-entry :pins updated-pins)]
+      (schema/validate common/Entry updated-entry)
+      (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
 ;; ----- Armageddon -----
 
