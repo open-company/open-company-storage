@@ -81,7 +81,7 @@
                         (update :name #(if (:publisher-board board-map)
                                          (:name author)
                                          %)))]
-        (cond (and (:disallow-public-board (or (:content-visibility org) {}))
+        (cond (and (get-in org [:content-visibility :disallow-public-board])
                    (= (:access board-data) "public"))
               [false, {:reason :disallowed-public-board}]
               (and (:publisher-board board-data)
@@ -122,7 +122,7 @@
             org (org-res/get-org conn org-slug)
             original-board (board-res/get-board conn (:uuid org) slug)]
     ;; Check public board change
-    (let [valid-access-update? (valid-board-access-update? (:premium? ctx) (:disallow-public-board (:content-visibility org))
+    (let [valid-access-update? (valid-board-access-update? (:premium? ctx) (get-in org [:content-visibility :disallow-public-board])
                                                            `(:access original-board) (:access updating-board))
           updated-board (merge original-board (board-res/clean updating-board))
           valid-updated-board? (lib-schema/valid? common-res/Board updated-board)]
