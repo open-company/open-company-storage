@@ -28,7 +28,8 @@
 
 (def content-visibility {:disallow-secure-links false
                          :disallow-public-board false
-                         :disallow-public-share false})
+                         :disallow-public-share false
+                         :disallow-wrt-download false})
 
 ;; ----- Utility functions -----
 

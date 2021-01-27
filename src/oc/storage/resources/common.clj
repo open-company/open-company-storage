@@ -64,7 +64,8 @@
 (def ContentVisibility {
   (schema/optional-key :disallow-secure-links) schema/Bool
   (schema/optional-key :disallow-public-board) schema/Bool
-  (schema/optional-key :disallow-public-share) schema/Bool})
+  (schema/optional-key :disallow-public-share) schema/Bool
+  (schema/optional-key :disallow-wrt-download) schema/Bool})
 
 (def Org {
   :uuid lib-schema/UniqueID
