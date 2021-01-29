@@ -478,7 +478,7 @@
 
   ;; Authorization
   :allowed? (by-method {:options true
-                        :get (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+                        :get (fn [ctx] (access/allow-premium conn org-slug (:user ctx)))})
 
     ;; Validations
   :malformed? (by-method {:options false
