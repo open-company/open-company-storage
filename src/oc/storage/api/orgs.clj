@@ -496,7 +496,7 @@
                                                 entries (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards (:days ctx))
                                                 active-users (-> (auth/active-users {:user-id (-> ctx :user :user-id)} (:team-id org) config/auth-server-url config/passphrase "Auth")
                                                                  :collection :items)
-                                                read-data (read-data-for-entries org entries active-users)]
+                                                read-data (read-data-for-entries org allowed-boards entries active-users)]
                                         {:org (api-common/rep org)
                                          :active-users (api-common/rep active-users)
                                          :entries (api-common/rep entries)
