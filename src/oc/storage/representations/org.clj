@@ -30,7 +30,9 @@
   (hateoas/link-map "active-users" hateoas/GET (org-urls/active-users org) {:accept mt/user-collection-media-type}))
 
 (defn- wrt-csv-link [org]
-  (hateoas/link-map "wrt-csv" hateoas/GET (org-urls/wrt-csv org config/default-csv-days) {:accept mt/csv-media-type}))
+  (hateoas/link-map "wrt-csv" hateoas/GET
+                    (str config/storage-server-url (org-urls/wrt-csv org config/default-csv-days))
+                    {:accept mt/csv-media-type}))
 
 (defn partial-update-link [org] (hateoas/partial-update-link (org-urls/org org) {:content-type mt/org-media-type
                                                                                 :accept mt/org-media-type}))
@@ -320,7 +322,7 @@
 
 (def csv-empty-val "NA")
 
-(defn render-wst-csv
+(defn render-wrt-csv
   [org entries-list]
   (let [computed-entries (mapv #(hash-map :entry (:entry %) :reads (doall (:reads %))) entries-list)
         csv-entries (mapv (fn [{entry :entry reads :reads}]

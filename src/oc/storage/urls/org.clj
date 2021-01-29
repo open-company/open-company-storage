@@ -53,6 +53,7 @@
    (s/join "/" [config/auth-server-url "teams" team-id "active-users"]))
 
 (defn wrt-csv
-  ([org] (str config/storage-server-url (org-container org :wrt-csv)))
+  ([org]
+   (org-container org :wrt-csv))
   ([org days]
    (str (wrt-csv org) "?days=" days)))
