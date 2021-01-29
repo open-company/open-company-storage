@@ -494,8 +494,11 @@
                                                 board-access (map #(board-with-access-level org % user) boards)
                                                 allowed-boards (filter :access-level board-access)
                                                 entries (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards (:days ctx))
-                                                active-users (-> (auth/active-users {:user-id (-> ctx :user :user-id)} (:team-id org) config/auth-server-url config/passphrase "Auth")
-                                                                 :collection :items)
+                                                active-users (-> (:request ctx)
+                                                                 (api-common/get-token)
+                                                                 (auth/active-users config/auth-server-url (:team-id org))
+                                                                 :collection
+                                                                 :items)
                                                 read-data (read-data-for-entries org allowed-boards entries active-users)]
                                         {:org (api-common/rep org)
                                          :active-users (api-common/rep active-users)
