@@ -71,7 +71,7 @@
 ;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
-    c/prod?           api-common/wrap-500 ; important that this is first
+    true              api-common/wrap-500 ; important that this is first
      ; important that this is second
     c/dsn             (sentry/wrap c/sentry-config)
     true              wrap-with-logger
