@@ -324,8 +324,7 @@
 
 (defn render-wrt-csv
   [org entries-list]
-  (let [computed-entries (mapv #(hash-map :entry (:entry %) :reads (doall (:reads %))) entries-list)
-        csv-entries (mapv (fn [{entry :entry reads :reads}]
+  (let [csv-entries (mapv (fn [{entry :entry reads :reads}]
                             (s/join "\n" [(str "Title: " (:headline entry))
                                           (str "Published on: " (lib-time/csv-date (:published-at entry)))
                                           (str "Link: " (:url entry))
@@ -339,6 +338,6 @@
                                                                          csv-empty-val)])
                                                         reads))
                                           "\n"]))
-                          computed-entries)
+                          entries-list)
         csv-intro (str "Analytics for " (:name org) " generated on " (lib-time/csv-date) "\n")]
-    (s/join "\n" (vec (cons csv-entries csv-intro)))))
+    (s/join "\n" (vec (cons csv-intro csv-entries)))))
