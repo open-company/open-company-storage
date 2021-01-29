@@ -341,4 +341,4 @@
                                           "\n"]))
                           computed-entries)
         csv-intro (str "Analytics for " (:name org) " generated on " (lib-time/csv-date) "\n")]
-    (s/join "\n" (cons csv-entries csv-intro))))
+    (s/join "\n" (vec (cons csv-entries csv-intro)))))
