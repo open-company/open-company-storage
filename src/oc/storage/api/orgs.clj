@@ -15,8 +15,10 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
+            [oc.lib.auth :as auth]
             [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.seen :as seen]
+            [oc.lib.change.resources.read :as read]
             [oc.storage.config :as config]
             [oc.storage.async.notification :as notification]
             [oc.storage.api.access :as access]
@@ -27,7 +29,8 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.urls.org :as org-urls]))
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.entry :as entry-urls]))
 
 ;; ----- Utility functions -----
 
@@ -158,6 +161,29 @@
       (timbre/error "Failed removing author:" user-id "to org:" slug)
       false)))
 
+;; ---- Read data -----
+
+(defn read-data-for-entries [org allowed-boards entries active-users]
+  (let [entry-uuids (map :uuid entries)
+        all-read-data (read/retrieve-by-org config/dynamodb-opts (:uuid org))
+        entry-uuid-set (set entry-uuids)
+        filtered-read-data (filter (comp entry-uuid-set :item-id) all-read-data)
+        users-data-map (zipmap (map :user-id active-users) active-users)
+        with-users-data (map #(assoc % :user (get users-data-map (:user-id %))) filtered-read-data)
+        grouped-entries (group-by :item-id with-users-data)
+        allowed-boards-map (zipmap (:board-uuid allowed-boards) allowed-boards)
+        enrties-with-board (map #(let [board (get allowed-boards-map (:board-uuid %))]
+                                   (assoc % :board-slug (:slug board)
+                                            :board-name (:name board)
+                                            :board-access (:access board)
+                                            :url (entry-urls/ui-entry (:slug org) (:slug board) (:uuid %))))
+                                entries)
+        entries-map (zipmap (map :uuid enrties-with-board) enrties-with-board)
+        with-entries-data (map (fn [[k v]] (hash-map :entry (get entries-map k)
+                                                     :reads v))
+                               grouped-entries)]
+    (sort-by (comp :published-at :entry) with-entries-data)))
+
 ;; ----- Validations -----
 
 (defn- is-first-org? [conn user]
@@ -232,8 +258,8 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org (api-common/rep org)}
-                        false))
+                       {:existing-org (api-common/rep org)}
+                       false))
 
   ;; Actions
   :patch! (fn [ctx] (update-org conn ctx slug))
@@ -439,6 +465,49 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
+;; Download CSV
+
+(defresource wrt-csv [conn org-slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/csv-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/csv-media-type)
+
+  ;; Authorization
+  :allowed? (by-method {:options true
+                        :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+
+    ;; Validations
+  :malformed? (by-method {:options false
+                          :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params keywordize-keys)
+                                                   days (Integer/parseInt (or (get ctx-params :days) "1")) ;; get number of days from request or fallback to 1
+                                                   _valid? (lib-schema/valid? schema/Num days)]
+                                           [false {:days days}]
+                                           true))})
+    ;; Existentialism
+  :exists? (by-method {:get (fn [ctx] (if-let* [user (:user ctx)
+                                                org (org-res/get-org conn org-slug)
+                                                boards (board-res/list-boards-by-org conn (:uuid org) [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
+                                                board-access (map #(board-with-access-level org % user) boards)
+                                                allowed-boards (filter :access-level board-access)
+                                                entries (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards (:days ctx))
+                                                active-users (-> (auth/active-users {:user-id (-> ctx :user :user-id)} (:team-id org) config/auth-server-url config/passphrase "Auth")
+                                                                 :collection :items)
+                                                read-data (read-data-for-entries org entries active-users)]
+                                        {:org (api-common/rep org)
+                                         :active-users (api-common/rep active-users)
+                                         :entries (api-common/rep entries)
+                                         :read-data (api-common/rep read-data)}
+                                        false))})
+  :handle-ok (fn [ctx] (let [org (:org ctx)
+                             read-data (:read-data ctx)]
+                        (org-rep/render-wst-csv org read-data)))
+  :handle-unprocessable-entity (fn [ctx]
+                                (api-common/unprocessable-entity-response (:reason ctx))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -462,4 +531,8 @@
       (DELETE (org-urls/org-author ":slug" ":user-id") [slug user-id]
         (pool/with-pool [conn db-pool] (author conn slug user-id)))
       (DELETE (str (org-urls/org-author ":slug" ":user-id") "/")
-        [slug user-id] (pool/with-pool [conn db-pool] (author conn slug user-id))))))
+        [slug user-id] (pool/with-pool [conn db-pool] (author conn slug user-id)))
+      (ANY (org-urls/wrt-csv ":slug")
+        [slug] (pool/with-pool [conn db-pool] (wrt-csv conn slug)))
+      (ANY (str (org-urls/wrt-csv ":slug") "/")
+        [slug] (pool/with-pool [conn db-pool] (wrt-csv conn slug))))))

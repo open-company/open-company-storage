@@ -1,6 +1,9 @@
 (ns oc.storage.representations.org
   "Resource representations for OpenCompany orgs."
   (:require [cheshire.core :as json]
+            [cuerdas.core :as s]
+            [oc.lib.user :as user-lib]
+            [oc.lib.time :as lib-time]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]
@@ -25,6 +28,9 @@
 
 (defn- active-users-link [org]
   (hateoas/link-map "active-users" hateoas/GET (org-urls/active-users org) {:accept mt/user-collection-media-type}))
+
+(defn- wrt-csv-link [org]
+  (hateoas/link-map "wrt-csv" hateoas/GET (org-urls/wrt-csv org config/default-csv-days) {:accept mt/csv-media-type}))
 
 (defn partial-update-link [org] (hateoas/partial-update-link (org-urls/org org) {:content-type mt/org-media-type
                                                                                 :accept mt/org-media-type}))
@@ -226,17 +232,21 @@
         id-token (:id-token user)
         premium? (access/premium-org? org user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
-                          (concat links [(active-users-link org)
-                                         (activity-link org)
-                                         ; (recent-activity-link org)
-                                         ; (recent-contributions-partial-link org)
-                                         (following-link org)
-                                         ; (recent-following-link org)
-                                         ; (unfollowing-link org)
-                                         ; (recent-unfollowing-link org)
-                                         (contributions-partial-link org)
-                                         (replies-link org)
-                                         (digest-partial-link org)]) ; (calendar-link org) - not currently used
+                          (concat links (vec
+                                         (remove nil?
+                                                 [(active-users-link org)
+                                                  (when-not (-> org :content-visibility :disallow-wrt-download)
+                                                    (wrt-csv-link org))
+                                                  (activity-link org)
+                                                  ; (recent-activity-link org)
+                                                  ; (recent-contributions-partial-link org)
+                                                  (following-link org)
+                                                  ; (recent-following-link org)
+                                                  ; (unfollowing-link org)
+                                                  ; (recent-unfollowing-link org)
+                                                  (contributions-partial-link org)
+                                                  (replies-link org)
+                                                  (digest-partial-link org)]))) ; (calendar-link org) - not currently used
                           links)
         board-links (create-board-links org premium?)
         author-links (if (and (not id-token) (= access-level :author) )
@@ -307,3 +317,26 @@
                     :links full-links
                     :items (map org-collection-links with-premium-filter)}}
       {:pretty config/pretty?})))
+
+(def csv-empty-val "NA")
+
+(defn render-wst-csv
+  [org entries-list]
+  (let [computed-entries (mapv #(hash-map :entry (:entry %) :reads (doall (:reads %))) entries-list)
+        csv-entries (mapv (fn [{entry :entry reads :reads}]
+                            (s/join "\n" [(str "Title: " (:headline entry))
+                                          (str "Published on: " (lib-time/csv-date (:published-at entry)))
+                                          (str "Link: " (:url entry))
+                                          "-"
+                                          "Name, Email, Read"
+                                          (s/join "\n"
+                                                  (mapv #(s/join ", " [(or (user-lib/name-for (:user %)) csv-empty-val)
+                                                                       (or (-> % :user :email) csv-empty-val)
+                                                                       (if (:read-at %)
+                                                                         (lib-time/csv-date (:read-at %))
+                                                                         csv-empty-val)])
+                                                        reads))
+                                          "\n"]))
+                          computed-entries)
+        csv-intro (str "Analytics for " (:name org) " generated on " (lib-time/csv-date) "\n")]
+    (s/join "\n" (cons csv-entries csv-intro))))

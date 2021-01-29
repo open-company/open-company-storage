@@ -1,5 +1,7 @@
 (ns oc.storage.urls.entry
   (:require [defun.core :refer (defun)]
+            [cuerdas.core :as s]
+            [oc.storage.config :as config]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]))
 
@@ -15,6 +17,13 @@
 
   ([org-slug board-slug entry-uuid]
    (str (entries org-slug board-slug) "/" entry-uuid)))
+
+(defun ui-entry
+  ([org-slug board-slug entry-map :guard map?]
+   (ui-entry org-slug board-slug (:uuid entry-map)))
+
+  ([org-slug board-slug entry-uuid]
+   (s/join "/" [config/ui-server-url org-slug board-slug "post" entry-uuid])))
 
 (defn secure-entry
   ([org-slug secure-uuid] (str (entries org-slug) "/" secure-uuid)))

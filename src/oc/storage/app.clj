@@ -10,6 +10,7 @@
     [liberator.dev :refer (wrap-trace)]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
+    [ring.middleware.cookies :refer (wrap-cookies)]
     [ring.middleware.cors :refer (wrap-cors)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
@@ -76,6 +77,7 @@
     true              wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
+    true              wrap-cookies
     true              (wrap-cors #".*")
     c/hot-reload      wrap-reload))
 

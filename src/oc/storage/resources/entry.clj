@@ -430,6 +430,14 @@
     (log-query-time "list-entries-by-org(7), finish")
     result)))
 
+(schema/defn ^:always-validate list-latest-published-entries
+  ""
+  [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num]
+  (log-query-time "list-latest-published-entries, start")
+  (let [results (storage-db-common/list-latest-published-entries conn org-uuid allowed-boards days)]
+    (log-query-time "list-latest-published-entries, finish")
+    results))
+
 (schema/defn ^:always-validate paginated-entries-by-org
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
