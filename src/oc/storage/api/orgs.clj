@@ -171,7 +171,7 @@
         users-data-map (zipmap (map :user-id active-users) active-users)
         with-users-data (map #(assoc % :user (get users-data-map (:user-id %))) filtered-read-data)
         grouped-entries (group-by :item-id with-users-data)
-        allowed-boards-map (zipmap (:board-uuid allowed-boards) allowed-boards)
+        allowed-boards-map (zipmap (:uuid allowed-boards) allowed-boards)
         enrties-with-board (map #(let [board (get allowed-boards-map (:board-uuid %))]
                                    (assoc % :board-slug (:slug board)
                                             :board-name (:name board)
