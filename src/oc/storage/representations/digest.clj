@@ -55,7 +55,5 @@
                                      (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
                                            access-level (access/access-level-for org board user)]
                                        (entry-for-digest org board entry (entry-rep/comments entry) access-level (:user-id user))))
-                                following)
-                    :replies (:replies results)
-                    :new-boards (:new-boards results)}}
+                                following)}}
       {:pretty config/pretty?})))
