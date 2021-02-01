@@ -12,15 +12,13 @@
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.digest :as digest-rep]
-            [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.urls.org :as org-urls]
             [oc.lib.time :as oc-time]
             [oc.lib.change.resources.read :as read]
-            [clj-time.core :as clj-time]
-            [clj-time.coerce :as clj-coerce]))
+            [clj-time.core :as clj-time]))
 
 ;; ----- Helpers -----
 
@@ -36,17 +34,6 @@
         following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :digest allowed-boards following-follow-data nil {:container-id config/seen-home-container-id})
         following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :digest allowed-boards following-follow-data nil {:count true :container-id config/seen-home-container-id})
 
-        replies-data (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data nil {})
-        replies-comments (filter #(and (contains? % :body) (not= (-> % :author :user-id) user-id))
-                          (flatten (map :interactions replies-data)))
-        replies-authors (group-by (comp :user-id :author) replies-comments)
-
-        newly-created-boards (->> allowed-boards
-                                  (map #(when-let [b (get board-by-uuids %)] b))
-                                  (remove nil?)
-                                  (filter #(pos? (compare (:created-at %) (oc-time/to-iso (clj-coerce/from-long start)))))
-                                  (sort-by :name))
-
         user-reads (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org))
         user-reads-map (zipmap (map :item-uuid user-reads) user-reads)]
     ;; Give each activity its board name
@@ -59,22 +46,11 @@
                                               :board-access (:access board)
                                               :board-name (:name board)
                                               :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
-                        following-data))
-     (assoc :replies {:comment-count (reduce
-                                      (fn [partial-count comment]
-                                        (let [entry-read-at (get-in user-reads-map [(:resource-uuid comment) :read-at])]
-                                          (if (pos? (compare (:created-at comment) entry-read-at))
-                                            (inc partial-count)
-                                            partial-count)))
-                                      0
-                                      replies-comments)
-                      :comment-authors (map (comp :author first second) replies-authors) ;; Get the first map of each group of authors
-                      :entry-count (count replies-data)})
-     (assoc :new-boards (map #(board-rep/render-board-for-collection (:slug org) % ctx) newly-created-boards)))))
+                        following-data)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
-;; A resource to retrieve the replies of a particular Org
+;; A resource to retrieve the digest data of a particular Org
 (defresource digest [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
