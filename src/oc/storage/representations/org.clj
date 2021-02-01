@@ -323,10 +323,10 @@
 (def csv-empty-val "NA")
 
 (defn render-wrt-csv
-  [org entries-list]
+  [org entries-list user]
   (let [csv-entries (mapv (fn [{entry :entry reads :reads}]
                             (s/join "\n" [(str "Title: " (:headline entry))
-                                          (str "Published on: " (lib-time/csv-date (:published-at entry)))
+                                          (str "Published on: " (lib-time/csv-date (:published-at entry) (:timezone user)))
                                           (str "Link: " (:url entry))
                                           "-"
                                           "Name, Email, Read"
@@ -334,7 +334,7 @@
                                                   (mapv #(s/join ", " [(or (user-lib/name-for (:user %)) csv-empty-val)
                                                                        (or (-> % :user :email) csv-empty-val)
                                                                        (if (:read-at %)
-                                                                         (lib-time/csv-date (:read-at %))
+                                                                         (lib-time/csv-date (:read-at %) (:timezone user))
                                                                          csv-empty-val)])
                                                         reads))
                                           "\n"]))
