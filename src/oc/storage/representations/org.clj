@@ -73,9 +73,6 @@
 (defn- remove-author-link [org user-id]
   (hateoas/remove-link (org-urls/org-author org user-id)))
 
-(defn- org-collection-links [org]
-  (assoc org :links [(item-link org)]))
-
 (defn- replies-link [org]
   (hateoas/link-map "replies" hateoas/GET (org-urls/replies org) {:accept mt/entry-collection-media-type}))
 
@@ -108,6 +105,17 @@
 (defn- digest-partial-link [org]
   (hateoas/link-map "digest" hateoas/GET (str (org-urls/digest org) "?direction=after&start=$0") {:accept mt/entry-collection-media-type}
    {:replace {:start "$0"}}))
+
+(defn- org-collection-links
+  ([org] (org-collection-links org nil))
+  ([org user]
+   (assoc org :links (cond-> []
+                       ;; All orgs get the item link
+                       true
+                       (conj (item-link org))
+                       ;; Only if user is member add the digest link
+                       (and user
+                            ((set (:teams user)) (:team-id org))) (conj (digest-partial-link org))))))
 
 (defn- partial-secure-link []
   (hateoas/link-map "partial-secure" hateoas/GET (entry-urls/secure-entry "$0" "$1") {:accept mt/entry-media-type}
@@ -305,5 +313,5 @@
       {:collection {:version hateoas/json-collection-version
                     :href "/"
                     :links full-links
-                    :items (map org-collection-links with-premium-filter)}}
+                    :items (map #(org-collection-links % user) with-premium-filter)}}
       {:pretty config/pretty?})))
