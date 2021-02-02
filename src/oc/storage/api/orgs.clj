@@ -263,20 +263,20 @@
                                                  (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
                                                  0)
                              now (lib-time/now-ts)
-                             total-count (if user-is-member?
-                                           (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
-                                            allowed-boards nil {:count true})
-                                           0)
+                            ;;  total-count (if user-is-member?
+                            ;;                (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
+                            ;;                 allowed-boards nil {:count true})
+                            ;;                0)
                              bookmarks-count (if user-is-member?
                                               (entry-res/list-all-bookmarked-entries conn org-id user-id allowed-boards :asc now :before
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
-                             user-count (if user-is-member?
-                                          (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
-                                            0 :recently-posted allowed-boards nil {:count true})
-                                           0)
+                            ;;  user-count (if user-is-member?
+                            ;;               (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
+                            ;;                 0 :recently-posted allowed-boards nil {:count true})
+                            ;;                0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
@@ -302,11 +302,11 @@
                                          (assoc :boards (if user-is-member?
                                                           board-reps
                                                           (map #(dissoc % :authors :viewers) board-reps)))
-                                         (assoc :total-count total-count)
+                                        ;;  (assoc :total-count total-count)
                                          (assoc :bookmarks-count bookmarks-count)
                                          (assoc :badge-following badge-following?)
                                          (assoc :badge-replies badge-replies?)
-                                         (assoc :contributions-count user-count)
+                                        ;;  (assoc :contributions-count user-count)
                                          (assoc :authors author-reps))]
                          (org-rep/render-org org-map ctx has-sample-content?)))
   :handle-unprocessable-entity (fn [ctx]

@@ -44,11 +44,12 @@
                    follow-data last-seen-at {:must-see must-see :container-id container-id})
                   (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
                    {:must-see must-see :container-id container-id}))
-        total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
-                     follow-data nil {:count true :must-see must-see :container-id container-id})
+        ;; total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
+        ;;              follow-data nil {:count true :must-see must-see :container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
-                    :total-count total-count}]
+                    ;; :total-count total-count
+                    }]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
                                                       (merge activity {
@@ -99,10 +100,11 @@
    org board-by-uuids allowed-boards user-id]
   (let [follow-data (follow-parameters-map user-id (:slug org))
         replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
-        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
+        ;; total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
         result {:next-count (count replies)
                 :direction direction
-                :total-count total-count}]
+                ;; :total-count total-count
+                }]
     ;; Give each activity its board name
     (assoc result :activity (map (fn [entry] (let [board (board-by-uuids (:board-uuid entry))]
                                                           (merge entry {
