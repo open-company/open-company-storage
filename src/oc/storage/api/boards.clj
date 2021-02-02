@@ -221,7 +221,7 @@
               ;; If we are updating an existing draft check if we need to remove the old board
               (when (not= (:board-uuid entry) entry-res/temp-uuid)
                 (let [old-board (board-res/get-board conn (:board-uuid entry))
-                      remaining-entries (entry-res/list-all-entries-by-board conn (:uuid old-board))]
+                      remaining-entries (entry-res/list-all-entries-by-board conn old-board)]
                   (board-res/maybe-delete-draft-board conn org old-board remaining-entries user)))
 
               (when (= (:status entry-result) "published")
@@ -279,7 +279,7 @@
   (timbre/info "Deleting board:" slug "of org:" org-slug)
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
-            entries (entry-res/list-all-entries-by-board conn (:uuid board))
+            entries (entry-res/list-all-entries-by-board conn board)
             _delete-result (board-res/delete-board! conn (:uuid board) entries)]
     (do 
       (timbre/info "Deleted board:" slug "of org:" org-slug)
