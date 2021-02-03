@@ -463,7 +463,7 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn board :- AllowedBoard order start :- LongNumber direction limit sort-type {:keys [count status] :or {count false status :published}}]
+  [conn allowed-board :- AllowedBoard order start :- LongNumber direction limit sort-type {:keys [count status] :or {count false status :published}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
@@ -471,10 +471,10 @@
          (#{:recent-activity :recently-posted} sort-type)]}
   (log-query-time "paginated-entries-by-board, start")
   (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
-        index-value (if (#{:draft :published} status) [[status (:uuid board)]] [(:uuid board)])
+        index-value (if (#{:draft :published} status) [[status (:uuid allowed-board)]] [(:uuid allowed-board)])
         result (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
                                                          direction limit sort-type common/interaction-table-name
-                                                         [board] nil nil list-comment-properties nil {:count count})]
+                                                         [allowed-board] nil nil list-comment-properties nil {:count count})]
     (log-query-time "paginated-entries-by-board, finish")
     result))
 
@@ -526,23 +526,23 @@
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  ([conn board :- AllowedBoard] (list-entries-by-board conn board {:count false}))
+  ([conn allowed-board :- AllowedBoard] (list-entries-by-board conn allowed-board {:count false}))
 
-  ([conn board :- AllowedBoard {:keys [count] :or {count false}}]
+  ([conn allowed-board :- AllowedBoard {:keys [count] :or {count false}}]
    {:pre [(db-common/conn? conn)]}
-   (log-query-time (str "list-entries-by-board(" (:uuid board) "), start"))
-   (let [result (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published (:uuid board)]]
+   (log-query-time (str "list-entries-by-board(" (:uuid allowed-board) "), start"))
+   (let [result (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published (:uuid allowed-board)]]
                                                         :interactions common/interaction-table-name :uuid :resource-uuid
                                                         list-comment-properties {:count count})]
-     (log-query-time (str "list-entries-by-board(" (:uuid board) "), finish"))
+     (log-query-time (str "list-entries-by-board(" (:uuid allowed-board) "), finish"))
      result)))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
-  [conn board :- AllowedBoard]
+  [conn allowed-board :- AllowedBoard]
   {:pre [(db-common/conn? conn)]}
   (log-query-time "list-all-entries-by-board, start")
-  (let [result (db-common/read-resources conn table-name :board-uuid [board] ["uuid" "status"])]
+  (let [result (db-common/read-resources conn table-name :board-uuid [(:uuid allowed-board)] ["uuid" "status"])]
     (log-query-time "list-all-entries-by-board, finish")
     result))
 
