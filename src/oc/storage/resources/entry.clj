@@ -14,7 +14,7 @@
 (defn- log-query-time
   "Log the current time, the timestamp is in nanoseconds, 1/1000000000 to get seconds."
   [step]
-  (timbre/info (str "StorageQueryTiming, " step ", " (. System (nanoTime)))))
+  (timbre/debugf "StorageQueryTiming, %s, %d" step (. System (nanoTime))))
 
 (def temp-uuid "9999-9999-9999")
 
