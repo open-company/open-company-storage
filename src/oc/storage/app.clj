@@ -82,7 +82,7 @@
 (defn start
   "Start a development server"
   [port]
-  (timbre/merge-config! {:level (keyword c/log-level)})
+  (timbre/merge-config! {:min-level (keyword c/log-level)})
 
   ;; Start the system
   (-> {:handler-fn app
