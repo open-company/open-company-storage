@@ -2,7 +2,7 @@
     (:require [oc.storage.urls.org :as org-urls]
               [cuerdas.core :as string]))
 
-(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing])
+(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing :old-fn])
 
 (defn parametrize [url parameters-dict]
   (let [concat? (#{"?" "&"} (last url))

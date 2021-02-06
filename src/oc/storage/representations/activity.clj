@@ -21,7 +21,7 @@
 
 (defn- refresh-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [sort-type author-uuid following unfollowing]} data]
+  [org collection-type {:keys [sort-type author-uuid following unfollowing old-fn]} data]
   (when (seq (:activity data))
     (let [resources-list (:activity data)
           last-resource (last resources-list)
@@ -34,7 +34,7 @@
                                    (not contributions?)
                                    (not following)
                                    (not unfollowing))
-          refresh-url (cond->> {:direction :after :start last-resource-date :following following :unfollowing unfollowing}
+          refresh-url (cond->> {:direction :after :start last-resource-date :following following :unfollowing unfollowing :old-fn old-fn}
                        replies?            (activity-urls/replies org)
                        inbox?              (activity-urls/collection collection-type org)
                        contributions?      (activity-urls/contributions org author-uuid sort-type)
@@ -47,7 +47,7 @@
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [direction sort-type author-uuid following unfollowing]} data]
+  [org collection-type {:keys [direction sort-type author-uuid following unfollowing old-fn]} data]
   (when (seq (:activity data))
     (let [replies? (is-replies? collection-type)
           inbox? (is-inbox? collection-type)
@@ -62,7 +62,7 @@
           last-resource-date (:sort-value last-resource)
           next? (= (:next-count data) config/default-activity-limit)
           next-url (when next?
-                     (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing}
+                     (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing :old-fn old-fn}
                        replies?            (activity-urls/replies org)
                        inbox?              (activity-urls/collection collection-type org)
                        contributions?      (activity-urls/contributions org author-uuid sort-type)
@@ -96,7 +96,7 @@
         contributions? (is-contributions? collection-type)
         collection-url (cond
                         replies?
-                        (org-urls/replies org)
+                        (activity-urls/replies org {:old-fn (:old-fn params)})
                         inbox?
                         (activity-urls/collection collection-type org {:following following? :unfollowing unfollowing?})
                         contributions?
