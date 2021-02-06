@@ -578,10 +578,26 @@
          (#{:before :after} direction)
          (integer? limit)]}
   (log-query-time "list-entries-for-user-replies, start")
-  (let [result (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit
+  (let [result (time (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit
                                                                      follow-data container-last-seen-at list-comment-properties
-                                                                     {:count count :unseen unseen})]
+                                                                     {:count count :unseen unseen}))]
     (log-query-time "list-entries-for-user-replies, finish")
+    result))
+
+;; @FIXME: remove below fn
+(schema/defn ^:always-validate list-entries-for-user-replies-old
+  ""
+  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] user-id :- lib-schema/UniqueID
+   order start direction limit follow-data container-last-seen-at {:keys [count unseen] :or {count false unseen false}}]
+  {:pre [(db-common/conn? conn)
+         (#{:desc :asc} order)
+         (#{:before :after} direction)
+         (integer? limit)]}
+  (log-query-time "list-entries-for-user-replies-old, start")
+  (let [result (time (storage-db-common/read-paginated-entries-for-replies-old conn org-uuid allowed-boards user-id order start direction limit
+                                                                     follow-data container-last-seen-at list-comment-properties
+                                                                     {:count count :unseen unseen}))]
+    (log-query-time "list-entries-for-user-replies-old, finish")
     result))
 
 ;; ----- Entry Bookmarks manipulation -----

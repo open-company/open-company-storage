@@ -96,10 +96,11 @@
 
 (defn assemble-replies
   "Assemble the requested (by the params) entries for the provided org to populate the replies view."
-  [conn {start :start direction :direction last-seen-at :last-seen-at limit :limit}
+  [conn {start :start direction :direction last-seen-at :last-seen-at limit :limit old-fn :old-fn}
    org board-by-uuids allowed-boards user-id]
   (let [follow-data (follow-parameters-map user-id (:slug org))
-        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
+        replies-fn (if old-fn entry-res/list-entries-for-user-replies-old entry-res/list-entries-for-user-replies)
+        replies (replies-fn conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
         ;; total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
         result {:next-count (count replies)
                 :direction direction
@@ -131,6 +132,133 @@
                                                        :board-access (:access board)
                                                        :board-name (:name board)})))
                                  entries))))
+
+;; ---- Responses -----
+
+(defn activity-response [conn ctx]
+  (let [user (:user ctx)
+        user-id (:user-id user)
+        org (:existing-org ctx)
+        org-id (:uuid org)
+        ctx-params (-> ctx :request :params keywordize-keys)
+        following? (:following ctx-params)
+        container-seen (when following?
+                         (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
+        params (-> ctx-params
+                   (dissoc :slug)
+                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (assoc :digest-request (= (:auth-source user) "digest"))
+                   (update :direction #(if % (keyword %) :before)) ; default is before
+                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
+                                         (= (:auth-source user) :digest-request))
+                                   0 ;; In case of a digest request or if a refresh request
+                                   config/default-activity-limit)) ;; fallback to the default pagination otherwise
+                   (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted))
+                   (assoc :container-id (when following? config/seen-home-container-id))
+                   (assoc :last-seen-at (:seen-at container-seen))
+                   (assoc :next-seen-at (db-common/current-timestamp)))
+        boards (board-res/list-boards-by-org conn org-id board-props)
+        allowed-boards (filter #(access/access-level-for org % user) boards)
+        board-uuids (map :uuid boards)
+        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+        board-by-uuids (zipmap board-uuids board-slugs-and-names)
+        items (assemble-activity conn params org board-by-uuids allowed-boards user-id)]
+    (activity-rep/render-activity-list params org "entries" items boards user)))
+
+(defn bookmarks-response [conn ctx]
+  (let [user (:user ctx)
+        user-id (:user-id user)
+        org (:existing-org ctx)
+        org-id (:uuid org)
+        ctx-params (-> ctx :request :params keywordize-keys)
+        params (-> ctx-params
+                   (dissoc :slug)
+                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (update :direction #(if % (keyword %) :before)) ; default is before
+                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
+                                         (= (:auth-source user) :digest-request))
+                                   0 ;; In case of a digest request or if a refresh request
+                                   config/default-activity-limit))) ;; fallback to the default pagination otherwise
+        boards (board-res/list-boards-by-org conn org-id board-props)
+        allowed-boards (filter #(access/access-level-for org % user) boards)
+        board-uuids (map :uuid boards)
+        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+        board-by-uuids (zipmap board-uuids board-slugs-and-names)
+        items (assemble-bookmarks conn params org board-by-uuids allowed-boards user-id)]
+    (activity-rep/render-activity-list params org "bookmarks" items boards user)))
+
+(defn inbox-response [conn ctx]
+  (let [user (:user ctx)
+        user-id (:user-id user)
+        org (:existing-org ctx)
+        org-id (:uuid org)
+        ctx-params (-> ctx :request :params keywordize-keys)
+        params (update ctx-params :start #(if % (Long. %) (oc-time/now-ts))) ; default is now
+        boards (board-res/list-boards-by-org conn org-id board-props)
+        board-uuids (map :uuid boards)
+        allowed-boards (filter #(access/access-level-for org % user) boards)
+        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+        board-by-uuids (zipmap board-uuids board-slugs-and-names)
+        items (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
+    (activity-rep/render-activity-list params org "inbox" items boards user)))
+
+(defn replies-response [conn ctx]
+  (let [user (:user ctx)
+        user-id (:user-id user)
+        org (:existing-org ctx)
+        org-id (:uuid org)
+        container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id)
+        ctx-params (-> ctx :request :params keywordize-keys)
+        params (-> ctx-params
+                   (dissoc :slug)
+                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
+                                         (= (:auth-source user) :digest-request))
+                                   0 ;; In case of a digest request or if a refresh request
+                                   config/default-activity-limit)) ;; fallback to the default pagination otherwise
+                   (update :direction #(if % (keyword %) :before)) ; default is before
+                   (assoc :container-id config/seen-replies-container-id)
+                   (assoc :last-seen-at (:seen-at container-seen))
+                   (assoc :next-seen-at (db-common/current-timestamp)))
+        boards (board-res/list-boards-by-org conn org-id board-props)
+        allowed-boards (filter #(access/access-level-for org % user) boards)
+        board-uuids (map :uuid boards)
+        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+        board-by-uuids (zipmap board-uuids board-slugs-and-names)
+        items (assemble-replies conn params org board-by-uuids allowed-boards user-id)]
+    ;; @FIXME: remove this, for debug, just print out the returned items if not inside a liberator flow
+    (if-not (:skip-response-render ctx)
+      (activity-rep/render-activity-list params org "replies" items boards user)
+      items)))
+
+(defn contributions-response [conn ctx author-uuid]
+  (let [user (:user ctx)
+        user-id (:user-id ctx)
+        org (:existing-org ctx)
+        org-id (:uuid org)
+        container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id author-uuid)
+        ctx-params (-> ctx :request :params keywordize-keys)
+        params (-> ctx-params
+                   (dissoc :slug)
+                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
+                                         (= (:auth-source user) :digest-request))
+                                   0 ;; In case of a digest request or if a refresh request
+                                   config/default-activity-limit)) ;; fallback to the default pagination otherwise
+                   (update :direction #(if % (keyword %) :before)) ; default is before
+                   (assoc :container-id config/seen-replies-container-id)
+                   (assoc :last-seen-at (:seen-at container-seen))
+                   (assoc :next-seen-at (db-common/current-timestamp))
+                   (assoc :author-uuid author-uuid)
+                   (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted)))
+
+        boards (board-res/list-boards-by-org conn org-id board-props)
+        board-uuids (map :uuid boards)
+        allowed-boards (filter #(access/access-level-for org % user) boards)
+        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
+        board-by-uuids (zipmap board-uuids board-slugs-and-names)
+        items (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]
+    (activity-rep/render-activity-list params org "contributions" items boards user)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -174,34 +302,7 @@
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id user)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             ctx-params (-> ctx :request :params keywordize-keys)
-                             following? (:following ctx-params)
-                             container-seen (when following?
-                                              (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
-                             params (-> ctx-params
-                                     (dissoc :slug)
-                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
-                                     (assoc :digest-request (= (:auth-source user) "digest"))
-                                     (update :direction #(if % (keyword %) :before)) ; default is before
-                                     (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                                           (= (:auth-source user) :digest-request))
-                                                     0 ;; In case of a digest request or if a refresh request
-                                                     config/default-activity-limit)) ;; fallback to the default pagination otherwise
-                                     (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted))
-                                     (assoc :container-id (when following? config/seen-home-container-id))
-                                     (assoc :last-seen-at (:seen-at container-seen))
-                                     (assoc :next-seen-at (db-common/current-timestamp)))
-                             boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-uuids (map :uuid boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             items (assemble-activity conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "entries" items boards user))))
+  :handle-ok (fn [ctx] (activity-response conn ctx)))
 
 ;; A resource for operations on the activity of a particular Org
 (defresource bookmarks [conn slug]
@@ -237,26 +338,7 @@
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id user)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             ctx-params (-> ctx :request :params keywordize-keys)
-                             params (-> ctx-params
-                                     (dissoc :slug)
-                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
-                                     (update :direction #(if % (keyword %) :before)) ; default is before
-                                     (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                                           (= (:auth-source user) :digest-request))
-                                                     0 ;; In case of a digest request or if a refresh request
-                                                     config/default-activity-limit))) ;; fallback to the default pagination otherwise
-                             boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-uuids (map :uuid boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             items (assemble-bookmarks conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "bookmarks" items boards user))))
+  :handle-ok (fn [ctx] (bookmarks-response conn ctx)))
 
 ;; A resource to retrieve entries with unread activity
 (defresource inbox [conn slug]
@@ -289,19 +371,7 @@
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id user)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             ctx-params (-> ctx :request :params keywordize-keys)
-                             params (update ctx-params :start #(if % (Long. %) (oc-time/now-ts))) ; default is now
-                             boards (board-res/list-boards-by-org conn org-id board-props)
-                             board-uuids (map :uuid boards)
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                            items (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "inbox" items boards user))))
+  :handle-ok (fn [ctx] (inbox-response conn ctx)))
 
 ;; A resource to retrieve the replies of a particular Org
 (defresource replies [conn slug]
@@ -337,30 +407,7 @@
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id user)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id)
-                             ctx-params (-> ctx :request :params keywordize-keys)
-                             params (-> ctx-params
-                                     (dissoc :slug)
-                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
-                                     (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                                           (= (:auth-source user) :digest-request))
-                                                     0 ;; In case of a digest request or if a refresh request
-                                                     config/default-activity-limit)) ;; fallback to the default pagination otherwise
-                                     (update :direction #(if % (keyword %) :before)) ; default is before
-                                     (assoc :container-id config/seen-replies-container-id)
-                                     (assoc :last-seen-at (:seen-at container-seen))
-                                     (assoc :next-seen-at (db-common/current-timestamp)))
-                             boards (board-res/list-boards-by-org conn org-id board-props)
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-uuids (map :uuid boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             items (assemble-replies conn params org board-by-uuids allowed-boards user-id)]
-                          (activity-rep/render-activity-list params org "replies" items boards user))))
+  :handle-ok (fn [ctx] (replies-response conn ctx)))
 
 ;; A resource to retrieve entries for a given user
 (defresource contributions [conn slug author-uuid]
@@ -396,33 +443,7 @@
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (let [user (:user ctx)
-                             user-id (:user-id ctx)
-                             org (:existing-org ctx)
-                             org-id (:uuid org)
-                             container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id author-uuid)
-                             ctx-params (-> ctx :request :params keywordize-keys)
-                             params (-> ctx-params
-                                     (dissoc :slug)
-                                     (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
-                                     (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                                           (= (:auth-source user) :digest-request))
-                                                     0 ;; In case of a digest request or if a refresh request
-                                                     config/default-activity-limit)) ;; fallback to the default pagination otherwise
-                                     (update :direction #(if % (keyword %) :before)) ; default is before
-                                     (assoc :container-id config/seen-replies-container-id)
-                                     (assoc :last-seen-at (:seen-at container-seen))
-                                     (assoc :next-seen-at (db-common/current-timestamp))
-                                     (assoc :author-uuid author-uuid)
-                                     (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted)))
-
-                             boards (board-res/list-boards-by-org conn org-id board-props)
-                             board-uuids (map :uuid boards)
-                             allowed-boards (filter #(access/access-level-for org % user) boards)
-                             board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-                             board-by-uuids (zipmap board-uuids board-slugs-and-names)
-                             items (assemble-contributions conn params org board-by-uuids allowed-boards author-uuid)]
-                          (activity-rep/render-activity-list params org "contributions" items boards user))))
+  :handle-ok (fn [ctx] (contributions-response conn ctx author-uuid)))
 
 ;; ----- Routes -----
 
