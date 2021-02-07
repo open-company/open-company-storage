@@ -34,15 +34,16 @@
   "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction must-see :must-see container-id :container-id
          sort-type :sort-type following :following unfollowing :unfollowing last-seen-at :last-seen-at
-         limit :limit}
+         limit :limit old-fn :old-fn}
    org board-by-uuids allowed-boards user-id]
   (let [follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
+        activity-fn (if old-fn entry-res/paginated-entries-by-org-old entry-res/paginated-entries-by-org)
         entries (if follow?
-                  (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
+                  (activity-fn conn (:uuid org) :desc start direction limit sort-type allowed-boards
                    follow-data last-seen-at {:must-see must-see :container-id container-id})
-                  (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit sort-type allowed-boards
+                  (activity-fn conn (:uuid org) :desc start direction limit sort-type allowed-boards
                    {:must-see must-see :container-id container-id}))
         ;; total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
         ;;              follow-data nil {:count true :must-see must-see :container-id container-id})
@@ -61,10 +62,11 @@
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
+  [conn {start :start direction :direction limit :limit old-fn :old-fn} org board-by-uuids allowed-boards user-id]
   (let [total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc
                                (oc-time/now-ts) :before 0 {:count true})
-        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
+        bookmarks-fn (if old-fn entry-res/list-all-bookmarked-entries-old entry-res/list-all-bookmarked-entries)
+        entries (bookmarks-fn conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
         activities {:direction direction
                     :next-count (count entries)
                     :total-count total-bookmarks-count}]
@@ -117,10 +119,12 @@
 
 (defn- assemble-contributions
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
-  [conn {start :start direction :direction sort-type :sort-type last-seen-at :last-seen-at limit :limit} org board-by-uuids allowed-boards author-uuid]
-  (let [total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org)
-                                 author-uuid :desc (oc-time/now-ts) direction 0 sort-type allowed-boards nil {:count true})
-        entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
+  [conn {start :start direction :direction sort-type :sort-type last-seen-at :last-seen-at limit :limit old-fn :old-fn} org board-by-uuids allowed-boards author-uuid]
+  (let [contributions-fn (if old-fn entry-res/list-entries-by-org-author-old entry-res/list-entries-by-org-author)
+        total-contributions-count (contributions-fn conn (:uuid org) author-uuid :desc (oc-time/now-ts)
+                                                    direction 0 sort-type allowed-boards nil
+                                                    {:count true})
+        entries (contributions-fn conn (:uuid org) author-uuid
                  :desc start direction limit sort-type allowed-boards last-seen-at)
         activities {:next-count (count entries)
                     :author-uuid author-uuid
