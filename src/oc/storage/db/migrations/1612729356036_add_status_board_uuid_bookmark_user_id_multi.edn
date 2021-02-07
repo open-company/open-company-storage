@@ -1,0 +1,15 @@
+(ns oc.storage.db.migrations.add-status-board-uuid-bookmark-user-id-multi
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.entry :as entry]))
+
+(defn up [conn]
+  (println (m/create-compound-index conn entry/table-name "status-board-uuid-bookmark-user-id-multi"
+    (r/fn [row] (r/map (r/get-field row "bookmarks")
+                  (r/fn [bm-row]
+                    [(r/get-field row "status")
+                     (r/get-field row "board-uuid")
+                     (r/get-field bm-row "user-id")])))
+    {:multi true}))
+  true) ; return true on success

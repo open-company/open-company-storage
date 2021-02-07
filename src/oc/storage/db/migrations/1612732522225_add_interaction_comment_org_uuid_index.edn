@@ -1,0 +1,15 @@
+(ns oc.storage.db.migrations.add-interaction-comment-org-uuid-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.common :as common]))
+
+(defn up [conn]
+  (println "Create comment-board-uuid-org-uuid index...")
+  (println (m/create-compound-index conn common/interaction-table-name :comment-org-uuid
+    (r/fn [row]
+      [(-> (r/get-field row :body)
+           (r/default false)
+           (r/coerce-to :bool))
+       (r/get-field row :org-uuid)])))
+  true) ; return true on success
