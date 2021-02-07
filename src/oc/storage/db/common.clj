@@ -8,15 +8,15 @@
             [oc.storage.config :as config]
             [oc.lib.db.common :as db-common]))
 
-(defn read-paginated-entries
+(defn read-paginated-entries-old
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
    relation-fields {:keys [count unseen] :or {count false unseen false}}]
- (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+ (read-paginated-entries-old conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
   nil nil relation-fields nil {:count count :unseen false :container-id nil}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
    relation-fields user-id {:keys [count unseen] :or {count false unseen false}}]
-  (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+  (read-paginated-entries-old conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
   nil nil relation-fields user-id {:count count :unseen false :container-id nil}))
 
  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
@@ -172,6 +172,165 @@
             (r/run query conn)
             (db-common/drain-cursor query))))))
 
+(defn read-paginated-entries
+  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+    relation-fields {:keys [count unseen] :or {count false unseen false}}]
+   (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+                           nil nil relation-fields nil {:count count :unseen false :container-id nil}))
+
+  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+    relation-fields user-id {:keys [count unseen] :or {count false unseen false}}]
+   (read-paginated-entries conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+                           nil nil relation-fields user-id {:count count :unseen false :container-id nil}))
+
+  ([conn table-name index-name index-value order start direction limit sort-type relation-table-name allowed-boards
+    follow-data container-last-seen-at relation-fields user-id {:keys [count unseen container-id] :or {count false unseen false}}]
+   {:pre [(db-common/conn? conn)
+          (db-common/s-or-k? table-name)
+          (db-common/s-or-k? index-name)
+          (or (string? index-value) (sequential? index-value))
+          (db-common/s-or-k? relation-table-name)
+          (#{:desc :asc} order)
+          (not (nil? start))
+          (#{:after :before} direction)
+          (integer? limit)
+          (or (#{:recent-activity :recently-posted :digest} sort-type)
+              (and (= sort-type :bookmarked-at)
+                   (seq user-id)))
+          (or (nil? container-last-seen-at)
+              (string? container-last-seen-at))
+          (or (nil? follow-data)
+              (coll? follow-data))
+          (sequential? relation-fields)
+          (every? db-common/s-or-k? relation-fields)
+          (boolean? count)
+          (boolean? unseen)]}
+   (let [order-fn (if (= order :desc) r/desc r/asc)
+         unseen-cap-ms (* 1000 60 60 24 config/unseen-cap-days)
+         pins-sort-pivot-ms (* 1000 60 60 24 config/pins-sort-pivot-days)
+         allowed-board-uuids (map :uuid allowed-boards)
+         private-board-uuids (map :uuid (filter #(= (:access %) "private") allowed-boards))
+         pins-allowed-boards (when container-id
+                               (set (conj allowed-board-uuids config/seen-home-container-id)))
+         fixed-container-id (when (and pins-allowed-boards
+                                       (pins-allowed-boards container-id))
+                              container-id)]
+     (db-common/with-timeout db-common/default-timeout
+       (as-> (r/table table-name) query
+         (r/get-all query index-value {:index index-name})
+            ;; Merge in last-activity-at, last-seen-at and sort-value
+         (r/merge query (r/fn [post-row]
+                          (let [last-activity-at (-> (r/table relation-table-name)
+                                                     (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
+                                                     (r/max :created-at)
+                                                     (r/get-field :created-at)
+                                                     (r/default (r/get-field post-row :published-at))
+                                                     (r/default (r/get-field post-row :created-at)))
+                                can-pin-to-container? (r/and (r/default (r/get-field post-row [:pins fixed-container-id]) nil)
+                                                             (r/or (r/ne container-id config/seen-home-container-id)
+                                                                   (r/not (r/contains (r/coerce-to private-board-uuids :array)
+                                                                                      (r/get-field post-row [:board-uuid])))))
+                                sort-field (cond ;; Recent activity sort
+                                             (= sort-type :recent-activity)
+                                             last-activity-at
+                                     ;; Digest sort (recently published without pins at the top)
+                                             (= sort-type :digest)
+                                             (r/default (r/get-field post-row :published-at)
+                                               (r/get-field post-row :created-at))
+                                             (= sort-type :bookmarked-at)
+                                             (-> (r/get-field post-row [:bookmarks])
+                                                 (r/filter {:user-id user-id})
+                                                 (r/nth 0)
+                                                 (r/get-field :bookmarked-at)
+                                                 (r/default (r/get-field post-row :published-at))
+                                                 (r/default (r/get-field post-row :created-at)))
+                                     ;; In all other cases, check if container can contain pins
+                                             :else
+                                             (r/branch can-pin-to-container?
+                                                       (-> (r/get-field post-row [:pins fixed-container-id :pinned-at])
+                                                           (r/default (r/get-field post-row :published-at))
+                                                           (r/default (r/get-field post-row :created-at)))
+                                               ;:else
+                                                       (r/default (r/get-field post-row :published-at)
+                                                         (r/get-field post-row :created-at))))
+                                sort-value-base (-> sort-field
+                                                    (r/iso8601)
+                                                    (r/to-epoch-time)
+                                                    (r/mul 1000)
+                                                    (r/round))
+                                unseen-entry? (r/and (seq container-last-seen-at)
+                                                     (r/gt (r/get-field post-row :published-at) container-last-seen-at))
+                                unseen-with-cap? (r/and unseen-entry?
+                                                        (r/gt sort-value-base
+                                                              (-> (r/now) (r/to-epoch-time) (r/mul 1000) (r/round) (r/sub unseen-cap-ms))))
+                                sort-value (r/branch (r/eq sort-type :digest)
+                                                     sort-value-base
+                                                     (r/branch can-pin-to-container?
+                                                   ;; If the item is pinned and was published (for recently posted) in the cap window
+                                                   ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
+                                                               (r/add sort-value-base pins-sort-pivot-ms)
+                                                   ;; :else
+                                                               (r/branch unseen-with-cap?
+                                                             ;; If the item is unseen and was published (for recently posted) or bookmarked
+                                                             ;; (for bookmarks) or last activity was (for recent activity) in the cap window
+                                                             ;; let's add the cap window to the publish timestamp so it will sort before the seen ones
+                                                                         (r/add sort-value-base unseen-cap-ms)
+                                                             ;; :else
+                                                                         sort-value-base)))]
+                            {;; Date of the last added comment on this entry
+                             :last-activity-at last-activity-at
+                 ;; Sorting base value: the timestamp of the event without pins or unseen changes
+                             :sort-base sort-value-base
+                 ;; The real value used for the sort
+                             :sort-value sort-value
+                 ;; If the entry is unseen
+                             :unseen unseen-with-cap?})))
+            ;; Filter out:
+         (r/filter query (r/fn [row]
+                           (r/and ;; and filter on follow data
+                            (r/or ;; no filter if it's nil
+                             (not (map? follow-data))
+                           ;; filter on followed authors and on not unfollowed boards
+                             (r/and (:following follow-data)
+                                    (r/or (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field row [:publisher :user-id]))
+                                          (r/not (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid)))))
+                           ;; filter on not followed authors and on unfollowed boards
+                             (r/and (:unfollowing follow-data)
+                                    (r/not (r/contains (vec (:follow-publisher-uuids follow-data)) (r/get-field row [:publisher :user-id])))
+                                    (r/contains (vec (:unfollow-board-uuids follow-data)) (r/get-field row :board-uuid))))
+                     ;; Filter out seen entries if unseen flag is on
+                            (r/or (r/not unseen)
+                                  (r/default (r/get-field row :unseen) false))
+                     ;; When sorting from most recent and using before limit
+                     ;; it's necessary to use the sort-base value to avoid cutting out posts sorted at the top
+                            (r/or (r/and (= direction :before)
+                                         (r/gt start (r/get-field row :sort-base)))
+                           ;; for after instead we can use the sort-value since
+                           ;; there is no top limit
+                                  (r/and (= direction :after)
+                                         (r/le start (r/get-field row :sort-value)))))))
+            ;; Merge in all the interactions
+         (if-not count
+           (r/merge query (r/fn [post-row]
+                            {:interactions (-> (r/table relation-table-name)
+                                               (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
+                                               (r/pluck relation-fields)
+                                               (r/coerce-to :array))}))
+           query)
+         (if-not count
+           (r/order-by query (order-fn :sort-value))
+           query)
+            ;; Apply count if needed
+         (if count (r/count query) query)
+            ;; Apply limit
+         (if (and (pos? limit)
+                  (not count))
+           (r/limit query limit)
+           query)
+            ;; Run!
+         (r/run query conn)
+         (db-common/drain-cursor query))))))
+
 (defn read-all-inbox-for-user
 
  ([conn table-name index-name index-value order start limit relation-table-name allowed-boards user-id
@@ -192,13 +351,12 @@
         (string? user-id)
         (sequential? relation-fields)
         (every? db-common/s-or-k? relation-fields)]}
-  (let [index-values (if (sequential? index-value) index-value [index-value])
-        order-fn (if (= order :desc) r/desc r/asc)
+  (let [order-fn (if (= order :desc) r/desc r/asc)
         minimum-date-timestamp (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/days config/unread-days-limit)))
         allowed-board-uuids (map :uuid allowed-boards)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
-            (r/get-all query index-values {:index index-name})
+            (r/get-all query index-value {:index index-name})
             ;; Filter out:
             (r/filter query (r/fn [post-row]
               (r/and ;; All records in boards the user has no access
@@ -473,13 +631,18 @@
          (boolean? unseen)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
         unseen-cap-ms (- (lib-time/now-ts) (* 1000 60 60 24 config/unseen-cap-days))
-        board-uuid-org-uuid-vals (mapv #(vec [true (:uuid %) org-uuid]) allowed-boards)
         has-seen-at? (seq container-last-seen-at)
         container-seen-ms (when has-seen-at?
-                            (lib-time/millis container-last-seen-at))]
+                            (lib-time/millis container-last-seen-at))
+        index-name (if allowed-boards
+                     :comment-board-uuid-org-uuid
+                     :comment-org-uuid)
+        index-value (if allowed-boards
+                      (map #(vec [true (:uuid %) org-uuid]) allowed-boards)
+                      [[true org-uuid]])]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "interactions") query
-        (r/get-all query board-uuid-org-uuid-vals {:index :comment-board-uuid-org-uuid})
+        (r/get-all query index-value {:index index-name})
         (r/group query :resource-uuid) ;;(r/group query {:index :resource-uuid})
         (r/max query :created-at)
         (r/ungroup query)
