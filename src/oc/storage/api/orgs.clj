@@ -507,7 +507,7 @@
                                         false))})
   :handle-ok (fn [ctx] (let [org (:org ctx)
                              read-data (:read-data ctx)]
-                        (org-rep/render-wrt-csv org read-data (:user ctx))))
+                        (org-rep/render-wrt-csv org read-data (:user ctx) (:days ctx))))
   :handle-unprocessable-entity (fn [ctx]
                                 (api-common/unprocessable-entity-response (:reason ctx))))
 

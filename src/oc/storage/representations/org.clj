@@ -2,6 +2,7 @@
   "Resource representations for OpenCompany orgs."
   (:require [cheshire.core :as json]
             [cuerdas.core :as s]
+            [clj-time.core :as t]
             [oc.lib.user :as user-lib]
             [oc.lib.time :as lib-time]
             [oc.lib.hateoas :as hateoas]
@@ -323,10 +324,13 @@
 (def csv-empty-val "NA")
 
 (defn render-wrt-csv
-  [org entries-list user]
-  (let [csv-entries (mapv (fn [{entry :entry reads :reads}]
+  [org entries-list user days]
+  (let [start-date (t/minus (t/now) (t/days days))
+        start-date-string (lib-time/csv-date start-date (:timezone user) false)
+        end-date-string (lib-time/csv-date (t/now) (:timezone user) false)
+        csv-entries (mapv (fn [{entry :entry reads :reads}]
                             (s/join "\n" [(str "Title: " (:headline entry))
-                                          (str "Published on: " (lib-time/csv-date (:published-at entry) (:timezone user)))
+                                          (str "Published on: " (lib-time/csv-date-time (:published-at entry) (:timezone user)))
                                           (str "Link: " (:url entry))
                                           "-"
                                           "Name, Email, Read"
@@ -334,10 +338,10 @@
                                                   (mapv #(s/join ", " [(or (user-lib/name-for (:user %)) csv-empty-val)
                                                                        (or (-> % :user :email) csv-empty-val)
                                                                        (if (:read-at %)
-                                                                         (lib-time/csv-date (:read-at %) (:timezone user))
+                                                                         (lib-time/csv-date-time (:read-at %) (:timezone user))
                                                                          csv-empty-val)])
                                                         reads))
                                           "\n"]))
                           entries-list)
-        csv-intro (str "Analytics for " (:name org) " generated on " (lib-time/csv-date) "\n")]
+        csv-intro (str (:name org) " analytics for posts between " start-date-string " and " end-date-string "\n")]
     (s/join "\n" (vec (cons csv-intro csv-entries)))))
