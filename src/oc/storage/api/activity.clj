@@ -32,21 +32,16 @@
 
 (defn- assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
-  [conn {start :start direction :direction must-see :must-see container-id :container-id
-         sort-type :sort-type following :following unfollowing :unfollowing last-seen-at :last-seen-at
-         limit :limit old-fn :old-fn}
+  [conn {start :start direction :direction container-id :container-id following :following unfollowing :unfollowing
+         last-seen-at :last-seen-at limit :limit}
    org board-by-uuids allowed-boards user-id]
   (let [follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        activity-fn (if old-fn entry-res/paginated-entries-by-org-old entry-res/paginated-entries-by-org)
-        entries (if follow?
-                  (activity-fn conn (:uuid org) :desc start direction limit sort-type allowed-boards
-                   follow-data last-seen-at {:must-see must-see :container-id container-id})
-                  (activity-fn conn (:uuid org) :desc start direction limit sort-type allowed-boards
-                   {:must-see must-see :container-id container-id}))
-        ;; total-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc (oc-time/now-ts) :before 0 :recent-activity allowed-boards
-        ;;              follow-data nil {:count true :must-see must-see :container-id container-id})
+        entries (entry-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
+                                                                    follow-data last-seen-at {:container-id container-id})
+        ;; total-count (entry-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
+        ;;                                                                 follow-data last-seen-at {:container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
                     ;; :total-count total-count
@@ -62,11 +57,10 @@
 
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
-  [conn {start :start direction :direction limit :limit old-fn :old-fn} org board-by-uuids allowed-boards user-id]
+  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
   (let [total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc
                                (oc-time/now-ts) :before 0 {:count true})
-        bookmarks-fn (if old-fn entry-res/list-all-bookmarked-entries-old entry-res/list-all-bookmarked-entries)
-        entries (bookmarks-fn conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
+        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
         activities {:direction direction
                     :next-count (count entries)
                     :total-count total-bookmarks-count}]
@@ -78,36 +72,16 @@
                                                        :board-name (:name board)})))
                                   entries))))
 
-(defn- assemble-inbox
-  "Assemble the requested activity (params) for the provided org."
-  [conn {start :start} org board-by-uuids allowed-boards user-id]
-  (let [follow-data (follow-parameters-map user-id (:slug org))
-        total-inbox-count (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc (oc-time/now-ts)
-                           0 allowed-boards follow-data {:count true})
-        entries (entry-res/list-all-entries-for-inbox conn (:uuid org) user-id :desc start config/default-activity-limit
-                 allowed-boards follow-data {})
-        activities {:next-count (count entries)
-                    :total-count total-inbox-count}]
-    ;; Give each activity its board name
-    (assoc activities :activity (map (fn [activity] (let [board (board-by-uuids (:board-uuid activity))]
-                                                      (merge activity {
-                                                       :board-slug (:slug board)
-                                                       :board-access (:access board)
-                                                       :board-name (:name board)})))
-                                 entries))))
-
 (defn assemble-replies
   "Assemble the requested (by the params) entries for the provided org to populate the replies view."
-  [conn {start :start direction :direction last-seen-at :last-seen-at limit :limit old-fn :old-fn}
+  [conn {start :start direction :direction last-seen-at :last-seen-at limit :limit}
    org board-by-uuids allowed-boards user-id]
   (let [follow-data (follow-parameters-map user-id (:slug org))
-        replies-fn (if old-fn entry-res/list-entries-for-user-replies-old entry-res/list-entries-for-user-replies)
-        replies (replies-fn conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
-        ;; total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
+        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
+        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
         result {:next-count (count replies)
                 :direction direction
-                ;; :total-count total-count
-                }]
+                :total-count total-count}]
     ;; Give each activity its board name
     (assoc result :activity (map (fn [entry] (let [board (board-by-uuids (:board-uuid entry))]
                                                           (merge entry {
@@ -119,13 +93,11 @@
 
 (defn- assemble-contributions
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
-  [conn {start :start direction :direction sort-type :sort-type last-seen-at :last-seen-at limit :limit old-fn :old-fn} org board-by-uuids allowed-boards author-uuid]
-  (let [contributions-fn (if old-fn entry-res/list-entries-by-org-author-old entry-res/list-entries-by-org-author)
-        total-contributions-count (contributions-fn conn (:uuid org) author-uuid :desc (oc-time/now-ts)
-                                                    direction 0 sort-type allowed-boards nil
-                                                    {:count true})
-        entries (contributions-fn conn (:uuid org) author-uuid
-                 :desc start direction limit sort-type allowed-boards last-seen-at)
+  [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards author-uuid]
+  (let [total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid :desc (oc-time/now-ts)
+                                                                        direction 0 allowed-boards {:count true})
+        entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
+                 :desc start direction limit allowed-boards {})
         activities {:next-count (count entries)
                     :author-uuid author-uuid
                     :total-count total-contributions-count}]
@@ -150,14 +122,14 @@
                          (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (update :start #(when % (Long. %)))
                    (assoc :digest-request (= (:auth-source user) "digest"))
                    (update :direction #(if % (keyword %) :before)) ; default is before
                    (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                          (= (:auth-source user) :digest-request))
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit)) ;; fallback to the default pagination otherwise
-                   (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted))
+                   (assoc :sort-type :recently-posted)
                    (assoc :container-id (when following? config/seen-home-container-id))
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp)))
@@ -177,7 +149,7 @@
         ctx-params (-> ctx :request :params keywordize-keys)
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (update :start #(when % (Long. %)))
                    (update :direction #(if % (keyword %) :before)) ; default is before
                    (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                          (= (:auth-source user) :digest-request))
@@ -191,21 +163,6 @@
         items (assemble-bookmarks conn params org board-by-uuids allowed-boards user-id)]
     (activity-rep/render-activity-list params org "bookmarks" items boards user)))
 
-(defn inbox-response [conn ctx]
-  (let [user (:user ctx)
-        user-id (:user-id user)
-        org (:existing-org ctx)
-        org-id (:uuid org)
-        ctx-params (-> ctx :request :params keywordize-keys)
-        params (update ctx-params :start #(if % (Long. %) (oc-time/now-ts))) ; default is now
-        boards (board-res/list-boards-by-org conn org-id board-props)
-        board-uuids (map :uuid boards)
-        allowed-boards (filter #(access/access-level-for org % user) boards)
-        board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
-        board-by-uuids (zipmap board-uuids board-slugs-and-names)
-        items (assemble-inbox conn params org board-by-uuids allowed-boards user-id)]
-    (activity-rep/render-activity-list params org "inbox" items boards user)))
-
 (defn replies-response [conn ctx]
   (let [user (:user ctx)
         user-id (:user-id user)
@@ -215,7 +172,7 @@
         ctx-params (-> ctx :request :params keywordize-keys)
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (update :start #(when % (Long. %)))
                    (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                          (= (:auth-source user) :digest-request))
                                    0 ;; In case of a digest request or if a refresh request
@@ -244,7 +201,7 @@
         ctx-params (-> ctx :request :params keywordize-keys)
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
+                   (update :start #(when % (Long. %)))
                    (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
                                          (= (:auth-source user) :digest-request))
                                    0 ;; In case of a digest request or if a refresh request
@@ -254,7 +211,7 @@
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp))
                    (assoc :author-uuid author-uuid)
-                   (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted)))
+                   (assoc :sort-type :recently-posted))
 
         boards (board-res/list-boards-by-org conn org-id board-props)
         board-uuids (map :uuid boards)
@@ -344,39 +301,6 @@
   ;; Responses
   :handle-ok (fn [ctx] (bookmarks-response conn ctx)))
 
-;; A resource to retrieve entries with unread activity
-(defresource inbox [conn slug]
-  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
-
-  :allowed-methods [:options :get]
-
-  ;; Media type client accepts
-  :available-media-types [mt/entry-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
-
-  ;; Authorization
-  :allowed? (by-method {
-    :options true
-    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
-
-  ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
-                              start (:start ctx-params)
-                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
-                              ;; can have :following or :unfollowing or none, but not both
-                              following? (contains? ctx-params :following)
-                              unfollowing? (contains? ctx-params :unfollowing)
-                              valid-follow? (not (and following? unfollowing?))]
-                          (not (and valid-start? valid-follow?))))
-  ;; Existentialism
-  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
-                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org (api-common/rep org)}
-                        false))
-
-  ;; Responses
-  :handle-ok (fn [ctx] (inbox-response conn ctx)))
-
 ;; A resource to retrieve the replies of a particular Org
 (defresource replies [conn slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -402,7 +326,7 @@
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
                                                    (and (not start) (not direction)))]
-                           (not (and valid-start? valid-direction? pairing-allowed?))))
+                          (not (and valid-start? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -438,7 +362,7 @@
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
                                                    (and (not start) (not direction)))]
-                           (not (and valid-start? valid-direction? pairing-allowed?))))
+                          (not (and valid-start? valid-direction? pairing-allowed?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -464,11 +388,6 @@
       (OPTIONS (str (org-urls/bookmarks ":slug") "/") [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
       (GET (org-urls/bookmarks ":slug") [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
       (GET (str (org-urls/bookmarks ":slug") "/") [slug] (pool/with-pool [conn db-pool] (bookmarks conn slug)))
-
-      (OPTIONS (org-urls/inbox ":slug") [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
-      (OPTIONS (str (org-urls/inbox ":slug") "/") [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
-      (GET (org-urls/inbox ":slug") [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
-      (GET (str (org-urls/inbox ":slug") "/") [slug] (pool/with-pool [conn db-pool] (inbox conn slug)))
 
       (OPTIONS (org-urls/replies ":slug") [slug] (pool/with-pool [conn db-pool] (replies conn slug)))
       (OPTIONS (str (org-urls/replies ":slug") "/") [slug] (pool/with-pool [conn db-pool] (replies conn slug)))

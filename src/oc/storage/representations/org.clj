@@ -13,9 +13,8 @@
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at :brand-color])
 (def representation-props (concat public-representation-props [:author :authors :total-count :bookmarks-count
-                                                               :content-visibility :inbox-count :why-carrot
+                                                               :content-visibility :why-carrot
                                                                :contributions-count :following-count :unfollowing-count
-                                                               :following-inbox-count :unfollowing-inbox-count
                                                                :badge-following :badge-replies :brand-color
                                                                :new-entry-placeholder :new-entry-cta]))
 
@@ -79,28 +78,12 @@
 (defn- activity-link [org]
   (hateoas/link-map "entries" hateoas/GET (org-urls/entries org) {:accept mt/entry-collection-media-type}))
 
-;; (defn- recent-activity-link [org]
-;;   (hateoas/link-map "activity" hateoas/GET (str (org-urls/entries org) "?sort=activity") {:accept mt/entry-collection-media-type}))
-
 (defn- following-link [org]
   (hateoas/link-map "following" hateoas/GET (str (org-urls/entries org) "?following=true") {:accept mt/entry-collection-media-type}))
-
-;; (defn- recent-following-link [org]
-;;   (hateoas/link-map "recent-following" hateoas/GET (str (org-urls/entries org) "?sort=activity&following=true") {:accept mt/entry-collection-media-type}))
-
-;; (defn- unfollowing-link [org]
-;;   (hateoas/link-map "unfollowing" hateoas/GET (str (org-urls/entries org) "?unfollowing=true") {:accept mt/entry-collection-media-type}))
-
-;; (defn- recent-unfollowing-link [org]
-;;   (hateoas/link-map "recent-unfollowing" hateoas/GET (str (org-urls/entries org) "?sort=activity&unfollowing=true") {:accept mt/entry-collection-media-type}))
 
 (defn- contributions-partial-link [org]
   (hateoas/link-map "partial-contributions" hateoas/GET (org-urls/contribution org "$0") {:accept mt/entry-collection-media-type}
    {:replace {:author-uuid "$0"}}))
-
-;; (defn- recent-contributions-partial-link [org]
-;;   (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (org-urls/contribution org "$0") "?sort=activity") {:accept mt/entry-collection-media-type}
-;;    {:replace {:author-uuid "$0"}}))
 
 (defn- digest-partial-link [org]
   (hateoas/link-map "digest" hateoas/GET (str (org-urls/digest org) "?direction=after&start=$0") {:accept mt/entry-collection-media-type}
@@ -183,52 +166,6 @@
         {:accept mt/entry-collection-media-type}))
     org))
 
-(defn- recent-bookmarks-link [org access-level user]
-  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
-    (update-in org [:links] conj
-      (hateoas/link-map
-        "bookmarks-activity"
-        hateoas/GET
-        (str (org-urls/bookmarks org) "?sort=activity")
-        {:accept mt/entry-collection-media-type}))
-    org))
-
-;; (defn- following-inbox-link [org access-level user]
-;;   (if (and (not (:id-token user))
-;;            (or (= access-level :author)
-;;                (= access-level :viewer)))
-;;     (update-in org [:links] conj
-;;       (hateoas/link-map
-;;         "following-inbox"
-;;         hateoas/GET
-;;         (str (org-urls/inbox org) "?following=true")
-;;         {:accept mt/entry-collection-media-type}))
-;;     org))
-
-;; (defn- unfollowing-inbox-link [org access-level user]
-;;   (if (and (not (:id-token user))
-;;            (or (= access-level :author)
-;;                (= access-level :viewer)))
-;;     (update-in org [:links] conj
-;;       (hateoas/link-map
-;;         "unfollowing-inbox"
-;;         hateoas/GET
-;;         (str (org-urls/inbox org) "?unfollowing=true")
-;;         {:accept mt/entry-collection-media-type}))
-;;     org))
-
-;; (defn- inbox-link [org access-level user]
-;;   (if (and (not (:id-token user))
-;;            (or (= access-level :author)
-;;                (= access-level :viewer)))
-;;     (update-in org [:links] conj
-;;       (hateoas/link-map
-;;         "inbox"
-;;         hateoas/GET
-;;         (org-urls/inbox org)
-;;         {:accept mt/entry-collection-media-type}))
-;;     org))
-
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
@@ -236,12 +173,7 @@
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
                           (concat links [(active-users-link org)
                                          (activity-link org)
-                                         ; (recent-activity-link org)
-                                         ; (recent-contributions-partial-link org)
                                          (following-link org)
-                                         ; (recent-following-link org)
-                                         ; (unfollowing-link org)
-                                         ; (recent-unfollowing-link org)
                                          (contributions-partial-link org)
                                          (replies-link org)
                                          (digest-partial-link org)]) ; (calendar-link org) - not currently used
@@ -290,10 +222,6 @@
                      (interactions-link access-level user)
                      (reminders-link access-level user)
                      (bookmarks-link access-level user)
-                     (recent-bookmarks-link access-level user)
-                     ; (inbox-link access-level user)
-                     ; (following-inbox-link access-level user)
-                     ; (unfollowing-inbox-link access-level user)
                      (select-keys (conj rep-props :links))
                      (premium-filter user premium?))]
     (json/generate-string org-repr {:pretty config/pretty?})))

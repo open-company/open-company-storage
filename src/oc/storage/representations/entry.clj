@@ -104,16 +104,6 @@
   (hateoas/link-map "bookmark" hateoas/DELETE (entry-urls/bookmark org-slug board-slug entry-uuid)
     {:accept mt/entry-media-type}))
 
-;; (defn- inbox-dismiss-link [org-slug board-slug entry-uuid]
-;;   (hateoas/link-map "dismiss" hateoas/POST (entry-urls/inbox-dismiss org-slug board-slug entry-uuid)
-;;     {:accept mt/entry-media-type
-;;      :content-type "text/plain"}))
-
-;; (defn- inbox-unread-link [org-slug board-slug entry-uuid]
-;;   (hateoas/link-map "unread" hateoas/POST (entry-urls/inbox-unread org-slug board-slug entry-uuid)
-;;     {:accept mt/entry-media-type
-;;      :content-type "text/plain"}))
-
 (defn- follow-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "follow" hateoas/POST (entry-urls/inbox-follow org-slug board-slug entry-uuid)
     {:accept mt/entry-media-type

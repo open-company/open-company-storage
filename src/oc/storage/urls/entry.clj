@@ -31,12 +31,6 @@
   [org-slug board-slug entry-uuid inbox-action :guard #{:dismiss :unread :follow :unfollow}]
   (str (entry org-slug board-slug entry-uuid) "/" (name inbox-action)))
 
-(defn inbox-dismiss [org-slug board-slug entry-uuid]
-  (inbox-action org-slug board-slug entry-uuid :dismiss))
-
-(defn inbox-unread [org-slug board-slug entry-uuid]
-  (inbox-action org-slug board-slug entry-uuid :unread))
-
 (defn inbox-follow [org-slug board-slug entry-uuid]
   (inbox-action org-slug board-slug entry-uuid :follow))
 

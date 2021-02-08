@@ -46,12 +46,12 @@
                   :total-count (count entries)})))
 
   ;; Regular paginated board
-  ([conn _org board {start :start direction :direction must-see :must-see sort-type :sort-type limit :limit} _ctx]
-  (let [total-count (entry-res/paginated-entries-by-board conn board :asc (oc-time/now-ts) :before
-                     0 :recently-posted {:must-see must-see :status :published :count true :container-id (:uuid board)})
+  ([conn _org board {start :start direction :direction must-see :must-see limit :limit} _ctx]
+  (let [total-count (entry-res/paginated-recently-posted-entries-by-board conn board :asc nil :before
+                     0 {:status :published :count true :container-id (:uuid board)})
         order (if (= direction :before) :desc :asc)
-        entries (entry-res/paginated-entries-by-board conn board order start direction
-                 limit sort-type {:must-see must-see :status :published :container-id (:uuid board)})]
+        entries (entry-res/paginated-recently-posted-entries-by-board conn board order start direction
+                 limit {:must-see must-see :status :published :container-id (:uuid board)})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
@@ -346,10 +346,10 @@
                                board (or (:existing-board ctx)
                                          (if (and (= slug (:slug board-res/default-drafts-board))
                                                   (lib-schema/valid? lib-schema/User (:user ctx)))
-                                            ;; Draft board for the user
-                                            (board-res/drafts-board org-uuid (:user ctx))
-                                            ;; Regular board by slug
-                                            (board-res/get-board conn org-uuid slug)))
+                                           ;; Draft board for the user
+                                           (board-res/drafts-board org-uuid (:user ctx))
+                                           ;; Regular board by slug
+                                           (board-res/get-board conn org-uuid slug)))
                                boards (board-res/list-boards-by-org conn org-uuid)
                                boards-map (zipmap (map :uuid boards) boards)]
                         {:existing-org (api-common/rep org) :existing-board (api-common/rep board)

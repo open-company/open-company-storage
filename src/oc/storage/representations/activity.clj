@@ -10,9 +10,6 @@
             [oc.storage.urls.activity :as activity-urls]
             [oc.storage.config :as config]))
 
-(defn- is-inbox? [collection-type]
-  (= collection-type "inbox"))
-
 (defn- is-contributions? [collection-type]
   (= collection-type "contributions"))
 
@@ -21,22 +18,19 @@
 
 (defn- refresh-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [sort-type author-uuid following unfollowing old-fn]} data]
+  [org collection-type {:keys [sort-type author-uuid following unfollowing]} data]
   (when (seq (:activity data))
     (let [resources-list (:activity data)
           last-resource (last resources-list)
           last-resource-date (:sort-value last-resource)
           replies? (is-replies? collection-type)
           contributions? (is-contributions? collection-type)
-          inbox? (is-inbox? collection-type)
           no-collection-type? (and (not replies?)
-                                   (not inbox?)
                                    (not contributions?)
                                    (not following)
                                    (not unfollowing))
-          refresh-url (cond->> {:direction :after :start last-resource-date :following following :unfollowing unfollowing :old-fn old-fn}
+          refresh-url (cond->> {:refresh true :direction :after :start last-resource-date :following following :unfollowing unfollowing}
                        replies?            (activity-urls/replies org)
-                       inbox?              (activity-urls/collection collection-type org)
                        contributions?      (activity-urls/contributions org author-uuid sort-type)
                        following           (activity-urls/following collection-type org sort-type)
                        unfollowing         (activity-urls/unfollowing collection-type org sort-type)
@@ -47,13 +41,11 @@
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [direction sort-type author-uuid following unfollowing old-fn]} data]
+  [org collection-type {:keys [direction sort-type author-uuid following unfollowing]} data]
   (when (seq (:activity data))
     (let [replies? (is-replies? collection-type)
-          inbox? (is-inbox? collection-type)
           contributions? (is-contributions? collection-type)
           no-collection-type? (and (not replies?)
-                                   (not inbox?)
                                    (not contributions?)
                                    (not following)
                                    (not unfollowing))
@@ -62,9 +54,8 @@
           last-resource-date (:sort-value last-resource)
           next? (= (:next-count data) config/default-activity-limit)
           next-url (when next?
-                     (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing :old-fn old-fn}
+                     (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing}
                        replies?            (activity-urls/replies org)
-                       inbox?              (activity-urls/collection collection-type org)
                        contributions?      (activity-urls/contributions org author-uuid sort-type)
                        following           (activity-urls/following collection-type org sort-type)
                        unfollowing         (activity-urls/unfollowing collection-type org sort-type)
@@ -91,14 +82,11 @@
   (let [sort-type (:sort-type params)
         following? (:following params)
         unfollowing? (:unfollowing params)
-        inbox? (is-inbox? collection-type)
         replies? (is-replies? collection-type)
         contributions? (is-contributions? collection-type)
         collection-url (cond
                         replies?
-                        (activity-urls/replies org {:old-fn (:old-fn params)})
-                        inbox?
-                        (activity-urls/collection collection-type org {:following following? :unfollowing unfollowing?})
+                        (activity-urls/replies org)
                         contributions?
                         (activity-urls/contributions org (:author-uuid params) (:sort-type params))
                         following?
@@ -109,8 +97,6 @@
                         (activity-urls/activity collection-type org sort-type))
         recent-activity-sort? (= sort-type :recent-activity)
         other-sort-url (cond
-                        (or inbox? replies?)
-                        nil
                         contributions?
                         (activity-urls/contributions org (:author-uuid params) (if recent-activity-sort? :recently-posted :recent-activity))
                         following?
@@ -133,11 +119,8 @@
         other-sort-rel (if recent-activity-sort? "self" "activity")
         links (remove nil?
                [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/entry-collection-media-type} {})
-                (if inbox? ;; Inbox has no sort
-                  (hateoas/link-map "dismiss-all" hateoas/POST (activity-urls/inbox-dismiss-all org) {:accept mt/entry-media-type
-                                                                                                      :content-type "text/plain"} {})
-                  (when-not replies?
-                    (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {})))
+                (when-not replies?
+                  (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {}))
                 (hateoas/up-link (org-urls/org org) {:accept mt/org-media-type})
                 (pagination-link org collection-type params activity)
                 (refresh-link org collection-type params activity)])

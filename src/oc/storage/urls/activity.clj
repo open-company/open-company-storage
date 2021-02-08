@@ -2,7 +2,7 @@
     (:require [oc.storage.urls.org :as org-urls]
               [cuerdas.core :as string]))
 
-(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing :old-fn])
+(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing])
 
 (defn parametrize [url parameters-dict]
   (let [concat? (#{"?" "&"} (last url))
@@ -19,16 +19,13 @@
 
 ;; Urls
 
-(defn collection ;; inbox-url
+(defn collection
 
   ([collection-type org]
    (org-urls/org-container org collection-type))
 
   ([collection-type org url-params]
    (parametrize (collection collection-type org) url-params)))
-
-(defn inbox-dismiss-all [org] ;; dismiss-all-url
-  (str (org-urls/inbox org) "/dismiss"))
 
 (defn activity ;; url
   ([collection-type {slug :slug} sort-type]

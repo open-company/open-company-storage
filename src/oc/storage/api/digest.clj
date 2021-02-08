@@ -28,11 +28,8 @@
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."
   [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id ctx]
-  (let [follow-data (activity-api/follow-parameters-map user-id (:slug org))
-
-        following-follow-data (assoc follow-data :following true)
-        following-data (entry-res/paginated-entries-by-org conn (:uuid org) :desc start direction limit :digest allowed-boards following-follow-data nil {:container-id config/seen-home-container-id})
-        following-count (entry-res/paginated-entries-by-org conn (:uuid org) :desc start :before 0 :digest allowed-boards following-follow-data nil {:count true :container-id config/seen-home-container-id})
+  (let [following-data (entry-res/paginated-entries-for-digest conn (:uuid org) :desc start direction limit allowed-boards {})
+        following-count (entry-res/paginated-entries-for-digest conn (:uuid org) :desc start :before 0 allowed-boards {:count true})
 
         user-reads (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org))
         user-reads-map (zipmap (map :item-uuid user-reads) user-reads)]
