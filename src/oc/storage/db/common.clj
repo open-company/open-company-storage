@@ -39,7 +39,6 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
-           ;; Merge in last-activity-at, last-seen-at and sort-value
         (r/merge query (r/fn [post-row]
            (let [sort-field (r/default (r/get-field post-row :published-at)
                                        (r/get-field post-row :created-at))
@@ -96,7 +95,6 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
-           ;; Merge in last-activity-at, last-seen-at and sort-value
         (r/merge query (r/fn [post-row]
           (let [sort-field (-> (r/get-field post-row [:bookmarks])
                               (r/filter {:user-id user-id})
@@ -156,7 +154,6 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
-           ;; Merge in last-activity-at, last-seen-at and sort-value
         (r/merge query (r/fn [post-row]
            (let [last-activity-at (-> (r/table relation-table-name)
                                        (r/get-all [[(r/get-field post-row :uuid) true]] {:index :resource-uuid-comment})
@@ -230,7 +227,6 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
-           ;; Merge in last-activity-at, last-seen-at and sort-value
         (r/merge query (r/fn [post-row]
          (let [can-pin-to-container? (r/and (r/default (r/get-field post-row [:pins fixed-container-id]) nil)
                                              (r/or (r/ne container-id config/seen-home-container-id)
@@ -310,7 +306,6 @@
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
-           ;; Merge in last-activity-at, last-seen-at and sort-value
         (r/merge query (r/fn [post-row]
           {;; The real value used for the sort
            :sort-value (r-millis (r/get-field post-row :published-at))}))
