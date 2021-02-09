@@ -63,8 +63,6 @@
     (when-not (clj-string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
     "Unread limit: " c/unread-days-limit " days\n"
-    "Unseen cap days: " c/unseen-cap-days " days\n"
-    "Pins sort pivot days: " c/pins-sort-pivot-days " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition

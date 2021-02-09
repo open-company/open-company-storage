@@ -14,8 +14,7 @@
             [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]
-            [oc.lib.time :as oc-time]
+            [oc.storage.resources.activity :as activity-res]
             [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.seen :as seen]
             [oc.storage.urls.org :as org-urls]))
@@ -30,7 +29,7 @@
      following? (merge {:following true})
      (not following?) (merge {:unfollowing true}))))
 
-(defn- assemble-activity
+(defn assemble-activity
   "Assemble the requested (by the params) activity for the provided org."
   [conn {start :start direction :direction container-id :container-id following :following unfollowing :unfollowing
          last-seen-at :last-seen-at limit :limit}
@@ -38,9 +37,9 @@
   (let [follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
-        entries (entry-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
+        entries (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
                                                                     follow-data last-seen-at {:container-id container-id})
-        ;; total-count (entry-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
+        ;; total-count (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
         ;;                                                                 follow-data last-seen-at {:container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
@@ -58,9 +57,8 @@
 (defn- assemble-bookmarks
   "Assemble the requested activity (params) for the provided org."
   [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id]
-  (let [total-bookmarks-count (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc
-                               (oc-time/now-ts) :before 0 {:count true})
-        entries (entry-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
+  (let [total-bookmarks-count (activity-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc nil :before 0 {:count true})
+        entries (activity-res/list-all-bookmarked-entries conn (:uuid org) user-id allowed-boards :desc start direction limit {:count false})
         activities {:direction direction
                     :next-count (count entries)
                     :total-count total-bookmarks-count}]
@@ -77,8 +75,8 @@
   [conn {start :start direction :direction last-seen-at :last-seen-at limit :limit}
    org board-by-uuids allowed-boards user-id]
   (let [follow-data (follow-parameters-map user-id (:slug org))
-        replies (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
-        total-count (entry-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc (oc-time/now-ts) :before 0 follow-data nil {:count true})
+        replies (activity-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
+        total-count (activity-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc nil :before 0 follow-data nil {:count true})
         result {:next-count (count replies)
                 :direction direction
                 :total-count total-count}]
@@ -94,9 +92,9 @@
 (defn- assemble-contributions
   "Assemble the requested activity (based on the params) for the provided org that's published by the given user."
   [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards author-uuid]
-  (let [total-contributions-count (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid :desc (oc-time/now-ts)
+  (let [total-contributions-count (activity-res/list-entries-by-org-author conn (:uuid org) author-uuid :desc nil
                                                                         direction 0 allowed-boards {:count true})
-        entries (entry-res/list-entries-by-org-author conn (:uuid org) author-uuid
+        entries (activity-res/list-entries-by-org-author conn (:uuid org) author-uuid
                  :desc start direction limit allowed-boards {})
         activities {:next-count (count entries)
                     :author-uuid author-uuid
@@ -122,14 +120,10 @@
                          (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(when % (Long. %)))
-                   (assoc :digest-request (= (:auth-source user) "digest"))
                    (update :direction #(if % (keyword %) :before)) ; default is before
-                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                         (= (:auth-source user) :digest-request))
+                   (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit)) ;; fallback to the default pagination otherwise
-                   (assoc :sort-type :recently-posted)
                    (assoc :container-id (when following? config/seen-home-container-id))
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp)))
@@ -149,10 +143,8 @@
         ctx-params (-> ctx :request :params keywordize-keys)
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(when % (Long. %)))
                    (update :direction #(if % (keyword %) :before)) ; default is before
-                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                         (= (:auth-source user) :digest-request))
+                   (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit))) ;; fallback to the default pagination otherwise
         boards (board-res/list-boards-by-org conn org-id board-props)
@@ -172,9 +164,7 @@
         ctx-params (-> ctx :request :params keywordize-keys)
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(when % (Long. %)))
-                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                         (= (:auth-source user) :digest-request))
+                   (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit)) ;; fallback to the default pagination otherwise
                    (update :direction #(if % (keyword %) :before)) ; default is before
@@ -187,10 +177,7 @@
         board-slugs-and-names (map #(array-map :slug (:slug %) :access (:access %) :name (:name %)) boards)
         board-by-uuids (zipmap board-uuids board-slugs-and-names)
         items (assemble-replies conn params org board-by-uuids allowed-boards user-id)]
-    ;; @FIXME: remove this, for debug, just print out the returned items if not inside a liberator flow
-    (if-not (:skip-response-render ctx)
-      (activity-rep/render-activity-list params org "replies" items boards user)
-      items)))
+    (activity-rep/render-activity-list params org "replies" items boards user)))
 
 (defn contributions-response [conn ctx author-uuid]
   (let [user (:user ctx)
@@ -201,17 +188,14 @@
         ctx-params (-> ctx :request :params keywordize-keys)
         params (-> ctx-params
                    (dissoc :slug)
-                   (update :start #(when % (Long. %)))
-                   (assoc :limit (if (or (= :after (keyword (:direction ctx-params)))
-                                         (= (:auth-source user) :digest-request))
+                   (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit)) ;; fallback to the default pagination otherwise
                    (update :direction #(if % (keyword %) :before)) ; default is before
                    (assoc :container-id config/seen-replies-container-id)
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp))
-                   (assoc :author-uuid author-uuid)
-                   (assoc :sort-type :recently-posted))
+                   (assoc :author-uuid author-uuid))
 
         boards (board-res/list-boards-by-org conn org-id board-props)
         board-uuids (map :uuid boards)
@@ -241,12 +225,11 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
+                              valid-start? (or (string? start)
+                                               (nil? start))
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
-                              valid-sort? (or (not (contains? ctx-params :sort))
-                                              (= (:sort ctx-params) "activity"))
                               ;; a specified start/direction must be together or ommitted
                               pairing-allowed? (or (and start direction)
                                                    (and (not start) (not direction)))
@@ -254,7 +237,7 @@
                               following? (contains? ctx-params :following)
                               unfollowing? (contains? ctx-params :unfollowing)
                               valid-follow? (not (and following? unfollowing?))]
-                           (not (and valid-start? valid-direction? valid-sort? pairing-allowed? valid-follow?))))
+                           (not (and valid-start? valid-direction? pairing-allowed? valid-follow?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
@@ -283,7 +266,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
+                              valid-start? (or (string? start)
+                                               (nil? start))
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -319,7 +303,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
+                              valid-start? (or (string? start)
+                                               (nil? start))
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -355,7 +340,8 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
+                              valid-start? (or (string? start)
+                                               (nil? start))
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)

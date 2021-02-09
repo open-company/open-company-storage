@@ -16,37 +16,45 @@
 (defn- is-replies? [collection-type]
   (= collection-type "replies"))
 
+(defn- is-bookmarks? [collection-type]
+  (= collection-type "bookmarks"))
+
 (defn- refresh-link
-  "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [sort-type author-uuid following unfollowing]} data]
+  "Add a single link to reload the whole set of posts loaded until this point."
+  [org collection-type {:keys [author-uuid following unfollowing]} data]
   (when (seq (:activity data))
     (let [resources-list (:activity data)
           last-resource (last resources-list)
           last-resource-date (:sort-value last-resource)
           replies? (is-replies? collection-type)
           contributions? (is-contributions? collection-type)
+          bookmarks? (is-bookmarks? collection-type)
           no-collection-type? (and (not replies?)
                                    (not contributions?)
+                                   (not bookmarks?)
                                    (not following)
                                    (not unfollowing))
           refresh-url (cond->> {:refresh true :direction :after :start last-resource-date :following following :unfollowing unfollowing}
                        replies?            (activity-urls/replies org)
-                       contributions?      (activity-urls/contributions org author-uuid sort-type)
-                       following           (activity-urls/following collection-type org sort-type)
-                       unfollowing         (activity-urls/unfollowing collection-type org sort-type)
+                       bookmarks?          (activity-urls/bookmarks org)
+                       contributions?      (activity-urls/contributions org author-uuid)
+                       following           (activity-urls/following collection-type org)
+                       unfollowing         (activity-urls/unfollowing collection-type org)
                        ;; else
-                       no-collection-type? (activity-urls/activity collection-type org sort-type))]
+                       no-collection-type? (activity-urls/activity collection-type org))]
       (when refresh-url
         (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/entry-collection-media-type})))))
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [direction sort-type author-uuid following unfollowing]} data]
+  [org collection-type {:keys [direction author-uuid following unfollowing]} data]
   (when (seq (:activity data))
     (let [replies? (is-replies? collection-type)
           contributions? (is-contributions? collection-type)
+          bookmarks? (is-bookmarks? collection-type)
           no-collection-type? (and (not replies?)
                                    (not contributions?)
+                                   (not is-bookmarks?)
                                    (not following)
                                    (not unfollowing))
           resources-list (:activity data)
@@ -56,11 +64,12 @@
           next-url (when next?
                      (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing}
                        replies?            (activity-urls/replies org)
-                       contributions?      (activity-urls/contributions org author-uuid sort-type)
-                       following           (activity-urls/following collection-type org sort-type)
-                       unfollowing         (activity-urls/unfollowing collection-type org sort-type)
+                       bookmarks?          (activity-urls/bookmarks org)
+                       contributions?      (activity-urls/contributions org author-uuid)
+                       following           (activity-urls/following collection-type org)
+                       unfollowing         (activity-urls/unfollowing collection-type org)
                        ;; else
-                       no-collection-type? (activity-urls/activity collection-type org sort-type)))]
+                       no-collection-type? (activity-urls/activity collection-type org)))]
       (when next-url
         (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type})))))
 
@@ -79,32 +88,24 @@
   activity for the API.
   "
   [params org collection-type activity boards user]
-  (let [sort-type (:sort-type params)
-        following? (:following params)
+  (let [following? (:following params)
         unfollowing? (:unfollowing params)
+        bookmarks? (is-bookmarks? collection-type)
         replies? (is-replies? collection-type)
         contributions? (is-contributions? collection-type)
         collection-url (cond
                         replies?
                         (activity-urls/replies org)
+                        bookmarks?
+                        (activity-urls/bookmarks org)
                         contributions?
-                        (activity-urls/contributions org (:author-uuid params) (:sort-type params))
+                        (activity-urls/contributions org (:author-uuid params))
                         following?
-                        (activity-urls/following collection-type org sort-type)
+                        (activity-urls/following collection-type org)
                         unfollowing?
-                        (activity-urls/unfollowing collection-type org sort-type)
+                        (activity-urls/unfollowing collection-type org)
                         :else
-                        (activity-urls/activity collection-type org sort-type))
-        recent-activity-sort? (= sort-type :recent-activity)
-        other-sort-url (cond
-                        contributions?
-                        (activity-urls/contributions org (:author-uuid params) (if recent-activity-sort? :recently-posted :recent-activity))
-                        following?
-                        (activity-urls/following collection-type org (if recent-activity-sort? :recently-posted :recent-activity))
-                        unfollowing?
-                        (activity-urls/unfollowing collection-type org (if recent-activity-sort? :recently-posted :recent-activity))
-                        :else
-                        (activity-urls/activity collection-type org (if recent-activity-sort? :recently-posted :recent-activity)))
+                        (activity-urls/activity collection-type org))
         collection-rel (cond
                          following?
                          "following"
@@ -112,15 +113,12 @@
                          "unfollowing"
                          replies?
                          "replies"
-                         recent-activity-sort?
-                         "activity"
+                         bookmarks?
+                         "bookmarks"
                          :else
                          "self")
-        other-sort-rel (if recent-activity-sort? "self" "activity")
         links (remove nil?
                [(hateoas/link-map collection-rel hateoas/GET collection-url {:accept mt/entry-collection-media-type} {})
-                (when-not replies?
-                  (hateoas/link-map other-sort-rel hateoas/GET other-sort-url {:accept mt/entry-collection-media-type} {}))
                 (hateoas/up-link (org-urls/org org) {:accept mt/org-media-type})
                 (pagination-link org collection-type params activity)
                 (refresh-link org collection-type params activity)])

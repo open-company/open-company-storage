@@ -1,11 +1,14 @@
 (ns oc.storage.resources.org
   (:require [clojure.walk :refer (keywordize-keys)]
             [clojure.set :as clj-set]
+            [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
+            [oc.storage.config :as config]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.storage.resources.common :as common]))
+            [oc.storage.resources.common :as common]
+            [oc.storage.db.common :as storage-db-common]))
 
 ;; ----- RethinkDB metadata -----
 
@@ -113,8 +116,11 @@
   "
   [conn org :- common/Org]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
-    (db-common/current-timestamp)))
+  (timbre/info "Creating org" (:uuid org) (:name org))
+  (let [created-org (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
+                     (db-common/current-timestamp))]
+    ;; (storage-db-common/create-entry-container-pins-index conn (:uuid created-org) config/seen-home-container-id)
+    created-org))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
   "Given the slug or UUID of the org, return the org, or return nil if it doesn't exist."
@@ -175,6 +181,10 @@
       (try
         (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException _)) ; OK if no boards
+      ;; ;; Remove pins container index
+      ;; (try
+      ;;   (storage-db-common/delete-entry-container-pins-index conn uuid config/seen-home-container-id)
+      ;;   (catch java.lang.RuntimeException _)) ; OK if no index
       ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
     

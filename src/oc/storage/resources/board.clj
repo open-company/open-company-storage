@@ -12,6 +12,7 @@
             [oc.lib.text :as str]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
+            [oc.storage.db.common :as storage-db-common]
             [oc.storage.resources.org :as org-res]
             [oc.storage.async.notification :as notification]))
 
@@ -130,9 +131,12 @@
   "
   [conn board :- common/NewBoard]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name
-    (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
-    (db-common/current-timestamp)))
+  (timbre/info "Creating board" (:uuid board))
+  (let [created-board (db-common/create-resource conn table-name
+                       (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
+                       (db-common/current-timestamp))]
+    ;; (storage-db-common/create-entry-container-pins-index conn (:org-uuid created-board) (:uuid created-board))
+    created-board))
 
 (defn- publisher-board-slug [taken-slugs user-id]
   (slug/find-available-slug (str publisher-board-slug-prefix user-id) taken-slugs))
@@ -207,6 +211,8 @@
     (if (= (count entries) (count published-entries))
       ;; Delete the board itself
       (do
+        ;; (timbre/info "Removing container pins index for board" (:uuid board))
+        ;; (storage-db-common/delete-entry-container-pins-index conn (:org-uuid board) (:uuid board))
         (timbre/info "Actually deleting board" (:uuid board))
         (db-common/delete-resource conn table-name (:uuid board)))
       ;; Set back the draft on the board

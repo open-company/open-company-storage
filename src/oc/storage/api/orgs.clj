@@ -27,6 +27,7 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.activity :as activity-res]
             [oc.storage.urls.org :as org-urls]))
 
 ;; ----- Utility functions -----
@@ -262,9 +263,8 @@
                              draft-entry-count (if show-draft-board?
                                                  (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
                                                  0)
-                             now (lib-time/now-ts)
                              bookmarks-count (if user-is-member?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id allowed-boards :asc now :before
+                                              (activity-res/list-all-bookmarked-entries conn org-id user-id allowed-boards :asc nil :before
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
@@ -276,15 +276,15 @@
                                               (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
                              badge-following? (if user-is-member?
                                                 (pos?
-                                                 (entry-res/paginated-recently-posted-entries-by-org conn org-id :asc now :before 0
+                                                 (activity-res/paginated-recently-posted-entries-by-org conn org-id :asc nil :before 0
                                                   allowed-boards follow-data (:seen-at following-seen) {:unseen true :count true}))
                                                 false)
                              replies-seen (when user-is-member?
                                             (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id))
                              badge-replies? (if user-is-member?
                                               (pos?
-                                               (entry-res/list-entries-for-user-replies conn org-id allowed-boards user-id :asc
-                                                now :before 0 follow-data (:seen-at replies-seen) {:unseen true :count true}))
+                                               (activity-res/list-entries-for-user-replies conn org-id allowed-boards user-id :asc
+                                                nil :before 0 follow-data (:seen-at replies-seen) {:unseen true :count true}))
                                               false)
                              board-reps (map #(board-rep/render-board-for-collection slug % ctx draft-entry-count) full-boards)
                              authors (:authors org)

@@ -8,13 +8,12 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
-            [oc.storage.api.activity :as activity-api]
+            [oc.storage.resources.activity :as activity-res]
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.digest :as digest-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
-            [oc.storage.resources.entry :as entry-res]
             [oc.storage.urls.org :as org-urls]
             [oc.lib.time :as oc-time]
             [oc.lib.change.resources.read :as read]
@@ -23,13 +22,13 @@
 ;; ----- Helpers -----
 
 (defn digest-default-start []
-  (oc-time/millis (clj-time/minus (clj-time/now) (clj-time/days 1))))
+  (oc-time/to-iso (clj-time/minus (clj-time/now) (clj-time/days 1))))
 
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."
   [conn {start :start direction :direction limit :limit} org board-by-uuids allowed-boards user-id ctx]
-  (let [following-data (entry-res/paginated-entries-for-digest conn (:uuid org) :desc start direction limit allowed-boards {})
-        following-count (entry-res/paginated-entries-for-digest conn (:uuid org) :desc start :before 0 allowed-boards {:count true})
+  (let [following-data (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction limit allowed-boards {})
+        following-count (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start :before 0 allowed-boards {:count true})
 
         user-reads (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org))
         user-reads-map (zipmap (map :item-uuid user-reads) user-reads)]
@@ -66,7 +65,8 @@
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
                               ;; Start is always set for digest
-                              valid-start? (try (Long. start) (catch java.lang.NumberFormatException _ false))
+                              valid-start? (or (string? start)
+                                               (nil? start))
                               direction (keyword (:direction ctx-params))
                               ;; direction is always set to after for digest
                               valid-direction? (= direction :after)]
@@ -86,7 +86,6 @@
                              ctx-params (-> ctx :request :params keywordize-keys)
                              params (-> ctx-params
                                      (dissoc :slug)
-                                     (update :start #(if % (Long. %) (digest-default-start)))  ; default is now
                                      (assoc :limit 10) ;; use a limit of 10 posts since digest can't be too long anyway
                                      (update :direction keyword)) ; always set to after)
                              boards (board-res/list-boards-by-org conn org-id [:created-at :access :authors :viewers :author :description])
