@@ -326,8 +326,8 @@
 (defn render-wrt-csv
   [org entries-list user days]
   (let [start-date (t/minus (t/now) (t/days days))
-        start-date-string (lib-time/csv-date start-date (:timezone user) false)
-        end-date-string (lib-time/csv-date (t/now) (:timezone user) false)
+        start-date-string (lib-time/csv-date start-date (:timezone user))
+        end-date-string (lib-time/csv-date (t/now) (:timezone user))
         csv-entries (mapv (fn [{entry :entry reads :reads}]
                             (s/join "\n" [(str "Title: " (:headline entry))
                                           (str "Published on: " (lib-time/csv-date-time (:published-at entry) (:timezone user)))
