@@ -20,22 +20,6 @@
 (def versions-primary-key :version-uuid)
 (def primary-key :uuid)
 
-(def start? (schema/maybe schema/Str))
-
-;; ----- Helpers -----
-
-; (defn- long? [n]
-;   (try
-;     (instance? java.lang.Long n)
-;     (catch Exception e
-;       false)))
-
-(def LongNumber (schema/pred #(instance? java.lang.Long %)))
-
-(def AllowedBoard
-  {:uuid lib-schema/UniqueID
-   :access common/AccessLevel
-   schema/Keyword schema/Any})
 
 ;; ----- Metadata -----
 
@@ -392,8 +376,8 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :org-uuid org-uuid))
 
-  ([conn org-uuid :- lib-schema/UniqueID order start :- start?
-    direction allowed-boards :- (schema/maybe [AllowedBoard]) {count? :count container-id :countainer-id :or {count? false container-id nil}}]
+  ([conn org-uuid :- lib-schema/UniqueID order start :- common/SortValue
+    direction allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count container-id :countainer-id :or {count? false container-id nil}}]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
@@ -415,7 +399,7 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn org-uuid allowed-board :- AllowedBoard order start :- start? direction limit {count? :count status :status container-id :container-id :or {count? false}}]
+  [conn org-uuid allowed-board :- common/AllowedBoard order start :- common/SortValue direction limit {count? :count status :status container-id :container-id :or {count? false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
@@ -452,9 +436,9 @@
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  ([conn allowed-board :- AllowedBoard] (list-entries-by-board conn allowed-board {:count false}))
+  ([conn allowed-board :- common/AllowedBoard] (list-entries-by-board conn allowed-board {:count false}))
 
-  ([conn allowed-board :- AllowedBoard {count? :count :or {count? false}}]
+  ([conn allowed-board :- common/AllowedBoard {count? :count :or {count? false}}]
    {:pre [(db-common/conn? conn)]}
    (timbre/infof "entry-res/list-entries-by-board(%s)" (:uuid allowed-board))
    (time (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published (:uuid allowed-board)]]
@@ -463,7 +447,7 @@
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
-  [conn allowed-board :- AllowedBoard]
+  [conn allowed-board :- common/AllowedBoard]
   {:pre [(db-common/conn? conn)]}
   (timbre/info "entry-res/list-all-entries-by-board")
   (time (db-common/read-resources conn table-name :board-uuid [(:uuid allowed-board)] ["uuid" "status"])))

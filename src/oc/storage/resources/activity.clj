@@ -14,8 +14,8 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a number of results, return the published entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- entry-res/start? direction limit
-   allowed-boards :- (schema/maybe [entry-res/AllowedBoard]) {count? :count unseen :unseen :or {count? false unseen false}}]
+  [conn org-uuid :- lib-schema/UniqueID order start :- common/SortValue direction limit
+   allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count unseen :unseen :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
@@ -37,7 +37,7 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a number of results, return the published entries for the org with any interactions.
   "
-  ([conn org-uuid :- lib-schema/UniqueID order start :- entry-res/start? direction limit allowed-boards :- (schema/maybe [entry-res/AllowedBoard])
+  ([conn org-uuid :- lib-schema/UniqueID order start :- common/SortValue direction limit allowed-boards :- (schema/maybe [common/AllowedBoard])
     follow-data container-last-seen-at {count? :count unseen :unseen container-id :container-id :or {count? false unseen false container-id nil}}]
    {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
@@ -65,8 +65,8 @@
 
 (schema/defn ^:always-validate list-entries-for-user-replies
   "List all activities with at least one comment where the user-id has been active part."
-  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- (schema/maybe [entry-res/AllowedBoard]) user-id :- lib-schema/UniqueID
-   order start :- entry-res/start? direction limit follow-data container-last-seen-at {count? :count unseen :unseen :or {count? false unseen false}}]
+  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- (schema/maybe [common/AllowedBoard]) user-id :- lib-schema/UniqueID
+   order start :- common/SortValue direction limit follow-data container-last-seen-at {count? :count unseen :unseen :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
@@ -80,9 +80,9 @@
 
 (schema/defn ^:always-validate list-all-bookmarked-entries
   "Given the UUID of the user, return all the published entries with a bookmark for the given user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- (schema/maybe [entry-res/AllowedBoard]) order start :- entry-res/start? direction limit]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- (schema/maybe [common/AllowedBoard]) order start :- common/SortValue direction limit]
    (list-all-bookmarked-entries conn org-uuid user-id allowed-boards order start direction limit {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- (schema/maybe [entry-res/AllowedBoard]) order start :- entry-res/start? direction limit {count? :count :or {count? false}}]
+  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- (schema/maybe [common/AllowedBoard]) order start :- common/SortValue direction limit {count? :count :or {count? false}}]
    {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
@@ -101,8 +101,8 @@
 
 (schema/defn ^:always-validate list-entries-by-org-author
 
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- entry-res/start?
-    direction limit allowed-boards :- (schema/maybe [entry-res/AllowedBoard]) {count? :count :or {count? false}}]
+  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- common/SortValue
+    direction limit allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count :or {count? false}}]
    {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)

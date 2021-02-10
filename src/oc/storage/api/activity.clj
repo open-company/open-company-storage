@@ -6,9 +6,11 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
+            [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
+            [oc.storage.resources.common :as common]
             [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.activity :as activity-rep]
@@ -225,8 +227,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (or (string? start)
-                                               (nil? start))
+                              valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -266,8 +267,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (or (string? start)
-                                               (nil? start))
+                              valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -303,8 +303,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (or (string? start)
-                                               (nil? start))
+                              valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)
@@ -340,8 +339,7 @@
   ;; Check the request
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
-                              valid-start? (or (string? start)
-                                               (nil? start))
+                              valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
                               ;; no direction is OK, but if specified it's from the allowed enumeration of options
                               valid-direction? (if direction (#{:before :after} direction) true)

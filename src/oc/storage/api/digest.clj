@@ -10,6 +10,7 @@
             [oc.storage.config :as config]
             [oc.storage.resources.activity :as activity-res]
             [oc.storage.api.access :as access]
+            [oc.storage.resources.common :as common]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.digest :as digest-rep]
             [oc.storage.resources.org :as org-res]
@@ -65,12 +66,11 @@
   :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
                               start (:start ctx-params)
                               ;; Start is always set for digest
-                              valid-start? (or (string? start)
-                                               (nil? start))
+                              valid-start? (and (seq start) (common/sort-value? start))
                               direction (keyword (:direction ctx-params))
                               ;; direction is always set to after for digest
                               valid-direction? (= direction :after)]
-                           (not (and valid-start? valid-direction?))))
+                          (not (and valid-start? valid-direction?))))
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)

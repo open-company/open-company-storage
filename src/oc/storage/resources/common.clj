@@ -28,6 +28,17 @@
 ;   (and (string? name)
 ;        (not (re-matches #".*\d\d\d\d.*" name)))) ; don't allow any more than 3 numerals in a row
 
+(def iso8601-re "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?(([+-]\\d\\d:\\d\\d)|Z)?")
+
+(def sort-value-pattern (str "(?i)^(" iso8601-re "){0,2}$"))
+
+(def sort-value-re (re-pattern sort-value-pattern))
+
+(defn sort-value? [v]
+  (or (nil? v) (re-matches sort-value-re v)))
+
+(def SortValue (schema/pred sort-value?))
+
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
 (def Attachment {
@@ -42,6 +53,11 @@
   (merge lib-schema/Author {:updated-at lib-schema/ISO8601}))
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
+
+(def AllowedBoard
+  {:uuid lib-schema/UniqueID
+   :access AccessLevel
+   schema/Keyword schema/Any})
 
 (def Board
   "An container of entries."
