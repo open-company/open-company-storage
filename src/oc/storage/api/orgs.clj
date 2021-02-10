@@ -324,12 +324,14 @@
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)
+                             wrt-posts-count (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards config/default-csv-days {:count true})
                              org-map (-> org
                                          (assoc :boards (if user-is-member?
                                                           board-reps
                                                           (map #(dissoc % :authors :viewers) board-reps)))
                                          (assoc :total-count total-count)
                                          (assoc :bookmarks-count bookmarks-count)
+                                         (assoc :wrt-posts-count wrt-posts-count)
                                          (assoc :badge-following badge-following?)
                                          (assoc :badge-replies badge-replies?)
                                          (assoc :contributions-count user-count)

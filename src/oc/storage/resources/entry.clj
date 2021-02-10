@@ -431,12 +431,14 @@
     result)))
 
 (schema/defn ^:always-validate list-latest-published-entries
-  ""
-  [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num]
-  (log-query-time "list-latest-published-entries, start")
-  (let [results (storage-db-common/list-latest-published-entries conn org-uuid allowed-boards days)]
-    (log-query-time "list-latest-published-entries, finish")
-    results))
+  "Retrive the list of the latest posts ordered by publish date."
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num]
+   (list-latest-published-entries conn org-uuid allowed-boards days {}))
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num {count? :count}]
+   (log-query-time "list-latest-published-entries, start")
+   (let [results (storage-db-common/list-latest-published-entries conn org-uuid allowed-boards days {:count count?})]
+     (log-query-time "list-latest-published-entries, finish")
+     results)))
 
 (schema/defn ^:always-validate paginated-entries-by-org
   "

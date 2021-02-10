@@ -453,7 +453,7 @@
    (r/run query conn)))
 
 (defn list-latest-published-entries
-  [conn org-uuid allowed-boards days]
+  [conn org-uuid allowed-boards days {count? :count :or {count? false}}]
   (let [start-date (t/minus (t/date-midnight (t/year (t/today)) (t/month (t/today)) (t/day (t/today))) (t/days days))
         allowed-board-uuids (map :uuid allowed-boards)]
     (db-common/with-timeout db-common/default-timeout
@@ -464,8 +464,15 @@
          (r/and (r/contains allowed-board-uuids (r/get-field row :board-uuid))
                 (r/ge (r/to-epoch-time (r/iso8601 (r/get-field row [:published-at])))
                       (lib-time/epoch start-date)))))
-       (r/pluck query [:uuid :publisher :published-at :headline])
-       (r/order-by query (r/desc :published-at))
+       (if-not count?
+         (r/pluck query [:uuid :publisher :published-at :headline])
+         query)
+       (if-not count?
+         (r/order-by query (r/desc :published-at))
+         query)
+       (if count?
+         (r/count query)
+         query)
        (r/run query conn)
        ;; Drain cursor
        (if (= (type query) rethinkdb.net.Cursor)

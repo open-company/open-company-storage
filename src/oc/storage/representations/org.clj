@@ -21,7 +21,7 @@
                                                                :contributions-count :following-count :unfollowing-count
                                                                :following-inbox-count :unfollowing-inbox-count
                                                                :badge-following :badge-replies :brand-color
-                                                               :new-entry-placeholder :new-entry-cta]))
+                                                               :new-entry-placeholder :new-entry-cta :wrt-posts-count]))
 
 (defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 
