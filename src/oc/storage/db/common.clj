@@ -465,7 +465,7 @@
                 (r/ge (r/to-epoch-time (r/iso8601 (r/get-field row [:published-at])))
                       (lib-time/epoch start-date)))))
        (if-not count?
-         (r/pluck query [:uuid :publisher :published-at :headline])
+         (r/pluck query [:uuid :publisher :published-at :headline :board-uuid :org-uuid])
          query)
        (if-not count?
          (r/order-by query (r/desc :published-at))

@@ -3,7 +3,6 @@
   (:require [cheshire.core :as json]
             [cuerdas.core :as s]
             [clj-time.core :as t]
-            [oc.lib.user :as user-lib]
             [oc.lib.time :as lib-time]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.urls.org :as org-urls]
@@ -325,22 +324,23 @@
 
 (defn render-wrt-csv
   [org entries-list user days]
-  (let [start-date (t/minus (t/now) (t/days days))
-        start-date-string (lib-time/csv-date start-date (:timezone user))
-        end-date-string (lib-time/csv-date (t/now) (:timezone user))
-        csv-entries (mapv (fn [{entry :entry reads :reads}]
+  (let [user-tz (:timezone user)
+        start-date (t/minus (t/now) (t/days days))
+        start-date-string (lib-time/csv-date start-date user-tz)
+        end-date-string (lib-time/csv-date (t/now) user-tz)
+        csv-entries (mapv (fn [{entry :entry csv-users :csv-users}]
                             (s/join "\n" [(str "Title: " (:headline entry))
-                                          (str "Published on: " (lib-time/csv-date-time (:published-at entry) (:timezone user)))
+                                          (str "Published on: " (lib-time/csv-date-time (:published-at entry) user-tz))
                                           (str "Link: " (:url entry))
                                           "-"
-                                          "Name, Email, Read"
+                                          (str "Name, Email, Read (" (count (filter :read-at csv-users)) ")")
                                           (s/join "\n"
-                                                  (mapv #(s/join ", " [(or (user-lib/name-for (:user %)) csv-empty-val)
-                                                                       (or (-> % :user :email) csv-empty-val)
+                                                  (mapv #(s/join ", " [(or (:name %) csv-empty-val)
+                                                                       (or (:email %) csv-empty-val)
                                                                        (if (:read-at %)
-                                                                         (lib-time/csv-date-time (:read-at %) (:timezone user))
+                                                                         (lib-time/csv-date-time (:read-at %) user-tz)
                                                                          csv-empty-val)])
-                                                        reads))
+                                                        csv-users))
                                           "\n"]))
                           entries-list)
         csv-intro (str (:name org) " analytics for posts between " start-date-string " and " end-date-string "\n")]

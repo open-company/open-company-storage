@@ -5,11 +5,13 @@
             [clojure.java.io :as j-io]
             [clj-time.core :as t]
             [clj-time.format :as f]
+            [clojure.string :as string]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.time :as lib-time]
+            [oc.lib.user :as lib-user]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
@@ -44,9 +46,12 @@
   "
   [org board user]
   (let [level (access/access-level-for org board user)
-        public? (= :public (:access-level level))
-        clean-board (if public? (dissoc board :authors :viewers) board)]
-    (if level (merge clean-board level) clean-board)))
+        public? (= :public (:access-level level))]
+    (as-> board b
+      (if public?
+        (dissoc board :authors :viewers)
+        b)
+      (merge b level))))
 
 (defn- default-entries-for
   "Return any sample posts for a specific board slug."
@@ -163,26 +168,48 @@
 
 ;; ---- Read data -----
 
-(defn read-data-for-entries [org allowed-boards entries active-users]
+(defn- sort-users [user-id users]
+  (let [reduced-users (map #(select-keys % [:user-id :first-name :last-name :email :avatar-url :teams :admin]) users)
+        {:keys [self-users other-users]} (group-by #(if (= (:user-id %) user-id)
+                                                      :self-users
+                                                      :other-users)
+                                                   reduced-users)
+        updated-other-users (mapv #(assoc %
+                                          :sort-name (if (and (string/blank? (:first-name %))
+                                                              (string/blank? (:last-name %)))
+                                                       "zzz"
+                                                       (str (:first-name %) " " (:last-name %)))
+                                          :name (lib-user/name-for-csv %))
+                                  other-users)
+        updated-self (as-> self-users u
+                       (first u)
+                       (assoc u :name (str (lib-user/name-for-csv u) " (you)")))]
+    (vec (remove nil? (cons updated-self (vec updated-other-users))))))
+
+(defn read-data-for-entries [org allowed-boards entries active-users user-id]
   (let [entry-uuids (map :uuid entries)
         all-read-data (read/retrieve-by-org config/dynamodb-opts (:uuid org))
         entry-uuid-set (set entry-uuids)
+        cleaned-users (sort-users user-id active-users)
         filtered-read-data (filter (comp entry-uuid-set :item-id) all-read-data)
-        users-data-map (zipmap (map :user-id active-users) active-users)
-        with-users-data (map #(assoc % :user (get users-data-map (:user-id %))) filtered-read-data)
-        grouped-entries (group-by :item-id with-users-data)
-        allowed-boards-map (zipmap (:uuid allowed-boards) allowed-boards)
-        enrties-with-board (map #(let [board (get allowed-boards-map (:board-uuid %))]
-                                   (assoc % :board-slug (:slug board)
-                                            :board-name (:name board)
-                                            :board-access (:access board)
-                                            :url (entry-urls/ui-entry (:slug org) (:slug board) (:uuid %))))
-                                entries)
-        entries-map (zipmap (map :uuid enrties-with-board) enrties-with-board)
-        with-entries-data (map (fn [[k v]] (hash-map :entry (get entries-map k)
-                                                     :reads v))
-                               grouped-entries)]
-    (sort-by (comp :published-at :entry) with-entries-data)))
+        entry-user-key (fn [entry-id user-id] (str entry-id "-" user-id))
+        all-reads-map (into {} (map #(hash-map (entry-user-key (:item-id %) (:user-id %)) %) filtered-read-data))
+        allowed-boards-map (zipmap (map :uuid allowed-boards) allowed-boards)
+        csv-users-for-entry (fn [entry]
+                              (map #(assoc % :read-at
+                                           (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
+                                   cleaned-users))
+        with-entries-data (map #(let [board (get allowed-boards-map (:board-uuid %))
+                                      csv-users (csv-users-for-entry %)]
+                                  {:entry (assoc %
+                                                 :board-slug (:slug board)
+                                                 :board-name (:name board)
+                                                 :board-access (:access board)
+                                                 :url (entry-urls/ui-entry (:slug org) (:slug board) (:uuid %)))
+                                   :csv-users (sort-by :sort-name csv-users)
+                                   :reads-count (count (filter :read-at csv-users))})
+                                entries)]
+    (sort-by :published-at with-entries-data)))
 
 ;; ----- Validations -----
 
@@ -501,15 +528,14 @@
                                                                  (auth/active-users config/auth-server-url (:team-id org))
                                                                  :collection
                                                                  :items)
-                                                read-data (read-data-for-entries org allowed-boards entries active-users)]
+                                                entries-with-reads (read-data-for-entries org allowed-boards entries active-users (:user-id user))]
                                         {:org (api-common/rep org)
                                          :active-users (api-common/rep active-users)
-                                         :entries (api-common/rep entries)
-                                         :read-data (api-common/rep read-data)}
+                                         :csv-entries (api-common/rep entries-with-reads)}
                                         false))})
   :handle-ok (fn [ctx] (let [org (:org ctx)
-                             read-data (:read-data ctx)]
-                        (org-rep/render-wrt-csv org read-data (:user ctx) (:days ctx))))
+                             csv-entries (:csv-entries ctx)]
+                        (org-rep/render-wrt-csv org csv-entries (:user ctx) (:days ctx))))
   :handle-unprocessable-entity (fn [ctx]
                                 (api-common/unprocessable-entity-response (:reason ctx))))
 
