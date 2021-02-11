@@ -201,15 +201,19 @@
                               (map #(assoc % :read-at
                                            (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
                                    cleaned-users))
+        users-count (count active-users)
         with-entries-data (map #(let [board (get allowed-boards-map (:board-uuid %))
-                                      csv-users (csv-users-for-entry %)]
+                                      csv-users (csv-users-for-entry %)
+                                      reads-count (count (filter :read-at csv-users))]
                                   {:entry (assoc %
                                                  :board-slug (:slug board)
                                                  :board-name (:name board)
                                                  :board-access (:access board)
                                                  :url (entry-urls/ui-entry (:slug org) (:slug board) (:uuid %)))
                                    :csv-users (sort-by :sort-name csv-users)
-                                   :reads-count (count (filter :read-at csv-users))})
+                                   :reads-percent (when (pos? reads-count)
+                                                    (str (format "%.2f" (float (* (/ reads-count users-count) 100))) "%"))
+                                   :reads-count reads-count})
                                 entries)]
     (sort-by :published-at with-entries-data)))
 

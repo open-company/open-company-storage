@@ -328,12 +328,13 @@
         start-date (t/minus (t/now) (t/days days))
         start-date-string (lib-time/csv-date start-date user-tz)
         end-date-string (lib-time/csv-date (t/now) user-tz)
-        csv-entries (mapv (fn [{entry :entry csv-users :csv-users}]
+        csv-entries (mapv (fn [{entry :entry csv-users :csv-users reads-count :reads-count reads-percent :reads-percent}]
                             (s/join "\n" [(str "Title: " (:headline entry))
                                           (str "Published on: " (lib-time/csv-date-time (:published-at entry) user-tz))
                                           (str "Link: " (:url entry))
+                                          (str "Reads: " reads-count " of " (count csv-users) (when reads-percent " (" reads-percent ")"))
                                           "-"
-                                          (str "Name, Email, Read (" (count (filter :read-at csv-users)) ")")
+                                          "Name, Email, Read"
                                           (s/join "\n"
                                                   (mapv #(s/join ", " [(or (:name %) csv-empty-val)
                                                                        (or (:email %) csv-empty-val)
