@@ -2,7 +2,7 @@
   "CRUD function to retrieve entries from RethinkDB with pagination."
   (:require [clj-time.core :as t]
             [rethinkdb.query :as r]
-            [clojure.set :as clj-set]
+            [cuerdas.core :as string]
             [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]
             [oc.lib.time :as lib-time]
@@ -59,7 +59,7 @@
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
            ;; Filter out:
-        (if start
+        (if-not (string/blank? start)
           (r/filter query (r/fn [row]
             ;; All records after/before the start
             (direction-filter direction start (r/get-field row :published-at))))
@@ -115,7 +115,7 @@
                            (r/get-field :bookmarked-at)
                            (r/default nil))}))
         ;; Filter out:
-        (if start
+        (if-not (string/blank? start)
           (r/filter query (r/fn [row]
             ;; All records after/before the start
             (direction-filter direction start (r/get-field row :sort-value))))
@@ -227,7 +227,7 @@
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
         ;; Filter out:
-        (if start
+        (if-not (string/blank? start)
           (r/filter query (r/fn [row]
             (direction-filter direction start (r/get-field row :published-at))))
           query)
