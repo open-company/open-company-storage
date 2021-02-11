@@ -51,7 +51,9 @@
       (if public?
         (dissoc board :authors :viewers)
         b)
-      (merge b level))))
+      (if (map? level)
+        (merge b level)
+        b))))
 
 (defn- default-entries-for
   "Return any sample posts for a specific board slug."
