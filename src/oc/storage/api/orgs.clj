@@ -197,13 +197,24 @@
         entry-user-key (fn [entry-id user-id] (str entry-id "-" user-id))
         all-reads-map (into {} (map #(hash-map (entry-user-key (:item-id %) (:user-id %)) %) filtered-read-data))
         allowed-boards-map (zipmap (map :uuid allowed-boards) allowed-boards)
-        csv-users-for-entry (fn [entry]
-                              (map #(assoc % :read-at
-                                           (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
-                                   cleaned-users))
-        users-count (count active-users)
+        users-for-board-cache (atom {})
+        csv-users-for-entry (fn [board entry]
+                              (let [cached-users-list (get @users-for-board-cache (:uuid board))
+                                    users-list (if (sequential? cached-users-list)
+                                                 cached-users-list
+                                                 (if (= (:access board) "private")
+                                                   (filterv #(or ((set (:viewers board)) (:user-id %))
+                                                                ((set (:authors board)) (:user-id %)))
+                                                           cleaned-users)
+                                                   cleaned-users))]
+                                (when-not cached-users-list
+                                  (swap! users-for-board-cache assoc (:uuid board) users-list))
+                                (map #(assoc % :read-at
+                                            (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
+                                    users-list)))
         with-entries-data (map #(let [board (get allowed-boards-map (:board-uuid %))
-                                      csv-users (csv-users-for-entry %)
+                                      csv-users (csv-users-for-entry board %)
+                                      users-count (count csv-users)
                                       reads-count (count (filter :read-at csv-users))]
                                   {:entry (assoc %
                                                  :board-slug (:slug board)
