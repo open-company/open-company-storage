@@ -10,6 +10,22 @@
 
 (def min-iso8601 (lib-time/to-iso (lib-time/from-millis 0)))
 
+(defn- direction-filter [direction start row-field]
+  (if (= direction :before)
+    (r/gt start row-field)
+    (r/le start row-field)))
+
+(defn- unseen-filter [container-last-seen-at row-field]
+  (r/gt container-last-seen-at row-field))
+
+(defn- user-visibility-filter [user-id entry-row]
+  (r/or ;; has :follow true
+        (-> (r/get-field entry-row [:user-visibility (keyword user-id) :follow])
+            (r/default false))
+        (-> (r/get-field entry-row [:user-visibility (keyword user-id) :unfollow])
+            (r/default true)
+            (r/not))))
+
 (defn row-pinned-at [allowed-board-uuids row container-id]
   (r/branch (r/contains allowed-board-uuids (r/get-field row :board-uuid))
             (-> (r/get-field row [:pins (keyword container-id) :pinned-at])
@@ -43,12 +59,11 @@
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
            ;; Filter out:
-        (r/filter query (r/fn [row]
-          (r/or (r/not start)
-                (r/and (= direction :before)
-                        (r/gt start (r/get-field row :published-at)))
-                (r/and (= direction :after)
-                      (r/le start (r/get-field row :published-at))))))
+        (if start
+          (r/filter query (r/fn [row]
+            ;; All records after/before the start
+            (direction-filter direction start (r/get-field row :published-at))))
+          query)
         (if-not count?
           (r/order-by query (order-fn :published-at))
           query)
@@ -100,12 +115,11 @@
                            (r/get-field :bookmarked-at)
                            (r/default nil))}))
         ;; Filter out:
-        (r/filter query (r/fn [row]
-          (r/or (r/not start)
-                (r/and (= direction :before)
-                       (r/gt start (r/get-field row :sort-value)))
-                (r/and (= direction :after)
-                       (r/le start (r/get-field row :sort-value))))))
+        (if start
+          (r/filter query (r/fn [row]
+            ;; All records after/before the start
+            (direction-filter direction start (r/get-field row :sort-value))))
+          query)
         (if-not count?
           (r/order-by query (order-fn :sort-value))
           query)
@@ -152,28 +166,31 @@
                               (set
                                (map :uuid
                                     (filter #(not= (:access %) "private") allowed-boards)))
-                              (set (map :uuid allowed-boards)))]
+                              (set (map :uuid allowed-boards)))
+        dir-filter (when start
+                     #(direction-filter direction start (r/get-field % :sort-value)))
+        uns-filter (when (and unseen container-last-seen-at)
+                      #(unseen-filter container-last-seen-at (r/get-field % :sort-value)))
+        filter? (or dir-filter uns-filter)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         ;; Filter out non allowed boards
         (r/get-all query index-value {:index index-name})
         (r/merge query (r/fn [row]
           {:sort-value (row-order-val allowed-pins-boards row container-id)}))
+        (if filter?
+          (r/filter query (r/fn [row]
+            (cond (and dir-filter uns-filter)
+                  (r/and (dir-filter row) (uns-filter row))
+                  dir-filter
+                  (dir-filter row)
+                  :else
+                  (uns-filter row))))
+          query)
         ;; Order by home pinned-at/published-at
         (if-not count?
           (r/order-by query (order-fn :sort-value))
           query)
-        ;; Filter out:
-        (r/filter query (r/fn [row]
-          (r/and ;; Filter out seen entries if unseen flag is on
-                 (r/or (r/not unseen)
-                       (r/gt (r/get-field row [:published-at])
-                             container-last-seen-at))
-                 (r/or (r/not start)
-                       (r/and (= direction :before)
-                              (r/gt start (r/get-field row :sort-value)))
-                       (r/and (= direction :after)
-                             (r/le start (r/get-field row :sort-value)))))))
            ;; Apply count if needed
         (if count? (r/count query) query)
            ;; Apply limit
@@ -210,12 +227,10 @@
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
         ;; Filter out:
-        (r/filter query (r/fn [row]
-          (r/or (r/not start)
-                (r/and (= direction :before)
-                       (r/gt start (r/get-field row :published-at)))
-                (r/and (= direction :after)
-                       (r/le start (r/get-field row :published-at))))))
+        (if start
+          (r/filter query (r/fn [row]
+            (direction-filter direction start (r/get-field row :published-at))))
+          query)
         (if-not count?
           (r/order-by query (order-fn :published-at))
           query)
@@ -297,42 +312,40 @@
              (coll? relation-fields))
          (boolean? count?)
          (boolean? unseen)]}
-  (let [order-fn (if (= order :desc) r/desc r/asc)]
+  (let [order-fn (if (= order :desc) r/desc r/asc)
+        dir-filter (when start
+                     #(direction-filter direction start (r/get-field % [:reduction :created-at])))
+        uns-filter (when (and unseen container-last-seen-at)
+                      #(unseen-filter container-last-seen-at (r/get-field % [:reduction :created-at])))
+        filter? (or dir-filter uns-filter)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table :interactions) query
         (r/get-all query index-value {:index index-name})
         (r/group query :resource-uuid)
         (r/max query :created-at)
         (r/ungroup query)
-        (r/filter query (r/fn [row]
-          ;; All records after/before the start
-          (r/or (r/not start)
-                (r/and (= direction :before)
-                      (r/gt start (r/get-field row [:reduction :created-at])))
-                (r/and (= direction :after)
-                      (r/le start (r/get-field row [:reduction :created-at]))))))
-        ;; Sort
-        (if-not count?
-          (r/order-by query (order-fn (r/fn [row] (r/get-field row [:reduction :created-at]))))
+        (if filter?
+          (r/filter query (r/fn [row]
+            ;; All records after/before the start
+            (cond (and dir-filter uns-filter)
+                  (r/and (dir-filter row)
+                         (uns-filter row))
+                  dir-filter
+                  (dir-filter row)
+                  uns-filter
+                  (uns-filter row))))
           query)
         ;; Join with the relative entry
         (r/eq-join query :group  ;; {:left {:group "resource-uuid" :reduction comment-map} :right entry-map}
           (r/table :entries))
         ;; Filter out items the user is not following
         (r/filter query (r/fn [row]
-          (r/and (r/or (r/not unseen)
-                       (r/gt (r/get-field row [:left :reduction :created-at])
-                             container-last-seen-at))
-                 ;; Filter on the user's visibility map:
-                 (r/or ;; has :follow true
-                       (-> row
-                          (r/get-field [:right :user-visibility (keyword user-id) :follow])
-                          (r/default false))
-                            ;; has :unfollow false (key actually exists)
-                       (-> row
-                           (r/get-field [:right :user-visibility (keyword user-id) :unfollow])
-                           (r/default true)
-                           (r/not))))))
+          ;; Filter on the user's visibility map:
+          (user-visibility-filter user-id (r/get-field row :right))))
+        ;; Sort
+        (if-not count?
+          (r/order-by query (order-fn (r/fn [row] (r/get-field row [:left :reduction :created-at]))))
+          query)
         ;; Apply limit
         (if (pos? limit)
           (r/limit query limit)
@@ -347,12 +360,6 @@
                        :last-activity-at last-activity-at
                        ;; Add sort-value for pagination
                        :sort-value last-activity-at
-                       ;; Count unseen comments
-                       :unseen-comments (-> (r/table :interactions)
-                                            (r/between [true entry-uuid container-last-seen-at]
-                                                       [true entry-uuid r/maxval]
-                                                       {:index :comment-resource-uuid-created-at})
-                                            (r/count))
                        ;; Add all the related interactions
                        :interactions (-> (r/table :interactions)
                                          (r/get-all [entry-uuid] {:index :resource-uuid})
