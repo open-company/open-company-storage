@@ -16,7 +16,7 @@
     (r/le start row-field)))
 
 (defn- unseen-filter [container-last-seen-at row-field]
-  (r/gt container-last-seen-at row-field))
+  (r/gt row-field container-last-seen-at))
 
 (defn- user-visibility-filter [user-id entry-row]
   (r/or ;; has :follow true
