@@ -313,7 +313,7 @@
                       (r/le start (r/get-field row [:reduction :created-at]))))))
         ;; Sort
         (if-not count?
-          (r/order-by query (order-fn :created-at))
+          (r/order-by query (order-fn (r/fn [row] (r/get-field row [:reduction :created-at]))))
           query)
         ;; Join with the relative entry
         (r/eq-join query :group  ;; {:left {:group "resource-uuid" :reduction comment-map} :right entry-map}
