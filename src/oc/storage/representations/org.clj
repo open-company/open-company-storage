@@ -332,7 +332,7 @@
                             (s/join "\n" [(str "Title: " (:headline entry))
                                           (str "Published on: " (lib-time/csv-date-time (:published-at entry) user-tz))
                                           (str "Link: " (:url entry))
-                                          (str "Reads: " reads-count " of " (count csv-users) (when reads-percent " (" reads-percent ")"))
+                                          (str "Reads: " reads-count " of " (count csv-users) (when reads-percent (str " (" reads-percent ")")))
                                           "-"
                                           "Name, Email, Read"
                                           (s/join "\n"
