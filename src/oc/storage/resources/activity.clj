@@ -58,7 +58,7 @@
                        (map #(vec [:published %]) filtered-board-uuids)
                        [[:published org-uuid]])]
      (time
-      (storage-db-common/read-paginated-recently-posted-entries conn entry-res/table-name org-uuid index-name index-value order start direction limit
+      (storage-db-common/read-paginated-recently-posted-entries conn entry-res/table-name index-name index-value order start direction limit
                                                                 common/interaction-table-name entry-res/list-comment-properties allowed-boards
                                                                 container-last-seen-at {:count count? :unseen unseen :container-id container-id})))))
 
@@ -66,15 +66,20 @@
 (schema/defn ^:always-validate list-entries-for-user-replies
   "List all activities with at least one comment where the user-id has been active part."
   [conn org-uuid :- lib-schema/UniqueID allowed-boards :- (schema/maybe [common/AllowedBoard]) user-id :- lib-schema/UniqueID
-   order start :- common/SortValue direction limit follow-data container-last-seen-at {count? :count unseen :unseen :or {count? false unseen false}}]
+   order start :- common/SortValue direction limit container-last-seen-at {count? :count unseen :unseen :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (timbre/info "entry-res/list-entries-for-user-replies")
-  (time (storage-db-common/read-paginated-replies-entries conn org-uuid allowed-boards user-id order start
-                                                          direction limit follow-data container-last-seen-at
-                                                          entry-res/list-comment-properties {:count count? :unseen unseen})))
+  (let [index-name (if allowed-boards
+                     :comment-board-uuid-org-uuid
+                     :comment-org-uuid)
+        index-value (if allowed-boards
+                      (map #(vec [true (:uuid %) org-uuid]) allowed-boards)
+                      [[true org-uuid]])]
+    (time (storage-db-common/read-paginated-replies-entries conn index-name index-value user-id order start
+                                                            direction limit container-last-seen-at
+                                                            entry-res/list-comment-properties {:count count? :unseen unseen}))))
 
 ;; ----- Entry Bookmarks manipulation -----
 

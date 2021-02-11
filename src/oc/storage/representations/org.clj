@@ -16,7 +16,8 @@
                                                                :content-visibility :why-carrot
                                                                :contributions-count :following-count :unfollowing-count
                                                                :badge-following :badge-replies :brand-color
-                                                               :new-entry-placeholder :new-entry-cta]))
+                                                               :new-entry-placeholder :new-entry-cta
+                                                               :home-last-seen-at :replies-last-seen-at]))
 
 (defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 

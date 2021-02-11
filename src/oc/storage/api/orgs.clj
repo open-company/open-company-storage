@@ -284,7 +284,7 @@
                              badge-replies? (if user-is-member?
                                               (pos?
                                                (activity-res/list-entries-for-user-replies conn org-id allowed-boards user-id :asc
-                                                nil :before 0 follow-data (:seen-at replies-seen) {:unseen true :count true}))
+                                                nil :before 0 (:seen-at replies-seen) {:unseen true :count true}))
                                               false)
                              board-reps (map #(board-rep/render-board-for-collection slug % ctx draft-entry-count) full-boards)
                              authors (:authors org)
@@ -296,6 +296,8 @@
                                                           (map #(dissoc % :authors :viewers) board-reps)))
                                          (assoc :bookmarks-count bookmarks-count)
                                          (assoc :badge-following badge-following?)
+                                         (assoc :home-last-seen-at (:seen-at following-seen))
+                                         (assoc :replies-last-seen-at (:seen-at replies-seen))
                                          (assoc :badge-replies badge-replies?)
                                          (assoc :authors author-reps))]
                          (org-rep/render-org org-map ctx has-sample-content?)))

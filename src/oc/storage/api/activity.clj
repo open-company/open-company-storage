@@ -76,9 +76,8 @@
   "Assemble the requested (by the params) entries for the provided org to populate the replies view."
   [conn {start :start direction :direction last-seen-at :last-seen-at limit :limit}
    org board-by-uuids allowed-boards user-id]
-  (let [follow-data (follow-parameters-map user-id (:slug org))
-        replies (activity-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit follow-data last-seen-at {})
-        total-count (activity-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc nil :before 0 follow-data nil {:count true})
+  (let [replies (activity-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc start direction limit last-seen-at {})
+        total-count (activity-res/list-entries-for-user-replies conn (:uuid org) allowed-boards user-id :desc nil :before 0 nil {:count true})
         result {:next-count (count replies)
                 :direction direction
                 :total-count total-count}]

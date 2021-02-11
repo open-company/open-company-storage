@@ -129,7 +129,7 @@
         (db-common/drain-cursor query)))))
 
 (defn read-paginated-recently-posted-entries
-  [conn table-name org-uuid index-name index-value order start direction limit relation-table-name relation-fields allowed-boards
+  [conn table-name index-name index-value order start direction limit relation-table-name relation-fields allowed-boards
    container-last-seen-at {count? :count unseen :unseen container-id :container-id :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
          (db-common/s-or-k? table-name)
@@ -281,15 +281,10 @@
 (defn read-paginated-replies-entries
   "Read all entries with at least one comment the user has access to. Filter out those not activily followed
    by the current user. Sort those with unseen content at the top and sort everything by last activity descendant."
-  [conn org-uuid allowed-boards user-id order start direction limit follow-data container-last-seen-at
+  [conn index-name index-value user-id order start direction limit container-last-seen-at
    relation-fields {count? :count unseen :unseen :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
-         (lib-schema/unique-id? org-uuid)
-         (or (sequential? allowed-boards)
-             (nil? allowed-boards))
          (lib-schema/unique-id? user-id)
-         (or (nil? follow-data)
-             (map? follow-data))
          (or (nil? container-last-seen-at)
              (string? container-last-seen-at))
          (#{:desc :asc} order)
@@ -302,13 +297,7 @@
              (coll? relation-fields))
          (boolean? count?)
          (boolean? unseen)]}
-  (let [order-fn (if (= order :desc) r/desc r/asc)
-        index-name (if allowed-boards
-                     :comment-board-uuid-org-uuid
-                     :comment-org-uuid)
-        index-value (if allowed-boards
-                      (map #(vec [true (:uuid %) org-uuid]) allowed-boards)
-                      [[true org-uuid]])]
+  (let [order-fn (if (= order :desc) r/desc r/asc)]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table :interactions) query
         (r/get-all query index-value {:index index-name})
@@ -321,8 +310,7 @@
                 (r/and (= direction :before)
                       (r/gt start (r/get-field row [:reduction :created-at])))
                 (r/and (= direction :after)
-                      (r/le start (r/get-field row [:reduction :created-at]))))
-          ))
+                      (r/le start (r/get-field row [:reduction :created-at]))))))
         ;; Sort
         (if-not count?
           (r/order-by query (order-fn :created-at))
@@ -332,33 +320,42 @@
           (r/table :entries))
         ;; Filter out items the user is not following
         (r/filter query (r/fn [row]
-          ;; Filter on the user's visibility map:
-          (r/or ;; has :follow true
-                (-> row
-                    (r/get-field [:right :user-visibility (keyword user-id) :follow])
-                    (r/default false))
-                      ;; has :unfollow false (key actually exists)
-                (-> row
-                    (r/get-field [:right :user-visibility (keyword user-id) :unfollow])
-                    (r/default true)
-                    (r/not)))))
+          (r/and (r/or (r/not unseen)
+                       (r/gt (r/get-field row [:left :reduction :created-at])
+                             container-last-seen-at))
+                 ;; Filter on the user's visibility map:
+                 (r/or ;; has :follow true
+                       (-> row
+                          (r/get-field [:right :user-visibility (keyword user-id) :follow])
+                          (r/default false))
+                            ;; has :unfollow false (key actually exists)
+                       (-> row
+                           (r/get-field [:right :user-visibility (keyword user-id) :unfollow])
+                           (r/default true)
+                           (r/not))))))
         ;; Apply limit
         (if (pos? limit)
           (r/limit query limit)
           query)
         (if-not count?
           (r/map query (r/fn [row]
-            (let [interaction (r/get-field row [:left :reduction])
-                  entry (r/get-field row [:right])
-                  last-activity-at (r/get-field interaction :created-at)]
+            (let [entry (r/get-field row :right)
+                  entry-uuid (r/get-field entry :uuid)
+                  last-activity-at (r/get-field row [:left :reduction :created-at])]
               (r/merge entry
                       {;; Date of the last added comment on this thread
                        :last-activity-at last-activity-at
                        ;; Add sort-value for pagination
                        :sort-value last-activity-at
+                       ;; Count unseen comments
+                       :unseen-comments (-> (r/table :interactions)
+                                            (r/between [true entry-uuid container-last-seen-at]
+                                                       [true entry-uuid r/maxval]
+                                                       {:index :comment-resource-uuid-created-at})
+                                            (r/count))
                        ;; Add all the related interactions
                        :interactions (-> (r/table :interactions)
-                                         (r/get-all [(r/get-field entry :uuid)] {:index :resource-uuid})
+                                         (r/get-all [entry-uuid] {:index :resource-uuid})
                                          (r/pluck relation-fields)
                                          (r/coerce-to :array))}))))
           query)
