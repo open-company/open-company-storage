@@ -147,8 +147,8 @@
    container-last-seen-at {count? :count unseen :unseen container-id :container-id :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
          (db-common/s-or-k? table-name)
-         (db-common/s-or-k? index-name)
-         (or (string? index-value) (sequential? index-value))
+         (keyword? index-name)
+         (sequential? index-value)
          (db-common/s-or-k? relation-table-name)
          (#{:desc :asc} order)
          (or (nil? start)
