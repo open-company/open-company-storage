@@ -104,21 +104,22 @@
          (sequential? relation-fields)
          (every? db-common/s-or-k? relation-fields)
          (boolean? count?)]}
-  (let [order-fn (if (= order :desc) r/desc r/asc)]
+  (let [order-fn (if (= order :desc) r/desc r/asc)
+        dir-filter (when-not (string/blank? start)
+                     #(direction-filter direction start (r/get-field % :sort-value)))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
-        (r/merge query (r/fn [row]
-          {:sort-value (-> (r/get-field row :bookmarks)
-                           (r/filter {:user-id user-id})
-                           (r/nth 0)
-                           (r/get-field :bookmarked-at)
-                           (r/default nil))}))
+        (if (or dir-filter
+                (not count?))
+          (r/merge query (r/fn [row]
+            {:sort-value (r/get-field row [:bookmarks (keyword user-id) :bookmarked-at])}))
+          query)
         ;; Filter out:
-        (if-not (string/blank? start)
+        (if dir-filter
           (r/filter query (r/fn [row]
             ;; All records after/before the start
-            (direction-filter direction start (r/get-field row :sort-value))))
+            (dir-filter row)))
           query)
         (if-not count?
           (r/order-by query (order-fn :sort-value))
@@ -167,7 +168,7 @@
                                (map :uuid
                                     (filter #(not= (:access %) "private") allowed-boards)))
                               (set (map :uuid allowed-boards)))
-        dir-filter (when start
+        dir-filter (when-not (string/blank? start)
                      #(direction-filter direction start (r/get-field % :sort-value)))
         uns-filter (when (and unseen container-last-seen-at)
                       #(unseen-filter container-last-seen-at (r/get-field % :sort-value)))
@@ -313,7 +314,7 @@
          (boolean? count?)
          (boolean? unseen)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        dir-filter (when start
+        dir-filter (when-not (string/blank? start)
                      #(direction-filter direction start (r/get-field % [:reduction :created-at])))
         uns-filter (when (and unseen container-last-seen-at)
                       #(unseen-filter container-last-seen-at (r/get-field % [:reduction :created-at])))
