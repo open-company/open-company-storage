@@ -30,17 +30,14 @@
 
 (defun access-level-for
   "
-  Given an org (or slug) and a user map, return the authorization level for the user on the org:
-    :author
-    :viewer
-    :public
-    false
+  Given an org (or slug) and a user map, return a map describing the authorization level for the user on the org,
+  or nil if the user has no access.
+  If a board is specified (slug or map) the map will describe the access level of the user on it.
 
-  Or, given an org (or slug), board (or slug) and user map, return the authorization level for the user on the board:
-    :author
-    :viewer
-    :public
-    false
+  Ie:
+  {:access-level :author|:viewer|:public|:does-not-exist
+   :role :admin|:member|:anonymous
+   :premium? true|false}
   "
   ;; Access to org
   ;; Invalid org slug
