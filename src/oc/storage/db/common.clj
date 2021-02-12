@@ -454,16 +454,20 @@
 
 (defn list-latest-published-entries
   [conn org-uuid allowed-boards days {count? :count :or {count? false}}]
-  (let [start-date (t/minus (t/date-midnight (t/year (t/today)) (t/month (t/today)) (t/day (t/today))) (t/days days))
-        allowed-board-uuids (map :uuid allowed-boards)]
+  (let [start-date (lib-time/to-iso (t/minus (t/with-time-at-start-of-day (t/now)) (t/days days)))
+        index-name (if allowed-boards
+                     :status-board-uuid
+                     :status-org-uuid)
+        index-value (if allowed-boards
+                      (map #(vec [:published (:uuid %)]) allowed-boards)
+                      [[:published org-uuid]])]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "entries") query
-       (r/get-all query [[:published org-uuid]] {:index :status-org-uuid})
+       (r/get-all query index-value {:index index-name})
        ;; Make an initial filter to select only posts the user has access to
        (r/filter query (r/fn [row]
-         (r/and (r/contains allowed-board-uuids (r/get-field row :board-uuid))
-                (r/ge (r/to-epoch-time (r/iso8601 (r/get-field row [:published-at])))
-                      (lib-time/epoch start-date)))))
+         (r/ge (r/get-field row :published-at)
+               start-date)))
        (if-not count?
          (r/pluck query [:uuid :publisher :published-at :headline :board-uuid :org-uuid])
          query)
