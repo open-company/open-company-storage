@@ -436,7 +436,13 @@
    (list-latest-published-entries conn org-uuid allowed-boards days {}))
   ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num {count? :count}]
    (log-query-time "list-latest-published-entries, start")
-   (let [results (storage-db-common/list-latest-published-entries conn org-uuid allowed-boards days {:count count?})]
+   (let [index-name (if allowed-boards
+                      :status-board-uuid
+                      :status-org-uuid)
+         index-value (if allowed-boards
+                       (map #(vec [:published (:uuid %)]) allowed-boards)
+                       [[:published org-uuid]])
+         results (storage-db-common/list-latest-published-entries conn index-name index-value days {:count count?})]
      (log-query-time "list-latest-published-entries, finish")
      results)))
 

@@ -453,14 +453,8 @@
    (r/run query conn)))
 
 (defn list-latest-published-entries
-  [conn org-uuid allowed-boards days {count? :count :or {count? false}}]
-  (let [start-date (lib-time/to-iso (t/minus (t/with-time-at-start-of-day (t/now)) (t/days days)))
-        index-name (if allowed-boards
-                     :status-board-uuid
-                     :status-org-uuid)
-        index-value (if allowed-boards
-                      (map #(vec [:published (:uuid %)]) allowed-boards)
-                      [[:published org-uuid]])]
+  [conn index-name index-value days {count? :count :or {count? false}}]
+  (let [start-date (lib-time/to-iso (t/minus (t/with-time-at-start-of-day (t/now)) (t/days days)))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table "entries") query
        (r/get-all query index-value {:index index-name})
