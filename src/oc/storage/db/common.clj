@@ -54,15 +54,17 @@
          (sequential? relation-fields)
          (every? db-common/s-or-k? relation-fields)
          (boolean? count?)]}
-  (let [order-fn (if (= order :desc) r/desc r/asc)]
+  (let [order-fn (if (= order :desc) r/desc r/asc)
+        dir-filter (when-not (string/empty-or-nil? start)
+                     #(direction-filter direction start (r/get-field % :published-at)))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
            ;; Filter out:
-        (if-not (string/blank? start)
+        (if dir-filter
           (r/filter query (r/fn [row]
             ;; All records after/before the start
-            (direction-filter direction start (r/get-field row :published-at))))
+            (dir-filter row)))
           query)
         (if-not count?
           (r/order-by query (order-fn :published-at))
@@ -105,11 +107,14 @@
          (every? db-common/s-or-k? relation-fields)
          (boolean? count?)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        dir-filter (when-not (string/blank? start)
+        dir-filter (when-not (string/empty-or-nil? start)
                      #(direction-filter direction start (r/get-field % :sort-value)))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
+        (if-not count?
+          (r/order-by query (order-fn index-name))
+          query)
         (if (or dir-filter
                 (not count?))
           (r/merge query (r/fn [row]
@@ -120,9 +125,6 @@
           (r/filter query (r/fn [row]
             ;; All records after/before the start
             (dir-filter row)))
-          query)
-        (if-not count?
-          (r/order-by query (order-fn :sort-value))
           query)
            ;; Apply count if needed
         (if count? (r/count query) query)
@@ -168,7 +170,7 @@
                                (map :uuid
                                     (filter #(not= (:access %) "private") allowed-boards)))
                               (set (map :uuid allowed-boards)))
-        dir-filter (when-not (string/blank? start)
+        dir-filter (when-not (string/empty-or-nil? start)
                      #(direction-filter direction start (r/get-field % :sort-value)))
         uns-filter (when (and unseen container-last-seen-at)
                       #(unseen-filter container-last-seen-at (r/get-field % :sort-value)))
@@ -223,14 +225,16 @@
          (#{:after :before} direction)
          (integer? limit)
          (boolean? count?)]}
-  (let [order-fn (if (= order :desc) r/desc r/asc)]
+  (let [order-fn (if (= order :desc) r/desc r/asc)
+        dir-filter (when-not (string/empty-or-nil? start)
+                     #(direction-filter direction start (r/get-field % :published-at)))]
     (db-common/with-timeout db-common/default-timeout
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
         ;; Filter out:
-        (if-not (string/blank? start)
+        (if dir-filter
           (r/filter query (r/fn [row]
-            (direction-filter direction start (r/get-field row :published-at))))
+            (dir-filter row)))
           query)
         (if-not count?
           (r/order-by query (order-fn :published-at))
@@ -314,7 +318,7 @@
          (boolean? count?)
          (boolean? unseen)]}
   (let [order-fn (if (= order :desc) r/desc r/asc)
-        dir-filter (when-not (string/blank? start)
+        dir-filter (when-not (string/empty-or-nil? start)
                      #(direction-filter direction start (r/get-field % [:reduction :created-at])))
         uns-filter (when (and unseen container-last-seen-at)
                       #(unseen-filter container-last-seen-at (r/get-field % [:reduction :created-at])))
