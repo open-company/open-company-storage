@@ -529,7 +529,7 @@
     ;; Validations
   :malformed? (by-method {:options false
                           :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params keywordize-keys)
-                                                   days (Integer/parseInt (or (get ctx-params :days) "1")) ;; get number of days from request or fallback to 1
+                                                   days (Integer/parseInt (get ctx-params :days (str config/default-csv-days))) ;; get number of days from request or fallback to the default number
                                                    _valid? (lib-schema/valid? schema/Num days)]
                                            [false {:days days}]
                                            true))})
