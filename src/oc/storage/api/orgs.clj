@@ -179,7 +179,7 @@
         updated-other-users (mapv #(assoc %
                                           :sort-name (if (and (string/blank? (:first-name %))
                                                               (string/blank? (:last-name %)))
-                                                       "zzz"
+                                                       (str Character/MAX_VALUE)
                                                        (str (:first-name %) " " (:last-name %)))
                                           :name (lib-user/name-for-csv %))
                                   other-users)
