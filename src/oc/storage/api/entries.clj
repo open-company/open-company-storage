@@ -25,8 +25,7 @@
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.urls.org :as org-urls]
-            [oc.storage.urls.entry :as entry-urls]
-            [oc.storage.urls.activity :as activity-urls]))
+            [oc.storage.urls.entry :as entry-urls]))
 
 ;; ----- Utility functions -----
 

@@ -6,7 +6,6 @@
             [liberator.core :refer (defresource by-method)]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
-            [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]

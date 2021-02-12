@@ -410,7 +410,7 @@
                       [[status (:uuid allowed-board)]]
                       [[(:uuid allowed-board)]])]
     (time
-     (storage-db-common/read-paginated-recently-posted-entries conn table-name org-uuid index-name index-value order start direction limit
+     (storage-db-common/read-paginated-recently-posted-entries conn table-name index-name index-value order start direction limit
                                                                common/interaction-table-name list-comment-properties [allowed-board] nil
                                                                {:count count? :container-id container-id}))))
 
