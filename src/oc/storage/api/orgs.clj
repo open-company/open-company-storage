@@ -5,18 +5,22 @@
             [clojure.java.io :as j-io]
             [clj-time.core :as t]
             [clj-time.format :as f]
+            [clojure.string :as string]
             [taoensso.timbre :as timbre]
             [compojure.core :as compojure :refer (ANY OPTIONS POST DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
             [oc.lib.time :as lib-time]
+            [oc.lib.user :as lib-user]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
+            [oc.lib.auth :as auth]
             [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.seen :as seen]
+            [oc.lib.change.resources.read :as read]
             [oc.storage.config :as config]
             [oc.storage.async.notification :as notification]
             [oc.storage.api.access :as access]
@@ -27,7 +31,8 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.urls.org :as org-urls]))
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.entry :as entry-urls]))
 
 ;; ----- Utility functions -----
 
@@ -41,9 +46,14 @@
   "
   [org board user]
   (let [level (access/access-level-for org board user)
-        public? (= :public (:access-level level))
-        clean-board (if public? (dissoc board :authors :viewers) board)]
-    (if level (merge clean-board level) clean-board)))
+        public? (= :public (:access-level level))]
+    (as-> board b
+      (if public?
+        (dissoc board :authors :viewers)
+        b)
+      (if (map? level)
+        (merge b level)
+        b))))
 
 (defn- default-entries-for
   "Return any sample posts for a specific board slug."
@@ -158,6 +168,66 @@
       (timbre/error "Failed removing author:" user-id "to org:" slug)
       false)))
 
+;; ---- Read data -----
+
+(defn- sort-users [user-id users]
+  (let [reduced-users (map #(select-keys % [:user-id :first-name :last-name :email :avatar-url :teams :admin]) users)
+        {:keys [self-users other-users]} (group-by #(if (= (:user-id %) user-id)
+                                                      :self-users
+                                                      :other-users)
+                                                   reduced-users)
+        updated-other-users (mapv #(assoc %
+                                          :sort-name (if (and (string/blank? (:first-name %))
+                                                              (string/blank? (:last-name %)))
+                                                       (str Character/MAX_VALUE)
+                                                       (str (:first-name %) " " (:last-name %)))
+                                          :name (lib-user/name-for-csv %))
+                                  other-users)
+        updated-self (as-> self-users u
+                       (first u)
+                       (assoc u :name (str (lib-user/name-for-csv u) " (you)")))]
+    (vec (remove nil? (cons updated-self (vec updated-other-users))))))
+
+(defn read-data-for-entries [org allowed-boards entries active-users user-id]
+  (let [entry-uuids (map :uuid entries)
+        all-read-data (read/retrieve-by-org config/dynamodb-opts (:uuid org))
+        entry-uuid-set (set entry-uuids)
+        cleaned-users (sort-users user-id active-users)
+        filtered-read-data (filter (comp entry-uuid-set :item-id) all-read-data)
+        entry-user-key (fn [entry-id user-id] (str entry-id "-" user-id))
+        all-reads-map (into {} (map #(hash-map (entry-user-key (:item-id %) (:user-id %)) %) filtered-read-data))
+        allowed-boards-map (zipmap (map :uuid allowed-boards) allowed-boards)
+        users-for-board-cache (atom {})
+        csv-users-for-entry (fn [board entry]
+                              (let [cached-users-list (get @users-for-board-cache (:uuid board))
+                                    users-list (if (sequential? cached-users-list)
+                                                 cached-users-list
+                                                 (if (= (:access board) "private")
+                                                   (filterv #(or ((set (:viewers board)) (:user-id %))
+                                                                ((set (:authors board)) (:user-id %)))
+                                                           cleaned-users)
+                                                   cleaned-users))]
+                                (when-not cached-users-list
+                                  (swap! users-for-board-cache assoc (:uuid board) users-list))
+                                (map #(assoc % :read-at
+                                            (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
+                                    users-list)))
+        with-entries-data (map #(let [board (get allowed-boards-map (:board-uuid %))
+                                      csv-users (csv-users-for-entry board %)
+                                      users-count (count csv-users)
+                                      reads-count (count (filter :read-at csv-users))]
+                                  {:entry (assoc %
+                                                 :board-slug (:slug board)
+                                                 :board-name (:name board)
+                                                 :board-access (:access board)
+                                                 :url (entry-urls/ui-entry (:slug org) (:slug board) (:uuid %)))
+                                   :csv-users (sort-by :sort-name csv-users)
+                                   :reads-percent (when (pos? reads-count)
+                                                    (str (format "%.2f" (float (* (/ reads-count users-count) 100))) "%"))
+                                   :reads-count reads-count})
+                                entries)]
+    (sort-by :published-at with-entries-data)))
+
 ;; ----- Validations -----
 
 (defn- is-first-org? [conn user]
@@ -232,8 +302,8 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                        {:existing-org (api-common/rep org)}
-                        false))
+                       {:existing-org (api-common/rep org)}
+                       false))
 
   ;; Actions
   :patch! (fn [ctx] (update-org conn ctx slug))
@@ -298,12 +368,14 @@
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)
+                             wrt-posts-count (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards config/default-csv-days {:count true})
                              org-map (-> org
                                          (assoc :boards (if user-is-member?
                                                           board-reps
                                                           (map #(dissoc % :authors :viewers) board-reps)))
                                          (assoc :total-count total-count)
                                          (assoc :bookmarks-count bookmarks-count)
+                                         (assoc :wrt-posts-count wrt-posts-count)
                                          (assoc :badge-following badge-following?)
                                          (assoc :badge-replies badge-replies?)
                                          (assoc :contributions-count user-count)
@@ -439,6 +511,51 @@
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))
 
+;; Download CSV
+
+(defresource wrt-csv [conn org-slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/csv-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/csv-media-type)
+
+  ;; Authorization
+  :allowed? (by-method {:options true
+                        :get (fn [ctx] (access/allow-premium conn org-slug (:user ctx)))})
+
+    ;; Validations
+  :malformed? (by-method {:options false
+                          :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params keywordize-keys)
+                                                   days (Integer/parseInt (get ctx-params :days (str config/default-csv-days))) ;; get number of days from request or fallback to the default number
+                                                   _valid? (lib-schema/valid? schema/Num days)]
+                                           [false {:days days}]
+                                           true))})
+    ;; Existentialism
+  :exists? (by-method {:get (fn [ctx] (if-let* [user (:user ctx)
+                                                org (org-res/get-org conn org-slug)
+                                                boards (board-res/list-boards-by-org conn (:uuid org) [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
+                                                board-access (map #(board-with-access-level org % user) boards)
+                                                allowed-boards (filter :access-level board-access)
+                                                entries (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards (:days ctx))
+                                                active-users (-> (:request ctx)
+                                                                 (api-common/get-token)
+                                                                 (auth/active-users config/auth-server-url (:team-id org))
+                                                                 :collection
+                                                                 :items)
+                                                entries-with-reads (read-data-for-entries org allowed-boards entries active-users (:user-id user))]
+                                        {:org (api-common/rep org)
+                                         :active-users (api-common/rep active-users)
+                                         :csv-entries (api-common/rep entries-with-reads)}
+                                        false))})
+  :handle-ok (fn [ctx] (let [org (:org ctx)
+                             csv-entries (:csv-entries ctx)]
+                        (org-rep/render-wrt-csv org csv-entries (:user ctx) (:days ctx))))
+  :handle-unprocessable-entity (fn [ctx]
+                                (api-common/unprocessable-entity-response (:reason ctx))))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -462,4 +579,8 @@
       (DELETE (org-urls/org-author ":slug" ":user-id") [slug user-id]
         (pool/with-pool [conn db-pool] (author conn slug user-id)))
       (DELETE (str (org-urls/org-author ":slug" ":user-id") "/")
-        [slug user-id] (pool/with-pool [conn db-pool] (author conn slug user-id))))))
+        [slug user-id] (pool/with-pool [conn db-pool] (author conn slug user-id)))
+      (ANY (org-urls/wrt-csv ":slug")
+        [slug] (pool/with-pool [conn db-pool] (wrt-csv conn slug)))
+      (ANY (str (org-urls/wrt-csv ":slug") "/")
+        [slug] (pool/with-pool [conn db-pool] (wrt-csv conn slug))))))

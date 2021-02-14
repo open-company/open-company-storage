@@ -430,6 +430,22 @@
     (log-query-time "list-entries-by-org(7), finish")
     result)))
 
+(schema/defn ^:always-validate list-latest-published-entries
+  "Retrive the list of the latest posts ordered by publish date."
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num]
+   (list-latest-published-entries conn org-uuid allowed-boards days {}))
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [AllowedBoard] days :- schema/Num {count? :count}]
+   (log-query-time "list-latest-published-entries, start")
+   (let [index-name (if allowed-boards
+                      :status-board-uuid
+                      :status-org-uuid)
+         index-value (if allowed-boards
+                       (map #(vec [:published (:uuid %)]) allowed-boards)
+                       [[:published org-uuid]])
+         results (storage-db-common/list-latest-published-entries conn index-name index-value days {:count count?})]
+     (log-query-time "list-latest-published-entries, finish")
+     results)))
+
 (schema/defn ^:always-validate paginated-entries-by-org
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,

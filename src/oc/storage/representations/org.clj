@@ -1,6 +1,9 @@
 (ns oc.storage.representations.org
   "Resource representations for OpenCompany orgs."
   (:require [cheshire.core :as json]
+            [cuerdas.core :as s]
+            [clj-time.core :as t]
+            [oc.lib.time :as lib-time]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]
@@ -17,7 +20,7 @@
                                                                :contributions-count :following-count :unfollowing-count
                                                                :following-inbox-count :unfollowing-inbox-count
                                                                :badge-following :badge-replies :brand-color
-                                                               :new-entry-placeholder :new-entry-cta]))
+                                                               :new-entry-placeholder :new-entry-cta :wrt-posts-count]))
 
 (defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 
@@ -25,6 +28,11 @@
 
 (defn- active-users-link [org]
   (hateoas/link-map "active-users" hateoas/GET (org-urls/active-users org) {:accept mt/user-collection-media-type}))
+
+(defn- wrt-csv-link [org]
+  (hateoas/link-map "wrt-csv" hateoas/GET
+                    (str config/storage-server-url (org-urls/wrt-csv org config/default-csv-days))
+                    {:accept mt/csv-media-type}))
 
 (defn partial-update-link [org] (hateoas/partial-update-link (org-urls/org org) {:content-type mt/org-media-type
                                                                                 :accept mt/org-media-type}))
@@ -226,17 +234,21 @@
         id-token (:id-token user)
         premium? (access/premium-org? org user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
-                          (concat links [(active-users-link org)
-                                         (activity-link org)
-                                         ; (recent-activity-link org)
-                                         ; (recent-contributions-partial-link org)
-                                         (following-link org)
-                                         ; (recent-following-link org)
-                                         ; (unfollowing-link org)
-                                         ; (recent-unfollowing-link org)
-                                         (contributions-partial-link org)
-                                         (replies-link org)
-                                         (digest-partial-link org)]) ; (calendar-link org) - not currently used
+                          (concat links (vec
+                                         (remove nil?
+                                                 [(active-users-link org)
+                                                  (when-not (-> org :content-visibility :disallow-wrt-download)
+                                                    (wrt-csv-link org))
+                                                  (activity-link org)
+                                                  ; (recent-activity-link org)
+                                                  ; (recent-contributions-partial-link org)
+                                                  (following-link org)
+                                                  ; (recent-following-link org)
+                                                  ; (unfollowing-link org)
+                                                  ; (recent-unfollowing-link org)
+                                                  (contributions-partial-link org)
+                                                  (replies-link org)
+                                                  (digest-partial-link org)]))) ; (calendar-link org) - not currently used
                           links)
         board-links (create-board-links org premium?)
         author-links (if (and (not id-token) (= access-level :author) )
@@ -307,3 +319,30 @@
                     :links full-links
                     :items (map org-collection-links with-premium-filter)}}
       {:pretty config/pretty?})))
+
+(def csv-empty-val "NA")
+
+(defn render-wrt-csv
+  [org entries-list user days]
+  (let [user-tz (:timezone user)
+        start-date (t/minus (t/now) (t/days days))
+        start-date-string (lib-time/csv-date start-date user-tz)
+        end-date-string (lib-time/csv-date (t/now) user-tz)
+        csv-entries (mapv (fn [{entry :entry csv-users :csv-users reads-count :reads-count reads-percent :reads-percent}]
+                            (s/join "\n" [(str "Title: " (:headline entry))
+                                          (str "Published on: " (lib-time/csv-date-time (:published-at entry) user-tz))
+                                          (str "Link: " (:url entry))
+                                          (str "Reads: " reads-count " of " (count csv-users) (when reads-percent (str " (" reads-percent ")")))
+                                          "-"
+                                          "Name, Email, Read"
+                                          (s/join "\n"
+                                                  (mapv #(s/join ", " [(or (:name %) csv-empty-val)
+                                                                       (or (:email %) csv-empty-val)
+                                                                       (if (:read-at %)
+                                                                         (lib-time/csv-date-time (:read-at %) user-tz)
+                                                                         csv-empty-val)])
+                                                        csv-users))
+                                          "\n"]))
+                          entries-list)
+        csv-intro (str (:name org) " analytics for posts between " start-date-string " and " end-date-string "\n")]
+    (s/join "\n" (vec (cons csv-intro csv-entries)))))
