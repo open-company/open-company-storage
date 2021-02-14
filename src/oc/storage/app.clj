@@ -48,6 +48,7 @@
 
 (defn echo-config [port]
   (println (str "\n"
+    "Production? " c/prod? "\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
