@@ -10,6 +10,7 @@
     [liberator.dev :refer (wrap-trace)]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
+    [ring.middleware.cookies :refer (wrap-cookies)]
     [ring.middleware.cors :refer (wrap-cors)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
@@ -47,6 +48,7 @@
 
 (defn echo-config [port]
   (println (str "\n"
+    "Production? " c/prod? "\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
@@ -68,12 +70,13 @@
 ;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
-    c/prod?           api-common/wrap-500 ; important that this is first
+    true              api-common/wrap-500 ; important that this is first
      ; important that this is second
     c/dsn             (sentry/wrap c/sentry-config)
     true              wrap-with-logger
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
+    true              wrap-cookies
     true              (wrap-cors #".*")
     c/hot-reload      wrap-reload))
 

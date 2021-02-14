@@ -405,3 +405,36 @@
        (if (= (type query) rethinkdb.net.Cursor)
          (seq query)
          query)))))
+
+(defn last-entry-of-board
+  [conn board-uuid]
+  (as-> (r/table "entries") query
+   (r/get-all query [board-uuid] {:index :board-uuid})
+   (r/order-by query (r/desc :created-at))
+   (r/default (r/nth query 0) {})
+   (r/run query conn)))
+
+(defn list-latest-published-entries
+  [conn index-name index-value days {count? :count :or {count? false}}]
+  (let [start-date (lib-time/to-iso (t/minus (t/with-time-at-start-of-day (t/now)) (t/days days)))]
+    (db-common/with-timeout db-common/default-timeout
+      (as-> (r/table "entries") query
+       (r/get-all query index-value {:index index-name})
+       ;; Make an initial filter to select only posts the user has access to
+       (r/filter query (r/fn [row]
+         (r/ge (r/get-field row :published-at)
+               start-date)))
+       (if-not count?
+         (r/pluck query [:uuid :publisher :published-at :headline :board-uuid :org-uuid])
+         query)
+       (if-not count?
+         (r/order-by query (r/desc :published-at))
+         query)
+       (if count?
+         (r/count query)
+         query)
+       (r/run query conn)
+       ;; Drain cursor
+       (if (= (type query) rethinkdb.net.Cursor)
+         (seq query)
+         query)))))

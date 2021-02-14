@@ -393,7 +393,6 @@
                                                            :uuid :resource-uuid list-comment-properties
                                                            {:count count? :container-id container-id}))))
 
-
 (schema/defn ^:always-validate paginated-recently-posted-entries-by-board
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,

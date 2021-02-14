@@ -21,12 +21,13 @@
 (defonce sentry-release (or (env :release) ""))
 (defonce sentry-env (or (env :environment) "local"))
 (defonce sentry-config {:dsn dsn
+                        :debug (not prod?)
                         :release sentry-release
                         :environment sentry-env})
 
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 
-(defonce log-level (or (env :log-level) :info))
+(defonce log-level (if-let [log-level (env :log-level)] (keyword log-level) :info))
 
 ;; ----- RethinkDB -----
 
@@ -51,6 +52,8 @@
 (defonce host (or (env :local-dev-host) "localhost"))
 
 (defonce auth-server-url (or (env :auth-server-url) (str "http://" host ":3003")))
+(defonce ui-server-url (or (env :ui-server-url) (str "http://" host ":3559")))
+(defonce storage-server-url (or (env :storage-server-url) (str "http://" host ":" storage-server-port)))
 (defonce interaction-server-url (or (env :interaction-server-url) (str "http://" host ":3002")))
 (defonce interaction-server-ws-url (or (env :interaction-server-ws-url) (str "ws://" host ":3002")))
 (defonce change-server-url (or (env :change-server-url) (str "http://" host ":3006")))
@@ -116,3 +119,5 @@
 (defonce seen-replies-container-id (or (env :seen-replies-container-id) "1111-1111-2222"))
 
 (defonce unread-days-limit (or (env :unread-days-limit) 30))
+
+(defonce default-csv-days (Integer/parseInt (or (env :default-csv-days) "30")))

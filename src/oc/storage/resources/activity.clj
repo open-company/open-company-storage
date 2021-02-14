@@ -122,3 +122,18 @@
      (time
       (storage-db-common/read-paginated-contributions-entries conn entry-res/table-name index-name index-value order start direction
                                                               limit common/interaction-table-name entry-res/list-comment-properties {:count count?})))))
+
+(schema/defn ^:always-validate list-latest-published-entries
+  "Retrive the list of the latest posts ordered by publish date."
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [common/AllowedBoard] days :- schema/Num]
+   (list-latest-published-entries conn org-uuid allowed-boards days {}))
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [common/AllowedBoard] days :- schema/Num {count? :count}]
+   (timbre/info "list-latest-published-entries")
+   (let [index-name (if allowed-boards
+                      :status-board-uuid
+                      :status-org-uuid)
+         index-value (if allowed-boards
+                       (map #(vec [:published (:uuid %)]) allowed-boards)
+                       [[:published org-uuid]])]
+     (time
+      (storage-db-common/list-latest-published-entries conn index-name index-value days {:count count?})))))
