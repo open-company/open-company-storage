@@ -90,10 +90,7 @@
                 (:existing-comments ctx)
                 (reaction-res/aggregate-reactions (:existing-reactions ctx))
                 (select-keys ctx [:access-level :role])
-                (-> ctx :user :user-id)))
-  :handle-exception (fn [ctx] (api-common/handle-exception ctx))
-  :handle-unprocessable-entity (fn [ctx]
-                                 (api-common/unprocessable-entity-response (:reason ctx))))
+                (-> ctx :user :user-id))))
 
 ;; ----- Routes -----
 

@@ -379,7 +379,7 @@
                                           (assemble-board conn org board params ctx))]
                          (board-rep/render-board org full-board ctx params)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Board (:board-update ctx))}))))
 
 
 ;; A resource for operations on a list of boards
@@ -430,9 +430,7 @@
                                 (api-common/blank-response)
                                 (api-common/location-response (board-urls/board org-slug board-slug)
                                                               (board-rep/render-board org new-board ctx (default-board-params))
-                                                              mt/board-media-type))))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                                                              mt/board-media-type)))))
 
 ;; A resource for the authors and viewers of a particular board
 (defresource member [conn org-slug slug member-type user-id]

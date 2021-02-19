@@ -137,9 +137,7 @@
                      (:existing-comments ctx)
                      (reaction-res/aggregate-reactions (:existing-reactions ctx))
                      (select-keys ctx [:access-level :role])
-                     (-> ctx :user :user-id)))})
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                     (-> ctx :user :user-id)))}))
 
 ;; A resource for deleting a reply from a poll
 (defresource poll-reply [conn org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id]
@@ -189,9 +187,7 @@
                        (:existing-comments ctx)
                        (reaction-res/aggregate-reactions (:existing-reactions ctx))
                        (select-keys ctx [:access-level :role])
-                       (-> ctx :user :user-id)))})
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                       (-> ctx :user :user-id)))}))
 
 ;; A resource for casting and removing votes from a poll
 (defresource poll-vote [conn org-slug board-slug-or-uuid entry-uuid poll-uuid reply-id]
@@ -255,9 +251,7 @@
                        (:existing-comments ctx)
                        (reaction-res/aggregate-reactions (:existing-reactions ctx))
                        (select-keys ctx [:access-level :role])
-                       (-> ctx :user :user-id)))})
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                       (-> ctx :user :user-id)))}))
 
 ;; ----- Routes -----
 

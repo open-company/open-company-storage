@@ -590,7 +590,7 @@
                         (select-keys ctx [:access-level :role])
                         (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
 
 ;; A resource for operations on all entries of a particular board
 (defresource entry-list [conn org-slug board-slug-or-uuid]
@@ -657,9 +657,7 @@
                               (api-common/location-response
                                 (entry-urls/entry org-slug (:slug existing-board) (:uuid new-entry))
                                 (entry-rep/render-entry (:existing-org ctx) (:existing-board ctx) new-entry [] [] {:access-level :author} (-> ctx :user :user-id))
-                                mt/entry-media-type)))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                                mt/entry-media-type))))
 
 ;; A resource for reverting to a specific revision number.
 (defresource revert-version [conn org-slug board-slug-or-uuid entry-uuid]
@@ -821,7 +819,7 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (map #(schema/check common-res/ShareRequest %) (:share-requests ctx)))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (map #(schema/check common-res/ShareRequest %) (:share-requests ctx))}))))
 
 
 ;; A resource for access to a particular entry by its secure UUID
@@ -906,7 +904,7 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (schema/check common-res/Entry (:updated-entry ctx)))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
 
 (defresource inbox-dismiss-all [conn org-slug]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -953,7 +951,7 @@
            (update-user-visibility-dismiss-all conn ctx org-slug))
 
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:updated-entries ctx))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (:updated-entries ctx)}))))
 
 (defresource inbox [conn org-slug board-slug entry-uuid action-type]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -1003,7 +1001,7 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:updated-entry ctx))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (:updated-entry ctx)}))))
 
 ;; ----- Routes -----
 
