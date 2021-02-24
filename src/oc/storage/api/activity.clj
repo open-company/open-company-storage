@@ -1,7 +1,6 @@
 (ns oc.storage.api.activity
   "Liberator API for entry collection resources."
-  (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let*)]
+  (:require [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.slugify :as slugify]
@@ -114,7 +113,7 @@
         user-id (:user-id user)
         org (:existing-org ctx)
         org-id (:uuid org)
-        ctx-params (-> ctx :request :params keywordize-keys)
+        ctx-params (-> ctx :request :params)
         following? (:following ctx-params)
         container-seen (when following?
                          (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
@@ -140,7 +139,7 @@
         user-id (:user-id user)
         org (:existing-org ctx)
         org-id (:uuid org)
-        ctx-params (-> ctx :request :params keywordize-keys)
+        ctx-params (-> ctx :request :params)
         params (-> ctx-params
                    (dissoc :slug)
                    (update :direction #(if % (keyword %) :before)) ; default is before
@@ -161,7 +160,7 @@
         org (:existing-org ctx)
         org-id (:uuid org)
         container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id)
-        ctx-params (-> ctx :request :params keywordize-keys)
+        ctx-params (-> ctx :request :params)
         params (-> ctx-params
                    (dissoc :slug)
                    (assoc :limit (if (= :after (keyword (:direction ctx-params)))
@@ -185,7 +184,7 @@
         org (:existing-org ctx)
         org-id (:uuid org)
         container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id author-uuid)
-        ctx-params (-> ctx :request :params keywordize-keys)
+        ctx-params (-> ctx :request :params)
         params (-> ctx-params
                    (dissoc :slug)
                    (assoc :limit (if (= :after (keyword (:direction ctx-params)))
@@ -223,7 +222,7 @@
     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params)
                               start (:start ctx-params)
                               valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
@@ -263,7 +262,7 @@
     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params)
                               start (:start ctx-params)
                               valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
@@ -299,7 +298,7 @@
     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params)
                               start (:start ctx-params)
                               valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))
@@ -335,7 +334,7 @@
     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params)
                               start (:start ctx-params)
                               valid-start? (common/sort-value? start)
                               direction (keyword (:direction ctx-params))

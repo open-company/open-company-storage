@@ -1,7 +1,6 @@
 (ns oc.storage.api.orgs
   "Liberator API for org resources."
-  (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let*)]
+  (:require [if-let.core :refer (if-let*)]
             [clojure.java.io :as j-io]
             [clj-time.core :as t]
             [clj-time.format :as f]
@@ -457,7 +456,7 @@
   ;; Validations
   :malformed? (by-method {
     :options false
-    :get (fn [ctx] (if-let* [ctx-params (keywordize-keys (-> ctx :request :params))
+    :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params)
                              team-id (:team-id ctx-params) ; org lookup is by team-id
                              _team-id? (lib-schema/unique-id? team-id)]
                      [false {:team-id team-id}]
@@ -520,7 +519,7 @@
 
     ;; Validations
   :malformed? (by-method {:options false
-                          :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params keywordize-keys)
+                          :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params)
                                                    days (Integer/parseInt (get ctx-params :days (str config/default-csv-days))) ;; get number of days from request or fallback to the default number
                                                    _valid? (lib-schema/valid? schema/Num days)]
                                            [false {:days days}]

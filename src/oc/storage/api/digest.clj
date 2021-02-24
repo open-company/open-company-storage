@@ -1,7 +1,6 @@
 (ns oc.storage.api.digest
   "Liberator API for digest resource."
-  (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let*)]
+  (:require [if-let.core :refer (if-let*)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.slugify :as slugify]
@@ -63,7 +62,7 @@
     :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
 
   ;; Check the request
-  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params)
                               start (:start ctx-params)
                               ;; Start is always set for digest
                               valid-start? (and (seq start) (common/sort-value? start))
@@ -83,7 +82,7 @@
                              user-id (:user-id user)
                              org (:existing-org ctx)
                              org-id (:uuid org)
-                             ctx-params (-> ctx :request :params keywordize-keys)
+                             ctx-params (-> ctx :request :params)
                              params (-> ctx-params
                                      (dissoc :slug)
                                      (assoc :limit 10) ;; use a limit of 10 posts since digest can't be too long anyway

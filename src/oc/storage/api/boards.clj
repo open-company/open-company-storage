@@ -5,7 +5,6 @@
             [clojure.set :as clj-set]
             [compojure.core :as compojure :refer (ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
-            [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
@@ -312,7 +311,7 @@
 
   :malformed? (by-method {
     :options false
-    :get (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+    :get (fn [ctx] (let [ctx-params (-> ctx :request :params)
                          start (:start ctx-params)
                          valid-start? (or (string? start)
                                           (nil? start))
@@ -357,7 +356,7 @@
   :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
   
   ;; Responses
-  :handle-ok (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :handle-ok (fn [ctx] (let [ctx-params (-> ctx :request :params)
                              org (:existing-org ctx)
                              board (or (:updated-board ctx) (:existing-board ctx))
                              drafts-board? (board-rep/drafts-board? board)
