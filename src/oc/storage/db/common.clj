@@ -33,10 +33,12 @@
             min-iso8601))
 
 (defn row-order-val [allowed-board-uuids row container-id]
-  (if container-id
-    (r/add (row-pinned-at allowed-board-uuids row container-id)
-           (r/get-field row :published-at))
-    (r/get-field row :published-at)))
+  (let [sort-field (-> (r/get-field row :published-at)
+                       (r/default (r/get-field row :created-at)))]
+    (if container-id
+      (r/add (row-pinned-at allowed-board-uuids row container-id)
+             sort-field)
+      sort-field)))
 
 (defn read-paginated-contributions-entries
   [conn table-name index-name index-value order start direction limit relation-table-name relation-fields

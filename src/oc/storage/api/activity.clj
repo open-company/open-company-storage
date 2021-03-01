@@ -23,11 +23,13 @@
 
 (def board-props [:created-at :updated-at :authors :viewers :access :publisher-board])
 
-(defn user-boards-by-uuid [conn user org]
-  (let [boards (board-res/list-boards-by-org conn (:uuid org) board-props)
-        boards-with-access (map #(access/board-with-access-level org % user) boards)
-        allowed-boards (filter :access-level boards-with-access)]
-    (zipmap (map :uuid allowed-boards) allowed-boards)))
+(defn user-boards-by-uuid
+  ([conn user org] (user-boards-by-uuid conn user org board-props))
+  ([conn user org props-list]
+   (let [boards (board-res/list-boards-by-org conn (:uuid org) props-list)
+         boards-with-access (map #(access/board-with-access-level org % user) boards)
+         allowed-boards (filter :access-level boards-with-access)]
+     (zipmap (map :uuid allowed-boards) allowed-boards))))
 
 ;; ---- Helpers for request parameters ----
 

@@ -24,7 +24,7 @@
 
 ;; ----- Utility functions -----
 
-(defn- default-board-params []
+(def default-board-params
   {:direction :before
    :limit 0})
 
@@ -42,12 +42,9 @@
                   :total-count (count entries)})))
 
   ;; Regular paginated board
-  ([conn org board {start :start direction :direction limit :limit} _ctx]
-  (let [total-count (entry-res/paginated-recently-posted-entries-by-board conn (:uuid org) board :asc nil :before
-                     0 {:status :published :count true :container-id (:uuid board)})
-        order (if (= direction :before) :desc :asc)
-        entries (entry-res/paginated-recently-posted-entries-by-board conn (:uuid org) board order start direction
-                 limit {:status :published :container-id (:uuid board)})]
+  ([conn board {start :start direction :direction limit :limit}]
+  (let [total-count (entry-res/paginated-recently-posted-entries-by-board conn board :desc nil :before 0 {:status :published :count true :container-id (:uuid board)})
+        entries (entry-res/paginated-recently-posted-entries-by-board conn board :desc start direction limit {:status :published :container-id (:uuid board)})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
@@ -230,7 +227,7 @@
                               ;; retrieve the board again to get final list of members
                               (board-res/get-board conn (:uuid board-result)))]
           (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
-          {:created-board (api-common/rep (assemble-board conn org created-board (default-board-params) ctx))}))
+          {:created-board (api-common/rep (assemble-board conn created-board default-board-params))}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false))))
 
@@ -369,7 +366,7 @@
                                                        config/default-activity-limit)))) ;; fallback to the default pagination otherwise
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
-                                          (assemble-board conn org board params ctx))]
+                                          (assemble-board conn board params))]
                          (board-rep/render-board org full-board ctx params)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
@@ -422,7 +419,7 @@
                               (if pre-flight?
                                 (api-common/blank-response)
                                 (api-common/location-response (board-urls/board org-slug board-slug)
-                                                              (board-rep/render-board org new-board ctx (default-board-params))
+                                                              (board-rep/render-board org new-board ctx default-board-params)
                                                               mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

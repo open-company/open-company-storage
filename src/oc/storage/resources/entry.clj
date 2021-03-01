@@ -398,16 +398,16 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn org-uuid allowed-board :- common/AllowedBoard order start :- common/SortValue direction limit {count? :count status :status container-id :container-id :or {count? false}}]
+  [conn allowed-board :- common/AllowedBoard order start :- common/SortValue direction limit {count? :count status :status container-id :container-id :or {count? false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (timbre/info "entry-res/paginated-entries-by-board")
+  (timbre/infof "entry-res/paginated-recently-posted-entries-by-board" (:uuid allowed-board))
   (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
         index-value (if (#{:draft :published} status)
                       [[status (:uuid allowed-board)]]
-                      [[(:uuid allowed-board)]])]
+                      [(:uuid allowed-board)])]
     (time
      (storage-db-common/read-paginated-recently-posted-entries conn table-name index-name index-value order start direction limit
                                                                common/interaction-table-name list-comment-properties [allowed-board] nil
