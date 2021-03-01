@@ -131,10 +131,10 @@
   [conn board :- common/NewBoard]
   {:pre [(db-common/conn? conn)]}
   (timbre/info "Creating board" (:uuid board))
-  (let [created-board (db-common/create-resource conn table-name
-                       (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
-                       (db-common/current-timestamp))]
-    ;; (storage-db-common/create-entry-container-pins-index conn (:org-uuid created-board) (:uuid created-board))
+  (let [cleaned-board (-> board
+                          (dissoc :entries)
+                          (update :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board)))))
+        created-board (db-common/create-resource conn table-name cleaned-board (db-common/current-timestamp))]
     created-board))
 
 (defn- publisher-board-slug [taken-slugs user-id]
@@ -210,8 +210,6 @@
     (if (= (count entries) (count published-entries))
       ;; Delete the board itself
       (do
-        ;; (timbre/info "Removing container pins index for board" (:uuid board))
-        ;; (storage-db-common/delete-entry-container-pins-index conn (:org-uuid board) (:uuid board))
         (timbre/info "Actually deleting board" (:uuid board))
         (db-common/delete-resource conn table-name (:uuid board)))
       ;; Set back the draft on the board

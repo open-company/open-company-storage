@@ -21,10 +21,10 @@
          (#{:before :after} direction)
          (integer? limit)]}
   (timbre/info "entry-res/pagineted-entries-for-digest")
-  (let [index-name (if allowed-boards
+  (let [index-name (if (seq allowed-boards)
                      :status-board-uuid
                      :status-org-uuid)
-        index-value (if allowed-boards
+        index-value (if (seq allowed-boards)
                       (map #(vec [:published (:uuid %)]) allowed-boards)
                       [[:published org-uuid]])]
     (time
@@ -44,7 +44,7 @@
           (#{:before :after} direction)
           (integer? limit)]}
    (timbre/info "entry-res/paginated-recently-posted-entries-by-org")
-   (let [index-name (if allowed-boards
+   (let [index-name (if (seq allowed-boards)
                       :status-board-uuid
                       :status-org-uuid)
          allowed-board-uuids (set (map :uuid allowed-boards))
@@ -54,7 +54,7 @@
                                     (clj-set/intersection allowed-board-uuids (:unfollow-board-uuids follow-data))
                                     :else
                                     allowed-board-uuids)
-         index-value (if allowed-boards
+         index-value (if (seq allowed-boards)
                        (map #(vec [:published %]) filtered-board-uuids)
                        [[:published org-uuid]])]
      (time
@@ -71,10 +71,10 @@
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (let [index-name (if allowed-boards
+  (let [index-name (if (seq allowed-boards)
                      :comment-board-uuid-org-uuid
                      :comment-org-uuid)
-        index-value (if allowed-boards
+        index-value (if (seq allowed-boards)
                       (map #(vec [true (:uuid %) org-uuid]) allowed-boards)
                       [[true org-uuid]])]
     (time (storage-db-common/read-paginated-replies-entries conn index-name index-value user-id order start
@@ -92,10 +92,10 @@
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
    (timbre/info "entry-res/list-all-bookmarked-entries")
-   (let [index-name (if allowed-boards ;; empty array means user has 0 boards access
+   (let [index-name (if (seq allowed-boards) ;; empty array means user has 0 boards access
                       :status-board-uuid-bookmark-user-id-multi
                       :org-uuid-status-bookmark-user-id-map-multi)
-         index-value (if allowed-boards
+         index-value (if (seq allowed-boards)
                        (map #(vec [:published (:uuid %) user-id]) allowed-boards)
                        [[:published org-uuid user-id]])]
      (time
@@ -113,10 +113,10 @@
           (#{:before :after} direction)
           (integer? limit)]}
    (timbre/info "entry-res/list-entries-by-org-author")
-   (let [index-name (if allowed-boards
+   (let [index-name (if (seq allowed-boards)
                       :status-board-uuid-author-id
                       :status-org-uuid-author-id)
-         index-value (if allowed-boards
+         index-value (if (seq allowed-boards)
                        (map #(vec [:published (:uuid %) author-uuid]) allowed-boards)
                        [[:published org-uuid author-uuid]])]
      (time
@@ -129,10 +129,10 @@
    (list-latest-published-entries conn org-uuid allowed-boards days {}))
   ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID allowed-boards :- [common/AllowedBoard] days :- schema/Num {count? :count}]
    (timbre/info "list-latest-published-entries")
-   (let [index-name (if allowed-boards
+   (let [index-name (if (seq allowed-boards)
                       :status-board-uuid
                       :status-org-uuid)
-         index-value (if allowed-boards
+         index-value (if (seq allowed-boards)
                        (map #(vec [:published (:uuid %)]) allowed-boards)
                        [[:published org-uuid]])]
      (time

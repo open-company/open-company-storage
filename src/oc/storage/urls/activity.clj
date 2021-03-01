@@ -21,18 +21,18 @@
 
 (defn collection
 
-  ([collection-type org]
+  ([org collection-type]
    (org-urls/org-container org collection-type))
 
-  ([collection-type org url-params]
-   (parametrize (collection collection-type org) url-params)))
+  ([org collection-type url-params]
+   (parametrize (collection org collection-type) url-params)))
 
 (defn activity ;; url
-  ([collection-type {slug :slug}]
-   (collection collection-type slug))
+  ([org collection-type]
+   (collection org collection-type))
 
-  ([collection-type org url-params]
-   (parametrize (activity collection-type org) url-params)))
+  ([org collection-type url-params]
+   (collection org collection-type url-params)))
 
 (defn replies
   ([org] (org-urls/replies org))
@@ -45,30 +45,30 @@
    (parametrize (bookmarks org) url-params)))
 
 (defn follow
-  ([collection-type org-slug]
-   (org-urls/org-container org-slug collection-type))
+  ([org collection-type]
+   (org-urls/org-container org collection-type))
 
-  ([collection-type org-slug url-params]
-   (parametrize (follow collection-type org-slug) url-params)))
+  ([org collection-type url-params]
+   (parametrize (follow org collection-type) url-params)))
 
 (defn following
-  ([collection-type {slug :slug}]
-   (follow collection-type slug {:following true}))
+  ([org collection-type]
+   (follow org collection-type {:following true}))
 
-  ([collection-type {slug :slug} params]
-   (follow collection-type slug params)))
+  ([org collection-type params]
+   (follow org collection-type params)))
 
 (defn unfollowing
-  ([collection-type {slug :slug}]
-   (follow collection-type slug {:unfollowing true}))
+  ([org collection-type]
+   (follow org collection-type {:unfollowing true}))
 
-  ([collection-type {slug :slug} params]
-   (follow collection-type slug params)))
+  ([org collection-type params]
+   (follow org collection-type params)))
 
 (defn contributions
 
-  ([{slug :slug} author-uuid]
-   (org-urls/contribution slug author-uuid))
+  ([org author-uuid]
+   (org-urls/contribution org author-uuid))
 
   ([org author-uuid url-params]
    (parametrize (contributions org author-uuid) url-params)))

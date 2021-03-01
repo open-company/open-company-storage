@@ -403,7 +403,7 @@
          (#{:desc :asc} order)
          (#{:before :after} direction)
          (integer? limit)]}
-  (timbre/infof "entry-res/paginated-recently-posted-entries-by-board" (:uuid allowed-board))
+  (timbre/infof "entry-res/paginated-recently-posted-entries-by-board(%s)" (:uuid allowed-board))
   (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
         index-value (if (#{:draft :published} status)
                       [[status (:uuid allowed-board)]]
@@ -448,7 +448,7 @@
   "Given the UUID of the board, return all the entries for the board."
   [conn allowed-board :- common/AllowedBoard]
   {:pre [(db-common/conn? conn)]}
-  (timbre/info "entry-res/list-all-entries-by-board")
+  (timbre/info "entry-res/list-all-entries-by-board(%s)" (:uuid allowed-board))
   (time (db-common/read-resources conn table-name :board-uuid [(:uuid allowed-board)] ["uuid" "status"])))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)

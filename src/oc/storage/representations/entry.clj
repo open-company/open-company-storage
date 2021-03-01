@@ -27,7 +27,7 @@
                            :team-id :author :publisher :published-at :video-id :video-processed
                            :video-image :video-duration :created-at :updated-at :revision-id
                            :new-comments-count :bookmarked-at :polls :last-read-at :last-activity-at :sort-value
-                           :unseen-comments :pins :pinned-at])
+                           :unseen-comments :pins])
 
 ;; ----- Utility functions -----
 

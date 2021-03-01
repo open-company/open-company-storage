@@ -13,7 +13,8 @@
 
 (defun org-container
   ([o container-slug :guard string?] (s/join "/" [(org o) container-slug]))
-  ([o container-slug-kw :guard keyword?] (org-container o (name container-slug-kw))))
+  ([o container-slug-kw :guard keyword?] (org-container o (name container-slug-kw)))
+  ([o container-map :guard map?] (org-container o (:slug container-map))))
 
 (defn org-authors [org]
   (str (org-container org :authors) "/"))

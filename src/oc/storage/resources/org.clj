@@ -117,7 +117,6 @@
   (timbre/info "Creating org" (:uuid org) (:name org))
   (let [created-org (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
                      (db-common/current-timestamp))]
-    ;; (storage-db-common/create-entry-container-pins-index conn (:uuid created-org) config/seen-home-container-id)
     created-org))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
@@ -179,10 +178,6 @@
       (try
         (db-common/delete-resource conn common/board-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException _)) ; OK if no boards
-      ;; ;; Remove pins container index
-      ;; (try
-      ;;   (storage-db-common/delete-entry-container-pins-index conn uuid config/seen-home-container-id)
-      ;;   (catch java.lang.RuntimeException _)) ; OK if no index
       ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
     

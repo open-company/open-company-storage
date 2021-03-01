@@ -37,10 +37,10 @@
                        replies?            (activity-urls/replies org)
                        bookmarks?          (activity-urls/bookmarks org)
                        contributions?      (activity-urls/contributions org author-uuid)
-                       following           (activity-urls/following collection-type org)
-                       unfollowing         (activity-urls/unfollowing collection-type org)
+                       following           (activity-urls/following org collection-type)
+                       unfollowing         (activity-urls/unfollowing org collection-type)
                        ;; else
-                       no-collection-type? (activity-urls/activity collection-type org))]
+                       no-collection-type? (activity-urls/activity org collection-type))]
       (when refresh-url
         (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/entry-collection-media-type})))))
 
@@ -65,10 +65,10 @@
                        replies?            (activity-urls/replies org)
                        bookmarks?          (activity-urls/bookmarks org)
                        contributions?      (activity-urls/contributions org author-uuid)
-                       following           (activity-urls/following collection-type org)
-                       unfollowing         (activity-urls/unfollowing collection-type org)
+                       following           (activity-urls/following org collection-type)
+                       unfollowing         (activity-urls/unfollowing org collection-type)
                        ;; else
-                       no-collection-type? (activity-urls/activity collection-type org)))]
+                       no-collection-type? (activity-urls/activity org collection-type)))]
       (when next-url
         (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type})))))
 
@@ -96,11 +96,11 @@
                         contributions?
                         (activity-urls/contributions org (:author-uuid params))
                         following?
-                        (activity-urls/following collection-type org)
+                        (activity-urls/following org collection-type)
                         unfollowing?
-                        (activity-urls/unfollowing collection-type org)
+                        (activity-urls/unfollowing org collection-type)
                         :else
-                        (activity-urls/activity collection-type org))
+                        (activity-urls/activity org collection-type))
         collection-rel (cond
                          following?
                          "following"
