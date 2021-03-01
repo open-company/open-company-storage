@@ -15,7 +15,6 @@
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.async.notification :as notification]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.board :as board-res]
             [oc.storage.urls.pin :as pin-urls]))
 
 ;; Existentialism checks

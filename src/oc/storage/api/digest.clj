@@ -15,14 +15,9 @@
             [oc.storage.representations.digest :as digest-rep]
             [oc.storage.resources.org :as org-res]
             [oc.storage.urls.org :as org-urls]
-            [oc.lib.time :as oc-time]
-            [oc.lib.change.resources.read :as read]
-            [clj-time.core :as clj-time]))
+            [oc.lib.change.resources.read :as read]))
 
 ;; ----- Helpers -----
-
-(defn digest-default-start []
-  (oc-time/to-iso (clj-time/minus (clj-time/now) (clj-time/days 1))))
 
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."

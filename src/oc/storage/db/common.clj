@@ -267,8 +267,7 @@
   {:pre [(db-common/conn? conn)
          (db-common/s-or-k? table-name)
          (boolean? add-vote?)]}
-  (let [ts (db-common/current-timestamp)
-        set-operation (if add-vote? r/set-insert r/set-difference)
+  (let [set-operation (if add-vote? r/set-insert r/set-difference)
         user-id-value (if add-vote? user-id [user-id])
         update (db-common/with-timeout db-common/default-timeout
                   (-> (r/table table-name)
