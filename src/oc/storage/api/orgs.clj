@@ -39,22 +39,6 @@
 (def org-name-min-length 3)
 (def org-name-max-length 50)
 
-(defn- board-with-access-level
-  "
-  Merge in `access` level user is accessing this board with, and if that level is public, remove author and
-  viewer lists.
-  "
-  [org board user]
-  (let [level (access/access-level-for org board user)
-        public? (= :public (:access-level level))]
-    (as-> board b
-      (if public?
-        (dissoc board :authors :viewers)
-        b)
-      (if (map? level)
-        (merge b level)
-        b))))
-
 (defn- default-entries-for
   "Return any sample posts for a specific board slug."
   [board-name]
@@ -319,7 +303,7 @@
                              boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
                              boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn % {:count true})) boards)
                              boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
-                             board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
+                             board-access (map #(access/board-with-access-level org % user) boards-with-last-entry-at)
                              allowed-boards (filter :access-level board-access)
                              author-access-boards (filter #(= (:access-level %) :author) board-access)
                              ;; Add the draft board
@@ -528,7 +512,7 @@
   :exists? (by-method {:get (fn [ctx] (if-let* [user (:user ctx)
                                                 org (org-res/get-org conn org-slug)
                                                 boards (board-res/list-boards-by-org conn (:uuid org) [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
-                                                board-access (map #(board-with-access-level org % user) boards)
+                                                board-access (map #(access/board-with-access-level org % user) boards)
                                                 allowed-boards (filter :access-level board-access)
                                                 entries (activity-res/list-latest-published-entries conn (:uuid org) allowed-boards (:days ctx))
                                                 active-users (-> (:request ctx)

@@ -14,7 +14,7 @@
   Given an entry and all the metadata about it, render it with only the data needed by the digest.
   Return a subset of the response of oc.storage.representations.entry/entry-and-links
   "
-  [org board entry comments {:keys [access-level _role] :as _access} user-id]
+  [org {:keys [access-level] :as board} entry comments user-id]
   (let [entry-uuid (:uuid entry)
         secure-uuid (:secure-uuid entry)
         org-uuid (:org-uuid entry)
@@ -43,7 +43,7 @@
 
 (defn render-digest
   ""
-  [params org _collection-type {:keys [following total-following-count] :as results} boards user]
+  [params org _collection-type {:keys [following total-following-count]} boards user]
   (let [links [(hateoas/up-link (org-urls/org org) {:accept mt/org-media-type})]]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
@@ -51,9 +51,9 @@
                     :direction (:direction params)
                     :start (:start params)
                     :has-more (> total-following-count (count following))
+                    :total-count total-following-count
                     :following (map (fn [entry]
-                                     (let [board (first (filterv #(= (:slug %) (:board-slug entry)) boards))
-                                           access-level (access/access-level-for org board user)]
-                                       (entry-for-digest org board entry (entry-rep/comments entry) access-level (:user-id user))))
+                                     (let [board (get boards (:board-uuid entry))]
+                                       (entry-for-digest org board entry (entry-rep/comments entry) (:user-id user))))
                                 following)}}
       {:pretty config/pretty?})))
