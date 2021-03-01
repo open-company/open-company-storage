@@ -18,9 +18,14 @@
 (defn- is-bookmarks? [collection-type]
   (= collection-type "bookmarks"))
 
+(defn- invert-direction [direction]
+  (case direction
+    :after :before
+    :before :after))
+
 (defn- refresh-link
   "Add a single link to reload the whole set of posts loaded until this point."
-  [org collection-type {:keys [author-uuid following unfollowing]} data]
+  [org collection-type {:keys [refresh direction author-uuid following unfollowing]} data]
   (when (seq (:activity data))
     (let [resources-list (:activity data)
           last-resource (last resources-list)
@@ -33,7 +38,11 @@
                                    (not bookmarks?)
                                    (not following)
                                    (not unfollowing))
-          refresh-url (cond->> {:refresh true :direction :after :start last-resource-date :following following :unfollowing unfollowing}
+          refresh-url (cond->> {:refresh true
+                                :direction (if refresh direction (invert-direction direction))
+                                :start last-resource-date
+                                :following following
+                                :unfollowing unfollowing}
                        replies?            (activity-urls/replies org)
                        bookmarks?          (activity-urls/bookmarks org)
                        contributions?      (activity-urls/contributions org author-uuid)
@@ -46,7 +55,7 @@
 
 (defn- pagination-link
   "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [direction author-uuid following unfollowing]} data]
+  [org collection-type {:keys [refresh direction author-uuid following unfollowing limit]} data]
   (when (seq (:activity data))
     (let [replies? (is-replies? collection-type)
           contributions? (is-contributions? collection-type)
@@ -59,9 +68,16 @@
           resources-list (:activity data)
           last-resource (last resources-list)
           last-resource-date (:sort-value last-resource)
-          next? (= (:next-count data) config/default-activity-limit)
+          ;; In case the response doesn't contains all the possible posts or
+          ;; the number of returned posts is smaller than the requested number
+          ;; we don't add a next url for pagination
+          next? (and (not= (:next-count data) (:total-count data))
+                     (= (:next-count data) limit))
           next-url (when next?
-                     (cond->> {:direction direction :start last-resource-date :following following :unfollowing unfollowing}
+                     (cond->> {:direction (if refresh (invert-direction direction) direction) ;; Next pages have always opposit direction of refresh
+                               :start last-resource-date
+                               :following following
+                               :unfollowing unfollowing}
                        replies?            (activity-urls/replies org)
                        bookmarks?          (activity-urls/bookmarks org)
                        contributions?      (activity-urls/contributions org author-uuid)
@@ -83,6 +99,7 @@
   activity for the API.
   "
   [params org collection-type activity boards-by-uuid user]
+  (println "DBG render-activity-list refresh" (:refresh params) "direction" (:direction params))
   (let [following? (:following params)
         unfollowing? (:unfollowing params)
         bookmarks? (is-bookmarks? collection-type)

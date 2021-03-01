@@ -54,12 +54,11 @@
                       (follow-parameters-map user-id (:slug org) following))
         entries (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
                                                                        follow-data last-seen-at {:container-id container-id})
-        ;; total-count (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
-        ;;                                                                 follow-data last-seen-at {:container-id container-id})
+        total-count (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc nil :before 0 allowed-boards
+                                                                           follow-data last-seen-at {:container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
-                    ;; :total-count total-count
-                    }]
+                    :total-count total-count}]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (boards-by-uuid (:board-uuid activity))]
                                                       (merge activity {
