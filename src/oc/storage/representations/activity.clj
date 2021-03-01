@@ -68,7 +68,7 @@
           resources-list (:activity data)
           last-resource (last resources-list)
           last-resource-date (:sort-value last-resource)
-          ;; In case the response doesn't contains all the possible posts or
+          ;; In case the response contains all the possible posts or
           ;; the number of returned posts is smaller than the requested number
           ;; we don't add a next url for pagination
           next? (and (not= (:next-count data) (:total-count data))
@@ -99,7 +99,6 @@
   activity for the API.
   "
   [params org collection-type activity boards-by-uuid user]
-  (println "DBG render-activity-list refresh" (:refresh params) "direction" (:direction params))
   (let [following? (:following params)
         unfollowing? (:unfollowing params)
         bookmarks? (is-bookmarks? collection-type)
