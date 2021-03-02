@@ -18,7 +18,7 @@
 (defn- is-bookmarks? [collection-type]
   (= collection-type "bookmarks"))
 
-(defn- invert-direction [direction]
+(defn invert-direction [direction]
   (case direction
     :after :before
     :before :after))
@@ -69,10 +69,11 @@
           last-resource (last resources-list)
           last-resource-date (:sort-value last-resource)
           ;; In case the response contains all the possible posts or
-          ;; the number of returned posts is smaller than the requested number
+          ;; the number of returned posts is smaller than the requested number (not on refresh)
           ;; we don't add a next url for pagination
           next? (and (not= (:next-count data) (:total-count data))
-                     (= (:next-count data) limit))
+                     (or refresh
+                         (= (:next-count data) limit)))
           next-url (when next?
                      (cond->> {:direction (if refresh (invert-direction direction) direction) ;; Next pages have always opposit direction of refresh
                                :start last-resource-date

@@ -9,6 +9,7 @@
             [oc.storage.urls.board :as board-urls]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.representations.entry :as entry-rep]
+            [oc.storage.representations.activity :as activity-rep]
             [oc.storage.resources.reaction :as reaction-res]))
 
 (defn drafts-board? [board]
@@ -54,24 +55,32 @@
 
 (defn- pagination-link
   "Add `next` links for pagination as needed."
-  [org board {:keys [direction]} data]
+  [org board {:keys [direction refresh limit]} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
         last-activity-date (when activity? (:sort-value last-activity))
-        next? (= (:next-count data) config/default-activity-limit)
-        next-url (when next? (board-urls/board org board {:start last-activity-date :direction direction}))
+        ;; In case the response contains all the possible posts or
+        ;; the number of returned posts is smaller than the requested number (not on refresh)
+        ;; we don't add a next url for pagination
+        next? (and (not= (:next-count data) (:total-count data))
+                   (or refresh
+                       (= (:next-count data) limit)))
+        next-url (when next? (board-urls/board org board {:start last-activity-date
+                                                          :direction (if refresh (activity-rep/invert-direction direction) direction)}))
         next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
     next-link))
 
 (defn- refresh-link
   "Add `next` links for pagination as needed."
-  [org board _params data]
+  [org board {refresh :refresh direction :direction} data]
   (let [activity (:entries data)
         activity? (not-empty activity)
         last-activity (last activity)
         last-activity-date (when activity? (:sort-value last-activity))
-        refresh-url (board-urls/board org board {:start last-activity-date :direction :after})
+        refresh-url (board-urls/board org board {:start last-activity-date
+                                                 :direction (if refresh direction (activity-rep/invert-direction direction))
+                                                 :refresh true})
         ref-link (when refresh-url (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/board-media-type}))]
     ref-link))
 

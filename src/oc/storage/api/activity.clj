@@ -52,10 +52,10 @@
         follow? (or following unfollowing)
         follow-data (when follow?
                       (follow-parameters-map user-id (:slug org) following))
+        total-count (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc nil :before 0 allowed-boards
+                                                                           follow-data last-seen-at {:container-id container-id :count true})
         entries (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
                                                                        follow-data last-seen-at {:container-id container-id})
-        total-count (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc nil :before 0 allowed-boards
-                                                                           follow-data last-seen-at {:container-id container-id})
         activities {:next-count (count entries)
                     :direction direction
                     :total-count total-count}]

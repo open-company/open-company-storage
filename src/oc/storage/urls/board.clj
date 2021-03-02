@@ -1,10 +1,11 @@
 (ns oc.storage.urls.board
   (:require [defun.core :refer (defun)]
-            [oc.storage.urls.org :as org-urls]))
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.activity :as activity-urls]))
 
 (defun board
   ([org board-slug :guard string? params :guard map?]
-    (str (board org board-slug) "?start=" (:start params) "&direction=" (name (:direction params))))
+    (activity-urls/parametrize (board org board-slug) params))
 
   ([org board-slug :guard string?]
    (str (org-urls/boards org) "/" board-slug))
