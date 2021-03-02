@@ -91,7 +91,7 @@
 
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
-  [org activity comments reactions board user-id]
+  [org board activity comments reactions user-id]
   (entry-rep/render-entry-for-collection org board activity comments reactions (select-keys board [:access-level :role :premium?]) user-id))
 
 (defn render-activity-list
@@ -157,9 +157,9 @@
                      :total-count (:total-count activity)
                      :items (map (fn [entry]
                                    (render-activity-for-collection org entry
+                                                                   (get boards-by-uuid (:board-uuid entry))
                                                                    (entry-rep/comments entry)
                                                                    (reaction-res/aggregate-reactions (entry-rep/reactions entry))
-                                                                   (get boards-by-uuid (:board-uuid entry))
                                                                    (:user-id user)))
                                  (:activity activity))})}
       {:pretty config/pretty?})))
