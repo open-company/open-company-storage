@@ -115,18 +115,21 @@
       (as-> (r/table table-name) query
         (r/get-all query index-value {:index index-name})
         (if-not count?
-          (r/order-by query (order-fn index-name))
-          query)
-        (if (or dir-filter
-                (not count?))
           (r/merge query (r/fn [row]
-            {:sort-value (r/get-field row [:bookmarks (keyword user-id) :bookmarked-at])}))
+            {:sort-value (-> row
+                             (r/get-field :bookmarks)
+                             (r/nth 0)
+                             (r/get-field :bookmarked-at))}))
           query)
         ;; Filter out:
         (if dir-filter
           (r/filter query (r/fn [row]
             ;; All records after/before the start
             (dir-filter row)))
+          query)
+        ;; Order by sort value
+        (if-not count?
+          (r/order-by query (order-fn :sort-value))
           query)
            ;; Apply count if needed
         (if count? (r/count query) query)
