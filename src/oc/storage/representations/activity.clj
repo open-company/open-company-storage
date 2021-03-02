@@ -156,8 +156,9 @@
                      :start (:start params)
                      :total-count (:total-count activity)
                      :items (map (fn [entry]
-                                   (render-activity-for-collection org entry
+                                   (render-activity-for-collection org
                                                                    (get boards-by-uuid (:board-uuid entry))
+                                                                   entry
                                                                    (entry-rep/comments entry)
                                                                    (reaction-res/aggregate-reactions (entry-rep/reactions entry))
                                                                    (:user-id user)))
