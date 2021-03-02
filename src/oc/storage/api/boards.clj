@@ -345,11 +345,10 @@
                                            (board-res/get-board conn org-uuid slug)))
                                ;; For drafts board we need to return all the boards or users will be
                                ;; cut out of their own drafts
-                               boards (board-res/list-boards-by-org conn org-uuid activity-api/board-props)
-                               boards-map (zipmap (map :uuid boards) boards)]
+                               boards-by-uuid (activity-api/user-boards-by-uuid conn (:user ctx) org)]
                         {:existing-org (api-common/rep org)
                          :existing-board (api-common/rep board)
-                         :existing-org-boards (api-common/rep boards-map)}
+                         :existing-org-boards (api-common/rep boards-by-uuid)}
                         false))
 
   ;; Actions

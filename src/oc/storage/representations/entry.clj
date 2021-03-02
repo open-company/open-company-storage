@@ -251,48 +251,60 @@
                            :last-activity-at (when enrich-entry?
                                                (entry-last-activity-at user-id entry-with-comments))}
                           entry)
-        reaction-list (if (= access-level :public)
+        reaction-list (if (or draft? (= access-level :public))
                         []
                         (content/reactions-and-links org-uuid board-uuid entry-uuid reactions user-id))
-        comment-list (if (= access-level :public)
+        comment-list (if (or draft? (= access-level :public))
                         []
                         (take config/inline-comment-count (reverse (sort-by :created-at comments))))
-        bookmarks-link (when (not= access-level :public)
+        bookmarks-link (when (and (not draft?) (not= access-level :public))
                          (if bookmark
                            (remove-bookmark-link org-slug board-slug entry-uuid)
                            (add-bookmark-link org-slug board-slug entry-uuid)))
         user-visibility (when user-id
                           (some (fn [[k v]] (when (= k (keyword user-id)) v)) (:user-visibility entry)))
-        user-visibility-link (if (:unfollow user-visibility)
-                               (follow-link org-slug board-slug entry-uuid)
-                               (unfollow-link org-slug board-slug entry-uuid))
-        home-pin-link (pin-link "home-pin" org-slug board-slug entry-uuid config/seen-home-container-id)
-        board-pin-link (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid)
+        user-visibility-link (when-not draft?
+                               (if (:unfollow user-visibility)
+                                 (follow-link org-slug board-slug entry-uuid)
+                                 (unfollow-link org-slug board-slug entry-uuid)))
+        home-pin-link (when-not draft?
+                        (pin-link "home-pin" org-slug board-slug entry-uuid config/seen-home-container-id))
+        board-pin-link (when-not draft?
+                         (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid))
         member? (or (= role :member) (#{:author :viewer} access-level))
+        entry-author? (= user-id (:user-id (first (:author entry))))
         links (cond-> []
                ;; secure UUID access
                secure-access?
                (conj (secure-self-link org-slug secure-uuid))
                ;; normal access
-               (not secure-access?)
+               (and (seq board-slug)
+                    (not secure-access?))
                (concat [(self-link org-slug board-slug entry-uuid)
                         (up-link org-slug board-slug)])
                ;; Generic links for all team members: share, bookmark and user-visibility
-               (and (not secure-access?)
+               (and (not draft?)
+                    (not secure-access?)
                     member?)
                (concat [(share-link org-slug board-slug entry-uuid)
                         bookmarks-link
                         user-visibility-link])
                ;; Add home and board pin links if user is a member (clients will limit home pins from private boards)
-               (and (not secure-access?)
+               (and (or home-pin-link board-pin-link)
+                    (not secure-access?)
                     member?)
                (concat [home-pin-link board-pin-link])
-               ;; Only admins and the owner can edit or delete the entry
+               ;; Edit/delete can be done by:
+               ;; - admins if the post is published
+               ;; - only the author if he has still author access to the board
+               ;; In case the user was removed from the board they can still see the draft and copy the content
+               ;; no edit/publish/delete though
                (and (not secure-access?)
-                    (or draft?
-                        (= role :admin)
-                        (and (= access-level :author)
-                             (= user-id (:user-id (first (:author entry)))))))
+                    (or (and (not draft?)
+                             (= role :admin))
+                        (and draft?
+                             (= access-level :author)
+                             entry-author?)))
                (concat [(partial-update-link org-slug board-slug entry-uuid)
                         (delete-link org-slug board-slug entry-uuid)
                         (revert-link org-slug board-slug entry-uuid)])
@@ -302,19 +314,25 @@
                     (= access-level :author))
                (conj (secure-link org-slug secure-uuid))
                ;; Team members always get links to read and add comments
-               member?
+               (and (not draft?)
+                    member?)
                (concat [(content/comment-link org-uuid board-uuid entry-uuid)
                         (content/comments-link org-uuid board-uuid entry-uuid comments)])
                ;; Team members always get the mark unread except on secure access
-               (and member?
+               (and (not draft?)
+                    member?
                     (not secure-access?))
                (conj (content/mark-unread-link entry-uuid))
                ;; All memebers can react but only if there are less than x reactions
-               (and member?
+               (and (not draft?)
+                    member?
                     (< (count reaction-list) config/max-reaction-count))
                (conj (react-link org board entry-uuid))
-               ;; Drafts need a publish link
-               draft?
+               ;; Drafts need a publish link if user is the author of the post
+               ;; and has still access to the board
+               (and draft?
+                    (= access-level :author)
+                    entry-author?)
                (conj (publish-link org-slug board-slug entry-uuid)))]
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
