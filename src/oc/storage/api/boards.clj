@@ -12,6 +12,7 @@
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
+            [oc.storage.api.activity :as activity-api]
             [oc.storage.api.entries :as entries-api]
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
@@ -342,9 +343,12 @@
                                            (board-res/drafts-board org-uuid (:user ctx))
                                            ;; Regular board by slug
                                            (board-res/get-board conn org-uuid slug)))
-                               boards (board-res/list-boards-by-org conn org-uuid)
+                               ;; For drafts board we need to return all the boards or users will be
+                               ;; cut out of their own drafts
+                               boards (board-res/list-boards-by-org conn org-uuid activity-api/board-props)
                                boards-map (zipmap (map :uuid boards) boards)]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
+                        {:existing-org (api-common/rep org)
+                         :existing-board (api-common/rep board)
                          :existing-org-boards (api-common/rep boards-map)}
                         false))
 
