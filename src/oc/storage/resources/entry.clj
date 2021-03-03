@@ -381,15 +381,14 @@
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (let [index-name (if allowed-boards
+  (let [index-name (if (sequential? allowed-boards)
                      :status-board-uuid
                      :status-org-uuid)
-        index-value (if allowed-boards
+        index-value (if (sequential? allowed-boards)
                       (map #(vec [:published (:uuid %)]) allowed-boards)
-                      [[:published org-uuid]])
-        filter-map [{:fn :contains :value (map :uuid allowed-boards) :field :board-uuid}]]
+                      [[:published org-uuid]])]
     (db-common/read-all-resources-and-relations conn table-name index-name index-value "published-at" order
-                                                           start direction filter-map :interactions common/interaction-table-name
+                                                           start direction :interactions common/interaction-table-name
                                                            :uuid :resource-uuid list-comment-properties
                                                            {:count count? :container-id container-id}))))
 
