@@ -183,8 +183,9 @@
         (assoc :direction (:direction params))
         (assoc :start (:start params))
         (board-links (:slug org) access-level params)
-        (assoc :entries (map #(let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
-                                (render-entry-for-collection org entry-board % access (-> ctx :user :user-id)))
-                         (:entries board)))
+        (assoc :entries (remove nil?
+                                (map #(when-let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
+                                        (render-entry-for-collection org entry-board % access (-> ctx :user :user-id)))
+                                     (:entries board))))
         (select-keys rep-props))
       {:pretty config/pretty?})))
