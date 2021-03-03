@@ -5,15 +5,14 @@
             [clojure.set :as clj-set]
             [compojure.core :as compojure :refer (ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
-            [clojure.walk :refer (keywordize-keys)]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
-            [oc.lib.time :as oc-time]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
+            [oc.storage.api.activity :as activity-api]
             [oc.storage.api.entries :as entries-api]
             [oc.storage.async.notification :as notification]
             [oc.storage.representations.media-types :as mt]
@@ -26,10 +25,8 @@
 
 ;; ----- Utility functions -----
 
-(defn- default-board-params []
-  {:sort-type :recent-activity
-   :start (oc-time/now-ts)
-   :direction :before
+(def default-board-params
+  {:direction :before
    :limit 0})
 
 (defn- assemble-board
@@ -46,12 +43,9 @@
                   :total-count (count entries)})))
 
   ;; Regular paginated board
-  ([conn _org board {start :start direction :direction must-see :must-see sort-type :sort-type limit :limit} _ctx]
-  (let [total-count (entry-res/paginated-entries-by-board conn board :asc (oc-time/now-ts) :before
-                     0 :recently-posted {:must-see must-see :status :published :count true :container-id (:uuid board)})
-        order (if (= direction :before) :desc :asc)
-        entries (entry-res/paginated-entries-by-board conn board order start direction
-                 limit sort-type {:must-see must-see :status :published :container-id (:uuid board)})]
+  ([conn board {start :start direction :direction limit :limit}]
+  (let [total-count (entry-res/paginated-recently-posted-entries-by-board conn board :desc nil :before 0 {:status :published :count true :container-id (:uuid board)})
+        entries (entry-res/paginated-recently-posted-entries-by-board conn board :desc start direction limit {:status :published :container-id (:uuid board)})]
     ;; Give each activity its board name
     (merge board {:next-count (count entries)
                   :direction direction
@@ -234,7 +228,7 @@
                               ;; retrieve the board again to get final list of members
                               (board-res/get-board conn (:uuid board-result)))]
           (notification/send-trigger! (notification/->trigger :add org {:new created-board :notifications notifications} user invitation-note))
-          {:created-board (api-common/rep (assemble-board conn org created-board (default-board-params) ctx))}))
+          {:created-board (api-common/rep (assemble-board conn created-board default-board-params))}))
     
     (do (timbre/error "Failed creating board for org:" org-slug) false))))
 
@@ -315,18 +309,17 @@
 
   :malformed? (by-method {
     :options false
-    :get (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+    :get (fn [ctx] (let [ctx-params (-> ctx :request :params)
                          start (:start ctx-params)
-                         valid-start? (if start (try (Long. start) (catch java.lang.NumberFormatException _ false)) true)
-                         valid-sort? (or (not (contains? ctx-params :sort))
-                                         (= (:sort ctx-params) "activity"))
+                         valid-start? (or (string? start)
+                                          (nil? start))
                          direction (keyword (:direction ctx-params))
                          ;; no direction is OK, but if specified it's from the allowed enumeration of options
                          valid-direction? (if direction (#{:before :after} direction) true)
                          ;; a specified start/direction must be together or ommitted
                          pairing-allowed? (or (and start direction)
                                               (and (not start) (not direction)))]
-                     (not (and valid-start? valid-sort? valid-direction? pairing-allowed?))))
+                     (not (and valid-start? valid-direction? pairing-allowed?))))
     :patch (fn [ctx] (api-common/malformed-json? ctx))
     :delete false})
 
@@ -346,14 +339,16 @@
                                board (or (:existing-board ctx)
                                          (if (and (= slug (:slug board-res/default-drafts-board))
                                                   (lib-schema/valid? lib-schema/User (:user ctx)))
-                                            ;; Draft board for the user
-                                            (board-res/drafts-board org-uuid (:user ctx))
-                                            ;; Regular board by slug
-                                            (board-res/get-board conn org-uuid slug)))
-                               boards (board-res/list-boards-by-org conn org-uuid)
-                               boards-map (zipmap (map :uuid boards) boards)]
-                        {:existing-org (api-common/rep org) :existing-board (api-common/rep board)
-                         :existing-org-boards (api-common/rep boards-map)}
+                                           ;; Draft board for the user
+                                           (board-res/drafts-board org-uuid (:user ctx))
+                                           ;; Regular board by slug
+                                           (board-res/get-board conn org-uuid slug)))
+                               ;; For drafts board we need to return all the boards or users will be
+                               ;; cut out of their own drafts
+                               boards-by-uuid (activity-api/user-boards-by-uuid conn (:user ctx) org)]
+                        {:existing-org (api-common/rep org)
+                         :existing-board (api-common/rep board)
+                         :existing-org-boards (api-common/rep boards-by-uuid)}
                         false))
 
   ;; Actions
@@ -361,22 +356,20 @@
   :delete! (fn [ctx] (delete-board conn ctx org-slug slug))
   
   ;; Responses
-  :handle-ok (fn [ctx] (let [ctx-params (-> ctx :request :params keywordize-keys)
+  :handle-ok (fn [ctx] (let [ctx-params (-> ctx :request :params)
                              org (:existing-org ctx)
                              board (or (:updated-board ctx) (:existing-board ctx))
                              drafts-board? (board-rep/drafts-board? board)
                              params (when-not drafts-board?
                                       (-> ctx-params
                                        (dissoc :org-slug)
-                                       (update :start #(if % (Long. %) (oc-time/now-ts)))  ; default is now
                                        (update :direction #(if % (keyword %) :before)) ; default is before
                                        (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                                        0 ;; In case of a digest request or if a refresh request
-                                                       config/default-activity-limit)) ;; fallback to the default pagination otherwise
-                                       (assoc :sort-type (if (= (:sort ctx-params) "activity") :recent-activity :recently-posted))))
+                                                       config/default-activity-limit)))) ;; fallback to the default pagination otherwise
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
-                                          (assemble-board conn org board params ctx))]
+                                          (assemble-board conn board params))]
                          (board-rep/render-board org full-board ctx params)))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
@@ -429,7 +422,7 @@
                               (if pre-flight?
                                 (api-common/blank-response)
                                 (api-common/location-response (board-urls/board org-slug board-slug)
-                                                              (board-rep/render-board org new-board ctx (default-board-params))
+                                                              (board-rep/render-board org new-board ctx default-board-params)
                                                               mt/board-media-type))))
   :handle-unprocessable-entity (fn [ctx]
     (api-common/unprocessable-entity-response (:reason ctx))))

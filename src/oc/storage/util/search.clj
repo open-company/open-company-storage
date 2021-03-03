@@ -13,12 +13,10 @@
             [clojure.tools.cli :refer (parse-opts)]
             [taoensso.timbre :as timbre]
             [oc.storage.config :as config]
-            [oc.lib.db.common :as db-common]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.lib.db.pool :as db]
-            [oc.storage.config :as c])
+            [oc.lib.db.pool :as db])
   (:gen-class))
 
 (defn exit [status msg]
@@ -87,6 +85,6 @@
       (not= (count arguments) 0) (exit 1 (usage summary))
       errors (exit 1 (error-msg errors)))
 
-    (let [conn (db/init-conn c/db-options)]
+    (let [conn (db/init-conn config/db-options)]
       (println "Indexing all entries.")
       (index-all-entries conn))))

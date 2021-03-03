@@ -2,7 +2,7 @@
     (:require [oc.storage.urls.org :as org-urls]
               [cuerdas.core :as string]))
 
-(def allowed-parameter-keys  [:start :sort-type :direction :following :unfollowing])
+(def allowed-parameter-keys  [:start :direction :following :unfollowing :refresh])
 
 (defn parametrize [url parameters-dict]
   (let [concat? (#{"?" "&"} (last url))
@@ -19,57 +19,56 @@
 
 ;; Urls
 
-(defn collection ;; inbox-url
+(defn collection
 
-  ([collection-type org]
+  ([org collection-type]
    (org-urls/org-container org collection-type))
 
-  ([collection-type org url-params]
-   (parametrize (collection collection-type org) url-params)))
-
-(defn inbox-dismiss-all [org] ;; dismiss-all-url
-  (str (org-urls/inbox org) "/dismiss"))
+  ([org collection-type url-params]
+   (parametrize (collection org collection-type) url-params)))
 
 (defn activity ;; url
-  ([collection-type {slug :slug} sort-type]
-   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
-     (str (collection collection-type slug) sort-path)))
+  ([org collection-type]
+   (collection org collection-type))
 
-  ([collection-type org sort-type url-params]
-   (parametrize (activity collection-type org sort-type) url-params)))
+  ([org collection-type url-params]
+   (collection org collection-type url-params)))
 
 (defn replies
   ([org] (org-urls/replies org))
   ([org url-params]
    (parametrize (replies org) url-params)))
 
-(defn follow
-  ([collection-type org-slug sort-type]
-   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity&")]
-     (str (org-urls/org-container org-slug collection-type) sort-path)))
+(defn bookmarks
+  ([org] (org-urls/bookmarks org))
+  ([org url-params]
+   (parametrize (bookmarks org) url-params)))
 
-  ([collection-type org-slug sort-type url-params]
-   (parametrize (follow collection-type org-slug sort-type) url-params)))
+(defn follow
+  ([org collection-type]
+   (org-urls/org-container org collection-type))
+
+  ([org collection-type url-params]
+   (parametrize (follow org collection-type) url-params)))
 
 (defn following
-  ([collection-type {slug :slug} sort-type]
-   (follow collection-type slug sort-type {:following true}))
+  ([org collection-type]
+   (follow org collection-type {:following true}))
 
-  ([collection-type {slug :slug} sort-type params]
-   (follow collection-type slug sort-type params)))
+  ([org collection-type params]
+   (follow org collection-type params)))
 
 (defn unfollowing
-  ([collection-type {slug :slug} sort-type]
-   (follow collection-type slug sort-type {:unfollowing true}))
+  ([org collection-type]
+   (follow org collection-type {:unfollowing true}))
 
-  ([collection-type {slug :slug} sort-type params]
-   (follow collection-type slug sort-type params)))
+  ([org collection-type params]
+   (follow org collection-type params)))
 
 (defn contributions
 
-  ([{slug :slug} author-uuid sort-type]
-   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity&")]
-     (str (org-urls/contribution slug author-uuid) sort-path)))
+  ([org author-uuid]
+   (org-urls/contribution org author-uuid))
 
-  ([org author-uuid sort-type url-params]
-   (parametrize (contributions org author-uuid sort-type) url-params)))
+  ([org author-uuid url-params]
+   (parametrize (contributions org author-uuid) url-params)))

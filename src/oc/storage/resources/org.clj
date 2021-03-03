@@ -1,6 +1,7 @@
 (ns oc.storage.resources.org
   (:require [clojure.walk :refer (keywordize-keys)]
             [clojure.set :as clj-set]
+            [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
@@ -113,8 +114,10 @@
   "
   [conn org :- common/Org]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
-    (db-common/current-timestamp)))
+  (timbre/info "Creating org" (:uuid org) (:name org))
+  (let [created-org (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
+                     (db-common/current-timestamp))]
+    created-org))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
   "Given the slug or UUID of the org, return the org, or return nil if it doesn't exist."

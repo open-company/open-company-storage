@@ -8,6 +8,7 @@
     [clojure.java.io :as j-io]
     [ring.logger.timbre :refer (wrap-with-logger)]
     [liberator.dev :refer (wrap-trace)]
+    [ring.middleware.keyword-params :refer (wrap-keyword-params)]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
     [ring.middleware.cookies :refer (wrap-cookies)]
@@ -65,8 +66,6 @@
     (when-not (clj-string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
     "Unread limit: " c/unread-days-limit " days\n"
-    "Unseen cap days: " c/unseen-cap-days " days\n"
-    "Pins sort pivot days: " c/pins-sort-pivot-days " days\n\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition
@@ -76,6 +75,7 @@
      ; important that this is second
     c/dsn             (sentry/wrap c/sentry-config)
     true              wrap-with-logger
+    true              wrap-keyword-params
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
     true              wrap-cookies

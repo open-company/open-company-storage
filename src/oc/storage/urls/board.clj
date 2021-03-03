@@ -1,21 +1,17 @@
 (ns oc.storage.urls.board
   (:require [defun.core :refer (defun)]
-            [oc.storage.urls.org :as org-urls]))
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.activity :as activity-urls]))
 
 (defun board
-  ([org board-slug :guard string? sort-type :guard keyword? params :guard map?]
-    (let [concat-str (if (= sort-type :recent-activity) "&" "?")]
-      (str (board org board-slug sort-type) concat-str "start=" (:start params) "&direction=" (name (:direction params)))))
+  ([org board-slug :guard string? params :guard map?]
+    (activity-urls/parametrize (board org board-slug) params))
 
-  ([org board-slug :guard string? sort-type :guard keyword?]
-   (let [sort-path (when (= sort-type :recent-activity) "?sort=activity")]
-     (str (org-urls/boards org) "/" board-slug sort-path)))
+  ([org board-slug :guard string?]
+   (str (org-urls/boards org) "/" board-slug))
 
   ([org board-map :guard map?]
-    (board org (:slug board-map) :recently-posted))
-
-  ([org slug :guard string?]
-    (board org slug :recently-posted)))
+    (board org (:slug board-map))))
 
 (defn create
   [org board-type]
