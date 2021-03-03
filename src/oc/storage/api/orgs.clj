@@ -176,13 +176,7 @@
     (vec (remove nil? (cons updated-self (vec updated-other-users))))))
 
 (defn read-data-for-entries [org allowed-boards-map entries active-users user-id]
-  (let [entry-uuids (map :uuid entries)
-        all-read-data (read/retrieve-by-org config/dynamodb-opts (:uuid org))
-        entry-uuid-set (set entry-uuids)
-        cleaned-users (sort-users user-id active-users)
-        filtered-read-data (filter (comp entry-uuid-set :item-id) all-read-data)
-        entry-user-key (fn [entry-id user-id] (str entry-id "-" user-id))
-        all-reads-map (into {} (map #(hash-map (entry-user-key (:item-id %) (:user-id %)) %) filtered-read-data))
+  (let [cleaned-users (sort-users user-id active-users)
         users-for-board-cache (atom {})
         csv-users-for-entry (fn [board entry]
                               (let [cached-users-list (get @users-for-board-cache (:uuid board))
@@ -192,11 +186,13 @@
                                                    (filterv #(or ((set (:viewers board)) (:user-id %))
                                                                 ((set (:authors board)) (:user-id %)))
                                                            cleaned-users)
-                                                   cleaned-users))]
+                                                   cleaned-users))
+                                    item-reads (read/retrieve-by-item config/dynamodb-opts (:uuid entry))
+                                    item-reads-map (zipmap (map :user-id item-reads) item-reads)]
                                 (when-not cached-users-list
                                   (swap! users-for-board-cache assoc (:uuid board) users-list))
                                 (map #(assoc % :read-at
-                                            (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
+                                            (get-in item-reads-map [(:user-id %) :read-at]))
                                     users-list)))
         with-entries-data (map #(let [board (get allowed-boards-map (:board-uuid %))
                                       csv-users (csv-users-for-entry board %)
