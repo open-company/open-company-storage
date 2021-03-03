@@ -24,70 +24,66 @@
     :before :after))
 
 (defn- refresh-link
-  "Add a single link to reload the whole set of posts loaded until this point."
+  "Add `refresh` links for pagination as needed to reload the whole set the client holds."
   [org collection-type {:keys [refresh direction author-uuid following unfollowing]} data]
   (when (seq (:activity data))
-    (let [resources-list (:activity data)
-          last-resource (last resources-list)
-          last-resource-date (:sort-value last-resource)
-          replies? (is-replies? collection-type)
-          contributions? (is-contributions? collection-type)
-          bookmarks? (is-bookmarks? collection-type)
-          no-collection-type? (and (not replies?)
-                                   (not contributions?)
-                                   (not bookmarks?)
-                                   (not following)
-                                   (not unfollowing))
-          refresh-url (cond->> {:refresh true
-                                :direction (if refresh direction (invert-direction direction))
-                                :start last-resource-date
-                                :following following
-                                :unfollowing unfollowing}
-                       replies?            (activity-urls/replies org)
-                       bookmarks?          (activity-urls/bookmarks org)
-                       contributions?      (activity-urls/contributions org author-uuid)
-                       following           (activity-urls/following org collection-type)
-                       unfollowing         (activity-urls/unfollowing org collection-type)
-                       ;; else
-                       no-collection-type? (activity-urls/activity org collection-type))]
-      (when refresh-url
-        (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/entry-collection-media-type})))))
+    (let [refresh-start (-> data :activity last :sort-value)
+          refresh-direction (if refresh direction (invert-direction direction))
+          refresh-params {:refresh true
+                          :direction refresh-direction
+                          :start refresh-start
+                          :following following
+                          :unfollowing unfollowing}
+          refresh-url (cond (is-replies? collection-type)
+                            (activity-urls/replies org refresh-params)
+
+                            (is-bookmarks? collection-type)
+                            (activity-urls/bookmarks org refresh-params)
+
+                            (is-contributions? collection-type)
+                            (activity-urls/contributions org author-uuid refresh-params)
+
+                            following
+                            (activity-urls/following org collection-type refresh-params)
+
+                            unfollowing
+                            (activity-urls/unfollowing org collection-type refresh-params)
+
+                            :else
+                            (activity-urls/activity org collection-type refresh-params))]
+      (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/entry-collection-media-type}))))
 
 (defn- pagination-link
-  "Add `next` and/or `prior` links for pagination as needed."
-  [org collection-type {:keys [refresh direction author-uuid following unfollowing limit]} data]
-  (when (seq (:activity data))
-    (let [replies? (is-replies? collection-type)
-          contributions? (is-contributions? collection-type)
-          bookmarks? (is-bookmarks? collection-type)
-          no-collection-type? (and (not replies?)
-                                   (not contributions?)
-                                   (not is-bookmarks?)
-                                   (not following)
-                                   (not unfollowing))
-          resources-list (:activity data)
-          last-resource (last resources-list)
-          last-resource-date (:sort-value last-resource)
-          ;; In case the response contains all the possible posts or
-          ;; the number of returned posts is smaller than the requested number (not on refresh)
-          ;; we don't add a next url for pagination
-          next? (and (not= (:next-count data) (:total-count data))
-                     (or refresh
-                         (= (:next-count data) limit)))
-          next-url (when next?
-                     (cond->> {:direction (if refresh (invert-direction direction) direction) ;; Next pages have always opposit direction of refresh
-                               :start last-resource-date
-                               :following following
-                               :unfollowing unfollowing}
-                       replies?            (activity-urls/replies org)
-                       bookmarks?          (activity-urls/bookmarks org)
-                       contributions?      (activity-urls/contributions org author-uuid)
-                       following           (activity-urls/following org collection-type)
-                       unfollowing         (activity-urls/unfollowing org collection-type)
-                       ;; else
-                       no-collection-type? (activity-urls/activity org collection-type)))]
-      (when next-url
-        (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type})))))
+  "Add `next` link for pagination as needed."
+  [org collection-type {:keys [refresh direction author-uuid following unfollowing limit] :as params} {total-count :total-count next-count :next-count :as data}]
+  (when (and (seq (:activity data))         ;; No need of refresh if there are no posts
+             (not= next-count total-count)  ;; and we are NOT returning the whole set already
+             (or refresh                    ;; and if this is a refresh request already
+                 (= next-count limit)))     ;;    or the page is full
+    (let [pagination-start (-> data :activity last :sort-value)
+          pagination-direction (if refresh (invert-direction direction) direction) ;; Next pages have always opposit direction of refresh
+          pagination-params {:direction pagination-direction
+                             :start pagination-start
+                             :following following
+                             :unfollowing unfollowing}
+          next-url (cond (is-replies? collection-type)
+                         (activity-urls/replies org pagination-params)
+
+                         (is-bookmarks? collection-type)
+                         (activity-urls/bookmarks org pagination-params)
+
+                         (is-contributions? collection-type)
+                         (activity-urls/contributions org author-uuid pagination-params)
+
+                         following
+                         (activity-urls/following org collection-type pagination-params)
+
+                         unfollowing
+                         (activity-urls/unfollowing org collection-type pagination-params)
+
+                         :else
+                         (activity-urls/activity org collection-type pagination-params))]
+      (hateoas/link-map "next" hateoas/GET next-url {:accept mt/entry-collection-media-type}))))
 
 (defn render-activity-for-collection
   "Create a map of the activity for use in a collection in the API"
