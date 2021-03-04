@@ -55,34 +55,27 @@
 
 (defn- pagination-link
   "Add `next` links for pagination as needed."
-  [org board {:keys [direction refresh limit]} data]
-  (let [activity (:entries data)
-        activity? (not-empty activity)
-        last-activity (last activity)
-        last-activity-date (when activity? (:sort-value last-activity))
-        ;; In case the response contains all the possible posts or
-        ;; the number of returned posts is smaller than the requested number (not on refresh)
-        ;; we don't add a next url for pagination
-        next? (and (not= (:next-count data) (:total-count data))
-                   (or refresh
-                       (= (:next-count data) limit)))
-        next-url (when next? (board-urls/board org board {:start last-activity-date
-                                                          :direction (if refresh (activity-rep/invert-direction direction) direction)}))
-        next-link (when next-url (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))]
-    next-link))
+  [org board {:keys [direction refresh limit]} {total-count :total-count next-count :next-count :as data}]
+  (when (and (seq (:entries data))
+             (not= next-count total-count)
+             (or refresh
+                 (= next-count limit)))
+    (let [pagination-start (-> data :entries last :sort-value)
+          pagination-direction (if refresh (activity-rep/invert-direction direction) direction)
+          next-url (board-urls/board org board {:start pagination-start
+                                                :direction pagination-direction})]
+      (hateoas/link-map "next" hateoas/GET next-url {:accept mt/board-media-type}))))
 
 (defn- refresh-link
-  "Add `next` links for pagination as needed."
+  "Add `refresh` links for pagination as needed to reload the whole set the client holds."
   [org board {refresh :refresh direction :direction} data]
-  (let [activity (:entries data)
-        activity? (not-empty activity)
-        last-activity (last activity)
-        last-activity-date (when activity? (:sort-value last-activity))
-        refresh-url (board-urls/board org board {:start last-activity-date
-                                                 :direction (if refresh direction (activity-rep/invert-direction direction))
-                                                 :refresh true})
-        ref-link (when refresh-url (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/board-media-type}))]
-    ref-link))
+  (when (seq (:entries data))
+    (let [refresh-start (-> data :entries last :sort-value)
+          refresh-direction (if refresh direction (activity-rep/invert-direction direction))
+          refresh-url (board-urls/board org board {:start refresh-start
+                                                   :direction refresh-direction
+                                                   :refresh true})]
+      (hateoas/link-map "refresh" hateoas/GET refresh-url {:accept mt/board-media-type}))))
 
 (defn- board-collection-links [board org-slug draft-count ctx]
   (let [board-slug (:slug board)
@@ -162,7 +155,7 @@
 (defn render-board
   "Create a JSON representation of the board for the REST API"
   [org board ctx params]
-  (let [{:keys [access-level] :as access} (select-keys ctx [:access-level :role])
+  (let [{access-level :access-level :as board-access} (select-keys ctx [:access-level :role :premium?])
         viewer-or-author? (or (= :author access-level) (= :viewer access-level))
         is-drafts-board? (drafts-board? board)
         rep-props (cond viewer-or-author?
@@ -172,19 +165,28 @@
                         :else
                         public-representation-props)
         boards-map (:existing-org-boards ctx)
-        authors (:authors board)
-        author-reps (map #(render-author-for-collection (:slug org) (:slug board) % access-level) authors)
-        viewers (:viewers board)
-        viewer-reps (map #(render-viewer-for-collection (:slug org) (:slug board) % access-level) viewers)]
+        author-reps (when-not is-drafts-board?
+                      (map #(render-author-for-collection (:slug org) (:slug board) % access-level) (:authors board)))
+        viewer-reps (when-not is-drafts-board?
+                      (map #(render-viewer-for-collection (:slug org) (:slug board) % access-level) (:viewers board)))]
     (json/generate-string
-      (-> board
-        (assoc :authors author-reps)
-        (assoc :viewers viewer-reps)
-        (assoc :direction (:direction params))
-        (assoc :start (:start params))
-        (board-links (:slug org) access-level params)
-        (assoc :entries (map #(let [entry-board (if is-drafts-board? (boards-map (:board-uuid %)) board)]
-                                (render-entry-for-collection org entry-board % access (-> ctx :user :user-id)))
-                         (:entries board)))
-        (select-keys rep-props))
+      (as-> board b
+        (if is-drafts-board?
+          b
+          (assoc b :authors author-reps))
+        (if is-drafts-board?
+          b
+          (assoc b :viewers viewer-reps))
+        (assoc b :direction (:direction params))
+        (assoc b :start (:start params))
+        (board-links b (:slug org) access-level params)
+        (assoc b :entries (remove nil?
+                                  (map (fn [entry]
+                                         (let [entry-board (if is-drafts-board? (boards-map (:board-uuid entry)) board)
+                                               board-access (when entry-board
+                                                              (assoc board-access :access-level (:access-level entry-board)))]
+                                           (when entry-board
+                                             (render-entry-for-collection org entry-board entry board-access (-> ctx :user :user-id)))))
+                                       (:entries board))))
+        (select-keys b rep-props))
       {:pretty config/pretty?})))
