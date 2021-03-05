@@ -5,6 +5,7 @@
             [clojure.set :as clj-set]
             [compojure.core :as compojure :refer (ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
+            [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
@@ -118,12 +119,12 @@
     (let [valid-access-update? (valid-board-access-update? (:premium? ctx) (get-in org [:content-visibility :disallow-public-board])
                                                            `(:access original-board) (:access updating-board))
           updated-board (merge original-board (board-res/clean updating-board))
-          valid-updated-board? (lib-schema/valid? common-res/Board updated-board)]
+          not-valid-board-update? (schema/check common-res/Board updated-board)]
       (cond (not valid-access-update?)
             [false, {:reason :board-access-not-allowed}]
-            (not valid-updated-board?)
+            not-valid-board-update?
             [false, {:board-update (api-common/rep updated-board)
-                     :reason (api-common/rep valid-updated-board?)}]
+                     :reason (api-common/rep not-valid-board-update?)}]
             :else
             {:existing-org (api-common/rep org)
              :existing-board (api-common/rep original-board)
