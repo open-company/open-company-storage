@@ -216,3 +216,19 @@
             (= access-level :does-not-exist))
       access
       false))))
+
+(defn board-with-access-level
+  "
+  Merge in `access` level user is accessing this board with, and if that level is public, remove author and
+  viewer lists.
+  "
+  [org board user]
+  (let [level (access-level-for org board user)
+        public? (= :public (:access-level level))]
+    (as-> board b
+      (if public?
+        (dissoc board :authors :viewers)
+        b)
+      (if (map? level)
+        (merge b level)
+        b))))

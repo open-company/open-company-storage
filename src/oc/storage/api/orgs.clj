@@ -1,7 +1,6 @@
 (ns oc.storage.api.orgs
   "Liberator API for org resources."
-  (:require [clojure.walk :refer (keywordize-keys)]
-            [if-let.core :refer (if-let*)]
+  (:require [if-let.core :refer (if-let*)]
             [clojure.java.io :as j-io]
             [clj-time.core :as t]
             [clj-time.format :as f]
@@ -24,6 +23,7 @@
             [oc.storage.config :as config]
             [oc.storage.async.notification :as notification]
             [oc.storage.api.access :as access]
+            [oc.storage.api.activity :as activity-api]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.org :as org-rep]
             [oc.storage.representations.board :as board-rep]
@@ -31,29 +31,16 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.urls.org :as org-urls]
-            [oc.storage.urls.entry :as entry-urls]))
+            [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.resources.activity :as activity-res]
+            [oc.storage.urls.org :as org-urls]))
+
+(def org-board-props [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
 
 ;; ----- Utility functions -----
 
 (def org-name-min-length 3)
 (def org-name-max-length 50)
-
-(defn- board-with-access-level
-  "
-  Merge in `access` level user is accessing this board with, and if that level is public, remove author and
-  viewer lists.
-  "
-  [org board user]
-  (let [level (access/access-level-for org board user)
-        public? (= :public (:access-level level))]
-    (as-> board b
-      (if public?
-        (dissoc board :authors :viewers)
-        b)
-      (if (map? level)
-        (merge b level)
-        b))))
 
 (defn- default-entries-for
   "Return any sample posts for a specific board slug."
@@ -87,7 +74,7 @@
   (timbre/info "Creating sample entry:" (:headline entry) "for board:" (:board-slug entry) "of org:" (:uuid org))
   (let [ts (f/unparse lib-time/timestamp-format (t/minus (t/now) (t/minutes (or (:time-offset entry) 0))))
         board (board-res/get-board conn (:uuid org) (:board-slug entry))
-        entry-res (db-common/create-resource conn common-res/entry-table-name 
+        new-entry (db-common/create-resource conn common-res/entry-table-name 
                     (-> (entry-res/->entry conn (:uuid board)
                                                 (dissoc entry :board-slug :author :time-offset :comments :reactions)
                                                 (:author entry))
@@ -97,9 +84,9 @@
                       (assoc :updated-at ts)
                       (assoc :published-at ts)
                       (assoc :publisher (:author entry))) ts)
-        interaction-resource (merge entry entry-res)]
+        interaction-resource (merge entry new-entry)]
     ;; notify of new entry
-    (notification/send-trigger! (notification/->trigger :add org board {:new entry-res} user nil))
+    (notification/send-trigger! (notification/->trigger :add org board {:new new-entry} user nil))
     ;; create any entry interactions (comments and/or reactions) in parallel
     (doall (pmap #(create-interaction conn (:org-uuid board) % interaction-resource)
               (concat (:comments interaction-resource) (:reactions interaction-resource))))))
@@ -188,15 +175,8 @@
                        (assoc u :name (str (lib-user/name-for-csv u) " (you)")))]
     (vec (remove nil? (cons updated-self (vec updated-other-users))))))
 
-(defn read-data-for-entries [org allowed-boards entries active-users user-id]
-  (let [entry-uuids (map :uuid entries)
-        all-read-data (read/retrieve-by-org config/dynamodb-opts (:uuid org))
-        entry-uuid-set (set entry-uuids)
-        cleaned-users (sort-users user-id active-users)
-        filtered-read-data (filter (comp entry-uuid-set :item-id) all-read-data)
-        entry-user-key (fn [entry-id user-id] (str entry-id "-" user-id))
-        all-reads-map (into {} (map #(hash-map (entry-user-key (:item-id %) (:user-id %)) %) filtered-read-data))
-        allowed-boards-map (zipmap (map :uuid allowed-boards) allowed-boards)
+(defn read-data-for-entries [org allowed-boards-map entries active-users user-id]
+  (let [cleaned-users (sort-users user-id active-users)
         users-for-board-cache (atom {})
         csv-users-for-entry (fn [board entry]
                               (let [cached-users-list (get @users-for-board-cache (:uuid board))
@@ -206,11 +186,13 @@
                                                    (filterv #(or ((set (:viewers board)) (:user-id %))
                                                                 ((set (:authors board)) (:user-id %)))
                                                            cleaned-users)
-                                                   cleaned-users))]
+                                                   cleaned-users))
+                                    item-reads (read/retrieve-by-item config/dynamodb-opts (:uuid entry))
+                                    item-reads-map (zipmap (map :user-id item-reads) item-reads)]
                                 (when-not cached-users-list
                                   (swap! users-for-board-cache assoc (:uuid board) users-list))
                                 (map #(assoc % :read-at
-                                            (get-in all-reads-map [(entry-user-key (:uuid entry) (:user-id %)) :read-at]))
+                                            (get-in item-reads-map [(:user-id %) :read-at]))
                                     users-list)))
         with-entries-data (map #(let [board (get allowed-boards-map (:board-uuid %))
                                       csv-users (csv-users-for-entry board %)
@@ -329,37 +311,29 @@
                                                   (or (= (:access-level ctx) :author)
                                                       (= (:access-level ctx) :viewer)))
                              org-id (:uuid org)
-                             boards (board-res/list-boards-by-org conn org-id [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
-                             boards-with-entries-count (map #(assoc % :total-count (entry-res/list-entries-by-board conn % {:count true})) boards)
-                             boards-with-last-entry-at (map #(assoc % :last-entry-at (:created-at (entry-res/last-entry-of-board conn (:uuid %)))) boards-with-entries-count)
-                             board-access (map #(board-with-access-level org % user) boards-with-last-entry-at)
-                             allowed-boards (filter :access-level board-access)
-                             author-access-boards (filter #(= (:access-level %) :author) board-access)
+                             boards-by-uuid (activity-api/user-boards-by-uuid conn user org org-board-props)
+                             allowed-boards (map (fn [board]
+                                                   (assoc board
+                                                          :total-count (entry-res/list-entries-by-board conn board {:count true})
+                                                          :last-entry-at (:published-at (entry-res/last-entry-of-board conn (:uuid board)))))
+                                                 (vals boards-by-uuid))
+                             contrib-boards (filter #(= (:access-level %) :author) allowed-boards)
                              ;; Add the draft board
                              show-draft-board? (and ;; if user is logged in and
                                                     (seq user-id)
                                                     ;; or is an author of the org
                                                     (or (access/allow-authors conn slug user)
                                                         ;; or has at least one board with author access
-                                                        (pos? (count author-access-boards))))
+                                                        (seq contrib-boards)))
                              draft-entry-count (if show-draft-board?
                                                  (entry-res/list-drafts-by-org-author conn org-id user-id {:count true})
                                                  0)
-                             now (lib-time/now-ts)
-                            ;;  total-count (if user-is-member?
-                            ;;                (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recently-posted
-                            ;;                 allowed-boards nil {:count true})
-                            ;;                0)
                              bookmarks-count (if user-is-member?
-                                              (entry-res/list-all-bookmarked-entries conn org-id user-id allowed-boards :asc now :before
+                                              (activity-res/list-all-bookmarked-entries conn org-id user-id allowed-boards :desc nil :before
                                                0 {:count true})
                                               0)
                              follow-data (when user-is-member?
                                            (follow/retrieve config/dynamodb-opts user-id (:slug org)))
-                            ;;  user-count (if user-is-member?
-                            ;;               (entry-res/list-entries-by-org-author conn org-id user-id :asc now :before
-                            ;;                 0 :recently-posted allowed-boards nil {:count true})
-                            ;;                0)
                              full-boards (if show-draft-board?
                                             (conj allowed-boards (board-res/drafts-board org-id user))
                                             allowed-boards)
@@ -367,31 +341,31 @@
                                               (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-home-container-id))
                              badge-following? (if user-is-member?
                                                 (pos?
-                                                 (entry-res/paginated-entries-by-org conn org-id :asc now :before 0 :recent-activity
+                                                 (activity-res/paginated-recently-posted-entries-by-org conn org-id :desc nil :before 0
                                                   allowed-boards follow-data (:seen-at following-seen) {:unseen true :count true}))
                                                 false)
                              replies-seen (when user-is-member?
                                             (seen/retrieve-by-user-container config/dynamodb-opts user-id config/seen-replies-container-id))
                              badge-replies? (if user-is-member?
                                               (pos?
-                                               (entry-res/list-entries-for-user-replies conn org-id allowed-boards user-id :asc
-                                                now :before 0 follow-data (:seen-at replies-seen) {:unseen true :count true}))
+                                               (activity-res/list-entries-for-user-replies conn org-id allowed-boards user-id :desc
+                                                nil :before 0 (:seen-at replies-seen) {:unseen true :count true}))
                                               false)
                              board-reps (map #(board-rep/render-board-for-collection slug % ctx draft-entry-count) full-boards)
                              authors (:authors org)
                              author-reps (map #(org-rep/render-author-for-collection org % (:access-level ctx)) authors)
                              has-sample-content? (> (entry-res/sample-entries-count conn org-id) 1)
-                             wrt-posts-count (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards config/default-csv-days {:count true})
+                             wrt-posts-count (activity-res/list-latest-published-entries conn (:uuid org) allowed-boards config/default-csv-days {:count true})
                              org-map (-> org
                                          (assoc :boards (if user-is-member?
                                                           board-reps
                                                           (map #(dissoc % :authors :viewers) board-reps)))
-                                        ;;  (assoc :total-count total-count)
                                          (assoc :bookmarks-count bookmarks-count)
                                          (assoc :wrt-posts-count wrt-posts-count)
                                          (assoc :badge-following badge-following?)
+                                         (assoc :home-last-seen-at (:seen-at following-seen))
+                                         (assoc :replies-last-seen-at (:seen-at replies-seen))
                                          (assoc :badge-replies badge-replies?)
-                                        ;;  (assoc :contributions-count user-count)
                                          (assoc :authors author-reps))]
                          (org-rep/render-org org-map ctx has-sample-content?))))
 
@@ -476,7 +450,7 @@
   ;; Validations
   :malformed? (by-method {
     :options false
-    :get (fn [ctx] (if-let* [ctx-params (keywordize-keys (-> ctx :request :params))
+    :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params)
                              team-id (:team-id ctx-params) ; org lookup is by team-id
                              _team-id? (lib-schema/unique-id? team-id)]
                      [false {:team-id team-id}]
@@ -537,7 +511,7 @@
 
     ;; Validations
   :malformed? (by-method {:options false
-                          :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params keywordize-keys)
+                          :get (fn [ctx] (if-let* [ctx-params (-> ctx :request :params)
                                                    days (Integer/parseInt (get ctx-params :days (str config/default-csv-days))) ;; get number of days from request or fallback to the default number
                                                    _valid? (lib-schema/valid? schema/Num days)]
                                            [false {:days days}]
@@ -545,16 +519,14 @@
     ;; Existentialism
   :exists? (by-method {:get (fn [ctx] (if-let* [user (:user ctx)
                                                 org (org-res/get-org conn org-slug)
-                                                boards (board-res/list-boards-by-org conn (:uuid org) [:created-at :updated-at :authors :viewers :access :publisher-board :author :description :slack-mirror])
-                                                board-access (map #(board-with-access-level org % user) boards)
-                                                allowed-boards (filter :access-level board-access)
-                                                entries (entry-res/list-latest-published-entries conn (:uuid org) allowed-boards (:days ctx))
+                                                boards-by-uuid (activity-api/user-boards-by-uuid conn user org org-board-props)
+                                                entries (activity-res/list-latest-published-entries conn (:uuid org) (vals boards-by-uuid) (:days ctx))
                                                 active-users (-> (:request ctx)
                                                                  (api-common/get-token)
                                                                  (auth/active-users config/auth-server-url (:team-id org))
                                                                  :collection
                                                                  :items)
-                                                entries-with-reads (read-data-for-entries org allowed-boards entries active-users (:user-id user))]
+                                                entries-with-reads (read-data-for-entries org boards-by-uuid entries active-users (:user-id user))]
                                         {:org (api-common/rep org)
                                          :active-users (api-common/rep active-users)
                                          :csv-entries (api-common/rep entries-with-reads)}

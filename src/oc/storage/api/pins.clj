@@ -9,12 +9,12 @@
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
             [oc.storage.api.entries :as entries-api]
+            [oc.storage.api.activity :as activity-api]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.representations.entry :as entry-rep]
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.async.notification :as notification]
             [oc.storage.resources.entry :as entry-res]
-            [oc.storage.resources.board :as board-res]
             [oc.storage.urls.pin :as pin-urls]))
 
 ;; Existentialism checks
@@ -26,10 +26,8 @@
   (let [{:keys [existing-entry] :as next-ctx} (entries-api/published-entry-exists? conn ctx org-slug board-slug-or-uuid entry-uuid (:user ctx))
         entry-pin (get-entry-pin existing-entry pin-container-uuid)]
     (if-let* [existing-org (:existing-org next-ctx)
-              boards (board-res/list-boards-by-org conn (:uuid existing-org))
-              allowed-boards (filter #(access/access-level-for existing-org % (:user ctx)) boards)
-              allowed-board-uuids (map :uuid allowed-boards)
-              _allowed-containers-set (set (conj (map :uuid allowed-board-uuids) pin-container-uuid))]
+              boards-by-uuid (activity-api/user-boards-by-uuid conn (:user ctx) existing-org)
+              _allowed-containers-set (set (conj (keys boards-by-uuid) pin-container-uuid))]
       (merge next-ctx {:existing-pin entry-pin})
       false)))
 

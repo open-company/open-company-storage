@@ -130,9 +130,12 @@
   "
   [conn board :- common/NewBoard]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name
-    (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
-    (db-common/current-timestamp)))
+  (timbre/info "Creating board" (:uuid board))
+  (let [cleaned-board (-> board
+                          (dissoc :entries)
+                          (update :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board)))))
+        created-board (db-common/create-resource conn table-name cleaned-board (db-common/current-timestamp))]
+    created-board))
 
 (defn- publisher-board-slug [taken-slugs user-id]
   (slug/find-available-slug (str publisher-board-slug-prefix user-id) taken-slugs))
