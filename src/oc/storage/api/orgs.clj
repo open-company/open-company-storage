@@ -212,10 +212,10 @@
 
 ;; ----- Validations -----
 
-(def -org-name-error (str "Org name length. Allowed length is " org-name-min-length " to " org-name-max-length " characters"))
+(def -org-name-error (str "Error in org name length: allowed length is " org-name-min-length " to " org-name-max-length " characters"))
 
 (defn- org-name-error [org-name]
-  (format "%s, \"%s\" is %d" -org-name-error org-name (count org-name)))
+  (format "%s, proposed value \"%s\" is %d" -org-name-error org-name (count org-name)))
 
 (defn- valid-org-name? [org-name]
   (<= org-name-min-length (count org-name) org-name-max-length))
