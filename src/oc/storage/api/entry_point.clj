@@ -1,8 +1,8 @@
 (ns oc.storage.api.entry-point
   "Liberator API for HATEOAS entry point to storage service."
   (:require [if-let.core :refer (when-let*)]
-            [compojure.core :as compojure :refer (defroutes GET OPTIONS)]
-            [liberator.core :refer (defresource by-method)]
+            [compojure.core :as compojure :refer (GET OPTIONS)]
+            [liberator.core :refer (defresource)]
             [oc.lib.db.pool :as pool]
             [oc.lib.api.common :as api-common]
             [oc.lib.slugify :as slugify]

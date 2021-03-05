@@ -212,6 +212,14 @@
 
 ;; ----- Validations -----
 
+(def -org-name-error (str "Error in org name length: allowed length is " org-name-min-length " to " org-name-max-length " characters"))
+
+(defn- org-name-error [org-name]
+  (format "%s, proposed value \"%s\" is %d" -org-name-error org-name (count org-name)))
+
+(defn- valid-org-name? [org-name]
+  (<= org-name-min-length (count org-name) org-name-max-length))
+
 (defn- is-first-org? [conn user]
   {:pre [(db-common/conn? conn)]}
   (let [authed-orgs (org-res/list-orgs-by-teams conn (:teams user))]
@@ -223,33 +231,38 @@
     (let [org-map (:data ctx)
           org-name (:name org-map)
           author (:user ctx)]
-      (if (and (<= (count org-name) org-name-max-length)
-               (>= (count org-name) org-name-min-length))
+      (if (valid-org-name? org-name)
         {:new-org (api-common/rep (org-res/->org org-map author))}
-        [false, {:reason (str "Org name length. Allowed length is " org-name-min-length
-                              " to " org-name-max-length ".")}]))
+        [false, {:reason (org-name-error org-name)}]))
 
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
 
 (defn- valid-org-update? [conn slug ctx]
-  (if-let [org (org-res/get-org conn slug)]
-    (let [org-props (:data ctx)
-          updated-org (merge org (org-res/ignore-props org-props))
-          updating-org-name? (contains? org-props :name)
-          org-name (:name org-props)
-          premium-org? (:premium? ctx)]
-      (if (and (lib-schema/valid? common-res/Org updated-org)
-               (or premium-org?
-                   (not (contains? org-props :brand-color)))
-               (or (not updating-org-name?)
-                   (and updating-org-name?
-                        (<= (count org-name) org-name-max-length)
-                        (>= (count org-name) org-name-min-length))))
-        {:existing-org (api-common/rep org) :updated-org (api-common/rep updated-org)
-         :boards (api-common/rep (:boards org-props))}
-        [false, {:updated-org (api-common/rep updated-org)}])) ; invalid update
-    true)) ; No org for this slug, so this will fail existence check later
+  (try
+    (if-let [org (org-res/get-org conn slug)]
+      (let [org-props (:data ctx)
+            updated-org (merge org (org-res/ignore-props org-props))
+            updating-org-name? (contains? org-props :name)
+            org-name (:name org-props)
+            premium-org? (:premium? ctx)]
+        (cond (and updating-org-name?
+                   (not (valid-org-name? org-name)))
+              [false {:reason (org-name-error org-name)
+                      :updated-org updated-org}]
+              (and (not premium-org?)
+                   (contains? org-props :brand-color))
+              [false {:reason (format "Non premium orgs can't change brand color: %s" (:brand-color org-props))
+                      :updated-org updated-org}]
+              (not (lib-schema/valid? common-res/Org updated-org))
+              [false {:reason (schema/check common-res/Org updated-org)
+                      :updated-org updated-org}]
+              :else
+              {:existing-org (api-common/rep org) :updated-org (api-common/rep updated-org)
+               :boards (api-common/rep (:boards org-props))}))
+      true) ; No org for this slug, so this will fail existence check later
+    (catch clojure.lang.ExceptionInfo e
+      [false {:reason (.getMessage e)}])))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -354,9 +367,7 @@
                                          (assoc :replies-last-seen-at (:seen-at replies-seen))
                                          (assoc :badge-replies badge-replies?)
                                          (assoc :authors author-reps))]
-                         (org-rep/render-org org-map ctx has-sample-content?)))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (schema/check common-res/Org (:updated-org ctx)))))
+                         (org-rep/render-org org-map ctx has-sample-content?))))
 
 ;; A resource for the authors of a particular org
 (defresource author [conn org-slug user-id]
@@ -481,9 +492,7 @@
                                 (org-rep/render-org org-for-rep (assoc ctx :access-level :author) has-sample-content?)
                                   mt/org-media-type)))
   :handle-ok (fn [ctx] (let [existing-orgs (:existing-orgs ctx)]
-                         (org-rep/render-org-list existing-orgs ctx)))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                         (org-rep/render-org-list existing-orgs ctx))))
 
 ;; Download CSV
 
@@ -524,9 +533,7 @@
                                         false))})
   :handle-ok (fn [ctx] (let [org (:org ctx)
                              csv-entries (:csv-entries ctx)]
-                        (org-rep/render-wrt-csv org csv-entries (:user ctx) (:days ctx))))
-  :handle-unprocessable-entity (fn [ctx]
-                                (api-common/unprocessable-entity-response (:reason ctx))))
+                        (org-rep/render-wrt-csv org csv-entries (:user ctx) (:days ctx)))))
 
 ;; ----- Routes -----
 

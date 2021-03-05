@@ -119,11 +119,12 @@
     (let [valid-access-update? (valid-board-access-update? (:premium? ctx) (get-in org [:content-visibility :disallow-public-board])
                                                            `(:access original-board) (:access updating-board))
           updated-board (merge original-board (board-res/clean updating-board))
-          valid-updated-board? (lib-schema/valid? common-res/Board updated-board)]
+          not-valid-board-update? (schema/check common-res/Board updated-board)]
       (cond (not valid-access-update?)
             [false, {:reason :board-access-not-allowed}]
-            (not valid-updated-board?)
-            [false, {:board-update (api-common/rep updated-board)}]
+            not-valid-board-update?
+            [false, {:board-update (api-common/rep updated-board)
+                     :reason (api-common/rep not-valid-board-update?)}]
             :else
             {:existing-org (api-common/rep org)
              :existing-board (api-common/rep original-board)
@@ -370,9 +371,7 @@
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
                                           (assemble-board conn board params))]
-                         (board-rep/render-board org full-board ctx params)))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (schema/check common-res/Board (:board-update ctx)))))
+                         (board-rep/render-board org full-board ctx params))))
 
 
 ;; A resource for operations on a list of boards
@@ -423,9 +422,7 @@
                                 (api-common/blank-response)
                                 (api-common/location-response (board-urls/board org-slug board-slug)
                                                               (board-rep/render-board org new-board ctx default-board-params)
-                                                              mt/board-media-type))))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-response (:reason ctx))))
+                                                              mt/board-media-type)))))
 
 ;; A resource for the authors and viewers of a particular board
 (defresource member [conn org-slug slug member-type user-id]
