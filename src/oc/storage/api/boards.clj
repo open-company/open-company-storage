@@ -5,7 +5,6 @@
             [clojure.set :as clj-set]
             [compojure.core :as compojure :refer (ANY OPTIONS POST)]
             [liberator.core :refer (defresource by-method)]
-            [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
@@ -123,7 +122,8 @@
       (cond (not valid-access-update?)
             [false, {:reason :board-access-not-allowed}]
             (not valid-updated-board?)
-            [false, {:board-update (api-common/rep updated-board)}]
+            [false, {:board-update (api-common/rep updated-board)
+                     :reason (api-common/rep valid-updated-board?)}]
             :else
             {:existing-org (api-common/rep org)
              :existing-board (api-common/rep original-board)
@@ -370,9 +370,7 @@
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
                                           (assemble-board conn board params))]
-                         (board-rep/render-board org full-board ctx params)))
-  :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Board (:board-update ctx))}))))
+                         (board-rep/render-board org full-board ctx params))))
 
 
 ;; A resource for operations on a list of boards
