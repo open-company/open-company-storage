@@ -6,7 +6,8 @@
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.storage.resources.common :as common]))
+            [oc.storage.resources.common :as common]
+            [oc.storage.resources.label :as label-res]))
 
 ;; ----- RethinkDB metadata -----
 
@@ -166,6 +167,10 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
+      ;; Delete labels
+      (try
+        (db-common/delete-resource conn common/label-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException _)) ; OK if no labels
       ;; Delete interactions
       (try
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)

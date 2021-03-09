@@ -10,6 +10,7 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def interaction-table-name "interactions")
+(def label-table-name "labels")
 
 ;; ----- Properties common to all resources -----
 
@@ -240,3 +241,25 @@
 
 (def default-entry-placeholder "What's happening...")
 (def default-entry-cta "New update")
+
+;; Labels
+
+(defn valid-label-name? [label-name]
+  (and (string? label-name)
+       (<= 1 (count label-name) 15)))
+
+(def LabelName (schema/pred valid-label-name?))
+
+(def LabelUser {:user-id lib-schema/UniqueID :count schema/Num})
+
+(def EntryLabel
+  "A label is an object composed by a name and a hex color."
+  {:uuid lib-schema/NonBlankStr
+   :org-uuid lib-schema/UniqueID
+   :created-at lib-schema/ISO8601
+   :updated-at lib-schema/ISO8601
+   :author lib-schema/Author
+   :name lib-schema/LabelName
+   :color lib-schema/HEXColor
+   :slug lib-schema/NonBlankStr
+   (lib-schema/o-k :used-by) (schema/maybe [LabelUser])})

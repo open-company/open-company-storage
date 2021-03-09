@@ -5,6 +5,7 @@
 (def org-collection-media-type "application/vnd.collection+vnd.open-company.org+json;version=1")
 (def org-author-media-type "application/vnd.open-company.org.author.v1")
 (def user-collection-media-type "application/vnd.collection+vnd.open-company.user+json;version=1")
+(def label-collection-media-type "application/vnd.collection+vnd.open-company.label+json;version=1")
 (def csv-media-type "text/csv")
 
 ;; Board media types
@@ -21,6 +22,7 @@
 (def poll-media-type "application/vnd.open-company.poll.v1+json")
 (def poll-reply-media-type "application/vnd.open-company.poll-reply.v1+json")
 (def pin-media-type "application/vnd.open-company.pin.v1+json")
+(def label-media-type "application/vnd.open-company.label.v1+json")
 
 ;; Interaction media types
 (def comment-media-type "application/vnd.open-company.comment.v1+json")

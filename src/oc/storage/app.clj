@@ -27,7 +27,8 @@
     [oc.storage.api.polls :as polls-api]
     [oc.storage.api.activity :as activity-api]
     [oc.storage.api.digest :as digest-api]
-    [oc.storage.api.pins :as pins-api]))
+    [oc.storage.api.pins :as pins-api]
+    [oc.storage.api.label :as label-api]))
 
 ;; ----- Request Routing -----
 
@@ -43,7 +44,8 @@
    (activity-api/routes sys)
    (digest-api/routes sys)
    (polls-api/routes sys)
-   (pins-api/routes sys)))
+   (pins-api/routes sys)
+   (label-api/routes sys)))
 
 ;; ----- System Startup -----
 

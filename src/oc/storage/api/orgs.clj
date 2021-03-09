@@ -31,6 +31,7 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.label :as label-res]
             [oc.storage.urls.entry :as entry-urls]
             [oc.storage.resources.activity :as activity-res]
             [oc.storage.urls.org :as org-urls]))
@@ -296,8 +297,10 @@
 
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
-                               org (or (:existing-org ctx) (org-res/get-org conn slug))]
-                       {:existing-org (api-common/rep org)}
+                               org (or (:existing-org ctx) (org-res/get-org conn slug))
+                               existing-org-labels (or (:existing-labels ctx) (label-res/list-labels-by-org conn (:uuid org)))]
+                       {:existing-org (api-common/rep org)
+                        :existing-org-labels (api-common/rep existing-org-labels)}
                        false))
 
   ;; Actions
