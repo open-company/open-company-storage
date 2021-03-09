@@ -211,9 +211,11 @@
   ;; Existentialism
   :exists? (fn [ctx] (if-let* [user (:user ctx)
                                existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
-                               existing-user-labels (or (:existing-user-labels ctx) (label-res/list-labels-by-org-user conn (:uuid existing-org) (:user-id user)))]
+                               existing-user-labels (or (:existing-user-labels ctx) (label-res/list-labels-by-org-user conn (:uuid existing-org) (:user-id user)))
+                               existing-label (or (:existing-label ctx) (label-res/get-label conn label-uuid))]
                               {:existing-org (api-common/rep existing-org)
-                               :existing-user-labels (api-common/rep existing-user-labels)}
+                               :existing-user-labels (api-common/rep existing-user-labels)
+                               :existing-label (api-common/rep existing-label)}
                               false))
 
   ;; Actions

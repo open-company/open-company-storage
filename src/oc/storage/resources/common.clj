@@ -259,7 +259,7 @@
    :created-at lib-schema/ISO8601
    :updated-at lib-schema/ISO8601
    :author lib-schema/Author
-   :name lib-schema/LabelName
+   :name LabelName
    :color lib-schema/HEXColor
    :slug lib-schema/NonBlankStr
    (lib-schema/o-k :used-by) (schema/maybe [LabelUser])})
