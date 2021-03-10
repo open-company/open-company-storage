@@ -30,7 +30,7 @@
   [label]
   (apply dissoc label ignored-properties))
 
-(schema/defn ^:always-validate get-label :- (schema/maybe common/EntryLabel)
+(schema/defn ^:always-validate get-label :- (schema/maybe common/Label)
   "Given the slug of the label, return the label object, or return nil if it doesn't exist."
   ([conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID]
    (db-common/read-resource conn table-name label-uuid))
@@ -48,7 +48,7 @@
 (defn label-slug-for-org [conn org-uuid label-name]
   (slug/find-available-slug label-name (taken-slugs conn org-uuid)))
 
-(schema/defn ^:always-validate ->label :- common/EntryLabel
+(schema/defn ^:always-validate ->label :- common/Label
   ([label-map org user]
    (->label (:name label-map) (:color label-map) (:uuid org) (lib-schema/author-for-user user)))
   ([label-name :- common/LabelName
@@ -72,24 +72,24 @@
 
   Check the slug in the response as it may change if there is a conflict with another org.
   "
-  [conn :- lib-schema/Conn label :- common/EntryLabel]
+  [conn :- lib-schema/Conn label :- common/Label]
   (timbre/infof "Creating label %s with color %s" (:name label) (:color label))
   (db-common/create-resource conn table-name (assoc label :slug (label-slug-for-org conn (:org-uuid label) (:name label)))
                              (db-common/current-timestamp)))
 
-(schema/defn ^:always-validate update-label! :- (schema/maybe common/EntryLabel)
+(schema/defn ^:always-validate update-label! :- (schema/maybe common/Label)
   "
   Given the UUID of a label and a map containing the update, apply the changes to the object and return it on success.
 
-  Throws an exception if the merge doesn't conform to the common/EntryLabel schema.
+  Throws an exception if the merge doesn't conform to the common/Label schema.
   "
   [conn :- lib-schema/Conn label-uuid :- common/Slug updating-label :- {schema/Keyword schema/Any}]
   (when-let [original-label (get-label conn label-uuid)]
     (let [updated-label (merge original-label (ignore-props updating-label))]
-      (schema/validate common/EntryLabel updated-label)
+      (schema/validate common/Label updated-label)
       (db-common/update-resource conn table-name :uuid original-label updated-label))))
 
-(schema/defn ^:always-validate list-labels-by-org :- [common/EntryLabel]
+(schema/defn ^:always-validate list-labels-by-org :- [common/Label]
   [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID]
   (db-common/read-resources conn table-name :org-uuid org-uuid))
 
@@ -104,7 +104,7 @@
 
 (def UsedByUpdateStrategy (schema/enum :inc :dec))
 
-(schema/defn ^:always-validate update-label-used-by! :- common/EntryLabel
+(schema/defn ^:always-validate update-label-used-by! :- common/Label
   [conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID org-uuid :- lib-schema/UniqueID user :- lib-schema/Author update-strategy :- UsedByUpdateStrategy]
   (if-let [original-label (get-label conn label-uuid)]
     (do
@@ -148,6 +148,6 @@
   [conn label-uuids org-uuid user]
   (map #(label-unused-by! conn % org-uuid user) label-uuids))
 
-(schema/defn ^:always-validate list-labels-by-org-user :- [common/EntryLabel]
+(schema/defn ^:always-validate list-labels-by-org-user :- [common/Label]
   [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
   (db-common/read-resources conn table-name :org-uuid-user-id-labels [org-uuid user-id]))

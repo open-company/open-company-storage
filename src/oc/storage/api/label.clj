@@ -57,7 +57,7 @@
       (let [updated-label (merge existing-label (label-res/ignore-props label-props))
             ;; updating-label-name? (contains? label-props :name)
             ;; duplicated-label (duplicated-label-name? conn existing-org (:name label-props) [(:uuid existing-label)])
-            not-valid-update? (schema/check common-res/EntryLabel updated-label)]
+            not-valid-update? (schema/check common-res/Label updated-label)]
         (cond
               ;; (and updating-label-name?
               ;;      duplicated-label)
