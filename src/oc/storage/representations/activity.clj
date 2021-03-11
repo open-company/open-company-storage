@@ -18,6 +18,9 @@
 (defn- is-bookmarks? [collection-type]
   (= collection-type "bookmarks"))
 
+(defn- is-label? [collection-type]
+  (= collection-type "label"))
+
 (defn invert-direction [direction]
   (case direction
     :after :before
@@ -25,7 +28,7 @@
 
 (defn- refresh-link
   "Add `refresh` links for pagination as needed to reload the whole set the client holds."
-  [org collection-type {:keys [refresh direction author-uuid following unfollowing]} data]
+  [org collection-type {:keys [refresh direction author-uuid label-slug following unfollowing]} data]
   (when (seq (:activity data))
     (let [refresh-start (-> data :activity last :sort-value)
           refresh-direction (if refresh direction (invert-direction direction))
@@ -43,6 +46,9 @@
                             (is-contributions? collection-type)
                             (activity-urls/contributions org author-uuid refresh-params)
 
+                            (is-label? collection-type)
+                            (activity-urls/label-entries org label-slug refresh-params)
+
                             following
                             (activity-urls/following org collection-type refresh-params)
 
@@ -55,7 +61,7 @@
 
 (defn- pagination-link
   "Add `next` link for pagination as needed."
-  [org collection-type {:keys [refresh direction author-uuid following unfollowing limit] :as params} {total-count :total-count next-count :next-count :as data}]
+  [org collection-type {:keys [refresh direction author-uuid label-slug following unfollowing limit] :as params} {total-count :total-count next-count :next-count :as data}]
   (when (and (seq (:activity data))         ;; No need of refresh if there are no posts
              (not= next-count total-count)  ;; and we are NOT returning the whole set already
              (or refresh                    ;; and if this is a refresh request already
@@ -74,6 +80,9 @@
 
                          (is-contributions? collection-type)
                          (activity-urls/contributions org author-uuid pagination-params)
+
+                         (is-label? collection-type)
+                         (activity-urls/label-entries org label-slug pagination-params)
 
                          following
                          (activity-urls/following org collection-type pagination-params)
@@ -101,6 +110,7 @@
         bookmarks? (is-bookmarks? collection-type)
         replies? (is-replies? collection-type)
         contributions? (is-contributions? collection-type)
+        label? (is-label? collection-type)
         collection-url (cond
                         replies?
                         (activity-urls/replies org)
@@ -108,6 +118,8 @@
                         (activity-urls/bookmarks org)
                         contributions?
                         (activity-urls/contributions org (:author-uuid params))
+                        label?
+                        (activity-urls/label-entries org (:label-slug params))
                         following?
                         (activity-urls/following org collection-type)
                         unfollowing?
@@ -139,6 +151,9 @@
                           b)
                         (if contributions?
                           (assoc b :author-uuid (:author-uuid params))
+                          b)
+                        (if label?
+                          (assoc b :label-slug (:label-slug params))
                           b)
                         (if (seq (:container-id params))
                           (assoc b :container-id (:container-id params))

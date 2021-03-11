@@ -35,6 +35,7 @@
   "Given the slug of the label, return the label object, or return nil if it doesn't exist."
   ([conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID]
    (db-common/read-resource conn table-name label-uuid))
+
   ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID label-slug :- common/Slug]
    (first (db-common/read-resources conn table-name :org-label [org-uuid label-slug]))))
 

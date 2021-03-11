@@ -8,6 +8,7 @@
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]
             [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.label :as label-urls]
             [oc.storage.api.access :as access]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
@@ -94,6 +95,10 @@
 (defn- contributions-partial-link [org]
   (hateoas/link-map "partial-contributions" hateoas/GET (org-urls/contribution org "$0") {:accept mt/entry-collection-media-type}
    {:replace {:author-uuid "$0"}}))
+
+(defn- label-entries-partial-link [org]
+  (hateoas/link-map "partial-label-entries" hateoas/GET (label-urls/label-entries org "$0") {:accept mt/entry-collection-media-type}
+                    {:replace {:label-slug "$0"}}))
 
 (defn- digest-partial-link [org]
   (hateoas/link-map "digest" hateoas/GET (str (org-urls/digest org) "?direction=after&start=$0") {:accept mt/entry-collection-media-type}
@@ -189,6 +194,7 @@
                                                   (activity-link org)
                                                   (following-link org)
                                                   (contributions-partial-link org)
+                                                  (label-entries-partial-link org)
                                                   (replies-link org)
                                                   (digest-partial-link org)
                                                   (label-rep/label-list-link org)

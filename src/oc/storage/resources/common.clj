@@ -272,3 +272,8 @@
 
 (def default-entry-placeholder "What's happening...")
 (def default-entry-cta "New update")
+
+;; Direction
+(def Order (schema/enum :desc :asc))
+
+(def Direction (schema/enum :before :after))

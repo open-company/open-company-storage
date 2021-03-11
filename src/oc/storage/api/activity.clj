@@ -15,9 +15,11 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.activity :as activity-res]
+            [oc.storage.resources.label :as label-res]
             [oc.lib.change.resources.follow :as follow]
             [oc.lib.change.resources.seen :as seen]
-            [oc.storage.urls.org :as org-urls]))
+            [oc.storage.urls.org :as org-urls]
+            [oc.storage.urls.label :as label-urls]))
 
 ;; ---- Boards list -----
 
@@ -121,6 +123,23 @@
                                                        :board-name (:name board)})))
                                  entries))))
 
+(defn- assemble-label
+  "Assemble the requested activity (based on the params) for the provided org that contains the give label."
+  [conn {start :start direction :direction limit :limit} org boards-by-uuid label-slug]
+  (let [allowed-boards (vals boards-by-uuid)
+        total-count (activity-res/list-entries-by-org-label conn (:uuid org) label-slug :desc nil direction 0 allowed-boards {:count true})
+        entries (activity-res/list-entries-by-org-label conn (:uuid org) label-slug :desc start direction limit allowed-boards {})
+        activities {:next-count (count entries)
+                    :label-slug label-slug
+                    :total-count total-count}]
+    ;; Give each activity its board name
+    (assoc activities :activity (map (fn [activity] (let [board (boards-by-uuid (:board-uuid activity))]
+                                                      (merge activity {
+                                                       :board-slug (:slug board)
+                                                       :board-access (:access board)
+                                                       :board-name (:name board)})))
+                                 entries))))
+
 ;; ---- Responses -----
 
 (defn activity-response [conn ctx]
@@ -190,13 +209,36 @@
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit)) ;; fallback to the default pagination otherwise
                    (update :direction #(if % (keyword %) :before)) ; default is before
-                   (assoc :container-id config/seen-replies-container-id)
+                   (assoc :container-id author-uuid)
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp))
                    (assoc :author-uuid author-uuid))
         boards-by-uuid (:boards-by-uuid ctx)
         items (assemble-contributions conn params org boards-by-uuid author-uuid)]
     (activity-rep/render-activity-list params org "contributions" items boards-by-uuid user)))
+
+(defn label-response [conn ctx label-slug]
+  (let [user (:user ctx)
+        user-id (:user-id ctx)
+        org (:existing-org ctx)
+        label-uuid (:uuid (:existing-label ctx))
+        container-seen (when label-uuid
+                         (seen/retrieve-by-user-container config/dynamodb-opts user-id label-uuid))
+        ctx-params (-> ctx :request :params)
+        params (-> ctx-params
+                   (dissoc :slug)
+                   (assoc :limit (if (= :after (keyword (:direction ctx-params)))
+                                   0 ;; In case of a digest request or if a refresh request
+                                   config/default-activity-limit)) ;; fallback to the default pagination otherwise
+                   (update :direction #(if % (keyword %) :before)) ; default is before
+                   (assoc :container-id label-slug)
+                   (assoc :last-seen-at (:seen-at container-seen))
+                   (assoc :next-seen-at (db-common/current-timestamp))
+                   (assoc :label-slug label-slug)
+                   (assoc :label-uuid label-uuid))
+        boards-by-uuid (:boards-by-uuid ctx)
+        items (assemble-label conn params org boards-by-uuid label-slug)]
+    (activity-rep/render-activity-list params org "label" items boards-by-uuid user)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -360,6 +402,46 @@
   ;; Responses
   :handle-ok (fn [ctx] (contributions-response conn ctx author-uuid)))
 
+;; A resource to retrieve entries for a given user
+(defresource label-entries [conn slug label-slug]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+
+  :allowed-methods [:options :get]
+
+  ;; Media type client accepts
+  :available-media-types [mt/entry-collection-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/entry-collection-media-type)
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :get (fn [ctx] (access/allow-members conn slug (:user ctx)))})
+
+  ;; Check the request
+  :malformed? (fn [ctx] (let [ctx-params (-> ctx :request :params)
+                              start (:start ctx-params)
+                              valid-start? (common/sort-value? start)
+                              direction (keyword (:direction ctx-params))
+                              ;; no direction is OK, but if specified it's from the allowed enumeration of options
+                              valid-direction? (if direction (#{:before :after} direction) true)
+                              ;; a specified start/direction must be together or ommitted
+                              pairing-allowed? (or (and start direction)
+                                                   (and (not start) (not direction)))]
+                          (not (and valid-start? valid-direction? pairing-allowed?))))
+
+  ;; Existentialism
+  :exists? (fn [ctx] (if-let* [_slug? (slugify/valid-slug? slug)
+                               user (:user ctx)
+                               org (or (:existing-org ctx) (org-res/get-org conn slug))
+                               boards-by-uuid (user-boards-by-uuid conn user org)]
+                        {:existing-org (api-common/rep org)
+                         :boards-by-uuid (api-common/rep boards-by-uuid)
+                         :existing-label (api-common/rep (label-res/get-label conn (:uuid org) label-slug))}
+                        false))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (label-response conn ctx label-slug)))
+
 ;; ----- Routes -----
 
 (defn routes [sys]
@@ -388,4 +470,13 @@
       (GET (org-urls/contribution ":slug" ":author-uuid")
         [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
       (GET (str (org-urls/contribution ":slug" ":author-uuid") "/")
-        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid))))))
+        [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
+      ;; Labels
+      (OPTIONS (label-urls/label-entries ":slug" ":label-slug")
+        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug)))
+      (OPTIONS (str (label-urls/label-entries ":slug" ":label-slug") "/")
+        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug)))
+      (GET (label-urls/label-entries ":slug" ":label-slug")
+        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug)))
+      (GET (str (label-urls/label-entries ":slug" ":label-slug") "/")
+        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug))))))

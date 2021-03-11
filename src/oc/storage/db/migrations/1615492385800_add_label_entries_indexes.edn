@@ -1,0 +1,40 @@
+(ns oc.storage.db.migrations.add-label-entries-indexes
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.entry :as entry]))
+
+(defn up [conn]
+  ;; By board and label slug
+  (println (m/create-compound-index conn entry/table-name "status-board-uuid-label-slug"
+                                    (r/fn [row] (r/map (r/get-field row "labels")
+                                                       (r/fn [label-row]
+                                                         [(r/get-field row "status")
+                                                          (r/get-field row "board-uuid")
+                                                          (r/get-field label-row "slug")])))
+                                    {:multi true}))
+  ;; By org and label slug
+  (println (m/create-compound-index conn entry/table-name "status-org-uuid-label-slug"
+                                    (r/fn [row] (r/map (r/get-field row "labels")
+                                                       (r/fn [label-row]
+                                                         [(r/get-field row "status")
+                                                          (r/get-field row "org-uuid")
+                                                          (r/get-field label-row "slug")])))
+                                    {:multi true}))
+  ;; By board and label uuid
+  (println (m/create-compound-index conn entry/table-name "status-board-uuid-label-uuid"
+                                    (r/fn [row] (r/map (r/get-field row "labels")
+                                                       (r/fn [label-row]
+                                                         [(r/get-field row "status")
+                                                          (r/get-field row "board-uuid")
+                                                          (r/get-field label-row "uuid")])))
+                                    {:multi true}))
+;; By org and label uuid
+(println (m/create-compound-index conn entry/table-name "status-org-uuid-label-uuid"
+                                  (r/fn [row] (r/map (r/get-field row "labels")
+                                                     (r/fn [label-row]
+                                                       [(r/get-field row "status")
+                                                        (r/get-field row "org-uuid")
+                                                        (r/get-field label-row "uuid")])))
+                                  {:multi true}))
+  true) ; return true on success

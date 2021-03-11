@@ -33,11 +33,17 @@
 (defn delete-link [org label]
   (hateoas/delete-link (label-urls/label org label)))
 
+(defn label-entries-link [org label]
+  (hateoas/link-map "label-entries" hateoas/GET
+                    (label-urls/label-entries org label)
+                    {:accept mt/entry-collection-media-type}))
+
 (defn label-links [org label]
   [(label-up-link org)
    (label-link org label)
    (partial-update-link org label)
-   (delete-link org label)])
+   (delete-link org label)
+   (label-entries-link org label)])
 
 (defn label-for-render [org label user]
   (as-> label lb

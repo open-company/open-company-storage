@@ -13,3 +13,9 @@
    (label org (:uuid label-map)))
   ([org label-uuid :guard string?]
    (string/join "/" [(labels org) label-uuid])))
+
+(defun label-entries
+  ([org label-map :guard map?]
+   (label-entries org (:slug label-map)))
+  ([org label-slug :guard string?]
+   (string/join "/" [(label org label-slug) "entries"])))
