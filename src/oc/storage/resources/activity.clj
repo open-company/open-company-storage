@@ -110,17 +110,32 @@
       (storage-db-common/read-paginated-contributions-entries conn entry-res/table-name index-name index-value order start direction
                                                               limit common/interaction-table-name entry-res/list-comment-properties {:count count?})))))
 
-(schema/defn ^:always-validate list-entries-by-org-label
+(schema/defn ^:always-validate list-entries-by-org-label-slug
 
   ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID label-slug :- common/Slug order :- common/Order start :- common/SortValue
     direction :- common/Direction limit :- schema/Num allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count :or {count? false}}]
-   (timbre/info "entry-res/list-entries-by-org-author")
+   (timbre/info "entry-res/list-entries-by-org-label-slug")
    (let [index-name (if (sequential? allowed-boards)
                       :status-board-uuid-label-slug
                       :status-org-uuid-label-slug)
          index-value (if (sequential? allowed-boards)
                        (map #(vec [:published (:uuid %) label-slug]) allowed-boards)
                        [[:published org-uuid label-slug]])]
+     (time
+      (storage-db-common/read-paginated-entries-by-label conn entry-res/table-name index-name index-value order start direction
+                                                         limit common/interaction-table-name entry-res/list-comment-properties {:count count?})))))
+
+(schema/defn ^:always-validate list-entries-by-org-label-uuid
+
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID label-uuid :- lib-schema/UniqueID order :- common/Order start :- common/SortValue
+    direction :- common/Direction limit :- schema/Num allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count :or {count? false}}]
+   (timbre/info "entry-res/list-entries-by-org-label-uuid")
+   (let [index-name (if (sequential? allowed-boards)
+                      :status-board-uuid-label-uuid
+                      :status-org-uuid-label-uuid)
+         index-value (if (sequential? allowed-boards)
+                       (map #(vec [:published (:uuid %) label-uuid]) allowed-boards)
+                       [[:published org-uuid label-uuid]])]
      (time
       (storage-db-common/read-paginated-entries-by-label conn entry-res/table-name index-name index-value order start direction
                                                          limit common/interaction-table-name entry-res/list-comment-properties {:count count?})))))

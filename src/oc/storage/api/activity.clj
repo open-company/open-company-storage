@@ -125,12 +125,16 @@
 
 (defn- assemble-label
   "Assemble the requested activity (based on the params) for the provided org that contains the give label."
-  [conn {start :start direction :direction limit :limit} org boards-by-uuid label-slug]
+  [conn {start :start direction :direction limit :limit label-by-uuid :label-by-uuid} org boards-by-uuid label]
   (let [allowed-boards (vals boards-by-uuid)
-        total-count (activity-res/list-entries-by-org-label conn (:uuid org) label-slug :desc nil direction 0 allowed-boards {:count true})
-        entries (activity-res/list-entries-by-org-label conn (:uuid org) label-slug :desc start direction limit allowed-boards {})
+        total-count (if label-by-uuid
+                      (activity-res/list-entries-by-org-label-uuid conn (:uuid org) label :desc nil direction 0 allowed-boards {:count true})
+                      (activity-res/list-entries-by-org-label-slug conn (:uuid org) label :desc nil direction 0 allowed-boards {:count true}))
+        entries (if label-by-uuid
+                  (activity-res/list-entries-by-org-label-uuid conn (:uuid org) label :desc start direction limit allowed-boards {})
+                  (activity-res/list-entries-by-org-label-slug conn (:uuid org) label :desc start direction limit allowed-boards {}))
         activities {:next-count (count entries)
-                    :label-slug label-slug
+                    :label label
                     :total-count total-count}]
     ;; Give each activity its board name
     (assoc activities :activity (map (fn [activity] (let [board (boards-by-uuid (:board-uuid activity))]
@@ -217,13 +221,13 @@
         items (assemble-contributions conn params org boards-by-uuid author-uuid)]
     (activity-rep/render-activity-list params org "contributions" items boards-by-uuid user)))
 
-(defn label-response [conn ctx label-slug]
+(defn label-response [conn ctx label]
   (let [user (:user ctx)
         user-id (:user-id ctx)
         org (:existing-org ctx)
-        label-uuid (:uuid (:existing-label ctx))
-        container-seen (when label-uuid
-                         (seen/retrieve-by-user-container config/dynamodb-opts user-id label-uuid))
+        existing-label (:existing-label ctx)
+        container-seen (when (:uuid existing-label)
+                         (seen/retrieve-by-user-container config/dynamodb-opts user-id (:uuid existing-label)))
         ctx-params (-> ctx :request :params)
         params (-> ctx-params
                    (dissoc :slug)
@@ -231,13 +235,15 @@
                                    0 ;; In case of a digest request or if a refresh request
                                    config/default-activity-limit)) ;; fallback to the default pagination otherwise
                    (update :direction #(if % (keyword %) :before)) ; default is before
-                   (assoc :container-id label-slug)
+                   (assoc :container-id (:uuid existing-label))
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp))
-                   (assoc :label-slug label-slug)
-                   (assoc :label-uuid label-uuid))
+                   (assoc :label label)
+                   (assoc :label-slug (:slug existing-label))
+                   (assoc :label-uuid (:uuid existing-label)))
         boards-by-uuid (:boards-by-uuid ctx)
-        items (assemble-label conn params org boards-by-uuid label-slug)]
+        updated-params (assoc params :label-by-uuid (:label-by-uuid ctx))
+        items (assemble-label conn updated-params org boards-by-uuid label)]
     (activity-rep/render-activity-list params org "label" items boards-by-uuid user)))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
@@ -403,7 +409,7 @@
   :handle-ok (fn [ctx] (contributions-response conn ctx author-uuid)))
 
 ;; A resource to retrieve entries for a given user
-(defresource label-entries [conn slug label-slug]
+(defresource label-entries [conn slug label]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
 
   :allowed-methods [:options :get]
@@ -434,13 +440,17 @@
                                user (:user ctx)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))
                                boards-by-uuid (user-boards-by-uuid conn user org)]
-                        {:existing-org (api-common/rep org)
-                         :boards-by-uuid (api-common/rep boards-by-uuid)
-                         :existing-label (api-common/rep (label-res/get-label conn (:uuid org) label-slug))}
+                        (let [label-by-slug (label-res/get-label conn (:uuid org) label)
+                              ;; Try to retrive by label uuid
+                              existing-label (or label-by-slug (label-res/get-label conn label))]
+                          {:existing-org (api-common/rep org)
+                           :boards-by-uuid (api-common/rep boards-by-uuid)
+                           :existing-label (api-common/rep existing-label)
+                           :label-by-uuid (api-common/rep (not label-by-slug))})
                         false))
 
   ;; Responses
-  :handle-ok (fn [ctx] (label-response conn ctx label-slug)))
+  :handle-ok (fn [ctx] (label-response conn ctx label)))
 
 ;; ----- Routes -----
 
@@ -472,11 +482,11 @@
       (GET (str (org-urls/contribution ":slug" ":author-uuid") "/")
         [slug author-uuid] (pool/with-pool [conn db-pool] (contributions conn slug author-uuid)))
       ;; Labels
-      (OPTIONS (label-urls/label-entries ":slug" ":label-slug")
-        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug)))
-      (OPTIONS (str (label-urls/label-entries ":slug" ":label-slug") "/")
-        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug)))
-      (GET (label-urls/label-entries ":slug" ":label-slug")
-        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug)))
-      (GET (str (label-urls/label-entries ":slug" ":label-slug") "/")
-        [slug label-slug] (pool/with-pool [conn db-pool] (label-entries conn slug label-slug))))))
+      (OPTIONS (label-urls/label-entries ":slug" ":label")
+        [slug label] (pool/with-pool [conn db-pool] (label-entries conn slug label)))
+      (OPTIONS (str (label-urls/label-entries ":slug" ":label") "/")
+        [slug label] (pool/with-pool [conn db-pool] (label-entries conn slug label)))
+      (GET (label-urls/label-entries ":slug" ":label")
+        [slug label] (pool/with-pool [conn db-pool] (label-entries conn slug label)))
+      (GET (str (label-urls/label-entries ":slug" ":label") "/")
+        [slug label] (pool/with-pool [conn db-pool] (label-entries conn slug label))))))

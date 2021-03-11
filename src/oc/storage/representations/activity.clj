@@ -28,7 +28,7 @@
 
 (defn- refresh-link
   "Add `refresh` links for pagination as needed to reload the whole set the client holds."
-  [org collection-type {:keys [refresh direction author-uuid label-slug following unfollowing]} data]
+  [org collection-type {:keys [refresh direction author-uuid label following unfollowing]} data]
   (when (seq (:activity data))
     (let [refresh-start (-> data :activity last :sort-value)
           refresh-direction (if refresh direction (invert-direction direction))
@@ -47,7 +47,7 @@
                             (activity-urls/contributions org author-uuid refresh-params)
 
                             (is-label? collection-type)
-                            (activity-urls/label-entries org label-slug refresh-params)
+                            (activity-urls/label-entries org label refresh-params)
 
                             following
                             (activity-urls/following org collection-type refresh-params)
@@ -61,7 +61,7 @@
 
 (defn- pagination-link
   "Add `next` link for pagination as needed."
-  [org collection-type {:keys [refresh direction author-uuid label-slug following unfollowing limit] :as params} {total-count :total-count next-count :next-count :as data}]
+  [org collection-type {:keys [refresh direction author-uuid label following unfollowing limit]} {total-count :total-count next-count :next-count :as data}]
   (when (and (seq (:activity data))         ;; No need of refresh if there are no posts
              (not= next-count total-count)  ;; and we are NOT returning the whole set already
              (or refresh                    ;; and if this is a refresh request already
@@ -82,7 +82,7 @@
                          (activity-urls/contributions org author-uuid pagination-params)
 
                          (is-label? collection-type)
-                         (activity-urls/label-entries org label-slug pagination-params)
+                         (activity-urls/label-entries org label pagination-params)
 
                          following
                          (activity-urls/following org collection-type pagination-params)
@@ -119,7 +119,7 @@
                         contributions?
                         (activity-urls/contributions org (:author-uuid params))
                         label?
-                        (activity-urls/label-entries org (:label-slug params))
+                        (activity-urls/label-entries org (:label params))
                         following?
                         (activity-urls/following org collection-type)
                         unfollowing?
@@ -153,7 +153,10 @@
                           (assoc b :author-uuid (:author-uuid params))
                           b)
                         (if label?
-                          (assoc b :label-slug (:label-slug params))
+                          (-> b
+                              (assoc :label-slug (:label-slug params))
+                              (assoc :label-uuid (:label-uuid params))
+                              (assoc :label (:label params)))
                           b)
                         (if (seq (:container-id params))
                           (assoc b :container-id (:container-id params))
