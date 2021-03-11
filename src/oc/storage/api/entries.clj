@@ -4,6 +4,7 @@
             [defun.core :refer (defun-)]
             [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
+            [clojure.set :as clj-set]
             [compojure.core :as compojure :refer (ANY OPTIONS DELETE)]
             [liberator.core :refer (defresource by-method)]
             [schema.core :as schema]
@@ -23,6 +24,7 @@
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
+            [oc.storage.resources.label :as label-res]
             [oc.storage.resources.reaction :as reaction-res]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.entry :as entry-urls]))
@@ -288,6 +290,24 @@
 
 ;; ----- Actions -----
 
+(defn- update-user-labels [conn user old-entry new-entry]
+  (timbre/debugf "Update user labels for entry %s with status %s" (:uuid new-entry) (:status new-entry))
+  (when (= (keyword (:status new-entry)) :published)
+    (let [existing-labels (set (map :uuid (:labels old-entry)))
+          updated-labels (set (map :uuid (:labels new-entry)))
+          remove-labels? (= (keyword (:status old-entry)) :published)
+          added-labels (clj-set/difference updated-labels existing-labels)
+          removed-labels (when remove-labels?
+                           (clj-set/difference existing-labels updated-labels))]
+      (timbre/debugf "Updating labels for user %s on entry %s" (:user-id user) (:uuid new-entry))
+      (timbre/tracef "Existing labels: %s, updated labels: %s remove? %s, add? %s, removed-labels %s" existing-labels updated-labels remove-labels? added-labels removed-labels)
+      (when (seq added-labels)
+        (timbre/infof "Adding used labels %s to user %s" added-labels (:user-id user))
+        (label-res/labels-used-by! conn added-labels (:org-uuid new-entry) user))
+      (when (seq removed-labels)
+        (timbre/infof "Removing used labels %s to user %s" removed-labels (:user-id user))
+        (label-res/labels-unused-by! conn removed-labels (:org-uuid new-entry) user)))))
+
 (defn- share-entry [conn ctx entry-for]
   (timbre/info "Sharing entry:" entry-for)
   (if-let* [org (:existing-org ctx)
@@ -335,6 +355,7 @@
             entry-result (entry-res/create-entry! conn new-entry)] ; Add the entry
     (do
       (timbre/info "Created entry for:" entry-for "as" (:uuid entry-result))
+      (update-user-labels conn user nil entry-result)
       (when (= (keyword (:status entry-result)) :published)
         (undraft-board conn user org board)
         (entry-res/delete-versions conn entry-result)
@@ -353,6 +374,7 @@
             updated-entry (:updated-entry ctx)
             updated-result (entry-res/update-entry! conn (:uuid entry) updated-entry user)]
     (let [old-board (:moving-board ctx)]
+      (update-user-labels conn user entry updated-entry)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board
         (let [remaining-entries (entry-res/list-all-entries-by-board conn old-board)]
@@ -360,7 +382,6 @@
       (timbre/info "Updated entry for:" entry-for)
       (notification/send-trigger! (notification/->trigger :update org board {:old entry :new updated-result} user nil (api-common/get-change-client-id ctx)))
       {:updated-entry (api-common/rep (assoc updated-result :board-name (:name board)))})
-
     (do (timbre/error "Failed updating entry:" entry-for) false)))
 
 (defn- update-user-visibility [conn ctx entry-for action-type]
@@ -393,6 +414,7 @@
             updated-entry (:updated-entry ctx)
             final-entry (entry-res/publish-entry! conn (:uuid updated-entry) updated-entry org user)]
     (let [old-board (:moving-board ctx)]
+      (update-user-labels conn user entry updated-entry)
       (undraft-board conn user org board)
       ;; If we are moving the entry from a draft board, check if we need to remove the board itself.
       (when old-board

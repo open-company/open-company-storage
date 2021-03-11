@@ -42,7 +42,9 @@
 (defn label-for-render [org label user]
   (as-> label lb
     (assoc lb :links (label-links org label))
-    (assoc lb :count (or (some #(when (= (:used-id %) (:user-id user)) (:count %)) (:used-by label)) 0))
+    (assoc lb :count (or (some #(when (= (:user-id %) (:user-id user))
+                                  (:count %))
+                               (:used-by label)) 0))
     (apply dissoc lb reserved-props)))
 
 (defn render-label [org label user]

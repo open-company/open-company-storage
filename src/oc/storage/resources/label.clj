@@ -8,6 +8,7 @@
             [oc.lib.db.common :as db-common]))
 
 (def table-name common/label-table-name)
+(def primary-key :uuid)
 
 (def reserved-properties
   (clj-set/union common/reserved-properties #{:used-by}))
@@ -56,7 +57,7 @@
     org-uuid :- lib-schema/UniqueID
     author :- lib-schema/Author]
    (let [ts (db-common/current-timestamp)]
-     {:uuid (db-common/unique-id)
+     {primary-key (db-common/unique-id)
       :created-at ts
       :updated-at ts
       :org-uuid org-uuid
@@ -87,7 +88,7 @@
   (when-let [original-label (get-label conn label-uuid)]
     (let [updated-label (merge original-label (ignore-props updating-label))]
       (schema/validate common/Label updated-label)
-      (db-common/update-resource conn table-name :uuid original-label updated-label))))
+      (db-common/update-resource conn table-name primary-key label-uuid updated-label))))
 
 (schema/defn ^:always-validate list-labels-by-org :- [common/Label]
   [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID]
@@ -105,48 +106,43 @@
 (def UsedByUpdateStrategy (schema/enum :inc :dec))
 
 (schema/defn ^:always-validate update-label-used-by! :- common/Label
-  [conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID org-uuid :- lib-schema/UniqueID user :- lib-schema/Author update-strategy :- UsedByUpdateStrategy]
+  [conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID org-uuid :- lib-schema/UniqueID user :- lib-schema/User update-strategy :- UsedByUpdateStrategy]
   (if-let [original-label (get-label conn label-uuid)]
     (do
-      (timbre/debug "Increment label %s use for org %s by user %s" label-uuid org-uuid (:user-id user))
+      (timbre/debugf "Increment label %s use for org %s by user %s" label-uuid org-uuid (:user-id user))
       (let [found? (atom false)
             update-fn (if (= update-strategy :inc)
                         inc
                         dec)
             updated-used-by (update original-label
                                     :used-by (fn [used-by]
-                                               (remove nil?
-                                                (map (fn [{user-id :user-id use-count :count :as used-by-row}]
+                                               (mapv (fn [{user-id :user-id use-count :count :or {use-count 0} :as used-by-row}]
                                                        (if (= user-id (:user-id user))
                                                          (let [next-count (max 0 (update-fn use-count))]
                                                            (reset! found? true)
                                                            {:user-id user-id :count next-count})
                                                          used-by-row))
-                                                     used-by))))
+                                                     used-by)))
             updated-label (if @found?
                             updated-used-by
                             (update original-label
                                     :used-by #(concat (vec %) [{:user-id (:user-id user) :count 1}])))]
-        (db-common/update-resource conn table-name label-uuid original-label updated-label (db-common/current-timestamp))))
+        (db-common/update-resource conn table-name primary-key label-uuid updated-label)))
     (do
-      (timbre/errorf "No label found for user %s and org %s.")
+      (timbre/errorf "No label found for user %s and org %s." (:user-id user) org-uuid)
       (throw (ex-info "Invalid label uuid." {:label-uuid label-uuid :org-uuid org-uuid :user user})))))
 
-(defn label-used-by!
-  [conn label-uuid org-uuid user]
+(defn label-used-by! [conn label-uuid org-uuid user]
   (update-label-used-by! conn label-uuid org-uuid user :inc))
 
-(defn label-unused-by!
-  [conn label-uuid org-uuid user]
+(defn label-unused-by! [conn label-uuid org-uuid user]
   (update-label-used-by! conn label-uuid org-uuid user :dec))
 
-(defn labels-used-by!
-  [conn label-uuids org-uuid user]
-  (map #(label-used-by! conn % org-uuid user) label-uuids))
+(defn labels-used-by! [conn label-uuids org-uuid user]
+  (mapv #(update-label-used-by! conn % org-uuid user :inc) (vec label-uuids)))
 
-(defn labels-unused-by!
-  [conn label-uuids org-uuid user]
-  (map #(label-unused-by! conn % org-uuid user) label-uuids))
+(defn labels-unused-by! [conn label-uuids org-uuid user]
+  (mapv #(update-label-used-by! conn % org-uuid user :dec) (vec label-uuids)))
 
 (schema/defn ^:always-validate list-labels-by-org-user :- [common/Label]
   [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
