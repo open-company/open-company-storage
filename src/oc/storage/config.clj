@@ -15,19 +15,18 @@
 (defonce prod? (= "production" (env :env)))
 (defonce intro? (not prod?))
 
+;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
+
+(defonce log-level (if-let [log-level (env :log-level)] (keyword log-level) :info))
 ;; ----- Sentry -----
 
 (defonce dsn (or (env :open-company-sentry-storage) false))
 (defonce sentry-release (or (env :release) ""))
 (defonce sentry-env (or (env :environment) "local"))
 (defonce sentry-config {:dsn dsn
-                        :debug (not (#{"production" "prod"} sentry-env))
+                        :debug (#{:debug :trace} log-level)
                         :release sentry-release
                         :environment sentry-env})
-
-;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
-
-(defonce log-level (if-let [log-level (env :log-level)] (keyword log-level) :info))
 
 ;; ----- RethinkDB -----
 

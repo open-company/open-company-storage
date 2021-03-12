@@ -67,6 +67,8 @@
     "  env: " c/sentry-env "\n"
     (when-not (clj-string/blank? c/sentry-release)
       (str "  release: " c/sentry-release "\n"))
+    (when (:debug c/sentry-config)
+      (str "  debug: " (:debug c/sentry-config) "\n"))
     "Unread limit: " c/unread-days-limit " days\n"
     (when c/intro? "Ready to serve...\n"))))
 
