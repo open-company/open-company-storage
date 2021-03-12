@@ -33,10 +33,10 @@
 
 (schema/defn ^:always-validate get-label :- (schema/maybe common/Label)
   "Given the slug of the label, return the label object, or return nil if it doesn't exist."
-  ([conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID]
+  ([conn :- lib-schema/Conn label-uuid]
    (db-common/read-resource conn table-name label-uuid))
 
-  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID label-slug :- common/Slug]
+  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID label-slug]
    (first (db-common/read-resources conn table-name :org-label [[org-uuid label-slug]]))))
 
 (defn slug-available?
