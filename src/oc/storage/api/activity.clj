@@ -7,6 +7,7 @@
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
+            [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.api.access :as access]
@@ -440,13 +441,13 @@
                                user (:user ctx)
                                org (or (:existing-org ctx) (org-res/get-org conn slug))
                                boards-by-uuid (user-boards-by-uuid conn user org)]
-                        (let [label-by-slug (label-res/get-label conn (:uuid org) label)
+                        (let [label-by-uuid (label-res/get-label conn label)
                               ;; Try to retrive by label uuid
-                              existing-label (or label-by-slug (label-res/get-label conn label))]
+                              existing-label (or label-by-uuid (label-res/get-label conn (:uuid org) label))]
                           {:existing-org (api-common/rep org)
                            :boards-by-uuid (api-common/rep boards-by-uuid)
                            :existing-label (api-common/rep existing-label)
-                           :label-by-uuid (api-common/rep (not label-by-slug))})
+                           :label-by-uuid (api-common/rep (boolean label-by-uuid))})
                         false))
 
   ;; Responses
