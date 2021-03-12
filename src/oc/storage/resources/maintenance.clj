@@ -16,7 +16,8 @@
 (schema/defn ^:always-validate shared-dedup-and-limit-for-entry!
   "Given a RethinkDB connection, an entry map and a limit to apply to share cut the list of
    shared to the passed value keeping only the newest"
-  [conn :- lib-schema/Conn entry :- common/Entry limit dry-run]
+  [conn entry :- common/Entry limit dry-run]
+  {:pre [(db-common/conn? conn)]}
   (let [old-shared (:shared entry)
         grouped-shared (group-by :shared-at old-shared)
         unique-shared (vec (map first (vals grouped-shared)))
@@ -29,13 +30,15 @@
     (timbre/info "      Cut!")))
 
 (schema/defn ^:always-validate list-all-entries-by-org!
-  [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID]
+  [conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn common/entry-table-name :status-org-uuid [[:published org-uuid]]))
 
 (schema/defn ^:always-validate shared-limit-for-org!
   "Give a RethinkDB connection and an org-uuid, load all the published entries of the org
    and call the shared-limit-for-entry on all that are exceeding the shared limit."
-  [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID limit dry-run]
+  [conn org-uuid :- lib-schema/UniqueID limit dry-run]
+  {:pre [(db-common/conn? conn)]}
   (let [entries (list-all-entries-by-org! conn org-uuid)]
     (timbre/info "    Entries count:" (count entries))
     (for [entry entries]

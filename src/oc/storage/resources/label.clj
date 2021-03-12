@@ -33,10 +33,12 @@
 
 (schema/defn ^:always-validate get-label :- (schema/maybe common/Label)
   "Given the slug of the label, return the label object, or return nil if it doesn't exist."
-  ([conn :- lib-schema/Conn label-uuid]
+  ([conn label-uuid]
+   {:pre [(db-common/conn? conn)]}
    (db-common/read-resource conn table-name label-uuid))
 
-  ([conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID label-slug]
+  ([conn org-uuid :- lib-schema/UniqueID label-slug]
+   {:pre [(db-common/conn? conn)]}
    (first (db-common/read-resources conn table-name :org-label [[org-uuid label-slug]]))))
 
 (defn slug-available?
@@ -74,7 +76,8 @@
 
   Check the slug in the response as it may change if there is a conflict with another org.
   "
-  [conn :- lib-schema/Conn label :- common/Label]
+  [conn label :- common/Label]
+  {:pre [(db-common/conn? conn)]}
   (timbre/infof "Creating label %s with color %s" (:name label) (:color label))
   (db-common/create-resource conn table-name (assoc label :slug (label-slug-for-org conn (:org-uuid label) (:name label)))
                              (db-common/current-timestamp)))
@@ -85,29 +88,34 @@
 
   Throws an exception if the merge doesn't conform to the common/Label schema.
   "
-  [conn :- lib-schema/Conn label-uuid :- common/Slug updating-label :- {schema/Keyword schema/Any}]
+  [conn label-uuid :- common/Slug updating-label :- {schema/Keyword schema/Any}]
+  {:pre [(db-common/conn? conn)]}
   (when-let [original-label (get-label conn label-uuid)]
     (let [updated-label (merge original-label (ignore-props updating-label))]
       (schema/validate common/Label updated-label)
       (db-common/update-resource conn table-name primary-key label-uuid updated-label))))
 
 (schema/defn ^:always-validate list-labels-by-org :- [common/Label]
-  [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID]
+  [conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :org-uuid org-uuid))
 
 (schema/defn ^:always-validate delete-label!
   "Given the slug of the label, delete it."
-  [conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID]
+  [conn label-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
   (timbre/infof "Deleting label %s" label-uuid)
   (db-common/delete-resource conn table-name label-uuid))
 
-(schema/defn ^:always-validate delete-org-labels! [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID]
+(schema/defn ^:always-validate delete-org-labels! [conn org-uuid :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
   (db-common/delete-resource conn table-name :org-uuid org-uuid))
 
 (def UsedByUpdateStrategy (schema/enum :inc :dec))
 
 (schema/defn ^:always-validate update-label-used-by! :- common/Label
-  [conn :- lib-schema/Conn label-uuid :- lib-schema/UniqueID org-uuid :- lib-schema/UniqueID user :- lib-schema/User update-strategy :- UsedByUpdateStrategy]
+  [conn label-uuid :- lib-schema/UniqueID org-uuid :- lib-schema/UniqueID user :- lib-schema/User update-strategy :- UsedByUpdateStrategy]
+  {:pre [(db-common/conn? conn)]}
   (if-let [original-label (get-label conn label-uuid)]
     (do
       (timbre/debugf "Increment label %s use for org %s by user %s" label-uuid org-uuid (:user-id user))
@@ -146,5 +154,6 @@
   (mapv #(update-label-used-by! conn % org-uuid user :dec) (vec label-uuids)))
 
 (schema/defn ^:always-validate list-labels-by-org-user :- [common/Label]
-  [conn :- lib-schema/Conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
+  [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
+  {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :org-uuid-user-id-labels [[org-uuid user-id]]))
