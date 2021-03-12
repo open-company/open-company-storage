@@ -21,7 +21,7 @@
 (defonce sentry-release (or (env :release) ""))
 (defonce sentry-env (or (env :environment) "local"))
 (defonce sentry-config {:dsn dsn
-                        :debug (not prod?)
+                        :debug (not (#{"production" "prod"} sentry-env))
                         :release sentry-release
                         :environment sentry-env})
 
