@@ -18,6 +18,7 @@
 ;; ----- Logging (see https://github.com/ptaoussanis/timbre) -----
 
 (defonce log-level (if-let [log-level (env :log-level)] (keyword log-level) :info))
+
 ;; ----- Sentry -----
 
 (defonce dsn (or (env :open-company-sentry-storage) false))
