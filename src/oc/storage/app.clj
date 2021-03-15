@@ -61,10 +61,7 @@
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
     "Log level: " c/log-level "\n"
-    "Sentry: " c/dsn "\n"
-    "  env: " c/sentry-env "\n"
-    (when-not (clj-string/blank? c/sentry-release)
-      (str "  release: " c/sentry-release "\n"))
+    "Sentry: " c/sentry-config "\n"
     "Unread limit: " c/unread-days-limit " days\n"
     (when c/intro? "Ready to serve...\n"))))
 
