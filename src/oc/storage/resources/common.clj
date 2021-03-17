@@ -143,7 +143,7 @@
 
 (defn valid-label-name? [label-name]
   (and (string? label-name)
-       (<= 1 (count label-name) 15)))
+       (<= 1 (count label-name) 40)))
 
 (def LabelName (schema/pred valid-label-name?))
 
