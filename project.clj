@@ -14,7 +14,7 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.11.0-alpha1"]
+    [org.clojure/clojure "1.10.3"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "1.0.206"]
     ;; Web application library https://github.com/ring-clojure/ring
@@ -49,7 +49,7 @@
     ;; ***************** (JWT schema changes, more info here: *****************
     ;; ******* https://github.com/open-company/open-company-lib/pull/82) ******
     ;; ************************************************************************
-    [open-company/lib "0.18.0-alpha" :exclusions [commons-codec]]
+    [open-company/lib "0.18.0-alpha1" :exclusions [commons-codec]]
     ;; ************************************************************************
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
