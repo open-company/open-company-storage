@@ -22,22 +22,44 @@
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."
   [conn {start :start direction :direction limit :limit} org boards-by-uuid user-id]
-  (let [following-data (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction limit (vals boards-by-uuid) {})
-        following-count (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start :after 0 (vals boards-by-uuid) {:count true})
+  (let [follow-data (activity-api/follow-parameters-map user-id (:uuid org))
+
+        follow-following-data (assoc follow-data :following true)
+        following-data (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction limit (vals boards-by-uuid) follow-following-data {})
+        following-count (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start :after 0 (vals boards-by-uuid) follow-following-data {:count true})
+
+        unfollow-limit (- limit (count following-data))
+        follow-unfollowing-data (assoc follow-data :unfollowing true)
+        load-unfollow? (and (pos? unfollow-limit)
+                            (seq (:unfollow-board-uuids)))
+        unfollowing-data (if load-unfollow?
+                           (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction unfollow-limit (vals boards-by-uuid) follow-unfollowing-data {})
+                           [])
+        unfollowing-count (if load-unfollow?
+                            (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start :after 0 (vals boards-by-uuid) follow-unfollowing-data {:count true})
+                            0)
 
         user-reads (read/retrieve-by-user-org config/dynamodb-opts user-id (:uuid org))
         user-reads-map (zipmap (map :item-uuid user-reads) user-reads)]
     ;; Give each activity its board name
     (-> {:start start
          :direction direction
-         :total-following-count following-count}
-     (assoc :following (map (fn [entry]
-                              (let [board (boards-by-uuid (:board-uuid entry))]
-                                (merge entry {:board-slug (:slug board)
-                                              :board-access (:access board)
-                                              :board-name (:name board)
-                                              :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
-                        following-data)))))
+         :total-following-count following-count
+         :total-unfollowing-count unfollowing-count}
+        (assoc :following (map (fn [entry]
+                                 (let [board (boards-by-uuid (:board-uuid entry))]
+                                   (merge entry {:board-slug (:slug board)
+                                                 :board-access (:access board)
+                                                 :board-name (:name board)
+                                                 :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
+                               following-data))
+        (assoc :unfollowing (map (fn [entry]
+                                   (let [board (boards-by-uuid (:board-uuid entry))]
+                                     (merge entry {:board-slug (:slug board)
+                                                   :board-access (:access board)
+                                                   :board-name (:name board)
+                                                  :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
+                                 unfollowing-data)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
