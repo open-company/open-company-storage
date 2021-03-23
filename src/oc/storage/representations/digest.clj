@@ -43,17 +43,25 @@
 
 (defn render-digest
   ""
-  [params org _collection-type {:keys [following total-following-count]} boards user]
-  (let [links [(hateoas/up-link (org-urls/org org) {:accept mt/org-media-type})]]
+  [params org _collection-type {:keys [following total-following-count unfollowing total-unfollowing-count]} boards user]
+  (let [links [(hateoas/up-link (org-urls/org org) {:accept mt/org-media-type})]
+        total-count (+ total-following-count total-unfollowing-count)
+        total-entries (+ (count following) (count unfollowing))]
     (json/generate-string
       {:collection {:version hateoas/json-collection-version
                     :links links
                     :direction (:direction params)
                     :start (:start params)
-                    :has-more (> total-following-count (count following))
-                    :total-count total-following-count
+                    :has-more (> total-count total-entries)
+                    :total-count total-count
+                    :total-following-count total-following-count
                     :following (map (fn [entry]
                                      (let [board (get boards (:board-uuid entry))]
                                        (entry-for-digest org board entry (entry-rep/comments entry) (:user-id user))))
-                                following)}}
+                                following)
+                    :total-unfollowing-count total-unfollowing-count
+                    :unfollowing (map (fn [entry]
+                                     (let [board (get boards (:board-uuid entry))]
+                                       (entry-for-digest org board entry (entry-rep/comments entry) (:user-id user))))
+                                unfollowing)}}
       {:pretty config/pretty?})))

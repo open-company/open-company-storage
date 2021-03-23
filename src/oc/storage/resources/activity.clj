@@ -14,8 +14,8 @@
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a number of results, return the published entries for the org with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID order start :- common/SortValue direction limit
-   allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count unseen :unseen :or {count? false unseen false}}]
+  [conn org-uuid :- lib-schema/UniqueID order start :- common/SortValue direction limit allowed-boards :- (schema/maybe [common/AllowedBoard])
+   follow-data {count? :count unseen :unseen :or {count? false unseen false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
@@ -24,8 +24,15 @@
   (let [index-name (if (sequential? allowed-boards)
                      :status-board-uuid
                      :status-org-uuid)
+        allowed-board-uuids (set (map :uuid allowed-boards))
+        filtered-board-uuids (cond (:following follow-data)
+                                   (clj-set/difference allowed-board-uuids (:unfollow-board-uuids follow-data))
+                                   (:unfollowing follow-data)
+                                   (clj-set/intersection allowed-board-uuids (:unfollow-board-uuids follow-data))
+                                   :else
+                                   allowed-board-uuids)
         index-value (if (sequential? allowed-boards)
-                      (map #(vec [:published (:uuid %)]) allowed-boards)
+                      (map #(vec [:published %]) filtered-board-uuids)
                       [[:published org-uuid]])]
     (time
      (storage-db-common/read-digest-entries conn entry-res/table-name index-name index-value order start direction
