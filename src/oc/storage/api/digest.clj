@@ -31,7 +31,7 @@
         unfollow-limit (- limit (count following-data))
         follow-unfollowing-data (assoc follow-data :unfollowing true)
         load-unfollow? (and (pos? unfollow-limit)
-                            (seq (:unfollow-board-uuids)))
+                            (seq (:unfollow-board-uuids follow-data)))
         unfollowing-data (if load-unfollow?
                            (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction unfollow-limit (vals boards-by-uuid) follow-unfollowing-data {})
                            [])
