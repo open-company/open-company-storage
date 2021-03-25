@@ -122,6 +122,9 @@
     (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
     created-board))
 
+(defn valid-labels-list? [entry-labels]
+  (> (count entry-labels) config/max-entry-labels))
+
 (defn- valid-new-entry? [conn org-slug board-slug ctx]
   (let [org (org-res/get-org conn org-slug)
         board (board-res/get-board conn (:uuid org) board-slug)
@@ -135,17 +138,20 @@
                              (:publisher-board entry-map)
                              (= (:user-id author) (:board-slug entry-map)))
                         (create-publisher-board conn org author))]
-    (if board
-      (try
-        ;; Create the new entry from the URL and data provided
-        (let [clean-entry-map (dissoc entry-map :publisher-board)
-              new-entry (entry-res/->entry conn (:uuid existing-board) clean-entry-map author)]
-          {:new-entry (api-common/rep new-entry)
-           :existing-board (api-common/rep existing-board)
-           :existing-org (api-common/rep org)})
-        (catch clojure.lang.ExceptionInfo e
-          [false, {:reason (.getMessage e)}])) ; Not a valid new entry))
-      [false, {:reason "Invalid board."}]))) ; couldn't find the specified board
+    (cond (not board)
+          [false, {:reason "Invalid board."}] ; couldn't find the specified board
+          (valid-labels-list? (:labels entry-map))
+          [false, {:reason (format "Too many labels (%d): %s. Max allowed is %d" (count (:labels entry-map)) (s/join " | " (map :name (:labels entry-map))) config/max-entry-labels)}]
+          :else
+          (try
+            ;; Create the new entry from the URL and data provided
+            (let [clean-entry-map (dissoc entry-map :publisher-board)
+                  new-entry (entry-res/->entry conn (:uuid existing-board) clean-entry-map author)]
+              {:new-entry (api-common/rep new-entry)
+              :existing-board (api-common/rep existing-board)
+              :existing-org (api-common/rep org)})
+            (catch clojure.lang.ExceptionInfo e
+              [false, {:reason (.getMessage e)}]))))) ; Not a valid entry
 
 (defn- clean-poll-reply
   "Copy the votes from the existing poll's reply if any, into the new reply."
@@ -214,13 +220,16 @@
           ctx-base (if moving-board?
                      {:moving-board (api-common/rep old-board)}
                      {})]
-      (if (lib-schema/valid? common-res/Entry updated-entry)
-        (merge ctx-base
-         {:existing-entry (api-common/rep existing-entry)
-          :existing-board (api-common/rep new-board)
-          :existing-org (api-common/rep org)
-          :updated-entry (api-common/rep updated-entry)})
-        [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
+      (cond (not (lib-schema/valid? common-res/Entry updated-entry))
+            [false, {:updated-entry (api-common/rep updated-entry)}] ; invalid update
+            (valid-labels-list? (:labels entry-props))
+            [false, {:reason (format "Too many labels (%d): %s. Max allowed is %d" (count (:labels entry-props)) (s/join " | " (map :name (:labels entry-props))) config/max-entry-labels)}]
+            :else
+            (merge ctx-base
+                   {:existing-entry (api-common/rep existing-entry)
+                    :existing-board (api-common/rep new-board)
+                    :existing-org (api-common/rep org)
+                    :updated-entry (api-common/rep updated-entry)})))
 
     true)) ; no existing entry, so this will fail existence check later
 

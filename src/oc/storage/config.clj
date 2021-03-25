@@ -126,5 +126,5 @@
 (defonce default-csv-days (Integer/parseInt (or (env :default-csv-days) "30")))
 
 ;; Tags
-
-(defonce entry-max-labels 3)
+(defonce labels-enabled? true)
+(defonce max-entry-labels (Integer/parseInt (or (env :max-entry-labels) "3")))
