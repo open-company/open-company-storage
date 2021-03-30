@@ -74,7 +74,11 @@
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
 
 (defn clean-input [entry]
-  (update entry :body #(lib-html/sanitize-html (or % ""))))
+  (timbre/debugf "Clean input for entry %s" (:uuid entry))
+  (timbre/debugf "Incoming body %s" (:body entry))
+  (let [with-updated-body (update entry :body #(lib-html/sanitize-html (or % "")))]
+    (timbre/debugf "Outgoing body %s" (:body with-updated-body))
+    with-updated-body))
 
 ;; ----- Entry CRUD -----
 
