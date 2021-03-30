@@ -9,7 +9,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
-            [oc.lib.text :as str]
+            [oc.lib.html :as html-lib]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]
@@ -112,7 +112,7 @@
         clean
         (assoc :uuid (db-common/unique-id))
         (assoc :slug slug)
-        (update :name #(str/strip-xss-tags %))
+        (update :name #(html-lib/strip-xss-tags %))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
         (update :entries #(or % []))

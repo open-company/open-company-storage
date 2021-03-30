@@ -8,7 +8,6 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.storage.db.common :as storage-db-common]
-            [oc.lib.text :as oc-str]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]))
 
@@ -74,11 +73,9 @@
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
 
 (defn clean-input [entry]
-  (timbre/debugf "Clean input for entry %s" (:uuid entry))
-  (timbre/debugf "Incoming body %s" (:body entry))
-  (let [with-updated-body (update entry :body #(lib-html/sanitize-html (or % "")))]
-    (timbre/debugf "Outgoing body %s" (:body with-updated-body))
-    with-updated-body))
+  (-> entry
+      (update :body #(lib-html/sanitize-html (or % "")))
+      (update :headline #(lib-html/strip-xss-tags (or % "")))))
 
 ;; ----- Entry CRUD -----
 

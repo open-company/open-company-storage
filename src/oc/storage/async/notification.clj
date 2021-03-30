@@ -4,13 +4,14 @@
             [defun.core :refer (defun)]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
+            [clojure.string :as str]
             [amazonica.aws.sns :as sns]
             [amazonica.aws.kinesisfirehose :as fh]
             [schema.core :as schema]
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
             [oc.lib.sentry.core :as sentry]
-            [oc.lib.text :as str]
+            [oc.lib.html :as html-lib]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common-res]))
 
@@ -152,7 +153,7 @@
                 :user user
                 :notification-at (oc-time/current-timestamp)
                 :sender-ws-client-id ws-client-id}
-        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        note-notice (if note (assoc notice :note (html-lib/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice))
@@ -162,13 +163,13 @@
                 :content content
                 :users users
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        note-notice (if note (assoc notice :note (html-lib/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))
 
 (schema/defn ^:always-validate send-trigger! [trigger :- NotificationTrigger]
-  (if (clojure.string/blank? config/aws-sns-storage-topic-arn)
+  (if (str/blank? config/aws-sns-storage-topic-arn)
     (timbre/debug "Skipping a notification for:" (or (-> trigger :content :old :uuid)
                                                      (-> trigger :content :new :uuid)))
     (do
