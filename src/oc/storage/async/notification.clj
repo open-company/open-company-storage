@@ -2,6 +2,7 @@
   "Async publish of notification events to AWS SNS."
   (:require [clojure.core.async :as async :refer (<! >!!)]
             [defun.core :refer (defun)]
+            [clojure.string :as cstr]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
@@ -168,7 +169,7 @@
       final-notice)))
 
 (schema/defn ^:always-validate send-trigger! [trigger :- NotificationTrigger]
-  (if (clojure.string/blank? config/aws-sns-storage-topic-arn)
+  (if (cstr/blank? config/aws-sns-storage-topic-arn)
     (timbre/debug "Skipping a notification for:" (or (-> trigger :content :old :uuid)
                                                      (-> trigger :content :new :uuid)))
     (do

@@ -5,8 +5,6 @@
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
 
-(def public-representation-props [:uuid :slug :name :color :created-at :updated-at :author :count])
-
 (def reserved-props [:used-by])
 
 ;; ----- Representation -----

@@ -41,7 +41,7 @@
    {:pre [(db-common/conn? conn)]}
    (first (db-common/read-resources conn table-name :org-label [[org-uuid label-slug]]))))
 
-(defn slug-available?
+(defn- slug-available?
   "Return true if the slug is not used by any org in the system."
   [conn slug org-uuid]
   {:pre [(db-common/conn? conn)
@@ -53,22 +53,18 @@
   (slug/find-available-slug label-name (taken-slugs conn org-uuid)))
 
 (schema/defn ^:always-validate ->label :- common/Label
-  ([label-map org user]
-   (->label (:name label-map) (:color label-map) (:uuid org) (lib-schema/author-for-user user)))
-  ([label-name :- common/LabelName
-    label-color :- lib-schema/HEXColor
-    org-uuid :- lib-schema/UniqueID
-    author :- lib-schema/Author]
-   (let [ts (db-common/current-timestamp)]
-     {primary-key (db-common/unique-id)
-      :created-at ts
-      :updated-at ts
-      :org-uuid org-uuid
-      :name label-name
-      :slug (slug/slugify label-name) ;; Will be adjusted later during save
-      :color label-color
-      :author author
-      :used-by [{:user-id (:user-id author) :count 0}]})))
+  [label-name :- common/LabelName
+   org-uuid :- lib-schema/UniqueID
+   author :- lib-schema/Author]
+  (let [ts (db-common/current-timestamp)]
+    {primary-key (db-common/unique-id)
+     :created-at ts
+     :updated-at ts
+     :org-uuid org-uuid
+     :name label-name
+     :slug (slug/slugify label-name) ;; Will be adjusted later during save
+     :author author
+     :used-by [{:user-id (:user-id author) :count 0}]}))
 
 (schema/defn ^:always-validate create-label!
   "
@@ -78,7 +74,7 @@
   "
   [conn label :- common/Label]
   {:pre [(db-common/conn? conn)]}
-  (timbre/infof "Creating label %s with color %s" (:name label) (:color label))
+  (timbre/infof "Creating label %s for org %s user %s" (:name label) (:org-uuid label) (-> label :author :user-id))
   (db-common/create-resource conn table-name (assoc label :slug (label-slug-for-org conn (:org-uuid label) (:name label)))
                              (db-common/current-timestamp)))
 
@@ -90,6 +86,7 @@
   "
   [conn label-uuid :- common/Slug updating-label :- {schema/Keyword schema/Any}]
   {:pre [(db-common/conn? conn)]}
+  (timbre/debugf "Updating label %s (%s) for org %s user %s" (:name updating-label) (:uuid updating-label) (:org-uuid updating-label) (-> updating-label :author :user-id))
   (when-let [original-label (get-label conn label-uuid)]
     (let [updated-label (merge original-label (ignore-props updating-label))]
       (schema/validate common/Label updated-label)

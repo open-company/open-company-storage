@@ -38,16 +38,16 @@
 (defn- valid-new-label? [conn org-slug label-props user]
   (try
     (if-let* [existing-org (org-res/get-org conn org-slug)
-              new-label (label-res/->label label-props existing-org user)]
+              new-label (label-res/->label (:name label-props) (:uuid existing-org) user)]
       {:existing-org (api-common/rep existing-org)
        :new-label (api-common/rep new-label)}
       (do
         (timbre/error "Failed checking new label props.")
         [false {:reason "Error checking new label props"}]))
     (catch Exception e
-      (timbre/errorf "Error creating label with name %s and color %s" (:name label-props) (:color label-props))
+      (timbre/errorf "Error creating label with name %s" (:name label-props))
       (timbre/error e)
-      [false {:reason (format "Error creating label with name %s and color %s" (:name label-props) (:color label-props))
+      [false {:reason (format "Error creating label with name %s" (:name label-props))
               :throwable e}])))
 
 (defn- valid-label-update? [conn org-slug label-uuid label-props]

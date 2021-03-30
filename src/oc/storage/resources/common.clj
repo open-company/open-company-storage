@@ -148,10 +148,9 @@
 (def LabelName (schema/pred valid-label-name?))
 
 (def EntryLabel
-  "A label is an object composed by a name and a hex color."
+  "A label is an object composed by a name and a slug."
   {:uuid lib-schema/NonBlankStr
    :name LabelName
-   :color lib-schema/HEXColor
    :slug lib-schema/NonBlankStr})
 
 (def LabelUsedBy

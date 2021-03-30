@@ -72,7 +72,7 @@
   {:pre [(db-common/conn? conn)]}
   (into reserved-slugs (map :slug (list-orgs conn))))
 
-(defn slug-available?
+(defn- slug-available?
   "Return true if the slug is not used by any org in the system."
   [conn slug]
   {:pre [(db-common/conn? conn)
