@@ -20,7 +20,7 @@
   (hateoas/link-map "create-label" hateoas/POST
                     (label-urls/labels org)
                     {:content-type mt/label-media-type
-                     :accept mt/label-media-type}))
+                     :accept mt/label-collection-media-type}))
 
 (defn label-link [org label]
   (hateoas/self-link (label-urls/label org label) {:accept mt/label-media-type}))
@@ -30,27 +30,19 @@
                                                              :accept mt/label-media-type}))
 
 (defn delete-link [org label]
-  (hateoas/delete-link (label-urls/label org label)))
+  (hateoas/delete-link (label-urls/label org label) {:accept mt/label-media-type}))
 
 (defn label-entries-link [org label]
   (hateoas/link-map "label-entries" hateoas/GET
                     (label-urls/label-entries org label)
                     {:accept mt/entry-collection-media-type}))
 
-(defn partial-add-entry-label-link [org label]
-  (hateoas/link-map "partial-add-entry-label" hateoas/POST
-                    (entry-urls/label org "$0" "$1" (:uuid label))
-                    {:accept mt/entry-media-type}
-                    {:replace {:board-slug "$0"
-                               :entry-uuid "$1"}}))
-
 (defn label-links [org label]
   [(label-up-link org)
    (label-link org label)
    (partial-update-link org label)
    (delete-link org label)
-   (label-entries-link org label)
-   (partial-add-entry-label-link org label)])
+   (label-entries-link org label)])
 
 (defn label-for-render [org label user]
   (as-> label lb

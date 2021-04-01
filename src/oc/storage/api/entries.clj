@@ -125,6 +125,15 @@
     (merge next-ctx {:existing-label (api-common/rep existing-label)})
     false))
 
+(defn entry-label-exists? [conn ctx org-slug board-slug entry-uuid label-uuid user]
+  (if-let* [{existing-entry :existing-entry
+             existing-org :existing-org
+             :as next-ctx} (entry-exists? conn ctx org-slug board-slug entry-uuid user)
+            existing-entry-label (some #(when (= (:uuid %) label-uuid) %) (:labels existing-entry))]
+    (merge next-ctx {:existing-entry-label (api-common/rep existing-entry-label)
+                     :existing-label (api-common/rep (label-res/get-label conn label-uuid))})
+    false))
+
 (defn create-publisher-board [conn org author]
   (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
     (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
@@ -561,7 +570,7 @@
   (if-let* [org (:existing-org ctx)
             board (:existing-board ctx)
             entry (:existing-entry ctx)
-            label (:existing-label ctx)
+            label (:existing-entry-label ctx)
             user (:user ctx)]
     (if-let [updated-entry (entry-res/remove-label! conn (:uuid entry) (:uuid label) user)]
       (do
@@ -1069,7 +1078,10 @@
 
   ;; Existentialism
   :can-post-to-missing? false
-  :exists? (fn [ctx] (label-exists? conn ctx org-slug board-slug entry-uuid label-slug-or-uuid(:user ctx)))
+  :exists? (by-method {:post (fn [ctx]
+                               (label-exists? conn ctx org-slug board-slug entry-uuid label-slug-or-uuid(:user ctx)))
+                       :delete (fn [ctx]
+                                 (entry-label-exists? conn ctx org-slug board-slug entry-uuid label-slug-or-uuid (:user ctx)))})
 
   ;; Actions
   :post! (fn [ctx] (add-label conn ctx label-slug-or-uuid (s/join " " [org-slug board-slug entry-uuid label-slug-or-uuid])))

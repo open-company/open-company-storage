@@ -143,11 +143,16 @@
 (defn- add-label-link [org-slug board-slug entry-uuid]
   (hateoas/link-map "partial-add-label" hateoas/POST (entry-urls/label org-slug board-slug entry-uuid "$0")
                     {:accept mt/entry-media-type}
-                    {:replace {:label-slug-or-uuid "$0"}}))
+                    {:replace {:label-uuid "$0"}}))
 
-(defn- remove-label-link [org-slug board-slug entry-uuid label-slug-or-uuid]
-  (hateoas/link-map "remove-label" hateoas/DELETE (entry-urls/label org-slug board-slug entry-uuid label-slug-or-uuid)
-                    {:accept mt/entry-media-type}))
+(defn- remove-label-link
+  ([org-slug board-slug entry-uuid]
+   (hateoas/link-map "partial-remove-label" hateoas/DELETE (entry-urls/label org-slug board-slug entry-uuid "$0")
+                     {:accept mt/entry-media-type}
+                     {:replace {:label-uuid "$0"}}))
+  ([org-slug board-slug entry-uuid label-slug-or-uuid]
+   (hateoas/link-map "remove-label" hateoas/DELETE (entry-urls/label org-slug board-slug entry-uuid label-slug-or-uuid)
+                     {:accept mt/entry-media-type})))
 
 (defn include-secure-uuid
   "Include secure UUID property for authors."
@@ -228,9 +233,6 @@
     ;; Remove pins for non members
     (dissoc entry :pins)))
 
-(defn- labels-with-links [labels org-slug board-slug entry-uuid]
-  (mapv #(assoc % :links [(remove-label-link org-slug board-slug entry-uuid (:uuid %))]) labels))
-
 (defn- entry-and-links
   "
   Given an entry and all the metadata about it, render an access level appropriate rendition of the entry
@@ -257,9 +259,6 @@
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         rendered-polls (when (seq (:polls entry))
                          (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id))
-        rendered-labels (when (and member?
-                                   (seq (:labels entry)))
-                          (labels-with-links (:labels entry) org-slug board-slug entry-uuid))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
@@ -360,7 +359,8 @@
                (conj (label-changes-link org board entry-uuid))
                ;; Label: partial add label link
                (and member? (not secure-access?))
-               (conj (add-label-link org board entry-uuid)))]
+               (concat [(add-label-link org board entry-uuid)
+                        (remove-label-link org board entry-uuid)]))]
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
@@ -368,7 +368,6 @@
             (merge full-entry))
           full-entry)
       (assoc :polls rendered-polls)
-      (assoc :labels rendered-labels)
       (select-keys representation-props)
       (filter-pins member?)
       (include-secure-uuid secure-uuid access-level)

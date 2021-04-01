@@ -561,12 +561,14 @@
   ([conn entry-uuid :- lib-schema/UniqueID label-uuid :- lib-schema/UniqueID user :- lib-schema/User]
    {:pre [(db-common/conn? conn)]}
    (let [original-entry (get-entry conn entry-uuid)
-         existing-label (label-res/get-label conn label-uuid)
-         label-exists-in-entry? ((->> original-entry :labels (map :uuid) set) (:uuid existing-label))]
+         entry-label-uuids (set (mapv :uuid (:labels original-entry)))
+         label-exists-in-entry? (entry-label-uuids label-uuid)
+         existing-label (label-res/get-label conn label-uuid)]
      (if label-exists-in-entry?
        ;; Remove the label
-       (let [updated-entry-labels (filterv #(not= (:uuid %) (:uuid existing-label)) (:labels original-entry))]
-         (label-res/label-unused-by! conn (:uuid existing-label) (:org-uuid original-entry) user)
+       (let [updated-entry-labels (filterv #(not= (:uuid %) label-uuid) (:labels original-entry))]
+         (when existing-label
+           (label-res/label-unused-by! conn (:uuid existing-label) (:org-uuid original-entry) user))
          (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
        ;; Label is not in the entry, return the original entry w/o changes
        original-entry))))

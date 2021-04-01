@@ -3,6 +3,7 @@
   (:require [if-let.core :refer (if-let*)]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
+            [oc.lib.schema :as lib-schema]
             [compojure.core :as compojure :refer (ANY)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.db.pool :as pool]
@@ -29,7 +30,7 @@
 (defn- valid-new-label? [conn org-slug label-props user]
   (try
     (if-let* [existing-org (org-res/get-org conn org-slug)
-              new-label (label-res/->label (:name label-props) (:uuid existing-org) user)]
+              new-label (label-res/->label (:name label-props) (:uuid existing-org) (lib-schema/author-for-user user))]
       {:existing-org (api-common/rep existing-org)
        :new-label (api-common/rep new-label)}
       (do
@@ -46,16 +47,17 @@
     (if-let* [existing-org (org-res/get-org conn org-slug)
               existing-label (label-res/get-label conn label-uuid)]
       (let [updated-label (merge existing-label (label-res/ignore-props label-props))
-            ;; updating-label-name? (contains? label-props :name)
-            ;; duplicated-label (duplicated-label-name? conn existing-org (:name label-props) [(:uuid existing-label)])
+            updating-label-name? (and (contains? label-props :name)
+                                      (not= (:name label-props) (:name existing-label)))
+            duplicated-label (when updating-label-name?
+                               (duplicated-label-name? conn existing-org (:name label-props) [(:uuid existing-label)]))
             not-valid-update? (schema/check common-res/Label updated-label)]
-        (cond
-              ;; (and updating-label-name?
-              ;;      duplicated-label)
-              ;; (let [err-msg (format "Not valid label %s update name %s, duplicated label %s with name %s" (:uuid existing-label) (:name label-props) (:uuid duplicated-label) (:name diplicated-label))]
-              ;;   (timbre/error err-msg)
-              ;;   [false {:reason err-msg
-              ;;           :updated-label updated-label}])
+        (cond duplicated-label
+              (let [err-msg (format "Not valid label %s update name %s, is a duplicate of %s (%s)" (:uuid existing-label) (:name label-props) (:name duplicated-label) (:uuid duplicated-label))]
+                (timbre/error err-msg)
+                [false (merge duplicated-label
+                              {:reason err-msg
+                               :updated-label updated-label})])
               not-valid-update?
               (do
                 (timbre/error "Not valid label update")
@@ -75,11 +77,13 @@
 
 (defn create-label [conn new-label]
   (timbre/infof "Creating label %s for org %s" (:name new-label) (:org-uuid new-label))
-  (if-let [label-result (label-res/create-label! conn new-label)] ; Add the org
+  (if-let* [label-result (label-res/create-label! conn new-label)
+            updated-labels-list (label-res/list-labels-by-org conn (:org-uuid new-label))]
     ;; Label creation succeeded, so create the default boards
     (do
-      (timbre/infof "Created label %s" (:uuid label-result))
-      {:created-label (api-common/rep label-result)})
+      (timbre/infof "Created label %s, org %s now has %d labels" (:uuid label-result) (:org-uuid new-label) (count updated-labels-list))
+      {:created-label (api-common/rep label-result)
+       :updated-labels (api-common/rep updated-labels-list)})
     (do
       (timbre/error "Failed creating label %s for org %s" (:name new-label) (:org-uuid new-label))
       false)))
@@ -122,9 +126,9 @@
   :allowed-methods [:options :get :post :delete]
 
   ;; Media type client accepts
-  :available-media-types [mt/label-media-type mt/label-collection-media-type]
+  :available-media-types [mt/label-collection-media-type]
   :handle-not-acceptable (by-method {
-                          :get (api-common/only-accept 406 mt/label-media-type)
+                          :get (api-common/only-accept 406 mt/label-collection-media-type)
                           :options false
                           :post (api-common/only-accept 406 mt/label-collection-media-type)
                           :delete false})
@@ -167,9 +171,10 @@
   ;; Responses
   :handle-created (fn [ctx] (let [user (:user ctx)
                                   existing-org (:existing-org ctx)
-                                  new-label (:created-label ctx)]
-                              (api-common/location-response (label-urls/label existing-org new-label)
-                                                            (label-rep/render-label existing-org new-label user)
+                                  new-label (:created-label ctx)
+                                  updated-labels (:updated-labels ctx)]
+                              (api-common/location-response (:uuid new-label)
+                                                            (label-rep/render-label-list existing-org updated-labels user)
                                                             mt/label-media-type)))
   :handle-ok (fn [ctx] (let [existing-org (:existing-org ctx)
                              existing-labels (:existing-labels ctx)]
@@ -181,11 +186,14 @@
   :allowed-methods [:options :delete :get :patch]
 
   ;; Media type client accepts
-  :available-media-types [mt/label-collection-media-type]
-  :handle-not-acceptable (api-common/only-accept 406 mt/label-collection-media-type)
+  :available-media-types [mt/label-media-type]
+  :handle-not-acceptable (api-common/only-accept 406 mt/label-media-type)
 
   ;; Media type client sends
-  :known-content-type? true
+  :known-content-type? (by-method {:options true
+                                   :get true
+                                   :patch (fn [ctx] (api-common/known-content-type? ctx mt/label-media-type))
+                                   :delete true})
 
   ;; Authorization
   :allowed? (by-method {:options true
@@ -210,14 +218,14 @@
                               false))
 
   ;; Actions
-  :patch! (fn [ctx] (update-label conn (:existing-label ctx)))
+  :patch! (fn [ctx] (update-label conn (:updated-label ctx)))
   :delete! (fn [ctx] (delete-label conn (:existing-label ctx)))
 
   ;; Responses
   :handle-ok (fn [ctx] (let [user (:user ctx)
                              existing-org (:existing-org ctx)
-                             label (or (:updated-label ctx) (:existing-label ctx))]
-                         (label-rep/render-label existing-org label user))))
+                             return-label (or (:updated-label ctx) (:existing-label ctx))]
+                         (label-rep/render-label existing-org return-label user))))
 
 ;; ----- Routes -----
 
@@ -228,7 +236,15 @@
        [org-slug]
        (pool/with-pool [conn db-pool]
          (labels conn org-slug)))
+     (ANY (str (label-urls/labels ":org-slug") "/")
+       [org-slug]
+       (pool/with-pool [conn db-pool]
+         (labels conn org-slug)))
      (ANY (label-urls/label ":org-slug" ":label-uuid")
+       [org-slug label-uuid]
+       (pool/with-pool [conn db-pool]
+         (label conn org-slug label-uuid)))
+     (ANY (str (label-urls/label ":org-slug" ":label-uuid") "/")
        [org-slug label-uuid]
        (pool/with-pool [conn db-pool]
          (label conn org-slug label-uuid))))))
