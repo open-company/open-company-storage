@@ -7,6 +7,8 @@
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]))
 
+;; Table, props and primary key
+
 (def table-name common/label-table-name)
 (def primary-key :uuid)
 
@@ -14,13 +16,6 @@
   (clj-set/union common/reserved-properties #{:used-by}))
 
 (def reserved-slugs #{})
-
-(declare list-labels-by-org)
-(defn taken-slugs
-  "Return all org slugs which are in use as a set."
-  [conn org-uuid]
-  {:pre [(db-common/conn? conn)]}
-  (into reserved-slugs (map :slug (list-labels-by-org conn org-uuid))))
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
@@ -31,6 +26,27 @@
   [label]
   (apply dissoc label ignored-properties))
 
+;; Utilities
+
+(declare list-labels-by-org)
+(defn taken-slugs
+  "Return all org slugs which are in use as a set."
+  [conn org-uuid]
+  {:pre [(db-common/conn? conn)]}
+  (into reserved-slugs (map :slug (list-labels-by-org conn org-uuid))))
+
+(defn- slug-available?
+  "Return true if the slug is not used by any org in the system."
+  [conn slug org-uuid]
+  {:pre [(db-common/conn? conn)
+         (slug/valid-slug? slug)
+         (lib-schema/unique-id? org-uuid)]}
+  (not (contains? (taken-slugs conn org-uuid) slug)))
+
+(schema/defn entry-label :- (schema/maybe common/EntryLabel)
+  [label :- (schema/maybe common/Entry)]
+  (select-keys label [:uuid :name :slug]))
+
 (schema/defn ^:always-validate get-label :- (schema/maybe common/Label)
   "Given the slug of the label, return the label object, or return nil if it doesn't exist."
   ([conn label-uuid]
@@ -40,14 +56,6 @@
   ([conn org-uuid :- lib-schema/UniqueID label-slug]
    {:pre [(db-common/conn? conn)]}
    (first (db-common/read-resources conn table-name :org-label [[org-uuid label-slug]]))))
-
-(defn- slug-available?
-  "Return true if the slug is not used by any org in the system."
-  [conn slug org-uuid]
-  {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)
-         (lib-schema/unique-id? org-uuid)]}
-  (not (contains? (taken-slugs conn org-uuid) slug)))
 
 (defn label-slug-for-org [conn org-uuid label-name]
   (slug/find-available-slug label-name (taken-slugs conn org-uuid)))

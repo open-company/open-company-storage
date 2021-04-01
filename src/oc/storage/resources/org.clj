@@ -6,8 +6,7 @@
             [oc.lib.slugify :as slug]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
-            [oc.storage.resources.common :as common]
-            [oc.storage.resources.label :as label-res]))
+            [oc.storage.resources.common :as common]))
 
 ;; ----- RethinkDB metadata -----
 
@@ -277,12 +276,14 @@
 
 (defn delete-all-orgs!
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
-   Second parameter has to be delete-them-all! to avoid confusing this with the delete-org! function."
-  [conn security-check]
-  {:pre [(db-common/conn? conn)
-         (= security-check "delete-them-all!")]}
-  ;; Delete all interactions, entries, boards and orgs
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn common/board-table-name)
-  (db-common/delete-all-resources! conn table-name))
+   Second parameter has to be `I do know what I am doing!` to add a second level of security."
+  ([conn] (delete-all-orgs! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   ;; Delete all interactions, entries, boards and orgs
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn common/entry-table-name)
+   (db-common/delete-all-resources! conn common/versions-table-name)
+   (db-common/delete-all-resources! conn common/board-table-name)
+   (db-common/delete-all-resources! conn table-name)))

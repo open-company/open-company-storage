@@ -11,6 +11,7 @@
 (def entry-table-name "entries")
 (def interaction-table-name "interactions")
 (def label-table-name "labels")
+(def versions-table-name (str "versions_" entry-table-name))
 
 ;; ----- Properties common to all resources -----
 

@@ -117,6 +117,14 @@
             :existing-entry (api-common/rep entry)})
     false))
 
+(defn label-exists? [conn ctx org-slug board-slug entry-uuid label-uuid user]
+  (if-let* [{existing-entry :existing-entry
+             existing-org :existing-org
+             :as next-ctx} (entry-exists? conn ctx org-slug board-slug entry-uuid user)
+            existing-label (label-res/get-label conn label-uuid)]
+    (merge next-ctx {:existing-label (api-common/rep existing-label)})
+    false))
+
 (defn create-publisher-board [conn org author]
   (let [created-board (board-res/create-publisher-board! conn (:uuid org) author)]
     (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
@@ -296,6 +304,23 @@
         [false, {:updated-entry (api-common/rep updated-entry)}])) ; invalid update
 
     true)) ; no existing entry, so this will fail existence check later
+
+(defn malformed-label-uuids?
+  "Read in the body param from the request and make sure it's a non-blank string
+  that corresponds to a list of UUIDs of the labels to add/remove."
+  [ctx]
+  (try
+    (if-let* [labels-change-map (slurp (get-in ctx [:request :body]))
+              valid? (and (map? labels-change-map)
+                          (or (and (seq (:add labels-change-map))
+                                   (every? lib-schema/unique-id? (:add labels-change-map)))
+                              (and (seq (:remove labels-change-map))
+                                   (every? lib-schema/unique-id? (:remove labels-change-map)))))]
+             [false {:label-changes labels-change-map}]
+             true)
+    (catch Exception e
+      (timbre/warn "Request body not processable as valid entry label changes: " e)
+      true)))
 
 ;; ----- Actions -----
 
@@ -510,6 +535,91 @@
     (do
       (timbre/error "Failed removing bookmark for entry:" entry-for "and user" (-> ctx :user :user-id))
       false)))
+
+;; Label add/remove
+
+(defn- add-label [conn ctx label-slug-or-uuid entry-for]
+  (timbre/infof "Adding label %s by user %s to entry %s" label-slug-or-uuid (-> ctx :user :user-id) entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            label (:existing-label ctx)
+            user (:user ctx)]
+    (if-let [updated-entry (entry-res/add-label! conn (:uuid entry) (:uuid label) user)]
+      (do
+        (timbre/debugf "Label %s added by user %s on entry %s" label-slug-or-uuid (-> ctx :user :user-id) (:uuid entry))
+        {:updated-entry (api-common/rep updated-entry)})
+      (do
+        (timbre/infof "Label not added, it probably means the entry %s already has %s" (:uuid entry) label-slug-or-uuid)
+        {:existing-entry (api-common/rep entry)}))
+    (do
+      (timbre/errorf "Failed adding label %s to entry %s by user %s" label-slug-or-uuid (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
+      false)))
+
+(defn- remove-label [conn ctx label-slug-or-uuid entry-for]
+  (timbre/infof "Removing label %s by user %s to entry %s" label-slug-or-uuid (-> ctx :user :user-id) entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            label (:existing-label ctx)
+            user (:user ctx)]
+    (if-let [updated-entry (entry-res/remove-label! conn (:uuid entry) (:uuid label) user)]
+      (do
+        (timbre/debugf "Label %s removed by user %s on entry %s" label-slug-or-uuid (-> ctx :user :user-id) (:uuid entry))
+        {:updated-entry (api-common/rep updated-entry)})
+      (do
+        (timbre/infof "Label not removed, it probably means the entry %s already has %s" (:uuid entry) label-slug-or-uuid)
+        {:existing-entry (api-common/rep entry)}))
+    (do
+      (timbre/errorf "Failed removing label %s to entry %s by user %s" label-slug-or-uuid (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
+      false)))
+
+(defn- add-labels [conn ctx label-uuids entry-for]
+  (timbre/infof "Adding labels %s by user %s to entry %s" label-uuids (-> ctx :user :user-id) entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)]
+    (if-let [updated-entry (entry-res/add-labels! conn (:uuid entry) label-uuids user)]
+      (do
+        (timbre/debugf "Labels %s added by user %s on entry %s" label-uuids (-> ctx :user :user-id) (:uuid entry))
+        {:updated-entry (api-common/rep updated-entry)})
+      (do
+        (timbre/infof "Labels not added, it probably means the entry %s already has %s" (:uuid entry) label-uuids)
+        {:existing-entry (api-common/rep entry)}))
+    (do
+      (timbre/errorf "Failed adding labels %s to entry %s by user %s" label-uuids (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
+      false)))
+
+(defn- remove-labels [conn ctx label-uuids entry-for]
+  (timbre/infof "Removing labels %s by user %s to entry %s" label-uuids (-> ctx :user :user-id) entry-for)
+  (if-let* [org (:existing-org ctx)
+            board (:existing-board ctx)
+            entry (:existing-entry ctx)
+            user (:user ctx)]
+    (if-let [updated-entry (entry-res/add-labels! conn (:uuid entry) label-uuids user)]
+      (do
+        (timbre/debugf "Labels %s removed by user %s on entry %s" label-uuids (-> ctx :user :user-id) (:uuid entry))
+        {:updated-entry (api-common/rep updated-entry)})
+      (do
+        (timbre/infof "Label not removed, it probably means the entry %s already has %s" (:uuid entry) label-uuids)
+        {:existing-entry (api-common/rep entry)}))
+    (do
+      (timbre/errorf "Failed adding labels %s to entry %s by user %s" label-uuids (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
+      false)))
+
+(defn- toggle-label-uuids [conn ctx entry-for]
+  (let [existing-entry (:existing-entry ctx)
+        user (:user ctx)
+        {add-label-uuids :add remove-label-uuids :remove} (:label-changes ctx)]
+    (when (seq add-label-uuids)
+      (timbre/infof "Adding labels %s to entry %s by user %s" add-label-uuids entry-for (:user-id user))
+      (entry-res/add-labels! conn (:uuid existing-entry) add-label-uuids user))
+    (when (seq add-label-uuids)
+      (timbre/infof "Removing labels %s to entry %s by user %s" remove-label-uuids entry-for (:user-id user))
+      (entry-res/add-labels! conn (:uuid existing-entry) add-label-uuids user))
+    ;; Return original entry
+    {:updated-labels (entry-res/get-entry conn (:uuid existing-entry))}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -847,17 +957,14 @@
   :allowed-methods [:options :post :delete]
 
   ;; Authorization
-  :allowed? (by-method {
-    :options true
-    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+  :allowed? (by-method {:options true
+                        :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
 
   ;; Media type client accepts
-  :available-media-types (by-method {
-                            :post [mt/entry-media-type]
-                            :delete [mt/entry-media-type]})
-  :handle-not-acceptable (by-method {
-                            :post (api-common/only-accept 406 mt/entry-media-type)
-                            :delete (api-common/only-accept 406 mt/entry-media-type)})
+  :available-media-types (by-method {:post [mt/entry-media-type]
+                                     :delete [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {:post (api-common/only-accept 406 mt/entry-media-type)
+                                     :delete (api-common/only-accept 406 mt/entry-media-type)})
 
   ;; Data handling
   :new? false
@@ -886,35 +993,30 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
+                                 (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
 
 (defresource inbox [conn org-slug board-slug entry-uuid action-type]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
   :allowed-methods [:options :post]
 
   ;; Authorization
-  :allowed? (by-method {
-    :options true
-    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+  :allowed? (by-method {:options true
+                        :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
 
-  :known-content-type? (by-method {
-    :options true
-    :post (fn [ctx] (api-common/known-content-type? ctx "text/plain"))})
+  :known-content-type? (by-method {:options true
+                                   :post (fn [ctx] (api-common/known-content-type? ctx "text/plain"))})
 
   ;; Media type client accepts
-  :available-media-types (by-method {
-                            :post [mt/entry-media-type]})
-  :handle-not-acceptable (by-method {
-                            :post (api-common/only-accept 406 mt/entry-media-type)})
+  :available-media-types (by-method {:post [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {:post (api-common/only-accept 406 mt/entry-media-type)})
 
   ;; Data handling
   :new? false
   :respond-with-entity? true
 
   ;; Validations
-  :processable? (by-method {
-    :options true
-    :post (fn [ctx] (valid-entry-inbox-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
+  :processable? (by-method {:options true
+                            :post (fn [ctx] (valid-entry-inbox-update? conn ctx org-slug entry-uuid (:user ctx) action-type))})
 
   ;; Possibly no data to handle
   :malformed? false ; allow nil
@@ -936,7 +1038,101 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-handler (merge ctx {:reason (:updated-entry ctx)}))))
+                                 (api-common/unprocessable-entity-handler (merge ctx {:reason (:updated-entry ctx)}))))
+
+(defresource toggle-label [conn org-slug board-slug entry-uuid label-slug-or-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  :allowed-methods [:options :post :delete]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]
+                            :delete [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)
+                            :delete (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? true
+
+  ;; Possibly no data to handle
+  :malformed? false ; allow nil
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (label-exists? conn ctx org-slug board-slug entry-uuid label-slug-or-uuid(:user ctx)))
+
+  ;; Actions
+  :post! (fn [ctx] (add-label conn ctx label-slug-or-uuid (s/join " " [org-slug board-slug entry-uuid label-slug-or-uuid])))
+  :delete! (fn [ctx] (remove-label conn ctx label-slug-or-uuid (s/join " " [org-slug board-slug entry-uuid label-slug-or-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (or (:updated-entry ctx) (:existing-entry ctx))
+                                               (:existing-comments ctx)
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                                               (select-keys ctx [:access-level :role])
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+                                 (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
+
+(defresource toggle-labels [conn org-slug board-slug entry-uuid]
+  (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
+  :allowed-methods [:options :post]
+
+  ;; Authorization
+  :allowed? (by-method {
+    :options true
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+
+  ;; Media type client accepts
+  :available-media-types (by-method {
+                            :post [mt/entry-media-type]
+                            :delete [mt/entry-media-type]})
+  :handle-not-acceptable (by-method {
+                            :post (api-common/only-accept 406 mt/entry-media-type)
+                            :delete (api-common/only-accept 406 mt/entry-media-type)})
+
+  ;; Data handling
+  :new? false
+  :respond-with-entity? true
+
+  ;; Validations
+  :processable? true
+
+  ;; Possibly no data to handle
+  :malformed? (by-method {:options false
+                          :post (fn [ctx] (malformed-label-uuids? ctx))})
+  :known-content-type? (by-method {:options true
+                                   :post (fn [ctx] (api-common/known-content-type? ctx mt/entry-label-changes-media-type))})
+
+  ;; Existentialism
+  :can-post-to-missing? false
+  :exists? (fn [ctx] (entry-exists? conn ctx org-slug board-slug entry-uuid (:user ctx)))
+
+  ;; Actions
+  :post! (fn [ctx] (toggle-label-uuids conn ctx (s/join " " [org-slug board-slug entry-uuid])))
+
+  ;; Responses
+  :handle-ok (fn [ctx] (entry-rep/render-entry (:existing-org ctx)
+                                               (:existing-board ctx)
+                                               (or (:updated-entry ctx) (:existing-entry ctx))
+                                               (:existing-comments ctx)
+                                               (reaction-res/aggregate-reactions (:existing-reactions ctx))
+                                               (select-keys ctx [:access-level :role])
+                                               (-> ctx :user :user-id)))
+  :handle-unprocessable-entity (fn [ctx]
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
 
 ;; ----- Routes -----
 
@@ -1030,4 +1226,22 @@
       (ANY (str (entry-urls/inbox-unfollow ":org-slug" ":board-slug" ":entry-uuid") "/")
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
-          (inbox conn org-slug board-slug entry-uuid :unfollow))))))
+          (inbox conn org-slug board-slug entry-uuid :unfollow)))
+      ;; Multiple labels
+      (ANY (entry-urls/labels ":org-slug" ":board-slug" ":entry-uuid")
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (toggle-labels conn org-slug board-slug entry-uuid)))
+      (ANY (str (entry-urls/labels ":org-slug" ":board-slug" ":entry-uuid") "/")
+        [org-slug board-slug entry-uuid]
+        (pool/with-pool [conn db-pool]
+          (toggle-labels conn org-slug board-slug entry-uuid)))
+      ;; Single labels
+      (ANY (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid")
+        [org-slug board-slug entry-uuid label-slug-or-uuid]
+        (pool/with-pool [conn db-pool]
+          (toggle-label conn org-slug board-slug entry-uuid label-slug-or-uuid)))
+      (ANY (str (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid") "/")
+        [org-slug board-slug entry-uuid label-slug-or-uuid]
+        (pool/with-pool [conn db-pool]
+          (toggle-label conn org-slug board-slug entry-uuid label-slug-or-uuid))))))

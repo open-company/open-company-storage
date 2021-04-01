@@ -16,15 +16,6 @@
             [oc.storage.resources.common :as common-res]
             [oc.storage.urls.label :as label-urls]))
 
-;; Existentialism checks
-
-(defn- label-exists? [conn ctx org-slug label-uuid]
-  (if-let* [existing-org (or (:existing-org ctx) (org-res/get-org conn org-slug))
-            existing-label (label-res/get-label conn (:uuid existing-org) label-uuid)]
-    {:existing-org existing-org
-     :existing-label existing-label}
-    false))
-
 ;; Validations
 
 (defn- duplicated-label-name? [conn existing-org label-name exclude-label-uuids]

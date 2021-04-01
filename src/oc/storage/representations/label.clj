@@ -1,6 +1,7 @@
 (ns oc.storage.representations.label
   (:require [cheshire.core :as json]
             [oc.storage.urls.label :as label-urls]
+            [oc.storage.urls.entry :as entry-urls]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
@@ -36,12 +37,20 @@
                     (label-urls/label-entries org label)
                     {:accept mt/entry-collection-media-type}))
 
+(defn partial-add-entry-label-link [org label]
+  (hateoas/link-map "partial-add-entry-label" hateoas/POST
+                    (entry-urls/label org "$0" "$1" (:uuid label))
+                    {:accept mt/entry-media-type}
+                    {:replace {:board-slug "$0"
+                               :entry-uuid "$1"}}))
+
 (defn label-links [org label]
   [(label-up-link org)
    (label-link org label)
    (partial-update-link org label)
    (delete-link org label)
-   (label-entries-link org label)])
+   (label-entries-link org label)
+   (partial-add-entry-label-link org label)])
 
 (defn label-for-render [org label user]
   (as-> label lb

@@ -50,8 +50,8 @@
   ;; Media type client accepts
   :allowed? api-common/allow-anonymous
 
-  :available-media-types ["application/json" mt/org-collection-media-type]
-  :handle-not-acceptable (fn [_] (api-common/only-accept 406 ["application/json" mt/org-collection-media-type]))
+  :available-media-types [mt/json-media-type mt/org-collection-media-type]
+  :handle-not-acceptable (fn [_] (api-common/only-accept 406 [mt/json-media-type mt/org-collection-media-type]))
 
   ;; Responses
   :handle-ok (fn [ctx] (api-common/json-response (render-entry-point conn ctx) 200 mt/org-collection-media-type)))

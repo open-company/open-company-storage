@@ -1,5 +1,7 @@
 (ns oc.storage.representations.media-types)
 
+(def json-media-type "application/json")
+
 ;; Org media types
 (def org-media-type "application/vnd.open-company.org.v1+json")
 (def org-collection-media-type "application/vnd.collection+vnd.open-company.org+json;version=1")
@@ -23,6 +25,7 @@
 (def poll-reply-media-type "application/vnd.open-company.poll-reply.v1+json")
 (def pin-media-type "application/vnd.open-company.pin.v1+json")
 (def label-media-type "application/vnd.open-company.label.v1+json")
+(def entry-label-changes-media-type "application/vnd.open-company.entry-label-changes.v1+json")
 
 ;; Interaction media types
 (def comment-media-type "application/vnd.open-company.comment.v1+json")

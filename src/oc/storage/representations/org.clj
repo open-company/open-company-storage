@@ -212,7 +212,7 @@
                               author-links)]
     (assoc org :links delete-sample-links)))
 
-(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
+(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept mt/json-media-type}))
 
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"

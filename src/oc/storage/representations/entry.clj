@@ -135,6 +135,20 @@
   (hateoas/link-map rel hateoas/POST (pin-urls/pin org-slug board-slug entry-uuid pin-container-uuid)
    {:accept mt/pin-media-type}))
 
+(defn- label-changes-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "label-changes" hateoas/POST (entry-urls/labels org-slug board-slug entry-uuid)
+                    {:accept mt/entry-media-type
+                     :content-type mt/json-media-type}))
+
+(defn- add-label-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "partial-add-label" hateoas/POST (entry-urls/label org-slug board-slug entry-uuid "$0")
+                    {:accept mt/entry-media-type}
+                    {:replace {:label-slug-or-uuid "$0"}}))
+
+(defn- remove-label-link [org-slug board-slug entry-uuid label-slug-or-uuid]
+  (hateoas/link-map "remove-label" hateoas/DELETE (entry-urls/label org-slug board-slug entry-uuid label-slug-or-uuid)
+                    {:accept mt/entry-media-type}))
+
 (defn include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid _access-level]
@@ -203,6 +217,7 @@
                (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
      (vals polls))))
 
+
 (defn- filter-pins [entry member?]
   (if member?
     (if-not (= (:board-access entry) "private")
@@ -212,6 +227,9 @@
               #(into {} (filter (fn [[k _]] (not= k (keyword config/seen-home-container-id))) %))))
     ;; Remove pins for non members
     (dissoc entry :pins)))
+
+(defn- labels-with-links [labels org-slug board-slug entry-uuid]
+  (mapv #(assoc % :links [(remove-label-link org-slug board-slug entry-uuid (:uuid %))]) labels))
 
 (defn- entry-and-links
   "
@@ -232,12 +250,16 @@
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
         bookmark (some #(when (= (:user-id %) user-id) %) (:bookmarks entry))
+        member? (or (= role :member) (#{:author :viewer} access-level))
         enrich-entry? (and (not draft?)
                            user-id)
         entry-read (when enrich-entry?
                      (read/retrieve-by-user-item config/dynamodb-opts user-id (:uuid entry)))
         rendered-polls (when (seq (:polls entry))
                          (polls-with-links (:polls entry) org-slug board-slug entry-uuid user-id))
+        rendered-labels (when (and member?
+                                   (seq (:labels entry)))
+                          (labels-with-links (:labels entry) org-slug board-slug entry-uuid))
         full-entry (merge {:board-slug board-slug
                            :board-access board-access
                            :board-name (:name board)
@@ -271,7 +293,6 @@
                         (pin-link "home-pin" org-slug board-slug entry-uuid config/seen-home-container-id))
         board-pin-link (when-not draft?
                          (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid))
-        member? (or (= role :member) (#{:author :viewer} access-level))
         entry-author? (= user-id (:user-id (first (:author entry))))
         links (cond-> []
                ;; secure UUID access
@@ -333,7 +354,13 @@
                (and draft?
                     (= access-level :author)
                     entry-author?)
-               (conj (publish-link org-slug board-slug entry-uuid)))]
+               (conj (publish-link org board entry-uuid))
+               ;; Labels: multiple changes
+               (and member? (not secure-access?))
+               (conj (label-changes-link org board entry-uuid))
+               ;; Label: partial add label link
+               (and member? (not secure-access?))
+               (conj (add-label-link org board entry-uuid)))]
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
@@ -341,6 +368,7 @@
             (merge full-entry))
           full-entry)
       (assoc :polls rendered-polls)
+      (assoc :labels rendered-labels)
       (select-keys representation-props)
       (filter-pins member?)
       (include-secure-uuid secure-uuid access-level)
