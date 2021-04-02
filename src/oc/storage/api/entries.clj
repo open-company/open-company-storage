@@ -1240,20 +1240,24 @@
         (pool/with-pool [conn db-pool]
           (inbox conn org-slug board-slug entry-uuid :unfollow)))
       ;; Multiple labels
-      (ANY (entry-urls/labels ":org-slug" ":board-slug" ":entry-uuid")
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (toggle-labels conn org-slug board-slug entry-uuid)))
-      (ANY (str (entry-urls/labels ":org-slug" ":board-slug" ":entry-uuid") "/")
-        [org-slug board-slug entry-uuid]
-        (pool/with-pool [conn db-pool]
-          (toggle-labels conn org-slug board-slug entry-uuid)))
+      (when config/labels-enabled?
+        (ANY (entry-urls/labels ":org-slug" ":board-slug" ":entry-uuid")
+          [org-slug board-slug entry-uuid]
+          (pool/with-pool [conn db-pool]
+            (toggle-labels conn org-slug board-slug entry-uuid))))
+      (when config/labels-enabled?
+        (ANY (str (entry-urls/labels ":org-slug" ":board-slug" ":entry-uuid") "/")
+          [org-slug board-slug entry-uuid]
+          (pool/with-pool [conn db-pool]
+            (toggle-labels conn org-slug board-slug entry-uuid))))
       ;; Single labels
-      (ANY (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid")
-        [org-slug board-slug entry-uuid label-slug-or-uuid]
-        (pool/with-pool [conn db-pool]
-          (toggle-label conn org-slug board-slug entry-uuid label-slug-or-uuid)))
-      (ANY (str (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid") "/")
-        [org-slug board-slug entry-uuid label-slug-or-uuid]
-        (pool/with-pool [conn db-pool]
-          (toggle-label conn org-slug board-slug entry-uuid label-slug-or-uuid))))))
+      (when config/labels-enabled?
+        (ANY (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid")
+          [org-slug board-slug entry-uuid label-slug-or-uuid]
+          (pool/with-pool [conn db-pool]
+            (toggle-label conn org-slug board-slug entry-uuid label-slug-or-uuid))))
+      (when config/labels-enabled?
+        (ANY (str (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid") "/")
+          [org-slug board-slug entry-uuid label-slug-or-uuid]
+          (pool/with-pool [conn db-pool]
+            (toggle-label conn org-slug board-slug entry-uuid label-slug-or-uuid)))))))

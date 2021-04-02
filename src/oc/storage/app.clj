@@ -45,7 +45,8 @@
    (digest-api/routes sys)
    (polls-api/routes sys)
    (pins-api/routes sys)
-   (label-api/routes sys)))
+   (when c/labels-enabled?
+     (label-api/routes sys))))
 
 ;; ----- System Startup -----
 
