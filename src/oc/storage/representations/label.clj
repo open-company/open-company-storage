@@ -1,7 +1,6 @@
 (ns oc.storage.representations.label
   (:require [cheshire.core :as json]
             [oc.storage.urls.label :as label-urls]
-            [oc.storage.urls.entry :as entry-urls]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.config :as config]
             [oc.storage.representations.media-types :as mt]))
