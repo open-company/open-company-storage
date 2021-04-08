@@ -73,11 +73,13 @@
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
 
 (defn clean-input [entry]
-  (timbre/infof "Cleaning body input, initial: %s" (:body entry))
-  (timbre/infof "Cleaned: %s" (lib-html/sanitize-html (or (:body entry) "")))
-  (-> entry
-      (update :body #(lib-html/sanitize-html (or % "")))
-      (update :headline #(lib-html/strip-xss-tags (or % "")))))
+  (as-> entry e
+      (if (:body e)
+        (update e :body #(lib-html/sanitize-html (or % "")))
+        e)
+      (if (:headline e)
+        (update e :headline #(lib-html/strip-xss-tags (or % "")))
+        e)))
 
 ;; ----- Entry CRUD -----
 
