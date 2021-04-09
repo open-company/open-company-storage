@@ -100,6 +100,8 @@
           author (lib-schema/author-for-user user)]
       (-> entry-props
           keywordize-keys
+          ;; Make sure the headline key is present
+          (update :headline #(or % ""))
           clean
           clean-input
           (assoc :uuid (db-common/unique-id))
