@@ -219,8 +219,8 @@
 
 (defn allow-admins
   "
-  Given an org slug and a user map, return an access level of :author or :viewer if the user is a team member
-  and false otherwise.
+  Given an org slug and a user map, return the access
+  map if the user is an admin of the given org's team.
   "
   [conn org-slug user]
   (let [access (access-level-for conn org-slug user)]
