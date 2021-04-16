@@ -22,7 +22,7 @@
 (defn assemble-digest
   "Assemble the requested (by the params) entries for the provided org to populate the digest response."
   [conn {start :start direction :direction limit :limit} org boards-by-uuid user-id]
-  (let [follow-data (activity-api/follow-parameters-map user-id (:uuid org))
+  (let [follow-data (activity-api/follow-parameters-map user-id org)
 
         follow-following-data (assoc follow-data :following true)
         following-data (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction limit (vals boards-by-uuid) follow-following-data {})

@@ -1,13 +1,13 @@
 (ns oc.storage.api.activity
   "Liberator API for entry collection resources."
   (:require [if-let.core :refer (if-let*)]
+            [defun.core :refer (defun)]
             [compojure.core :as compojure :refer (OPTIONS GET)]
             [liberator.core :refer (defresource by-method)]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
             [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
-            [oc.lib.schema :as lib-schema]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.api.access :as access]
@@ -36,13 +36,17 @@
 
 ;; ---- Helpers for request parameters ----
 
-(defn follow-parameters-map
+(defun follow-parameters-map
+  ([user-id org false]
+   (-> (follow-parameters-map user-id org)
+       (assoc :unfollowing true)))
+  ([user-id org true]
+   (-> (follow-parameters-map user-id org)
+       (assoc :following true)))
+  ([user-id org :guard map?]
+   (follow-parameters-map user-id (:slug org)))
   ([user-id org-slug]
-   (follow/retrieve config/dynamodb-opts user-id org-slug))
-  ([user-id org-slug following?]
-   (cond-> (follow/retrieve config/dynamodb-opts user-id org-slug)
-     following? (merge {:following true})
-     (not following?) (merge {:unfollowing true}))))
+   (follow/retrieve config/dynamodb-opts user-id org-slug)))
 
 ;; ---- Activity lists assemble ----
 
@@ -53,8 +57,12 @@
    org boards-by-uuid user-id]
   (let [allowed-boards (vals boards-by-uuid)
         follow? (or following unfollowing)
-        follow-data (when follow?
-                      (follow-parameters-map user-id (:slug org) following))
+        follow-data (cond following
+                          (follow-parameters-map user-id org true)
+                          unfollowing
+                          (follow-parameters-map user-id org false)
+                          :else
+                          (follow-parameters-map user-id org))
         total-count (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc nil :before 0 allowed-boards
                                                                            follow-data last-seen-at {:container-id container-id :count true})
         entries (activity-res/paginated-recently-posted-entries-by-org conn (:uuid org) :desc start direction limit allowed-boards
