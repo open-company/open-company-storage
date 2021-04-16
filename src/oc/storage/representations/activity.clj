@@ -153,10 +153,7 @@
                           (assoc b :author-uuid (:author-uuid params))
                           b)
                         (if label?
-                          (-> b
-                              (assoc :label-slug (:label-slug params))
-                              (assoc :label-uuid (:label-uuid params))
-                              (assoc :label (:label params)))
+                          (assoc b :label-slug (:label params))
                           b)
                         (if (seq (:container-id params))
                           (assoc b :container-id (:container-id params))

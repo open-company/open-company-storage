@@ -239,9 +239,7 @@
                    (assoc :container-id (:uuid existing-label))
                    (assoc :last-seen-at (:seen-at container-seen))
                    (assoc :next-seen-at (db-common/current-timestamp))
-                   (assoc :label label)
-                   (assoc :label-slug (:slug existing-label))
-                   (assoc :label-uuid (:uuid existing-label)))
+                   (assoc :label-slug label))
         boards-by-uuid (:boards-by-uuid ctx)
         updated-params (assoc params :label-by-uuid (:label-by-uuid ctx))
         items (assemble-label conn updated-params org boards-by-uuid label)]
