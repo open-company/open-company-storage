@@ -9,7 +9,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
-            [oc.lib.html :as html-lib]
+            [oc.lib.html :as lib-html]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]
@@ -33,6 +33,15 @@
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
   reserved-properties)
+
+(defn- clean-input [board-data]
+  (->> board-data b
+       (if (:name b)
+         (update b :name #(lib-html/strip-xss-tags (or % "")))
+         b)
+       (if (:description b)
+         (update b :description #(lib-html/strip-xss-tags (or % "")))
+         b)))
 
 ;; ----- Data Defaults -----
 
@@ -110,9 +119,9 @@
     (-> board-props
         keywordize-keys
         clean
+        clean-input
         (assoc :uuid (db-common/unique-id))
         (assoc :slug slug)
-        (update :name #(html-lib/strip-xss-tags %))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
         (update :entries #(or % []))
@@ -190,7 +199,9 @@
   {:pre [(db-common/conn? conn)
          (map? board)]}
   (when-let [original-board (get-board conn uuid)]
-    (let [updated-board (merge original-board (ignore-props board))]
+    (let [updated-board (->> (ignore-props board)
+                             (merge original-board)
+                             clean-input)]
       (schema/validate common/Board updated-board)
       (db-common/update-resource conn table-name primary-key original-board updated-board))))
 
