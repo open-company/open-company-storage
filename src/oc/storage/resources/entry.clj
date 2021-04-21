@@ -4,10 +4,10 @@
             [clojure.set :as clj-set]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
+            [oc.lib.html :as lib-html]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.storage.db.common :as storage-db-common]
-            [oc.lib.text :as oc-str]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.label :as label-res]))
@@ -73,6 +73,15 @@
   ([attachments timestamp]
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
 
+(defn clean-input [entry]
+  (as-> entry e
+      (if (:body e)
+        (update e :body #(lib-html/sanitize-html (or % "")))
+        e)
+      (if (:headline e)
+        (update e :headline #(lib-html/strip-xss-tags (or % "")))
+        e)))
+
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -92,12 +101,13 @@
           author (lib-schema/author-for-user user)]
       (-> entry-props
           keywordize-keys
+          ;; Make sure the headline key is present
+          (update :headline #(or % ""))
           clean
+          clean-input
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (update :headline #(or (oc-str/strip-xss-tags %) ""))
-          (update :body #(or (oc-str/strip-xss-tags %) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
@@ -233,7 +243,10 @@
                            (str uuid "-v" revision-id)))
 
 (defn- update-entry [conn entry original-entry ts]
-  (let [merged-entry (merge original-entry (ignore-props entry))
+  (let [merged-entry (->> entry
+                          ignore-props
+                          clean-input
+                          (merge original-entry))
         attachments (:attachments merged-entry)
         authors-entry (assoc merged-entry :author (:author entry))
         updated-entry (assoc authors-entry :attachments (timestamp-attachments attachments ts))

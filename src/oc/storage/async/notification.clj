@@ -11,7 +11,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
             [oc.lib.sentry.core :as sentry]
-            [oc.lib.text :as str]
+            [oc.lib.html :as html-lib]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common-res]))
 
@@ -153,7 +153,7 @@
                 :user user
                 :notification-at (oc-time/current-timestamp)
                 :sender-ws-client-id ws-client-id}
-        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        note-notice (if note (assoc notice :note (html-lib/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice))
@@ -163,7 +163,7 @@
                 :content content
                 :users users
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        note-notice (if note (assoc notice :note (html-lib/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))

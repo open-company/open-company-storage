@@ -4,6 +4,7 @@
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
+            [oc.lib.html :as lib-html]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.common :as common]))
@@ -43,6 +44,11 @@
   "Remove any ignored properties from the org."
   [org]
   (apply dissoc org ignored-properties))
+
+(defn- clean-input [org-data]
+  (if (:name org-data)
+    (update org-data :name #(lib-html/strip-xss-tags (or % "")))
+    org-data))
 
 (defn trunc
   "
@@ -95,6 +101,7 @@
     (-> org-props
         keywordize-keys
         clean
+        clean-input
         (assoc :slug (trunc slug 126)) ;; primary key length is 127
         (assoc :uuid (db-common/unique-id))
         (assoc :authors [(:user-id user)])
@@ -154,7 +161,9 @@
          (slug/valid-slug? slug)
          (map? org)]}
   (when-let [original-org (get-org conn slug)]
-    (let [updated-org (merge original-org (ignore-props org))]
+    (let [updated-org (->> (ignore-props org)
+                           (merge original-org)
+                           (clean-input))]
       (schema/validate common/Org updated-org)
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
 

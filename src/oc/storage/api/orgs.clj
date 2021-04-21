@@ -239,21 +239,24 @@
     (catch clojure.lang.ExceptionInfo e
       [false, {:reason (.getMessage e)}]))) ; Not a valid new org
 
+(defn- clean-brand-color [new-props ctx]
+  (if (:premium? ctx)
+    new-props
+    (dissoc new-props :brand-color)))
+
 (defn- valid-org-update? [conn slug ctx]
   (try
     (if-let [org (org-res/get-org conn slug)]
       (let [org-props (:data ctx)
-            updated-org (merge org (org-res/ignore-props org-props))
+            cleaned-org-props (-> org-props
+                                  (org-res/ignore-props)
+                                  (clean-brand-color ctx))
+            updated-org (merge org cleaned-org-props)
             updating-org-name? (contains? org-props :name)
-            org-name (:name org-props)
-            premium-org? (:premium? ctx)]
+            org-name (:name org-props)]
         (cond (and updating-org-name?
                    (not (valid-org-name? org-name)))
               [false {:reason (org-name-error org-name)
-                      :updated-org updated-org}]
-              (and (not premium-org?)
-                   (contains? org-props :brand-color))
-              [false {:reason (format "Non premium orgs can't change brand color: %s" (:brand-color org-props))
                       :updated-org updated-org}]
               (not (lib-schema/valid? common-res/Org updated-org))
               [false {:reason (schema/check common-res/Org updated-org)
