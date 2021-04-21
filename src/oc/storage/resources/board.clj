@@ -35,13 +35,13 @@
   reserved-properties)
 
 (defn- clean-input [board-data]
-  (->> board-data b
-       (if (:name b)
-         (update b :name #(lib-html/strip-xss-tags (or % "")))
-         b)
-       (if (:description b)
-         (update b :description #(lib-html/strip-xss-tags (or % "")))
-         b)))
+  (as-> board-data b
+    (if (:name b)
+      (update b :name #(lib-html/strip-xss-tags (or % "")))
+      b)
+    (if (:description b)
+      (update b :description #(lib-html/strip-xss-tags (or % "")))
+      b)))
 
 ;; ----- Data Defaults -----
 
