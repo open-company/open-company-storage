@@ -81,10 +81,7 @@
   (let [board-slug (:slug board)
         options (if (zero? draft-count) {} {:count draft-count})
         is-drafts-board? (drafts-board? board)
-        links (remove nil?
-                      [(self-link org-slug board-slug options)
-                       (when-not is-drafts-board?
-                         (self-link org-slug board-slug options))])
+        links [(self-link org-slug board-slug options)]
         author? (= :author (:access-level board))
         can-create-entry? (or (:premium? ctx)
                               (= "team" (:access board)))
@@ -156,7 +153,7 @@
   "Create a JSON representation of the board for the REST API"
   [org board ctx params]
   (let [{access-level :access-level :as board-access} (select-keys ctx [:access-level :role :premium?])
-        viewer-or-author? (or (= :author access-level) (= :viewer access-level))
+        viewer-or-author? (#{:author :viewer} access-level)
         is-drafts-board? (drafts-board? board)
         rep-props (cond viewer-or-author?
                         representation-props
@@ -183,10 +180,11 @@
         (assoc b :entries (remove nil?
                                   (map (fn [entry]
                                          (let [entry-board (if is-drafts-board? (boards-map (:board-uuid entry)) board)
-                                               board-access (when entry-board
-                                                              (assoc board-access :access-level (:access-level entry-board)))]
+                                               entry-board-access (if is-drafts-board?
+                                                                    (assoc board-access :access-level (:access-level entry-board))
+                                                                    board-access)]
                                            (when entry-board
-                                             (render-entry-for-collection org entry-board entry board-access (-> ctx :user :user-id)))))
+                                             (render-entry-for-collection org entry-board entry entry-board-access (-> ctx :user :user-id)))))
                                        (:entries board))))
         (select-keys b rep-props))
       {:pretty config/pretty?})))
