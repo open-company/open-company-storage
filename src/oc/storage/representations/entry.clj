@@ -273,6 +273,7 @@
                          (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid))
         member? (or (= role :member) (#{:author :viewer} access-level))
         entry-author? (= user-id (:user-id (first (:author entry))))
+        entry-publisher? (= user-id (-> entry :publisher :user-id))
         links (cond-> []
                ;; secure UUID access
                secure-access?
@@ -300,10 +301,11 @@
                ;; In case the user was removed from the board they can still see the draft and copy the content
                ;; no edit/publish/delete though
                (and (not secure-access?)
+                    (= access-level :author)
                     (or (and (not draft?)
-                             (= role :admin))
+                             (or (= role :admin)
+                                 entry-publisher?))
                         (and draft?
-                             (= access-level :author)
                              entry-author?)))
                (concat [(partial-update-link org-slug board-slug entry-uuid)
                         (delete-link org-slug board-slug entry-uuid)
