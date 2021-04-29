@@ -201,7 +201,7 @@
                                                   (label-rep/create-link org)])))
                           links)
         board-links (create-board-links org premium?)
-        author-links (if (and (not id-token) (= access-level :author) )
+        author-links (if (and (not id-token) (= access-level :author))
                        (concat activity-links
                                [(partial-update-link org)
                                 (add-author-link org)]

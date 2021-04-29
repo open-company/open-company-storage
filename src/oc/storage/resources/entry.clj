@@ -540,7 +540,8 @@
    {:pre [(db-common/conn? conn)]}
    (let [original-entry (get-entry conn entry-uuid)
          existing-label (label-res/get-label conn label-uuid)
-         label-exists-in-entry? ((->> original-entry :labels (map :uuid) set) (:uuid existing-label))]
+         existing-entry-labels-set (->> original-entry :labels (map :uuid) set)
+         label-exists-in-entry? (existing-entry-labels-set (:uuid existing-label))]
      (if label-exists-in-entry?
        ;; Label is already in the entry, return the original entry w/o changes
        original-entry
@@ -561,7 +562,7 @@
          addable-label-uuids (clj-set/difference existing-entry-labels adding-labels-set)]
      (if (seq addable-label-uuids)
        ;; Add the labels
-       (let [existing-labels-to-add (filter (comp addable-label-uuids :uuid) )
+       (let [existing-labels-to-add (filter (comp addable-label-uuids :uuid) existing-labels)
              updated-entry-labels (concat (:labels original-entry)
                                           (vec existing-labels-to-add))]
          (label-res/labels-used-by! conn label-uuids (:org-uuid original-entry) user)
