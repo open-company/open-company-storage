@@ -589,40 +589,6 @@
       (timbre/errorf "Failed removing label %s to entry %s by user %s" label-slug-or-uuid (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
       false)))
 
-(defn- add-labels [conn ctx label-uuids entry-for]
-  (timbre/infof "Adding labels %s by user %s to entry %s" label-uuids (-> ctx :user :user-id) entry-for)
-  (if-let* [org (:existing-org ctx)
-            board (:existing-board ctx)
-            entry (:existing-entry ctx)
-            user (:user ctx)]
-    (if-let [updated-entry (entry-res/add-labels! conn (:uuid entry) label-uuids user)]
-      (do
-        (timbre/debugf "Labels %s added by user %s on entry %s" label-uuids (-> ctx :user :user-id) (:uuid entry))
-        {:updated-entry (api-common/rep updated-entry)})
-      (do
-        (timbre/infof "Labels not added, it probably means the entry %s already has %s" (:uuid entry) label-uuids)
-        {:existing-entry (api-common/rep entry)}))
-    (do
-      (timbre/errorf "Failed adding labels %s to entry %s by user %s" label-uuids (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
-      false)))
-
-(defn- remove-labels [conn ctx label-uuids entry-for]
-  (timbre/infof "Removing labels %s by user %s to entry %s" label-uuids (-> ctx :user :user-id) entry-for)
-  (if-let* [org (:existing-org ctx)
-            board (:existing-board ctx)
-            entry (:existing-entry ctx)
-            user (:user ctx)]
-    (if-let [updated-entry (entry-res/remove-labels! conn (:uuid entry) label-uuids user)]
-      (do
-        (timbre/debugf "Labels %s removed by user %s on entry %s" label-uuids (-> ctx :user :user-id) (:uuid entry))
-        {:updated-entry (api-common/rep updated-entry)})
-      (do
-        (timbre/infof "Label not removed, it probably means the entry %s already has %s" (:uuid entry) label-uuids)
-        {:existing-entry (api-common/rep entry)}))
-    (do
-      (timbre/errorf "Failed adding labels %s to entry %s by user %s" label-uuids (-> ctx :existing-entry :uuid) (-> ctx :user :user-id))
-      false)))
-
 (defn- toggle-label-uuids [conn ctx entry-for]
   (let [existing-entry (:existing-entry ctx)
         user (:user ctx)
@@ -630,11 +596,11 @@
     (when (seq add-label-uuids)
       (timbre/infof "Adding labels %s to entry %s by user %s" add-label-uuids entry-for (:user-id user))
       (entry-res/add-labels! conn (:uuid existing-entry) add-label-uuids user))
-    (when (seq add-label-uuids)
+    (when (seq remove-label-uuids)
       (timbre/infof "Removing labels %s to entry %s by user %s" remove-label-uuids entry-for (:user-id user))
-      (entry-res/add-labels! conn (:uuid existing-entry) add-label-uuids user))
-    ;; Return original entry
-    {:updated-labels (entry-res/get-entry conn (:uuid existing-entry))}))
+      (entry-res/remove-labels! conn (:uuid existing-entry) remove-label-uuids user))
+    ;; Return the updated entry
+    {:updated-entry (entry-res/get-entry conn (:uuid existing-entry))}))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
 
@@ -1254,7 +1220,7 @@
         [org-slug board-slug entry-uuid]
         (pool/with-pool [conn db-pool]
           (toggle-labels conn org-slug board-slug entry-uuid)))
-      ;; Single labels
+      ;; Single label
       (ANY (entry-urls/label ":org-slug" ":board-slug" ":entry-uuid" ":label-slug-or-uuid")
         [org-slug board-slug entry-uuid label-slug-or-uuid]
         (pool/with-pool [conn db-pool]
