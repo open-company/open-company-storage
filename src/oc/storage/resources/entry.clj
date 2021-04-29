@@ -612,6 +612,7 @@
   ([conn confirm]
    {:pre [(db-common/conn? conn)]}
    (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   (timbre/info "It looks like you really know what you are doing! Removing all entries, interactions and related versions...")
    ;; Delete all interactions and entries
    (db-common/delete-all-resources! conn common/interaction-table-name)
    (db-common/delete-all-resources! conn versions-table-name)
