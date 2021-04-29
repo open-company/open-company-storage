@@ -612,7 +612,7 @@
             board (:existing-board ctx)
             entry (:existing-entry ctx)
             user (:user ctx)]
-    (if-let [updated-entry (entry-res/add-labels! conn (:uuid entry) label-uuids user)]
+    (if-let [updated-entry (entry-res/remove-labels! conn (:uuid entry) label-uuids user)]
       (do
         (timbre/debugf "Labels %s removed by user %s on entry %s" label-uuids (-> ctx :user :user-id) (:uuid entry))
         {:updated-entry (api-common/rep updated-entry)})
