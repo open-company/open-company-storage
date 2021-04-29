@@ -145,7 +145,7 @@
     :options true
     :get (fn [ctx] (access/allow-members conn org-slug (:user ctx)))
     :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))
-    :delete (fn [ctx] (access/allow-admins conn org-slug (:user ctx)))}) ; don't allow non-team-admins to get stuck w/ no org
+    :delete (fn [ctx] (access/allow-admins conn org-slug (:user ctx)))})
 
   :processable? (by-method {
     :options true
