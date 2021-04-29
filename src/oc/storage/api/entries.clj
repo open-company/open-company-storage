@@ -140,7 +140,7 @@
     created-board))
 
 (defn valid-labels-list? [entry-labels]
-  (> (count entry-labels) config/max-entry-labels))
+  (<= (count entry-labels) config/max-entry-labels))
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]
   (let [org (org-res/get-org conn org-slug)
@@ -157,7 +157,7 @@
                         (create-publisher-board conn org author))]
     (cond (not board)
           [false, {:reason "Invalid board."}] ; couldn't find the specified board
-          (valid-labels-list? (:labels entry-map))
+          (not (valid-labels-list? (:labels entry-map)))
           [false, {:reason (format "Too many labels (%d): %s. Max allowed is %d" (count (:labels entry-map)) (s/join " | " (map :name (:labels entry-map))) config/max-entry-labels)}]
           :else
           (try
@@ -239,7 +239,7 @@
                      {})]
       (cond (not (lib-schema/valid? common-res/Entry updated-entry))
             [false, {:updated-entry (api-common/rep updated-entry)}] ; invalid update
-            (valid-labels-list? (:labels entry-props))
+            (not (valid-labels-list? (:labels entry-props)))
             [false, {:reason (format "Too many labels (%d): %s. Max allowed is %d" (count (:labels entry-props)) (s/join " | " (map :name (:labels entry-props))) config/max-entry-labels)}]
             :else
             (merge ctx-base
