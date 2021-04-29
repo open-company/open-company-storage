@@ -139,8 +139,14 @@
     (notification/send-trigger! (notification/->trigger :add org {:new created-board} author nil))
     created-board))
 
-(defn valid-labels-list? [entry-labels]
+(defn- valid-entry-labels? [entry-labels]
   (<= (count entry-labels) config/max-entry-labels))
+
+(defn- entry-labels-error [entry-labels]
+  (format "Too many labels (%d): %s. Max allowed is %d"
+          (count entry-labels)
+          (s/join " | " (map :name entry-labels))
+          config/max-entry-labels))
 
 (defn- valid-new-entry? [conn org-slug board-slug ctx]
   (let [org (org-res/get-org conn org-slug)
@@ -157,8 +163,8 @@
                         (create-publisher-board conn org author))]
     (cond (not board)
           [false, {:reason "Invalid board."}] ; couldn't find the specified board
-          (not (valid-labels-list? (:labels entry-map)))
-          [false, {:reason (format "Too many labels (%d): %s. Max allowed is %d" (count (:labels entry-map)) (s/join " | " (map :name (:labels entry-map))) config/max-entry-labels)}]
+          (not (valid-entry-labels? (:labels entry-map)))
+          [false, {:reason (entry-labels-error (:labels entry-map))}]
           :else
           (try
             ;; Create the new entry from the URL and data provided
@@ -239,8 +245,8 @@
                      {})]
       (cond (not (lib-schema/valid? common-res/Entry updated-entry))
             [false, {:updated-entry (api-common/rep updated-entry)}] ; invalid update
-            (not (valid-labels-list? (:labels entry-props)))
-            [false, {:reason (format "Too many labels (%d): %s. Max allowed is %d" (count (:labels entry-props)) (s/join " | " (map :name (:labels entry-props))) config/max-entry-labels)}]
+            (not (valid-entry-labels? (:labels entry-props)))
+            [false, {:reason (entry-labels-error (:labels entry-props))}]
             :else
             (merge ctx-base
                    {:existing-entry (api-common/rep existing-entry)
