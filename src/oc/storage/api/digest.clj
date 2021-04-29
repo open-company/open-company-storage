@@ -35,7 +35,7 @@
         unfollowing-data (if load-unfollow?
                            (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start direction unfollow-limit (vals boards-by-uuid) follow-unfollowing-data {})
                            [])
-        unfollowing-count (if load-unfollow?
+        unfollowing-count (if (seq (:unfollow-board-uuids follow-data))
                             (activity-res/paginated-entries-for-digest conn (:uuid org) :desc start :after 0 (vals boards-by-uuid) follow-unfollowing-data {:count true})
                             0)
 
@@ -58,7 +58,7 @@
                                      (merge entry {:board-slug (:slug board)
                                                    :board-access (:access board)
                                                    :board-name (:name board)
-                                                  :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
+                                                   :last-read-at (get-in user-reads-map [(:uuid entry) :read-at])})))
                                  unfollowing-data)))))
 
 ;; ----- Resources - see: http://clojure-liberator.github.io/liberator/assets/img/decision-graph.svg
