@@ -1,6 +1,6 @@
 (ns oc.storage.resources.label
   (:require [oc.lib.schema :as lib-schema]
-            [clojure.set :as clj-set]
+            [oc.lib.html :as lib-html]
             [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.storage.resources.common :as common]
@@ -12,19 +12,22 @@
 (def table-name common/label-table-name)
 (def primary-key :uuid)
 
-(def reserved-properties
-  (clj-set/union common/reserved-properties #{:used-by}))
-
 (def reserved-slugs #{})
 
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
-  (clj-set/union reserved-properties #{:team-id :utm-data}))
+  common/reserved-properties)
 
 (defn ignore-props
   "Remove any ignored properties from the org."
   [label]
   (apply dissoc label ignored-properties))
+
+(defn clean-input [label]
+  (as-> label l
+    (if (:name l)
+      (update l :name #(lib-html/strip-xss-tags (or % "")))
+      l)))
 
 ;; Utilities
 
@@ -65,14 +68,15 @@
    org-uuid :- lib-schema/UniqueID
    author :- lib-schema/Author]
   (let [ts (db-common/current-timestamp)]
-    {primary-key (db-common/unique-id)
-     :created-at ts
-     :updated-at ts
-     :org-uuid org-uuid
-     :name label-name
-     :slug (slug/slugify label-name) ;; Will be adjusted later during save
-     :author author
-     :used-by [{:user-id (:user-id author) :count 0}]}))
+    (-> {primary-key (db-common/unique-id)}
+        (assoc :created-at ts)
+        (assoc :updated-at ts)
+        (assoc :org-uuid org-uuid)
+        (assoc :name label-name)
+        (clean-input)
+        (assoc :slug (slug/slugify label-name)) ;; Will be adjusted later during save
+        (assoc :author author)
+        (assoc :used-by [{:user-id (:user-id author) :count 0}]))))
 
 (schema/defn ^:always-validate create-label!
   "
@@ -96,7 +100,10 @@
   {:pre [(db-common/conn? conn)]}
   (timbre/debugf "Updating label %s (%s) for org %s user %s" (:name updating-label) (:uuid updating-label) (:org-uuid updating-label) (-> updating-label :author :user-id))
   (when-let [original-label (get-label conn label-uuid)]
-    (let [updated-label (merge original-label (ignore-props updating-label))]
+    (let [updated-label (->> updating-label
+                             ignore-props
+                             clean-input
+                            (merge original-label))]
       (schema/validate common/Label updated-label)
       (db-common/update-resource conn table-name primary-key label-uuid updated-label))))
 
@@ -162,3 +169,37 @@
   [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID]
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :org-uuid-user-id-labels [[org-uuid user-id]]))
+
+(comment
+  (require '[oc.storage.resources.org :as org])
+  (require '[oc.storage.resources.entry :as entry])
+  (require '[clojure.pprint :refer (pprint)])
+
+  (def carrot (org/get-org conn "carrot"))
+  (def author (:author carrot))
+  (println (create-label! conn (->label "My label test" (:uuid carrot) author)))
+
+  (def test-xss (create-label! conn (->label "<style>Test</style>out" (:uuid carrot) author)))
+  (delete-label! conn (:uuid test-xss))
+
+  (def test-label (get-label conn (:uuid carrot) "my-label-test"))
+
+  (update-label! conn (:uuid test-label) {:name "My label test updated"})
+  (:name (get-label conn (:uuid carrot) "my-label-test"))
+
+  (pprint (list-labels-by-org conn (:uuid carrot)))
+
+
+  (label-slug-for-org conn (:uuid carrot) "My label test") ;; => my-label-test-1
+
+  (label-used-by! conn (:uuid test-label) (:uuid carrot) author)
+
+  (def tmp-labels (list-labels-by-org-user conn (:uuid carrot) (:user-id author)))
+
+  (labels-used-by! conn (mapv :uuid (take 2 tmp-labels)) (:uuid carrot) author)
+
+  (labels-unused-by! conn (mapv :uuid (take 2 tmp-labels)) (:uuid carrot) author)
+
+  (delete-label! conn (:uuid test-label))
+
+  (get-label conn (:uuid carrot) "my-label-test"))
