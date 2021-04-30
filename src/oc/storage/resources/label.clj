@@ -172,7 +172,6 @@
 
 (comment
   (require '[oc.storage.resources.org :as org])
-  (require '[oc.storage.resources.entry :as entry])
   (require '[clojure.pprint :refer (pprint)])
 
   (def carrot (org/get-org conn "carrot"))
