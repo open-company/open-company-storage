@@ -125,13 +125,13 @@
     (merge next-ctx {:existing-label (api-common/rep existing-label)})
     false))
 
-(defn entry-label-exists? [conn ctx org-slug board-slug entry-uuid label-uuid user]
+(defn entry-label-exists? [conn ctx org-slug board-slug entry-uuid label-slug-or-uuid user]
   (if-let* [{existing-entry :existing-entry
              existing-org :existing-org
              :as next-ctx} (entry-exists? conn ctx org-slug board-slug entry-uuid user)
-            existing-entry-label (some #(when (= (:uuid %) label-uuid) %) (:labels existing-entry))]
+            existing-entry-label (some #(when ((set [(:uuid %) (:slug %)]) label-slug-or-uuid) %) (:labels existing-entry))]
     (merge next-ctx {:existing-entry-label (api-common/rep existing-entry-label)
-                     :existing-label (api-common/rep (label-res/get-label conn label-uuid))})
+                     :existing-label (api-common/rep (label-res/get-label conn label-slug-or-uuid))})
     false))
 
 (defn create-publisher-board [conn org author]
@@ -141,6 +141,21 @@
 
 (defn- valid-entry-labels? [entry-labels]
   (<= (count entry-labels) config/max-entry-labels))
+
+(defn- valid-entry-label-add? [conn entry-uuid label-slug-or-uuid]
+  (let [entry-data (entry-res/get-entry conn entry-uuid)
+        entry-labels (:labels entry-data)
+        label-already-in-entry? ((set (mapcat #(vec [(:uuid %) (:slug %)]) entry-labels)) label-slug-or-uuid)
+        entry-labels-count (count entry-labels)
+        can-add-label? (<= (inc entry-labels-count) config/max-entry-labels)]
+    (cond (not entry-data) ;; Entry not found, will fail existance later
+          true
+          label-already-in-entry? ;; No need to error
+          true
+          can-add-label? ;; Good!
+          true
+          :else
+          [false {:reason (format "Entry %s has already %d the maximum allowed labels (max: %d)" entry-uuid (count (:labels entry-data)) config/max-entry-labels)}])))
 
 (defn- entry-labels-error [entry-labels]
   (format "Too many labels (%d): %s. Max allowed is %d"
@@ -1028,7 +1043,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -1043,7 +1059,10 @@
   :respond-with-entity? true
 
   ;; Validations
-  :processable? true
+  :processable? (by-method {
+                 :options true
+                 :post (fn [ctx] (valid-entry-label-add? conn entry-uuid label-slug-or-uuid))
+                 :delete true})
 
   ;; Possibly no data to handle
   :malformed? false ; allow nil
@@ -1066,9 +1085,7 @@
                                                (:existing-comments ctx)
                                                (reaction-res/aggregate-reactions (:existing-reactions ctx))
                                                (select-keys ctx [:access-level :role])
-                                               (-> ctx :user :user-id)))
-  :handle-unprocessable-entity (fn [ctx]
-                                 (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
+                                               (-> ctx :user :user-id))))
 
 (defresource toggle-labels [conn org-slug board-slug entry-uuid]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
