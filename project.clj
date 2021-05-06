@@ -49,7 +49,7 @@
     ;; ***************** (JWT schema changes, more info here: *****************
     ;; ******* https://github.com/open-company/open-company-lib/pull/82) ******
     ;; ************************************************************************
-    [open-company/lib "0.18.0-alpha5" :exclusions [commons-codec]]
+    [open-company/lib "0.18.0-alpha6" :exclusions [commons-codec]]
     ;; ************************************************************************
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
@@ -170,10 +170,12 @@
                  '[oc.storage.resources.org :as org]
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
-                 '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.resources.reaction :as reaction]
+                 '[oc.storage.resources.label :as label]
+                 '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
+                 '[oc.storage.representations.label :as label-rep]
                  '[oc.storage.resources.maintenance :as maint]
                  )
       ]

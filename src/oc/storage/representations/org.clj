@@ -8,10 +8,12 @@
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]
             [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.label :as label-urls]
             [oc.storage.api.access :as access]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
-            [oc.storage.representations.media-types :as mt]))
+            [oc.storage.representations.media-types :as mt]
+            [oc.storage.representations.label :as label-rep]))
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at :brand-color])
@@ -20,7 +22,7 @@
                                                                :contributions-count :following-count :unfollowing-count
                                                                :badge-following :badge-replies :brand-color
                                                                :new-entry-placeholder :new-entry-cta :wrt-posts-count
-                                                               :home-last-seen-at :replies-last-seen-at]))
+                                                               :home-last-seen-at :replies-last-seen-at :labels]))
 
 (defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 
@@ -93,6 +95,10 @@
 (defn- contributions-partial-link [org]
   (hateoas/link-map "partial-contributions" hateoas/GET (org-urls/contribution org "$0") {:accept mt/entry-collection-media-type}
    {:replace {:author-uuid "$0"}}))
+
+(defn- label-entries-partial-link [org]
+  (hateoas/link-map "partial-label-entries" hateoas/GET (label-urls/label-entries org "$0") {:accept mt/entry-collection-media-type}
+                    {:replace {:label-slug "$0"}}))
 
 (defn- digest-partial-link [org]
   (hateoas/link-map "digest" hateoas/GET (str (org-urls/digest org) "?direction=after&start=$0") {:accept mt/entry-collection-media-type}
@@ -188,11 +194,14 @@
                                                   (activity-link org)
                                                   (following-link org)
                                                   (contributions-partial-link org)
+                                                  (label-entries-partial-link org)
                                                   (replies-link org)
-                                                  (digest-partial-link org)]))) ; (calendar-link org) - not currently used
+                                                  (digest-partial-link org)
+                                                  (label-rep/label-list-link org)
+                                                  (label-rep/create-link org)])))
                           links)
         board-links (create-board-links org premium?)
-        author-links (if (and (not id-token) (= access-level :author) )
+        author-links (if (and (not id-token) (= access-level :author))
                        (concat activity-links
                                [(partial-update-link org)
                                 (add-author-link org)]
@@ -203,7 +212,7 @@
                               author-links)]
     (assoc org :links delete-sample-links)))
 
-(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
+(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept mt/json-media-type}))
 
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"
@@ -221,7 +230,7 @@
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
-  [org {:keys [access-level user premium?]} sample-content?]
+  [org {:keys [access-level user premium? existing-org-labels]} sample-content?]
   (let [rep-props (if (or (= :author access-level)
                           (= :viewer access-level))
                     representation-props
@@ -229,6 +238,7 @@
         org-repr (-> org
                      (update :new-entry-cta #(or % common/default-entry-cta))
                      (update :new-entry-placeholder #(or % common/default-entry-placeholder))
+                     (assoc :labels (label-rep/labels-list org existing-org-labels user))
                      (org-links access-level user sample-content?)
                      (change-link access-level user)
                      (notify-link access-level user)

@@ -10,6 +10,8 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def interaction-table-name "interactions")
+(def label-table-name "labels")
+(def versions-table-name (str "versions_" entry-table-name))
 
 ;; ----- Properties common to all resources -----
 
@@ -138,6 +140,34 @@
    :updated-at lib-schema/ISO8601
    :replies {schema/Keyword PollReply}})
 
+;; Labels
+
+(defn valid-label-name? [label-name]
+  (and (string? label-name)
+       (<= 1 (count label-name) 40)))
+
+(def LabelName (schema/pred valid-label-name?))
+
+(def EntryLabel
+  "A label is an object composed by a name and a slug."
+  {:uuid lib-schema/NonBlankStr
+   :name LabelName
+   :slug lib-schema/NonBlankStr})
+
+(def LabelUsedBy
+  "An object representing a user that used a label with the number of times."
+  {:user-id lib-schema/UniqueID
+   :count schema/Num})
+
+(def Label
+  "Complete label object like it's stored in the labels table of the db."
+  (merge EntryLabel
+         {:org-uuid lib-schema/NonBlankStr
+          :created-at lib-schema/ISO8601
+          :updated-at lib-schema/ISO8601
+          :author lib-schema/Author
+          (lib-schema/o-k :used-by) (schema/maybe [LabelUsedBy])}))
+
 (def UserVisibility
   "A user-visibility item."
   {(schema/optional-key :dismiss-at) (schema/maybe lib-schema/ISO8601)
@@ -217,7 +247,9 @@
 
   (schema/optional-key :polls) (schema/maybe {schema/Keyword Poll})
 
-  (schema/optional-key :pins) (schema/maybe EntryPins)})
+  (schema/optional-key :pins) (schema/maybe EntryPins)
+  
+  (schema/optional-key :labels) (schema/maybe [EntryLabel])})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."
@@ -240,3 +272,8 @@
 
 (def default-entry-placeholder "What's happening...")
 (def default-entry-cta "New update")
+
+;; Direction
+(def Order (schema/enum :desc :asc))
+
+(def Direction (schema/enum :before :after))

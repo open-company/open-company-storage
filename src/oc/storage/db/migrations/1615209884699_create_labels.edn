@@ -1,0 +1,26 @@
+(ns oc.storage.db.migrations.create-labels
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.label :as label-res]))
+
+(defn up [conn]
+  ;; Do great things
+  (println "Creating table: " label-res/table-name)
+  (println (m/create-table conn config/db-name label-res/table-name "uuid"))
+  (println (m/create-index conn label-res/table-name "org-uuid"))
+  (println (m/create-compound-index conn label-res/table-name "org-label"
+                                    (r/fn [row]
+                                      [(r/get-field row "org-uuid") (r/get-field row "slug")])))
+  (println (m/create-compound-index conn label-res/table-name "user-id-labels"
+                                    (r/fn [row] (r/map (r/get-field row "used-by")
+                                                       (r/fn [user-row]
+                                                         [(r/get-field user-row "user-id")])))
+                                    {:multi true}))
+  (println (m/create-compound-index conn label-res/table-name "org-uuid-user-id-labels"
+                                    (r/fn [row] (r/map (r/get-field row "used-by")
+                                                       (r/fn [user-row]
+                                                         [(r/get-field row "org-uuid")
+                                                          (r/get-field user-row "user-id")])))
+                                    {:multi true}))
+  true) ; return true on success

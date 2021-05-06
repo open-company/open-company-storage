@@ -1,5 +1,6 @@
 (ns oc.storage.urls.activity
     (:require [oc.storage.urls.org :as org-urls]
+              [oc.storage.urls.label :as label-urls]
               [cuerdas.core :as string]))
 
 (def allowed-parameter-keys  [:start :direction :following :unfollowing :refresh])
@@ -72,3 +73,12 @@
 
   ([org author-uuid url-params]
    (parametrize (contributions org author-uuid) url-params)))
+
+
+(defn label-entries
+
+  ([org label-slug]
+   (label-urls/label-entries org label-slug))
+
+  ([org label-slug url-params]
+   (parametrize (label-entries org label-slug) url-params)))

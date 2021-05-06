@@ -78,3 +78,11 @@
 
 (defn poll-reply-vote [org-slug board-slug entry-uuid poll-uuid reply-id]
   (s/join "/" [(poll-reply org-slug board-slug entry-uuid poll-uuid reply-id) "vote"]))
+
+;; Labels
+
+(defn labels [org-slug board-slug entry-uuid]
+  (s/join "/" [(entry org-slug board-slug entry-uuid) "labels"]))
+
+(defn label [org-slug board-slug entry-uuid label-slug-or-uuid]
+  (s/join "/" [(labels org-slug board-slug entry-uuid) label-slug-or-uuid]))

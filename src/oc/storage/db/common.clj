@@ -91,6 +91,57 @@
         (r/run query conn)
         (db-common/drain-cursor query)))))
 
+(defn read-paginated-entries-by-label
+  [conn table-name index-name index-value order start direction limit relation-table-name relation-fields
+   {count? :count :or {count? false}}]
+  {:pre [(db-common/conn? conn)
+         (db-common/s-or-k? table-name)
+         (db-common/s-or-k? index-name)
+         (or (string? index-value) (sequential? index-value))
+         (db-common/s-or-k? relation-table-name)
+         (#{:desc :asc} order)
+         (or (nil? start)
+             (string? start))
+         (#{:after :before} direction)
+         (integer? limit)
+         (sequential? relation-fields)
+         (every? db-common/s-or-k? relation-fields)
+         (boolean? count?)]}
+  (let [order-fn (if (= order :desc) r/desc r/asc)
+        dir-filter (when-not (string/empty-or-nil? start)
+                     #(direction-filter direction start (r/get-field % :published-at)))]
+    (db-common/with-timeout db-common/default-timeout
+      (as-> (r/table table-name) query
+        (r/get-all query index-value {:index index-name})
+           ;; Filter out:
+        (if dir-filter
+          (r/filter query (r/fn [row]
+            ;; All records after/before the start
+            (dir-filter row)))
+          query)
+        (if-not count?
+          (r/order-by query (order-fn :published-at))
+          query)
+           ;; Apply count if needed
+        (if count? (r/count query) query)
+        ;; Apply limit
+        (if (and (pos? limit)
+                 (not count?))
+          (r/limit query limit)
+          query)
+        ;; Merge in all the interactions
+        (if-not count?
+          (r/merge query (r/fn [post-row]
+            {:interactions (-> (r/table relation-table-name)
+                              (r/get-all [(r/get-field post-row :uuid)] {:index :resource-uuid})
+                              (r/pluck relation-fields)
+                              (r/coerce-to :array))
+             :sort-value (r/get-field post-row :published-at)}))
+          query)
+        ;; Run!
+        (r/run query conn)
+        (db-common/drain-cursor query)))))
+
 (defn read-paginated-bookmarked-entries
   [conn table-name index-name index-value order start direction limit relation-table-name relation-fields user-id
    {count? :count :or {count? false}}]

@@ -217,6 +217,18 @@
       access
       false))))
 
+(defn allow-admins
+  "
+  Given an org slug and a user map, return the access
+  map if the user is an admin of the given org's team.
+  "
+  [conn org-slug user]
+  (let [access (access-level-for conn org-slug user)]
+    (if (and (= (:role access) :admin)
+             (not= (:access-level access) :public))
+      access
+      false)))
+
 (defn board-with-access-level
   "
   Merge in `access` level user is accessing this board with, and if that level is public, remove author and

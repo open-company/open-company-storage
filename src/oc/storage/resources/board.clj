@@ -379,10 +379,14 @@
 ;; ----- Armageddon -----
 
 (defn delete-all-boards!
-  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-  [conn]
-  {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions, entries, and boards
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn table-name))
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
+   Second parameter has to be `I do know what I am doing!` to add a second level of security."
+  ([conn] (delete-all-boards! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   ;; Delete all interactions, entries, boards and orgs
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn common/entry-table-name)
+   (db-common/delete-all-resources! conn common/versions-table-name)
+   (db-common/delete-all-resources! conn table-name)))

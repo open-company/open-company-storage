@@ -77,7 +77,7 @@
   {:pre [(db-common/conn? conn)]}
   (into reserved-slugs (map :slug (list-orgs conn))))
 
-(defn slug-available?
+(defn- slug-available?
   "Return true if the slug is not used by any org in the system."
   [conn slug]
   {:pre [(db-common/conn? conn)
@@ -175,6 +175,10 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
+      ;; Delete labels
+      (try
+        (db-common/delete-resource conn common/label-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException _)) ; OK if no labels
       ;; Delete interactions
       (try
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
@@ -281,12 +285,14 @@
 
 (defn delete-all-orgs!
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
-   Second parameter has to be delete-them-all! to avoid confusing this with the delete-org! function."
-  [conn security-check]
-  {:pre [(db-common/conn? conn)
-         (= security-check "delete-them-all!")]}
-  ;; Delete all interactions, entries, boards and orgs
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn common/board-table-name)
-  (db-common/delete-all-resources! conn table-name))
+   Second parameter has to be `I do know what I am doing!` to add a second level of security."
+  ([conn] (delete-all-orgs! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   ;; Delete all interactions, entries, boards and orgs
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn common/entry-table-name)
+   (db-common/delete-all-resources! conn common/versions-table-name)
+   (db-common/delete-all-resources! conn common/board-table-name)
+   (db-common/delete-all-resources! conn table-name)))

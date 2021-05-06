@@ -9,14 +9,15 @@
             [oc.lib.db.common :as db-common]
             [oc.storage.db.common :as storage-db-common]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.label :as label-res]))
 
 (def temp-uuid "9999-9999-9999")
 
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
-(def versions-table-name (str "versions_" common/entry-table-name))
+(def versions-table-name common/versions-table-name)
 (def versions-primary-key :version-uuid)
 (def primary-key :uuid)
 
@@ -531,13 +532,88 @@
       (schema/validate common/Entry updated-entry)
       (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
 
+;; ----- Labels -----
+
+(schema/defn ^:always-validate add-label! :- (schema/maybe common/Entry)
+  "Add a label for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         existing-label (label-res/get-label conn label-uuid)
+         existing-entry-labels-set (->> original-entry :labels (map :uuid) set)
+         label-exists-in-entry? (existing-entry-labels-set (:uuid existing-label))]
+     (if label-exists-in-entry?
+       ;; Label is already in the entry, return the original entry w/o changes
+       original-entry
+       ;; Add the user's bookmark
+       (let [fixed-label (label-res/entry-label existing-label)
+             updated-entry-labels (vec (conj (:labels original-entry) fixed-label))]
+         (label-res/label-used-by! conn (:uuid fixed-label) (:org-uuid original-entry) user)
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))))))
+
+(schema/defn ^:always-validate add-labels! :- (schema/maybe common/Entry)
+  "Add multiple labels for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuids :- [lib-schema/UniqueID] user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         existing-labels (map #(label-res/get-label conn %) label-uuids)
+         adding-labels-set (set (map :uuid existing-labels))
+         existing-entry-labels (->> original-entry :labels (map :uuid) set)
+         addable-label-uuids (clj-set/difference existing-entry-labels adding-labels-set)]
+     (if (seq addable-label-uuids)
+       ;; Add the labels
+       (let [existing-labels-to-add (filter (comp addable-label-uuids :uuid) existing-labels)
+             updated-entry-labels (concat (:labels original-entry)
+                                          (vec existing-labels-to-add))]
+         (label-res/labels-used-by! conn label-uuids (:org-uuid original-entry) user)
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
+       ;; Labels don't exists or have been already added
+       original-entry))))
+
+(schema/defn ^:always-validate remove-label! :- (schema/maybe common/Entry)
+  "Remove a label for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         entry-label-uuids (set (mapv :uuid (:labels original-entry)))
+         label-exists-in-entry? (entry-label-uuids label-uuid)
+         existing-label (label-res/get-label conn label-uuid)]
+     (if label-exists-in-entry?
+       ;; Remove the label
+       (let [updated-entry-labels (filterv #(not= (:uuid %) label-uuid) (:labels original-entry))]
+         (when existing-label
+           (label-res/label-unused-by! conn (:uuid existing-label) (:org-uuid original-entry) user))
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
+       ;; Label is not in the entry, return the original entry w/o changes
+       original-entry))))
+
+(schema/defn ^:always-validate remove-labels! :- (schema/maybe common/Entry)
+  "Remove multiple labels for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuids :- [lib-schema/UniqueID] user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         existing-labels (map #(label-res/get-label conn %) label-uuids)
+         removing-labels-set (set (map :uuid existing-labels))
+         existing-entry-labels (->> original-entry :labels (map :uuid) set)
+         removable-labels (clj-set/intersection existing-entry-labels removing-labels-set)]
+     (if (seq removable-labels)
+       ;; Remove the labels
+       (let [updated-entry-labels (filterv #(not (existing-entry-labels (:uuid %))) (:labels original-entry))]
+         (label-res/labels-unused-by! conn label-uuids (:org-uuid original-entry) user)
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
+       ;; Labels don't exists or at least don't exists in the entry
+       original-entry))))
+
 ;; ----- Armageddon -----
 
 (defn delete-all-entries!
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-  [conn]
-  {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions and entries
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn versions-table-name)
-  (db-common/delete-all-resources! conn table-name))
+  ([conn] (delete-all-entries! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   (timbre/info "It looks like you really know what you are doing! Removing all entries, interactions and related versions...")
+   ;; Delete all interactions and entries
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn versions-table-name)
+   (db-common/delete-all-resources! conn table-name)))

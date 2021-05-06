@@ -27,7 +27,7 @@
                            :team-id :author :publisher :published-at :video-id :video-processed
                            :video-image :video-duration :created-at :updated-at :revision-id
                            :new-comments-count :bookmarked-at :polls :last-read-at :last-activity-at :sort-value
-                           :unseen-comments :pins])
+                           :unseen-comments :pins :labels])
 
 ;; ----- Utility functions -----
 
@@ -135,6 +135,25 @@
   (hateoas/link-map rel hateoas/POST (pin-urls/pin org-slug board-slug entry-uuid pin-container-uuid)
    {:accept mt/pin-media-type}))
 
+(defn- label-changes-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "label-changes" hateoas/POST (entry-urls/labels org-slug board-slug entry-uuid)
+                    {:accept mt/entry-media-type
+                     :content-type mt/json-media-type}))
+
+(defn- add-label-link [org-slug board-slug entry-uuid]
+  (hateoas/link-map "partial-add-label" hateoas/POST (entry-urls/label org-slug board-slug entry-uuid "$0")
+                    {:accept mt/entry-media-type}
+                    {:replace {:label-uuid "$0"}}))
+
+(defn- remove-label-link
+  ([org-slug board-slug entry-uuid]
+   (hateoas/link-map "partial-remove-label" hateoas/DELETE (entry-urls/label org-slug board-slug entry-uuid "$0")
+                     {:accept mt/entry-media-type}
+                     {:replace {:label-uuid "$0"}}))
+  ([org-slug board-slug entry-uuid label-slug-or-uuid]
+   (hateoas/link-map "remove-label" hateoas/DELETE (entry-urls/label org-slug board-slug entry-uuid label-slug-or-uuid)
+                     {:accept mt/entry-media-type})))
+
 (defn include-secure-uuid
   "Include secure UUID property for authors."
   [entry secure-uuid _access-level]
@@ -203,6 +222,7 @@
                (poll-add-reply-link org-slug board-slug entry-uuid (:poll-uuid poll)))]))))
      (vals polls))))
 
+
 (defn- filter-pins [entry member?]
   (if member?
     (if-not (= (:board-access entry) "private")
@@ -232,6 +252,7 @@
         draft? (= :draft (keyword (:status entry)))
         entry-with-comments (assoc entry :interactions comments)
         bookmark (some #(when (= (:user-id %) user-id) %) (:bookmarks entry))
+        member? (or (= role :member) (#{:author :viewer} access-level))
         enrich-entry? (and (not draft?)
                            user-id)
         entry-read (when enrich-entry?
@@ -271,7 +292,6 @@
                         (pin-link "home-pin" org-slug board-slug entry-uuid config/seen-home-container-id))
         board-pin-link (when-not draft?
                          (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid))
-        member? (or (= role :member) (#{:author :viewer} access-level))
         entry-author? (= user-id (:user-id (first (:author entry))))
         entry-publisher? (= user-id (-> entry :publisher :user-id))
         links (cond-> []
@@ -335,7 +355,14 @@
                (and draft?
                     (= access-level :author)
                     entry-author?)
-               (conj (publish-link org-slug board-slug entry-uuid)))]
+               (conj (publish-link org board entry-uuid))
+               ;; Labels: multiple changes
+               (and member? (not secure-access?))
+               (conj (label-changes-link org board entry-uuid))
+               ;; Label: partial add label link
+               (and member? (not secure-access?))
+               (concat [(add-label-link org board entry-uuid)
+                        (remove-label-link org board entry-uuid)]))]
     (-> (if secure-access?
           ;; "stand-alone", so include extra props
           (-> org
