@@ -678,7 +678,7 @@
                         (select-keys ctx [:access-level :role])
                         (-> ctx :user :user-id)))})
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (str (schema/check common-res/Entry (:updated-entry ctx)))}))))
 
 ;; A resource for operations on all entries of a particular board
 (defresource entry-list [conn org-slug board-slug-or-uuid]
@@ -907,7 +907,7 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-handler (merge ctx {:reason (map #(schema/check common-res/ShareRequest %) (:share-requests ctx))}))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (s/join "\n" (map #(str (schema/check common-res/ShareRequest %)) (:share-requests ctx)))}))))
 
 
 ;; A resource for access to a particular entry by its secure UUID
@@ -989,7 +989,7 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-                                 (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
+                                 (api-common/unprocessable-entity-handler (merge ctx {:reason (str (schema/check common-res/Entry (:updated-entry ctx)))}))))
 
 (defresource inbox [conn org-slug board-slug entry-uuid action-type]
   (api-common/open-company-authenticated-resource config/passphrase) ; verify validity and presence of required JWToken
@@ -1043,8 +1043,8 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))
-    :delete (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))
+    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -1094,7 +1094,7 @@
   ;; Authorization
   :allowed? (by-method {
     :options true
-    :post (fn [ctx] (access/allow-members conn org-slug (:user ctx)))})
+    :post (fn [ctx] (access/allow-authors conn org-slug board-slug (:user ctx)))})
 
   ;; Media type client accepts
   :available-media-types (by-method {
@@ -1133,7 +1133,7 @@
                                                (select-keys ctx [:access-level :role])
                                                (-> ctx :user :user-id)))
   :handle-unprocessable-entity (fn [ctx]
-    (api-common/unprocessable-entity-handler (merge ctx {:reason (schema/check common-res/Entry (:updated-entry ctx))}))))
+    (api-common/unprocessable-entity-handler (merge ctx {:reason (str (schema/check common-res/Entry (:updated-entry ctx)))}))))
 
 ;; ----- Routes -----
 
