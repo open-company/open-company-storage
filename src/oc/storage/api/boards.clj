@@ -9,6 +9,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.lib.db.pool :as pool]
+            [oc.lib.db.common :as db-common]
             [oc.lib.api.common :as api-common]
             [oc.storage.config :as config]
             [oc.storage.api.access :as access]
@@ -19,6 +20,7 @@
             [oc.storage.representations.board :as board-rep]
             [oc.storage.resources.common :as common-res]
             [oc.storage.resources.org :as org-res]
+            [oc.lib.change.resources.seen :as seen]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
             [oc.storage.urls.board :as board-urls]))
@@ -364,13 +366,18 @@
                              org (:existing-org ctx)
                              board (or (:updated-board ctx) (:existing-board ctx))
                              drafts-board? (:drafts-board? ctx)
+                             user-id (-> ctx :user :user-id)
+                             container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id (:uuid board))
                              params (when-not drafts-board?
                                       (-> ctx-params
                                        (dissoc :org-slug)
                                        (update :direction #(if % (keyword %) :before)) ; default is before
                                        (assoc :limit (if (= :after (keyword (:direction ctx-params)))
                                                        0 ;; In case of a digest request or if a refresh request
-                                                       config/default-activity-limit)))) ;; fallback to the default pagination otherwise
+                                                       config/default-activity-limit)) ;; fallback to the default pagination otherwise
+                                       (assoc :container-id (:uuid board))
+                                       (assoc :last-seen-at (:seen-at container-seen))
+                                       (assoc :next-seen-at (db-common/current-timestamp))))
                              full-board (if drafts-board?
                                           (assemble-board conn org board ctx)
                                           (assemble-board conn board params))]
