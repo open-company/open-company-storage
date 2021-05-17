@@ -16,7 +16,7 @@
   (or (= (:uuid board) (:uuid board-res/default-drafts-board))
       (= (:slug board) (:slug board-res/default-drafts-board))))
 
-(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links :description :last-entry-at :direction :start])
+(def public-representation-props [:uuid :slug :name :access :promoted :entries :created-at :updated-at :links :description :last-entry-at :direction :start :container-id :last-seen-at :next-seen-at])
 (def representation-props (concat public-representation-props [:slack-mirror :author :authors :viewers :draft :publisher-board :total-count]))
 (def drafts-board-representation-props (conj public-representation-props :total-count))
 
@@ -168,6 +168,15 @@
                       (map #(render-viewer-for-collection (:slug org) (:slug board) % access-level) (:viewers board)))]
     (json/generate-string
       (as-> board b
+        (if (seq (:last-seen-at params))
+          (assoc b :last-seen-at (:last-seen-at params))
+          b)
+        (if (seq (:next-seen-at params))
+          (assoc b :next-seen-at (:next-seen-at params))
+          b)
+        (if (seq (:container-id params))
+          (assoc b :container-id (:container-id params))
+          b)
         (if is-drafts-board?
           b
           (assoc b :authors author-reps))
