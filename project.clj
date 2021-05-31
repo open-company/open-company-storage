@@ -49,7 +49,7 @@
     ;; ***************** (JWT schema changes, more info here: *****************
     ;; ******* https://github.com/open-company/open-company-lib/pull/82) ******
     ;; ************************************************************************
-    [open-company/lib "0.18.0-alpha6" :exclusions [commons-codec]]
+    [open-company/lib "0.18.0-alpha8" :exclusions [commons-codec]]
     ;; ************************************************************************
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
@@ -200,6 +200,7 @@
                       "OpenCompany Storage REPL\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) or (go-db) as your first command.\n"))
     :init-ns dev
+    :timeout 1200000
   }
 
   :aliases {
