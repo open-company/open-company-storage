@@ -23,10 +23,11 @@
                      :status-board-uuid
                      :status-org-uuid)
         allowed-board-uuids (set (map :uuid allowed-boards))
+        unfollow-boards-set (set (:unfollow-board-uuids follow-data))
         filtered-board-uuids (cond (:following follow-data)
-                                   (clj-set/difference allowed-board-uuids (:unfollow-board-uuids follow-data))
+                                   (clj-set/difference allowed-board-uuids unfollow-boards-set)
                                    (:unfollowing follow-data)
-                                   (clj-set/intersection allowed-board-uuids (:unfollow-board-uuids follow-data))
+                                   (clj-set/intersection allowed-board-uuids unfollow-boards-set)
                                    :else
                                    allowed-board-uuids)
         index-value (if (sequential? allowed-boards)
@@ -51,10 +52,11 @@
                       :status-board-uuid
                       :status-org-uuid)
          allowed-board-uuids (set (map :uuid allowed-boards))
+         unfollow-boards-set (set (:unfollow-board-uuids follow-data))
          filtered-board-uuids (cond (:following follow-data)
-                                    (clj-set/difference allowed-board-uuids (:unfollow-board-uuids follow-data))
+                                    (clj-set/difference allowed-board-uuids unfollow-boards-set)
                                     (:unfollowing follow-data)
-                                    (clj-set/intersection allowed-board-uuids (:unfollow-board-uuids follow-data))
+                                    (clj-set/intersection allowed-board-uuids unfollow-boards-set)
                                     :else
                                     allowed-board-uuids)
          index-value (if (sequential? allowed-boards)
