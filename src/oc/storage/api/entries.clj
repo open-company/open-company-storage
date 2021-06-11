@@ -392,17 +392,23 @@
 
 (defn auto-share-on-publish
   [conn ctx entry-result]
-  (if-let* [slack-channel (:slack-mirror (:existing-board ctx))
-            _can-slack-share (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))]
-    (let [share-request {:medium "slack"
-                         :note ""
-                         :shared-at (db-common/current-timestamp)
-                         :channel slack-channel}
-          share-ctx (-> ctx
-                        (assoc :share-requests (list share-request))
-                        (assoc :existing-entry (api-common/rep entry-result))
-                        (assoc :auto-share true))]
-      (share-entry conn share-ctx (:uuid entry-result)))))
+  (timbre/infof "Auto sharing entry %s" (:uuid entry-result))
+  (let [slack-channels* (:slack-mirror (:existing-board ctx))
+        slack-channels (if (map? slack-channels*) [slack-channels*] slack-channels*)]
+    (timbre/debugf "Will share to %d - %s" (count slack-channels) (type slack-channels))
+    (doseq [slack-channel slack-channels]
+      (timbre/debugf "Sharing to %s/%s" (:slack-org-id slack-channel) (:channel-id slack-channel))
+      (if (bot/has-slack-bot-for? (:slack-org-id slack-channel) (:user ctx))
+        (let [share-request {:medium "slack"
+                            :note ""
+                            :shared-at (db-common/current-timestamp)
+                            :channel slack-channel}
+              share-ctx (-> ctx
+                            (assoc :share-requests (list share-request))
+                            (assoc :existing-entry (api-common/rep entry-result))
+                            (assoc :auto-share true))]
+          (share-entry conn share-ctx (:uuid entry-result)))
+        (timbre/infof "")))))
 
 (defn undraft-board [conn _user _org board]
   (when (:draft board)

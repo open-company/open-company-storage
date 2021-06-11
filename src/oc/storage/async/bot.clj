@@ -18,6 +18,7 @@
     :receiver {
       :type (schema/enum :all-members :user :channel)
       :slack-org-id lib-schema/NonBlankStr
+      (schema/optional-key :needs-join) (schema/maybe schema/Bool)
       (schema/optional-key :id) schema/Str
   }})
 
@@ -70,6 +71,7 @@
   (let [slack-org-id (-> share-request :channel :slack-org-id)
         channel-type (or (-> share-request :channel :type keyword)
                          :channel)
+        needs-join (-> share-request :channel :needs-join)
         comments (:existing-comments entry)
         comment-count (str (count comments))]
     {
@@ -77,6 +79,7 @@
       :receiver {
         :type channel-type
         :slack-org-id slack-org-id
+        :needs-join needs-join
         :id (-> share-request :channel :channel-id)
       }
       :bot (bot-for slack-org-id user)
