@@ -105,9 +105,8 @@
     }))
 
 (defn- send-trigger! [trigger]
-  (timbre/info "Bot request to queue:" config/aws-sqs-bot-queue)
   (timbre/trace "Bot request:" (dissoc trigger :entries))
-  (timbre/info "Sending request to:" config/aws-sqs-bot-queue)
+  (timbre/debug "Sending request to:" config/aws-sqs-bot-queue)
   (sqs/send-message
    {:access-key config/aws-access-key-id
     :secret-key config/aws-secret-access-key}
