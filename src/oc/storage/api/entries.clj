@@ -109,12 +109,18 @@
             entry (or (:existing-entry ctx)
                       (entry-res/get-entry-by-secure-uuid conn org-uuid secure-uuid))
             board (board-res/get-board conn (:board-uuid entry))
+            comments (or (:existing-comments ctx)
+                         (entry-res/list-comments-for-entry conn (:uuid entry)))
+            reactions (or (:existing-reactions ctx)
+                          (entry-res/list-reactions-for-entry conn (:uuid entry)))
             _matches? (= org-uuid (:org-uuid board)) ; sanity check
             access-level (or (access/access-level-for org board user) {:access-level :public})]
     (merge access-level
            {:existing-org (api-common/rep org)
             :existing-board (api-common/rep board)
-            :existing-entry (api-common/rep entry)})
+            :existing-entry (api-common/rep entry)
+            :existing-comments (api-common/rep comments)
+            :existing-reactions (api-common/rep reactions)})
     false))
 
 (defn label-exists? [conn ctx org-slug board-slug entry-uuid label-uuid user]
