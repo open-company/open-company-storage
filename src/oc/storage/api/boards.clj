@@ -367,7 +367,7 @@
                              board (or (:updated-board ctx) (:existing-board ctx))
                              drafts-board? (:drafts-board? ctx)
                              user-id (-> ctx :user :user-id)
-                             container-seen (seen/retrieve-by-user-container config/dynamodb-opts user-id (:uuid board))
+                             container-seen (when user-id (seen/retrieve-by-user-container config/dynamodb-opts user-id (:uuid board)))
                              params (when-not drafts-board?
                                       (-> ctx-params
                                        (dissoc :org-slug)
