@@ -82,6 +82,10 @@
         (update e :headline #(lib-html/strip-xss-tags (or % "")))
         e)))
 
+(def is-published? #(some-> % :status keyword (= :published)))
+
+(def is-draft? #(some-> % :status keyword (= :draft)))
+
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
