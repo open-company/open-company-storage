@@ -651,8 +651,10 @@
   :allowed? (by-method {
     :options true
     :get (fn [ctx] (access/access-level-for conn org-slug board-slug-or-uuid (:user ctx)))
-    :patch (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))
-    :delete (fn [ctx] (access/allow-authors conn org-slug board-slug-or-uuid (:user ctx)))})
+    :patch (fn [ctx] (or (access/allow-admins conn org-slug (:user ctx))
+                         (access/allow-entry-author conn org-slug entry-uuid (:user ctx))))
+    :delete (fn [ctx] (or (access/allow-admins conn org-slug (:user ctx))
+                          (access/allow-entry-author conn org-slug entry-uuid (:user ctx))))})
 
   ;; Validations
   :processable? (by-method {
