@@ -6,6 +6,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slugify]
             [oc.storage.resources.org :as org-res]
+            [oc.storage.resources.entry :as entry-res]
             [oc.storage.resources.board :as board-res]))
 
 ;; ----- Validation -----
@@ -244,3 +245,18 @@
       (if (map? level)
         (merge b level)
         b))))
+
+(defn allow-entry-author
+  "
+  Given an org slug, an entry-uuid and a user map, return the access
+  map if the user is the author or the publisher of the entry
+  "
+  [conn org-slug entry-uuid user]
+  (let [entry (entry-res/get-entry conn entry-uuid)]
+    (if (entry-res/is-draft? entry)
+      ;; If entry is still a draft, user must be listed in as one of the authors
+      (when (some #(= (:user-id %) (:user-id user)) (:author entry))
+        (access-level-for conn org-slug user))
+      ;; If entry is published, user must be the publisher
+      (when (= (-> entry :publisher :user-id) (:user-id user))
+        (access-level-for conn org-slug user)))))
