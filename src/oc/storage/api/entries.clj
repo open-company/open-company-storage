@@ -253,12 +253,14 @@
                            (not new-board*))
                       (create-publisher-board conn org user))
           clean-entry-props (cond-> entry-props
-                              moving-board? (assoc :board-uuid (:uuid new-board))
-                              (not moving-board?) (dissoc :board-uuid)
-                              true (-> (dissoc :publisher-board)
-                                       (update :status #(if entry-publish? :published %))))
+                              moving-board?        (assoc :board-uuid (:uuid new-board))
+                              (not moving-board?)  (dissoc :board-uuid)
+                              true                 (dissoc :publisher-board)
+                              entry-publish?       (-> (entry-res/ignore-props)
+                                                       (assoc :status :published))
+                              (not entry-publish?) (entry-res/clean))
           updated-entry (-> existing-entry
-                         (merge (entry-res/ignore-props clean-entry-props))
+                         (merge clean-entry-props)
                          (update :attachments #(entry-res/timestamp-attachments %))
                          (clean-polls-for-patch existing-entry))
           ctx-base (if moving-board?
