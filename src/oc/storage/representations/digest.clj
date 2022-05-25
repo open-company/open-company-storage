@@ -2,7 +2,6 @@
   "Resource representations for OpenCompany digest."
   (:require [cheshire.core :as json]
             [oc.lib.hateoas :as hateoas]
-            [oc.storage.api.access :as access]
             [oc.storage.representations.media-types :as mt]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.representations.entry :as entry-rep]

@@ -38,14 +38,6 @@
   {:pre [(db-common/conn? conn)]}
   (into reserved-slugs (map :slug (list-labels-by-org conn org-uuid))))
 
-(defn- slug-available?
-  "Return true if the slug is not used by any org in the system."
-  [conn slug org-uuid]
-  {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)
-         (lib-schema/unique-id? org-uuid)]}
-  (not (contains? (taken-slugs conn org-uuid) slug)))
-
 (schema/defn entry-label :- (schema/maybe common/EntryLabel)
   [label :- (schema/maybe common/Entry)]
   (select-keys label [:uuid :name :slug]))
