@@ -1,7 +1,7 @@
 # [OpenCompany](https://github.com/open-company) Storage Service
 
 [![AGPL License](http://img.shields.io/badge/license-AGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/agpl-3.0.en.html)
-[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
+[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.com/open-company/open-company-storage)
 [![Dependencies Status](https://versions.deps.co/open-company/open-company-storage/status.svg)](https://versions.deps.co/open-company/open-company-storage)
 
 ## Background
@@ -358,9 +358,9 @@ then, from the REPL, run:
 
 ## Testing
 
-Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.org/open-company/open-company-storage):
+Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.com/open-company/open-company-storage):
 
-[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
+[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.com/open-company/open-company-storage)
 
 To run the tests locally:
 
