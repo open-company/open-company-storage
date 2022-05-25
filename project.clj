@@ -1,4 +1,4 @@
-(defproject open-company-storage "0.3.0-SNAPSHOT"
+(defproject open-company-storage "1.0.0"
   :description "OpenCompany Storage Service"
   :url "https://github.com/open-company/open-company-storage"
   :license {
@@ -6,7 +6,7 @@
     :url "https://www.gnu.org/licenses/agpl-3.0.en.html"
   }
 
-  :min-lein-version "2.9.1"
+  :min-lein-version "2.9.8"
 
   ;; JVM memory
   :jvm-opts ^:replace ["-Xms512m" "-Xmx5120m" "-server"]
