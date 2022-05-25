@@ -13,12 +13,10 @@
             [clojure.tools.cli :refer (parse-opts)]
             [taoensso.timbre :as timbre]
             [oc.storage.config :as config]
-            [oc.lib.db.common :as db-common]
             [oc.storage.resources.org :as org-res]
             [oc.storage.resources.board :as board-res]
             [oc.storage.resources.entry :as entry-res]
-            [oc.lib.db.pool :as db]
-            [oc.storage.config :as c])
+            [oc.lib.db.pool :as db])
   (:gen-class))
 
 (defn exit [status msg]
@@ -55,14 +53,11 @@
            message))))))
 
 (defn index-all-entries [conn]
-  (let [now (db-common/current-timestamp)]
-    (doseq [org (org-res/list-orgs conn [:team-id])]
-      (let [boards (board-res/list-boards-by-org conn (:uuid org) [:access :viewers :authors])
-            allowed-boards (vec (map :uuid boards))]
-        (doseq [board boards]
-          (let [entries (entry-res/list-entries-by-board conn (:uuid board) {})]
-            (doseq [entry entries]
-              (send-trigger! (->trigger "entry" entry org board)))))))))
+  (doseq [org (org-res/list-orgs conn [:team-id])]
+    (doseq [board (board-res/list-boards-by-org conn (:uuid org) [:access :viewers :authors])]
+      (let [entries (entry-res/list-entries-by-board conn (:uuid board) {})]
+        (doseq [entry entries]
+          (send-trigger! (->trigger "entry" entry org board)))))))
 
 ;; ----- CLI -----
 
@@ -90,6 +85,6 @@
       (not= (count arguments) 0) (exit 1 (usage summary))
       errors (exit 1 (error-msg errors)))
 
-    (let [conn (db/init-conn c/db-options)]
+    (let [conn (db/init-conn config/db-options)]
       (println "Indexing all entries.")
       (index-all-entries conn))))

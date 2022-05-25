@@ -2,6 +2,7 @@
   "Async publish of notification events to AWS SNS."
   (:require [clojure.core.async :as async :refer (<! >!!)]
             [defun.core :refer (defun)]
+            [clojure.string :as cstr]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
             [amazonica.aws.sns :as sns]
@@ -10,7 +11,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.time :as oc-time]
             [oc.lib.sentry.core :as sentry]
-            [oc.lib.text :as str]
+            [oc.lib.html :as html-lib]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common-res]))
 
@@ -30,7 +31,7 @@
 
 ;; ----- Data schema -----
 
-(defn- notification-type? [notification-type] (#{:add :update :delete :nux :comment-add :dismiss :unread :follow :unfollow} notification-type))
+(defn- notification-type? [notification-type] (#{:add :update :delete :pin-toggle :nux :comment-add :dismiss :unread :follow :unfollow} notification-type))
 
 (defn- resource-type? [resource-type] (#{:org :board :entry} resource-type))
 
@@ -73,7 +74,8 @@
                                                    #(= (resource-type %) :board) common-res/Board
                                                    :else common-res/Org)
     (schema/optional-key :inbox-action) InboxAction
-    (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]}
+    (schema/optional-key :nux-boards) [lib-schema/NonBlankStr]
+    (schema/optional-key :pin-container-uuid) lib-schema/UniqueID}
 
    (schema/optional-key :user) {:user-id lib-schema/UniqueID
                                  schema/Keyword schema/Any}
@@ -151,7 +153,7 @@
                 :user user
                 :notification-at (oc-time/current-timestamp)
                 :sender-ws-client-id ws-client-id}
-        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        note-notice (if note (assoc notice :note (html-lib/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice))
@@ -161,13 +163,13 @@
                 :content content
                 :users users
                 :notification-at (oc-time/current-timestamp)}
-        note-notice (if note (assoc notice :note (str/strip-xss-tags note)) notice)
+        note-notice (if note (assoc notice :note (html-lib/strip-xss-tags note)) notice)
         org-notice (if org (assoc note-notice :org org) note-notice)
         final-notice (if board (assoc org-notice :board board) org-notice)]
       final-notice)))
 
 (schema/defn ^:always-validate send-trigger! [trigger :- NotificationTrigger]
-  (if (clojure.string/blank? config/aws-sns-storage-topic-arn)
+  (if (cstr/blank? config/aws-sns-storage-topic-arn)
     (timbre/debug "Skipping a notification for:" (or (-> trigger :content :old :uuid)
                                                      (-> trigger :content :new :uuid)))
     (do

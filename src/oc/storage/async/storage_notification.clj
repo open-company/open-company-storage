@@ -176,7 +176,7 @@
              {:old entry-data
               :new entry-result
               :inbox-action {:follow true}} user nil))))
-        (timbre/info "Handled inbox-action " (:sub-type body) " for entry:" entry-result))
+        (timbre/info "Handled inbox-action " (:sub-type body) " for entry:" (:uuid entry-result)))
       (timbre/error "Failed handling" (:sub-type body) "message for item:" (:item-id body) "and users:" (mapv :user-id (:users body))))))
 
   ([db-pool body :guard #(and (= (:type %) "inbox-action")

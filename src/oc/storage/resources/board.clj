@@ -9,7 +9,7 @@
             [oc.lib.schema :as lib-schema]
             [oc.lib.slugify :as slug]
             [oc.lib.db.common :as db-common]
-            [oc.lib.text :as str]
+            [oc.lib.html :as lib-html]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
             [oc.storage.resources.org :as org-res]
@@ -33,6 +33,15 @@
 (def ignored-properties
   "Properties of a resource that are ignored during an update."
   reserved-properties)
+
+(defn- clean-input [board-data]
+  (as-> board-data b
+    (if (:name b)
+      (update b :name #(lib-html/strip-xss-tags (or % "")))
+      b)
+    (if (:description b)
+      (update b :description #(lib-html/strip-xss-tags (or % "")))
+      b)))
 
 ;; ----- Data Defaults -----
 
@@ -110,9 +119,9 @@
     (-> board-props
         keywordize-keys
         clean
+        clean-input
         (assoc :uuid (db-common/unique-id))
         (assoc :slug slug)
-        (update :name #(str/strip-xss-tags %))
         (assoc :org-uuid org-uuid)
         (update :access #(or % default-access))
         (update :entries #(or % []))
@@ -130,9 +139,12 @@
   "
   [conn board :- common/NewBoard]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name
-    (update (dissoc board :entries) :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board))))
-    (db-common/current-timestamp)))
+  (timbre/info "Creating board" (:uuid board))
+  (let [cleaned-board (-> board
+                          (dissoc :entries)
+                          (update :slug #(slug/find-available-slug % (taken-slugs conn (:org-uuid board)))))
+        created-board (db-common/create-resource conn table-name cleaned-board (db-common/current-timestamp))]
+    created-board))
 
 (defn- publisher-board-slug [taken-slugs user-id]
   (slug/find-available-slug (str publisher-board-slug-prefix user-id) taken-slugs))
@@ -187,7 +199,9 @@
   {:pre [(db-common/conn? conn)
          (map? board)]}
   (when-let [original-board (get-board conn uuid)]
-    (let [updated-board (merge original-board (ignore-props board))]
+    (let [updated-board (->> (ignore-props board)
+                             (merge original-board)
+                             clean-input)]
       (schema/validate common/Board updated-board)
       (db-common/update-resource conn table-name primary-key original-board updated-board))))
 
@@ -365,10 +379,14 @@
 ;; ----- Armageddon -----
 
 (defn delete-all-boards!
-  "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-  [conn]
-  {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions, entries, and boards
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn table-name))
+  "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
+   Second parameter has to be `I do know what I am doing!` to add a second level of security."
+  ([conn] (delete-all-boards! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   ;; Delete all interactions, entries, boards and orgs
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn common/entry-table-name)
+   (db-common/delete-all-resources! conn common/versions-table-name)
+   (db-common/delete-all-resources! conn table-name)))

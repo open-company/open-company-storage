@@ -30,17 +30,14 @@
 
 (defun access-level-for
   "
-  Given an org (or slug) and a user map, return the authorization level for the user on the org:
-    :author
-    :viewer
-    :public
-    false
+  Given an org (or slug) and a user map, return a map describing the authorization level for the user on the org,
+  or nil if the user has no access.
+  If a board is specified (slug or map) the map will describe the access level of the user on it.
 
-  Or, given an org (or slug), board (or slug) and user map, return the authorization level for the user on the board:
-    :author
-    :viewer
-    :public
-    false
+  Ie:
+  {:access-level :author|:viewer|:public|:does-not-exist
+   :role :admin|:member|:anonymous
+   :premium? true|false}
   "
   ;; Access to org
   ;; Invalid org slug
@@ -219,3 +216,31 @@
             (= access-level :does-not-exist))
       access
       false))))
+
+(defn allow-admins
+  "
+  Given an org slug and a user map, return the access
+  map if the user is an admin of the given org's team.
+  "
+  [conn org-slug user]
+  (let [access (access-level-for conn org-slug user)]
+    (if (and (= (:role access) :admin)
+             (not= (:access-level access) :public))
+      access
+      false)))
+
+(defn board-with-access-level
+  "
+  Merge in `access` level user is accessing this board with, and if that level is public, remove author and
+  viewer lists.
+  "
+  [org board user]
+  (let [level (access-level-for org board user)
+        public? (= :public (:access-level level))]
+    (as-> board b
+      (if public?
+        (dissoc board :authors :viewers)
+        b)
+      (if (map? level)
+        (merge b level)
+        b))))

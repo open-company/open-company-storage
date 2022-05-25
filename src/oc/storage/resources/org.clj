@@ -1,8 +1,10 @@
 (ns oc.storage.resources.org
   (:require [clojure.walk :refer (keywordize-keys)]
             [clojure.set :as clj-set]
+            [taoensso.timbre :as timbre]
             [schema.core :as schema]
             [oc.lib.slugify :as slug]
+            [oc.lib.html :as lib-html]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.storage.resources.common :as common]))
@@ -28,7 +30,8 @@
 
 (def content-visibility {:disallow-secure-links false
                          :disallow-public-board false
-                         :disallow-public-share false})
+                         :disallow-public-share false
+                         :disallow-wrt-download false})
 
 ;; ----- Utility functions -----
 
@@ -41,6 +44,11 @@
   "Remove any ignored properties from the org."
   [org]
   (apply dissoc org ignored-properties))
+
+(defn- clean-input [org-data]
+  (if (:name org-data)
+    (update org-data :name #(lib-html/strip-xss-tags (or % "")))
+    org-data))
 
 (defn trunc
   "
@@ -69,7 +77,7 @@
   {:pre [(db-common/conn? conn)]}
   (into reserved-slugs (map :slug (list-orgs conn))))
 
-(defn slug-available?
+(defn- slug-available?
   "Return true if the slug is not used by any org in the system."
   [conn slug]
   {:pre [(db-common/conn? conn)
@@ -93,6 +101,7 @@
     (-> org-props
         keywordize-keys
         clean
+        clean-input
         (assoc :slug (trunc slug 126)) ;; primary key length is 127
         (assoc :uuid (db-common/unique-id))
         (assoc :authors [(:user-id user)])
@@ -112,8 +121,10 @@
   "
   [conn org :- common/Org]
   {:pre [(db-common/conn? conn)]}
-  (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
-    (db-common/current-timestamp)))
+  (timbre/info "Creating org" (:uuid org) (:name org))
+  (let [created-org (db-common/create-resource conn table-name (update org :slug #(slug/find-available-slug % (taken-slugs conn)))
+                     (db-common/current-timestamp))]
+    created-org))
 
 (schema/defn ^:always-validate get-org :- (schema/maybe common/Org)
   "Given the slug or UUID of the org, return the org, or return nil if it doesn't exist."
@@ -150,7 +161,9 @@
          (slug/valid-slug? slug)
          (map? org)]}
   (when-let [original-org (get-org conn slug)]
-    (let [updated-org (merge original-org (ignore-props org))]
+    (let [updated-org (->> (ignore-props org)
+                           (merge original-org)
+                           (clean-input))]
       (schema/validate common/Org updated-org)
       (db-common/update-resource conn table-name primary-key original-org updated-org))))
 
@@ -162,6 +175,10 @@
   (if-let [uuid (:uuid (get-org conn slug))]
     
     (do
+      ;; Delete labels
+      (try
+        (db-common/delete-resource conn common/label-table-name :org-uuid uuid)
+        (catch java.lang.RuntimeException _)) ; OK if no labels
       ;; Delete interactions
       (try
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
@@ -268,12 +285,14 @@
 
 (defn delete-all-orgs!
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful.
-   Second parameter has to be delete-them-all! to avoid confusing this with the delete-org! function."
-  [conn security-check]
-  {:pre [(db-common/conn? conn)
-         (= security-check "delete-them-all!")]}
-  ;; Delete all interactions, entries, boards and orgs
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn common/entry-table-name)
-  (db-common/delete-all-resources! conn common/board-table-name)
-  (db-common/delete-all-resources! conn table-name))
+   Second parameter has to be `I do know what I am doing!` to add a second level of security."
+  ([conn] (delete-all-orgs! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   ;; Delete all interactions, entries, boards and orgs
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn common/entry-table-name)
+   (db-common/delete-all-resources! conn common/versions-table-name)
+   (db-common/delete-all-resources! conn common/board-table-name)
+   (db-common/delete-all-resources! conn table-name)))

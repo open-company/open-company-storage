@@ -8,8 +8,10 @@
     [clojure.java.io :as j-io]
     [ring.logger.timbre :refer (wrap-with-logger)]
     [liberator.dev :refer (wrap-trace)]
+    [ring.middleware.keyword-params :refer (wrap-keyword-params)]
     [ring.middleware.params :refer (wrap-params)]
     [ring.middleware.reload :refer (wrap-reload)]
+    [ring.middleware.cookies :refer (wrap-cookies)]
     [ring.middleware.cors :refer (wrap-cors)]
     [compojure.core :as compojure :refer (GET)]
     [com.stuartsierra.component :as component]
@@ -24,27 +26,32 @@
     [oc.storage.api.entries :as entries-api]
     [oc.storage.api.polls :as polls-api]
     [oc.storage.api.activity :as activity-api]
-    [oc.storage.api.digest :as digest-api]))
+    [oc.storage.api.digest :as digest-api]
+    [oc.storage.api.pins :as pins-api]
+    [oc.storage.api.label :as label-api]))
 
 ;; ----- Request Routing -----
 
 (defn routes [sys]
   (compojure/routes
-    (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
-    (GET "/---error-test---" [] (/ 1 0))
-    (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
-    (entry-point-api/routes sys)
-    (orgs-api/routes sys)
-    (boards-api/routes sys)
-    (entries-api/routes sys)
-    (activity-api/routes sys)
-    (digest-api/routes sys)
-    (polls-api/routes sys)))
+   (GET "/ping" [] {:body "OpenCompany Storage Service: OK" :status 200}) ; Up-time monitor
+   (GET "/---error-test---" [] (/ 1 0))
+   (GET "/---500-test---" [] {:body "Testing bad things." :status 500})
+   (entry-point-api/routes sys)
+   (orgs-api/routes sys)
+   (boards-api/routes sys)
+   (entries-api/routes sys)
+   (activity-api/routes sys)
+   (digest-api/routes sys)
+   (polls-api/routes sys)
+   (pins-api/routes sys)
+   (label-api/routes sys)))
 
 ;; ----- System Startup -----
 
 (defn echo-config [port]
   (println (str "\n"
+    "Production? " c/prod? "\n"
     "Running on port: " port "\n"
     "Database: " c/db-name "\n"
     "Database pool: " c/db-pool-size "\n"
@@ -56,34 +63,28 @@
     "Hot-reload: " c/hot-reload "\n"
     "Trace: " c/liberator-trace "\n"
     "Log level: " c/log-level "\n"
-    "Sentry: " c/dsn "\n"
-    "  env: " c/sentry-env "\n"
-    (when-not (clj-string/blank? c/sentry-release)
-      (str "  release: " c/sentry-release "\n"))
-    "Unread limit: " c/unread-days-limit " days\n\n"
+    "Sentry: " c/sentry-config "\n"
+    "Unread limit: " c/unread-days-limit " days\n"
     (when c/intro? "Ready to serve...\n"))))
 
 ;; Ring app definition
 (defn app [sys]
   (cond-> (routes sys)
-    c/prod?           api-common/wrap-500 ; important that this is first
+    true              api-common/wrap-500 ; important that this is first
      ; important that this is second
     c/dsn             (sentry/wrap c/sentry-config)
     true              wrap-with-logger
+    true              wrap-keyword-params
     true              wrap-params
     c/liberator-trace (wrap-trace :header :ui)
+    true              wrap-cookies
     true              (wrap-cors #".*")
     c/hot-reload      wrap-reload))
 
 (defn start
   "Start a development server"
   [port]
-
-  ;; Stuff logged at error level goes to Sentry
-  (if c/dsn
-    (timbre/merge-config! {:level (keyword c/log-level)
-                           :appenders {:sentry (sentry/sentry-appender c/sentry-config)}})
-    (timbre/merge-config! {:level (keyword c/log-level)}))
+  (timbre/merge-config! {:min-level (keyword c/log-level)})
 
   ;; Start the system
   (-> {:handler-fn app

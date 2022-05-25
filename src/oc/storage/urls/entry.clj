@@ -1,5 +1,7 @@
 (ns oc.storage.urls.entry
   (:require [defun.core :refer (defun)]
+            [cuerdas.core :as s]
+            [oc.storage.config :as config]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]))
 
@@ -7,35 +9,43 @@
   ([org-slug]
    (org-urls/entries org-slug))
   ([org-slug board-slug]
-   (str (board-urls/board org-slug board-slug) "/entries")))
+   (s/join "/" [(board-urls/board org-slug board-slug) "entries"])))
 
 (defun entry
   ([org-slug board-slug entry-map :guard map?]
    (entry org-slug board-slug (:uuid entry-map)))
 
   ([org-slug board-slug entry-uuid]
-   (str (entries org-slug board-slug) "/" entry-uuid)))
+   (s/join "/" [(entries org-slug board-slug) entry-uuid])))
 
-(defn secure-entry
-  ([org-slug secure-uuid] (str (entries org-slug) "/" secure-uuid)))
+(defun ui-entry
+  ([org board entry-map :guard map?]
+   (ui-entry org board (:uuid entry-map)))
+
+  ([org board-map :guard map? entry]
+   (ui-entry org (or (:slug board-map) (:uuid board-map)) entry))
+
+  ([org :guard map? board entry]
+   (ui-entry (or (:slug org) (:uuid org)) board entry))
+
+  ([org-slug board-slug entry-uuid]
+   (s/join "/" [config/ui-server-url org-slug board-slug "post" entry-uuid])))
+
+(defun secure-entry
+  ([org-slug secure-uuid :guard string?] (s/join "/" [(entries org-slug) secure-uuid]))
+  ([org-slug entry-map :guard :secure-uuid] (secure-entry org-slug (:secure-uuid entry-map))))
 
 (defn bookmark
    [org-slug board-slug entry-uuid]
-   (str (entry org-slug board-slug entry-uuid) "/bookmark"))
+   (s/join "/" [(entry org-slug board-slug entry-uuid) "bookmark"]))
 
 (defn revert
   [org-slug board-slug entry-uuid]
-  (str (entry org-slug board-slug entry-uuid) "/revert"))
+  (s/join "/" [(entry org-slug board-slug entry-uuid) "revert"]))
 
 (defun inbox-action
   [org-slug board-slug entry-uuid inbox-action :guard #{:dismiss :unread :follow :unfollow}]
-  (str (entry org-slug board-slug entry-uuid) "/" (name inbox-action)))
-
-(defn inbox-dismiss [org-slug board-slug entry-uuid]
-  (inbox-action org-slug board-slug entry-uuid :dismiss))
-
-(defn inbox-unread [org-slug board-slug entry-uuid]
-  (inbox-action org-slug board-slug entry-uuid :unread))
+  (s/join "/" [(entry org-slug board-slug entry-uuid) (name inbox-action)]))
 
 (defn inbox-follow [org-slug board-slug entry-uuid]
   (inbox-action org-slug board-slug entry-uuid :follow))
@@ -45,26 +55,34 @@
 
 (defn publish
   [org-slug board-slug entry-uuid]
-  (str (entry org-slug board-slug entry-uuid) "/publish"))
+  (s/join "/" [(entry org-slug board-slug entry-uuid) "publish"]))
 
 (defn share
   [org-slug board-slug entry-uuid]
-  (str (entry org-slug board-slug entry-uuid) "/share"))
+  (s/join "/" [(entry org-slug board-slug entry-uuid) "share"]))
 
 
 ;; Polls
 
 (defn polls [org-slug board-slug entry-uuid]
-  (str (entry org-slug board-slug entry-uuid) "/polls"))
+  (s/join "/" [(entry org-slug board-slug entry-uuid) "polls"]))
 
 (defn poll [org-slug board-slug entry-uuid poll-uuid]
-  (str (polls org-slug board-slug entry-uuid) "/" poll-uuid))
+  (s/join "/" [(polls org-slug board-slug entry-uuid) poll-uuid]))
 
 (defn poll-replies [org-slug board-slug entry-uuid poll-uuid]
-  (str (poll org-slug board-slug entry-uuid poll-uuid) "/replies"))
+  (s/join "/" [(poll org-slug board-slug entry-uuid poll-uuid) "replies"]))
 
 (defn poll-reply [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (str (poll-replies org-slug board-slug entry-uuid poll-uuid) "/" reply-id))
+  (s/join "/" [(poll-replies org-slug board-slug entry-uuid poll-uuid) reply-id]))
 
 (defn poll-reply-vote [org-slug board-slug entry-uuid poll-uuid reply-id]
-  (str (poll-reply org-slug board-slug entry-uuid poll-uuid reply-id) "/vote"))
+  (s/join "/" [(poll-reply org-slug board-slug entry-uuid poll-uuid reply-id) "vote"]))
+
+;; Labels
+
+(defn labels [org-slug board-slug entry-uuid]
+  (s/join "/" [(entry org-slug board-slug entry-uuid) "labels"]))
+
+(defn label [org-slug board-slug entry-uuid label-slug-or-uuid]
+  (s/join "/" [(labels org-slug board-slug entry-uuid) label-slug-or-uuid]))

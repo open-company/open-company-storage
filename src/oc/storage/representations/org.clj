@@ -1,23 +1,28 @@
 (ns oc.storage.representations.org
   "Resource representations for OpenCompany orgs."
   (:require [cheshire.core :as json]
+            [cuerdas.core :as s]
+            [clj-time.core :as t]
+            [oc.lib.time :as lib-time]
             [oc.lib.hateoas :as hateoas]
             [oc.storage.urls.org :as org-urls]
             [oc.storage.urls.board :as board-urls]
             [oc.storage.urls.entry :as entry-urls]
+            [oc.storage.urls.label :as label-urls]
             [oc.storage.api.access :as access]
             [oc.storage.config :as config]
             [oc.storage.resources.common :as common]
-            [oc.storage.representations.media-types :as mt]))
+            [oc.storage.representations.media-types :as mt]
+            [oc.storage.representations.label :as label-rep]))
 
 (def public-representation-props [:uuid :slug :name :team-id :logo-url :logo-width :logo-height
                                   :boards :created-at :updated-at :brand-color])
 (def representation-props (concat public-representation-props [:author :authors :total-count :bookmarks-count
-                                                               :content-visibility :inbox-count :why-carrot
+                                                               :content-visibility :why-carrot
                                                                :contributions-count :following-count :unfollowing-count
-                                                               :following-inbox-count :unfollowing-inbox-count
                                                                :badge-following :badge-replies :brand-color
-                                                               :new-entry-placeholder :new-entry-cta]))
+                                                               :new-entry-placeholder :new-entry-cta :wrt-posts-count
+                                                               :home-last-seen-at :replies-last-seen-at :labels]))
 
 (defn- self-link [org] (hateoas/self-link (org-urls/org org) {:accept mt/org-media-type}))
 
@@ -25,6 +30,11 @@
 
 (defn- active-users-link [org]
   (hateoas/link-map "active-users" hateoas/GET (org-urls/active-users org) {:accept mt/user-collection-media-type}))
+
+(defn- wrt-csv-link [org]
+  (hateoas/link-map "wrt-csv" hateoas/GET
+                    (str config/storage-server-url (org-urls/wrt-csv org config/default-csv-days))
+                    {:accept mt/csv-media-type}))
 
 (defn partial-update-link [org] (hateoas/partial-update-link (org-urls/org org) {:content-type mt/org-media-type
                                                                                 :accept mt/org-media-type}))
@@ -73,41 +83,37 @@
 (defn- remove-author-link [org user-id]
   (hateoas/remove-link (org-urls/org-author org user-id)))
 
-(defn- org-collection-links [org]
-  (assoc org :links [(item-link org)]))
-
 (defn- replies-link [org]
   (hateoas/link-map "replies" hateoas/GET (org-urls/replies org) {:accept mt/entry-collection-media-type}))
 
 (defn- activity-link [org]
   (hateoas/link-map "entries" hateoas/GET (org-urls/entries org) {:accept mt/entry-collection-media-type}))
 
-;; (defn- recent-activity-link [org]
-;;   (hateoas/link-map "activity" hateoas/GET (str (org-urls/entries org) "?sort=activity") {:accept mt/entry-collection-media-type}))
-
 (defn- following-link [org]
   (hateoas/link-map "following" hateoas/GET (str (org-urls/entries org) "?following=true") {:accept mt/entry-collection-media-type}))
-
-;; (defn- recent-following-link [org]
-;;   (hateoas/link-map "recent-following" hateoas/GET (str (org-urls/entries org) "?sort=activity&following=true") {:accept mt/entry-collection-media-type}))
-
-;; (defn- unfollowing-link [org]
-;;   (hateoas/link-map "unfollowing" hateoas/GET (str (org-urls/entries org) "?unfollowing=true") {:accept mt/entry-collection-media-type}))
-
-;; (defn- recent-unfollowing-link [org]
-;;   (hateoas/link-map "recent-unfollowing" hateoas/GET (str (org-urls/entries org) "?sort=activity&unfollowing=true") {:accept mt/entry-collection-media-type}))
 
 (defn- contributions-partial-link [org]
   (hateoas/link-map "partial-contributions" hateoas/GET (org-urls/contribution org "$0") {:accept mt/entry-collection-media-type}
    {:replace {:author-uuid "$0"}}))
 
-;; (defn- recent-contributions-partial-link [org]
-;;   (hateoas/link-map "recent-partial-contributions" hateoas/GET (str (org-urls/contribution org "$0") "?sort=activity") {:accept mt/entry-collection-media-type}
-;;    {:replace {:author-uuid "$0"}}))
+(defn- label-entries-partial-link [org]
+  (hateoas/link-map "partial-label-entries" hateoas/GET (label-urls/label-entries org "$0") {:accept mt/entry-collection-media-type}
+                    {:replace {:label-slug "$0"}}))
 
 (defn- digest-partial-link [org]
   (hateoas/link-map "digest" hateoas/GET (str (org-urls/digest org) "?direction=after&start=$0") {:accept mt/entry-collection-media-type}
    {:replace {:start "$0"}}))
+
+(defn- org-collection-links
+  ([org] (org-collection-links org nil))
+  ([org user]
+   (assoc org :links (cond-> []
+                       ;; All orgs get the item link
+                       true
+                       (conj (item-link org))
+                       ;; Only if user is member add the digest link
+                       (and user
+                            ((set (:teams user)) (:team-id org))) (conj (digest-partial-link org))))))
 
 (defn- partial-secure-link []
   (hateoas/link-map "partial-secure" hateoas/GET (entry-urls/secure-entry "$0" "$1") {:accept mt/entry-media-type}
@@ -175,71 +181,27 @@
         {:accept mt/entry-collection-media-type}))
     org))
 
-(defn- recent-bookmarks-link [org access-level user]
-  (if (and (not (:id-token user)) (or (= access-level :author) (= access-level :viewer)))
-    (update-in org [:links] conj
-      (hateoas/link-map
-        "bookmarks-activity"
-        hateoas/GET
-        (str (org-urls/bookmarks org) "?sort=activity")
-        {:accept mt/entry-collection-media-type}))
-    org))
-
-;; (defn- following-inbox-link [org access-level user]
-;;   (if (and (not (:id-token user))
-;;            (or (= access-level :author)
-;;                (= access-level :viewer)))
-;;     (update-in org [:links] conj
-;;       (hateoas/link-map
-;;         "following-inbox"
-;;         hateoas/GET
-;;         (str (org-urls/inbox org) "?following=true")
-;;         {:accept mt/entry-collection-media-type}))
-;;     org))
-
-;; (defn- unfollowing-inbox-link [org access-level user]
-;;   (if (and (not (:id-token user))
-;;            (or (= access-level :author)
-;;                (= access-level :viewer)))
-;;     (update-in org [:links] conj
-;;       (hateoas/link-map
-;;         "unfollowing-inbox"
-;;         hateoas/GET
-;;         (str (org-urls/inbox org) "?unfollowing=true")
-;;         {:accept mt/entry-collection-media-type}))
-;;     org))
-
-;; (defn- inbox-link [org access-level user]
-;;   (if (and (not (:id-token user))
-;;            (or (= access-level :author)
-;;                (= access-level :viewer)))
-;;     (update-in org [:links] conj
-;;       (hateoas/link-map
-;;         "inbox"
-;;         hateoas/GET
-;;         (org-urls/inbox org)
-;;         {:accept mt/entry-collection-media-type}))
-;;     org))
-
 (defn- org-links [org access-level user sample-content?]
   (let [links [(self-link org)]
         id-token (:id-token user)
         premium? (access/premium-org? org user)
         activity-links (if (and (not id-token) (or (= access-level :author) (= access-level :viewer)))
-                          (concat links [(active-users-link org)
-                                         (activity-link org)
-                                         ; (recent-activity-link org)
-                                         ; (recent-contributions-partial-link org)
-                                         (following-link org)
-                                         ; (recent-following-link org)
-                                         ; (unfollowing-link org)
-                                         ; (recent-unfollowing-link org)
-                                         (contributions-partial-link org)
-                                         (replies-link org)
-                                         (digest-partial-link org)]) ; (calendar-link org) - not currently used
+                          (concat links (vec
+                                         (remove nil?
+                                                 [(active-users-link org)
+                                                  (when-not (-> org :content-visibility :disallow-wrt-download)
+                                                    (wrt-csv-link org))
+                                                  (activity-link org)
+                                                  (following-link org)
+                                                  (contributions-partial-link org)
+                                                  (label-entries-partial-link org)
+                                                  (replies-link org)
+                                                  (digest-partial-link org)
+                                                  (label-rep/label-list-link org)
+                                                  (label-rep/create-link org)])))
                           links)
         board-links (create-board-links org premium?)
-        author-links (if (and (not id-token) (= access-level :author) )
+        author-links (if (and (not id-token) (= access-level :author))
                        (concat activity-links
                                [(partial-update-link org)
                                 (add-author-link org)]
@@ -250,7 +212,7 @@
                               author-links)]
     (assoc org :links delete-sample-links)))
 
-(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept "application/json"}))
+(def auth-link (hateoas/link-map "authenticate" hateoas/GET config/auth-server-url {:accept mt/json-media-type}))
 
 (defn render-author-for-collection
   "Create a map of the org author for use in a collection in the REST API"
@@ -268,7 +230,7 @@
 
 (defn render-org
   "Given an org, create a JSON representation of the org for the REST API."
-  [org {:keys [access-level user premium?]} sample-content?]
+  [org {:keys [access-level user premium? existing-org-labels]} sample-content?]
   (let [rep-props (if (or (= :author access-level)
                           (= :viewer access-level))
                     representation-props
@@ -276,16 +238,13 @@
         org-repr (-> org
                      (update :new-entry-cta #(or % common/default-entry-cta))
                      (update :new-entry-placeholder #(or % common/default-entry-placeholder))
+                     (assoc :labels (label-rep/labels-list org existing-org-labels user))
                      (org-links access-level user sample-content?)
                      (change-link access-level user)
                      (notify-link access-level user)
                      (interactions-link access-level user)
                      (reminders-link access-level user)
                      (bookmarks-link access-level user)
-                     (recent-bookmarks-link access-level user)
-                     ; (inbox-link access-level user)
-                     ; (following-inbox-link access-level user)
-                     ; (unfollowing-inbox-link access-level user)
                      (select-keys (conj rep-props :links))
                      (premium-filter user premium?))]
     (json/generate-string org-repr {:pretty config/pretty?})))
@@ -305,5 +264,32 @@
       {:collection {:version hateoas/json-collection-version
                     :href "/"
                     :links full-links
-                    :items (map org-collection-links with-premium-filter)}}
+                    :items (map #(org-collection-links % user) with-premium-filter)}}
       {:pretty config/pretty?})))
+
+(def csv-empty-val "NA")
+
+(defn render-wrt-csv
+  [org entries-list user days]
+  (let [user-tz (:timezone user)
+        start-date (t/minus (t/now) (t/days days))
+        start-date-string (lib-time/csv-date start-date user-tz)
+        end-date-string (lib-time/csv-date (t/now) user-tz)
+        csv-entries (mapv (fn [{entry :entry csv-users :csv-users reads-count :reads-count reads-percent :reads-percent}]
+                            (s/join "\n" [(str "Title: " (:headline entry))
+                                          (str "Published on: " (lib-time/csv-date-time (:published-at entry) user-tz))
+                                          (str "Link: " (:url entry))
+                                          (str "Reads: " reads-count " of " (count csv-users) (when reads-percent (str " (" reads-percent ")")))
+                                          "-"
+                                          "Name, Email, Read"
+                                          (s/join "\n"
+                                                  (mapv #(s/join ", " [(or (:name %) csv-empty-val)
+                                                                       (or (:email %) csv-empty-val)
+                                                                       (if (:read-at %)
+                                                                         (lib-time/csv-date-time (:read-at %) user-tz)
+                                                                         csv-empty-val)])
+                                                        csv-users))
+                                          "\n"]))
+                          entries-list)
+        csv-intro (str (:name org) " analytics for posts between " start-date-string " and " end-date-string "\n")]
+    (s/join "\n" (vec (cons csv-intro csv-entries)))))

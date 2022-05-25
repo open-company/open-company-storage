@@ -1,0 +1,16 @@
+(ns oc.storage.db.migrations.add-comment-resource-uuid-created-at-index
+  (:require [rethinkdb.query :as r]
+            [oc.lib.db.migrations :as m]
+            [oc.storage.config :as config]
+            [oc.storage.resources.common :as common]))
+
+(defn up [conn]
+  ;; Do great things
+  (println (m/create-compound-index conn common/interaction-table-name :comment-resource-uuid-created-at
+    (r/fn [row]
+      [(-> (r/get-field row :body)
+            (r/default false)
+            (r/coerce-to :bool))
+       (r/get-field row :resource-uuid)
+       (r/get-field row :created-at)])))
+  true) ; return true on success

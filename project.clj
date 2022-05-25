@@ -14,16 +14,16 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.2-alpha1"]
+    [org.clojure/clojure "1.10.3"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
-    [org.clojure/tools.cli "1.0.194"]
+    [org.clojure/tools.cli "1.0.206"]
     ;; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-devel "1.8.0"]
+    [ring/ring-devel "1.9.1"]
     ;; Web application library https://github.com/ring-clojure/ring
     ;; NB: clj-time pulled in by oc.lib
     ;; NB: joda-time pulled in by oc.lib via clj-time
     ;; NB: commons-codec pulled in by oc.lib
-    [ring/ring-core "1.8.0" :exclusions [clj-time joda-time commons-codec]]
+    [ring/ring-core "1.9.1" :exclusions [clj-time joda-time]]
     ;; CORS library https://github.com/jumblerg/ring.middleware.cors
     [jumblerg/ring.middleware.cors "1.0.1"]
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
@@ -49,7 +49,7 @@
     ;; ***************** (JWT schema changes, more info here: *****************
     ;; ******* https://github.com/open-company/open-company-lib/pull/82) ******
     ;; ************************************************************************
-    [open-company/lib "0.17.29-alpha67"]
+    [open-company/lib "0.19.0-alpha5" :exclusions [commons-codec]]
     ;; ************************************************************************
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
@@ -101,7 +101,7 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.2"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.3.11"]
+        [jonase/eastwood "0.3.14"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-kibit "0.1.8" :exclusions [org.clojure/clojure]]
       ]
@@ -132,7 +132,7 @@
         ;; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
         [lein-pprint "1.3.2"]
         ;; Check for outdated dependencies https://github.com/xsc/lein-ancient
-        [lein-ancient "0.6.15"]
+        [lein-ancient "1.0.0-RC3"]
         ;; Catch spelling mistakes in docs and docstrings https://github.com/cldwalker/lein-spell
         [lein-spell "0.1.0"]
         ;; Dead code finder https://github.com/venantius/yagni
@@ -170,10 +170,12 @@
                  '[oc.storage.resources.org :as org]
                  '[oc.storage.resources.board :as board]
                  '[oc.storage.resources.entry :as entry]
-                 '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.resources.reaction :as reaction]
+                 '[oc.storage.resources.label :as label]
+                 '[oc.storage.representations.org :as org-rep]
                  '[oc.storage.representations.board :as board-rep]
                  '[oc.storage.representations.entry :as entry-rep]
+                 '[oc.storage.representations.label :as label-rep]
                  '[oc.storage.resources.maintenance :as maint]
                  )
       ]
@@ -198,6 +200,7 @@
                       "OpenCompany Storage REPL\n"
                       "\nReady to do your bidding... I suggest (go) or (go <port>) or (go-db) as your first command.\n"))
     :init-ns dev
+    :timeout 1200000
   }
 
   :aliases {

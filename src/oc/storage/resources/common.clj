@@ -10,12 +10,14 @@
 (def board-table-name "boards")
 (def entry-table-name "entries")
 (def interaction-table-name "interactions")
+(def label-table-name "labels")
+(def versions-table-name (str "versions_" entry-table-name))
 
 ;; ----- Properties common to all resources -----
 
 (def reserved-properties
   "Properties of a resource that can't be specified during a create and are ignored during an update."
-  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at})
+  #{:id :slug :uuid :board-uuid :org-uuid :author :links :created-at :updated-at :pins})
 
 ;; ----- Data Schemas -----
 
@@ -27,6 +29,17 @@
 ; (defn- allowed-board-name? [name]
 ;   (and (string? name)
 ;        (not (re-matches #".*\d\d\d\d.*" name)))) ; don't allow any more than 3 numerals in a row
+
+(def iso8601-re "\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(\\.\\d+)?(([+-]\\d\\d:\\d\\d)|Z)?")
+
+(def sort-value-pattern (str "(?i)^(" iso8601-re "){0,2}$"))
+
+(def sort-value-re (re-pattern sort-value-pattern))
+
+(defn sort-value? [v]
+  (or (nil? v) (re-matches sort-value-re v)))
+
+(def SortValue (schema/pred sort-value?))
 
 (def Slug "Valid slug used to uniquely identify a resource in a visible URL." (schema/pred slug/valid-slug?))
 
@@ -43,6 +56,14 @@
 
 (def AccessLevel (schema/pred #(#{:private :team :public} (keyword %))))
 
+(def AllowedBoard
+  {:uuid lib-schema/UniqueID
+   :access AccessLevel
+   schema/Keyword schema/Any})
+
+(def SlackMirror
+  (schema/if map? lib-schema/SlackChannel [lib-schema/SlackChannel]))
+
 (def Board
   "An container of entries."
   {
@@ -54,7 +75,7 @@
   :access AccessLevel
   :authors [lib-schema/UniqueID]
   :viewers [lib-schema/UniqueID]
-  (schema/optional-key :slack-mirror) (schema/maybe lib-schema/SlackChannel)
+  (schema/optional-key :slack-mirror) (schema/maybe SlackMirror)
   :author lib-schema/Author
   (schema/optional-key :draft) schema/Bool
   :created-at lib-schema/ISO8601
@@ -64,7 +85,8 @@
 (def ContentVisibility {
   (schema/optional-key :disallow-secure-links) schema/Bool
   (schema/optional-key :disallow-public-board) schema/Bool
-  (schema/optional-key :disallow-public-share) schema/Bool})
+  (schema/optional-key :disallow-public-share) schema/Bool
+  (schema/optional-key :disallow-wrt-download) schema/Bool})
 
 (def Org {
   :uuid lib-schema/UniqueID
@@ -121,6 +143,34 @@
    :updated-at lib-schema/ISO8601
    :replies {schema/Keyword PollReply}})
 
+;; Labels
+
+(defn valid-label-name? [label-name]
+  (and (string? label-name)
+       (<= 1 (count label-name) 40)))
+
+(def LabelName (schema/pred valid-label-name?))
+
+(def EntryLabel
+  "A label is an object composed by a name and a slug."
+  {:uuid lib-schema/NonBlankStr
+   :name LabelName
+   :slug lib-schema/NonBlankStr})
+
+(def LabelUsedBy
+  "An object representing a user that used a label with the number of times."
+  {:user-id lib-schema/UniqueID
+   :count schema/Num})
+
+(def Label
+  "Complete label object like it's stored in the labels table of the db."
+  (merge EntryLabel
+         {:org-uuid lib-schema/NonBlankStr
+          :created-at lib-schema/ISO8601
+          :updated-at lib-schema/ISO8601
+          :author lib-schema/Author
+          (lib-schema/o-k :used-by) (schema/maybe [LabelUsedBy])}))
+
 (def UserVisibility
   "A user-visibility item."
   {(schema/optional-key :dismiss-at) (schema/maybe lib-schema/ISO8601)
@@ -136,6 +186,19 @@
   :author lib-schema/Author
   :completed? schema/Bool
   (schema/optional-key :completed-at) (schema/maybe lib-schema/ISO8601)})
+
+(def PinValue
+  {:author lib-schema/Author
+   :pinned-at lib-schema/ISO8601})
+
+(def PinKey
+  (schema/pred #(and (keyword? %)
+                     (-> %
+                         name
+                         lib-schema/unique-id?))))
+
+(def EntryPins
+  {PinKey PinValue})
 
 (def Bookmark
   "A bookmark item"
@@ -186,7 +249,10 @@
   (schema/optional-key :user-visibility) (schema/maybe {schema/Keyword UserVisibility})
 
   (schema/optional-key :polls) (schema/maybe {schema/Keyword Poll})
-})
+
+  (schema/optional-key :pins) (schema/maybe EntryPins)
+  
+  (schema/optional-key :labels) (schema/maybe [EntryLabel])})
 
 (def NewBoard
   "A new board for creation, can have new or existing entries already."
@@ -209,3 +275,8 @@
 
 (def default-entry-placeholder "What's happening...")
 (def default-entry-cta "New update")
+
+;; Direction
+(def Order (schema/enum :desc :asc))
+
+(def Direction (schema/enum :before :after))

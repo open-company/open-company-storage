@@ -4,31 +4,23 @@
             [clojure.set :as clj-set]
             [schema.core :as schema]
             [taoensso.timbre :as timbre]
+            [oc.lib.html :as lib-html]
             [oc.lib.schema :as lib-schema]
             [oc.lib.db.common :as db-common]
             [oc.storage.db.common :as storage-db-common]
-            [oc.lib.text :as oc-str]
             [oc.storage.resources.common :as common]
-            [oc.storage.resources.board :as board-res]))
+            [oc.storage.resources.board :as board-res]
+            [oc.storage.resources.label :as label-res]))
 
 (def temp-uuid "9999-9999-9999")
 
 ;; ----- RethinkDB metadata -----
 
 (def table-name common/entry-table-name)
-(def versions-table-name (str "versions_" common/entry-table-name))
+(def versions-table-name common/versions-table-name)
 (def versions-primary-key :version-uuid)
 (def primary-key :uuid)
 
-;; ----- Helpers -----
-
-; (defn- long? [n]
-;   (try
-;     (instance? java.lang.Long n)
-;     (catch Exception e
-;       false)))
-
-(def LongNumber (schema/pred #(instance? java.lang.Long %)))
 
 ;; ----- Metadata -----
 
@@ -81,6 +73,15 @@
   ([attachments timestamp]
   (map #(if (:created-at %) % (assoc % :created-at timestamp)) attachments)))
 
+(defn clean-input [entry]
+  (as-> entry e
+      (if (:body e)
+        (update e :body #(lib-html/sanitize-html (or % "")))
+        e)
+      (if (:headline e)
+        (update e :headline #(lib-html/strip-xss-tags (or % "")))
+        e)))
+
 ;; ----- Entry CRUD -----
 
 (schema/defn ^:always-validate ->entry :- common/Entry
@@ -100,12 +101,13 @@
           author (lib-schema/author-for-user user)]
       (-> entry-props
           keywordize-keys
+          ;; Make sure the headline key is present
+          (update :headline #(or % ""))
           clean
+          clean-input
           (assoc :uuid (db-common/unique-id))
           (assoc :secure-uuid (db-common/unique-id))
           (update :status #(or % "draft"))
-          (update :headline #(or (oc-str/strip-xss-tags %) ""))
-          (update :body #(or (oc-str/strip-xss-tags %) ""))
           (update :attachments #(timestamp-attachments % ts))
           (assoc :org-uuid (:org-uuid board))
           (assoc :board-uuid board-uuid)
@@ -241,12 +243,16 @@
                            (str uuid "-v" revision-id)))
 
 (defn- update-entry [conn entry original-entry ts]
-  (let [merged-entry (merge original-entry (ignore-props entry))
+  (let [merged-entry (->> entry
+                          ignore-props
+                          clean-input
+                          (merge original-entry))
         attachments (:attachments merged-entry)
         authors-entry (assoc merged-entry :author (:author entry))
-        updated-entry (assoc authors-entry :attachments (timestamp-attachments attachments ts))]
-    (schema/validate common/Entry updated-entry)
-    (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)))
+        updated-entry (assoc authors-entry :attachments (timestamp-attachments attachments ts))
+        _valid? (schema/validate common/Entry updated-entry)
+        result (db-common/update-resource conn table-name primary-key original-entry updated-entry ts)]
+    result))
 
 (defn- add-author-to-entry
   [original-entry entry user]
@@ -384,60 +390,41 @@
   {:pre [(db-common/conn? conn)]}
   (db-common/read-resources conn table-name :org-uuid org-uuid))
 
-  ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction allowed-boards :- [lib-schema/UniqueID] {:keys [must-see count] :or {must-see false count false}}]
+  ([conn org-uuid :- lib-schema/UniqueID order start :- common/SortValue
+    direction allowed-boards :- (schema/maybe [common/AllowedBoard]) {count? :count container-id :countainer-id :or {count? false container-id nil}}]
   {:pre [(db-common/conn? conn)
           (#{:desc :asc} order)
           (#{:before :after} direction)]}
-  (let [filter-map (if-not must-see
-                     [{:fn :contains :value allowed-boards :field :board-uuid}]
-                     [{:fn :contains :value allowed-boards :field :board-uuid}
-                      {:fn :eq :field :must-see :value (boolean (#{true "true"} must-see))}]
-                     )]
-    (db-common/read-all-resources-and-relations conn table-name
-      :status-org-uuid [[:published org-uuid]]
-      "published-at" order start direction
-      filter-map
-      :interactions common/interaction-table-name :uuid :resource-uuid
-      list-comment-properties {:count count}))))
+  (let [index-name (if (sequential? allowed-boards)
+                     :status-board-uuid
+                     :status-org-uuid)
+        index-value (if (sequential? allowed-boards)
+                      (map #(vec [:published (:uuid %)]) allowed-boards)
+                      [[:published org-uuid]])]
+    (db-common/read-all-resources-and-relations conn table-name index-name index-value "published-at" order
+                                                           start direction :interactions common/interaction-table-name
+                                                           :uuid :resource-uuid list-comment-properties
+                                                           {:count count? :container-id container-id}))))
 
-(schema/defn ^:always-validate paginated-entries-by-org
-  "
-  Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
-  and a number of results, return the published entries for the org with any interactions.
-  "
-  ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] {:keys [count unseen] :or {count false unseen false}}]
-  (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards nil nil {:count count :unseen unseen}))
-
-  ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [count unseen] :or {count false unseen false}}]
-  (paginated-entries-by-org conn org-uuid order start direction limit sort-type allowed-boards follow-data nil {:count count :unseen unseen}))
-
-  ([conn org-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type
-    allowed-boards :- [lib-schema/UniqueID] follow-data container-last-seen-at {:keys [count unseen] :or {count false unseen false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid [[:published org-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards follow-data container-last-seen-at list-comment-properties nil {:count count :unseen unseen})))
-
-(schema/defn ^:always-validate paginated-entries-by-board
+(schema/defn ^:always-validate paginated-recently-posted-entries-by-board
   "
   Given the UUID of the org, an order, one of `:asc` or `:desc`, a start date as an ISO8601 timestamp,
   and a limit, return the published entries for the org with any interactions.
   "
-  [conn board-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type {:keys [count status] :or {count false status :published}}]
+  [conn allowed-board :- common/AllowedBoard order start :- common/SortValue direction limit {count? :count status :status container-id :container-id :or {count? false}}]
   {:pre [(db-common/conn? conn)
          (#{:desc :asc} order)
          (#{:before :after} direction)
-         (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
+         (integer? limit)]}
+  (timbre/infof "entry-res/paginated-recently-posted-entries-by-board(%s)" (:uuid allowed-board))
   (let [index-name (if (#{:draft :published} status) :status-board-uuid :board-uuid)
-        index-value (if (#{:draft :published} status) [[status board-uuid]] [board-uuid])]
-    (storage-db-common/read-paginated-entries conn table-name index-name index-value order start
-     direction limit sort-type common/interaction-table-name [board-uuid] nil nil list-comment-properties nil {:count count})))
+        index-value (if (#{:draft :published} status)
+                      [[status (:uuid allowed-board)]]
+                      [(:uuid allowed-board)])]
+    (time
+     (storage-db-common/read-paginated-recently-posted-entries conn table-name index-name index-value order start direction limit
+                                                               common/interaction-table-name list-comment-properties [allowed-board] nil
+                                                               {:count count? :container-id container-id}))))
 
 (schema/defn ^:always-validate last-entry-of-board
   "
@@ -446,94 +433,36 @@
   "
   [conn board-uuid]
   {:pre [(db-common/conn? conn)]}
-  (storage-db-common/last-entry-of-board conn board-uuid))
-
-(schema/defn ^:always-validate list-entries-by-org-author
-
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID]]
-   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards nil {:count false}))
-
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at]
-   (list-entries-by-org-author conn org-uuid author-uuid order start direction limit sort-type allowed-boards container-last-seen-at {:count false}))
-
-  ([conn org-uuid :- lib-schema/UniqueID author-uuid :- lib-schema/UniqueID order start :- LongNumber direction limit sort-type allowed-boards :- [lib-schema/UniqueID] container-last-seen-at {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? limit)
-         (#{:recent-activity :recently-posted} sort-type)]}
-  (storage-db-common/read-paginated-entries conn table-name :status-org-uuid-publisher [[:published org-uuid author-uuid]] order start direction
-   limit sort-type common/interaction-table-name allowed-boards nil container-last-seen-at list-comment-properties nil {:count count})))
+  (time (storage-db-common/last-entry-of-board conn board-uuid)))
 
 (schema/defn ^:always-validate list-drafts-by-org-author
   "
   Given the UUID of the org and a user-id return the entries by the author with any interactions.
   "
-  [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID {:keys [count] :or {count false}}]
+  [conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID {count? :count :or {count? false}}]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[:draft org-uuid user-id]]
-                                          :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-comment-properties {:count count}))
+  (timbre/info "entry-res/list-drafts-by-org-author")
+  (time (db-common/read-resources-and-relations conn table-name :status-org-uuid-author-id [[:draft org-uuid user-id]]
+                                                :interactions common/interaction-table-name :uuid :resource-uuid
+                                                list-comment-properties {:count count?})))
 
 (schema/defn ^:always-validate list-entries-by-board
   "Given the UUID of the board, return the published entries for the board with any interactions."
-  ([conn board-uuid :- lib-schema/UniqueID] (list-entries-by-board conn board-uuid {:count false}))
+  ([conn allowed-board :- common/AllowedBoard] (list-entries-by-board conn allowed-board {:count false}))
 
-  ([conn board-uuid :- lib-schema/UniqueID {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published board-uuid]]
-                                          :interactions common/interaction-table-name :uuid :resource-uuid
-                                          list-comment-properties {:count count})))
+  ([conn allowed-board :- common/AllowedBoard {count? :count :or {count? false}}]
+   {:pre [(db-common/conn? conn)]}
+   (timbre/infof "entry-res/list-entries-by-board(%s)" (:uuid allowed-board))
+   (time (db-common/read-resources-and-relations conn table-name :status-board-uuid [[:published (:uuid allowed-board)]]
+                                                 :interactions common/interaction-table-name :uuid :resource-uuid
+                                                 list-comment-properties {:count count?}))))
 
 (schema/defn ^:always-validate list-all-entries-by-board
   "Given the UUID of the board, return all the entries for the board."
-  [conn board-uuid :- lib-schema/UniqueID]
+  [conn allowed-board :- common/AllowedBoard]
   {:pre [(db-common/conn? conn)]}
-  (db-common/read-resources conn table-name :board-uuid [board-uuid] ["uuid" "status"]))
-
-(schema/defn ^:always-validate list-all-entries-for-inbox
-  "Given the UUID of the user, return all the entries the user has access to that have been published
-   or have had activity in the last config/unread-days-limit days, then filter by user-visibility on the remaining."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
-    allowed-boards :- [lib-schema/UniqueID]]
-   (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count false}))
-
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
-    allowed-boards :- [lib-schema/UniqueID] {:keys [count] :or {count false}}]
-   (list-all-entries-for-inbox conn org-uuid user-id order start limit allowed-boards nil {:count count}))
-
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID order start :- LongNumber limit
-   allowed-boards :- [lib-schema/UniqueID] follow-data {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (integer? limit)]}
-  (storage-db-common/read-all-inbox-for-user conn table-name :status-org-uuid [[:published org-uuid]] order start limit
-   common/interaction-table-name allowed-boards follow-data user-id list-comment-properties {:count count})))
-
-(schema/defn ^:always-validate list-entries-for-user-replies
-  ""
-  [conn org-uuid :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] user-id :- lib-schema/UniqueID
-   order start direction limit follow-data container-last-seen-at {:keys [count unseen] :or {count false unseen false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)
-         (integer? limit)]}
-  (storage-db-common/read-paginated-entries-for-replies conn org-uuid allowed-boards user-id order start direction limit
-   follow-data container-last-seen-at list-comment-properties {:count count :unseen unseen}))
-
-;; ----- Entry Bookmarks manipulation -----
-
-(schema/defn ^:always-validate list-all-bookmarked-entries
-  "Given the UUID of the user, return all the published entries with a bookmark for the given user."
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] order start :- LongNumber direction limit]
-    (list-all-bookmarked-entries conn org-uuid user-id allowed-boards order start direction limit {:count false}))
-  ([conn org-uuid :- lib-schema/UniqueID user-id :- lib-schema/UniqueID allowed-boards :- [lib-schema/UniqueID] order start :- LongNumber direction limit {:keys [count] :or {count false}}]
-  {:pre [(db-common/conn? conn)
-         (#{:desc :asc} order)
-         (#{:before :after} direction)]}
-  (storage-db-common/read-paginated-entries conn table-name :org-uuid-status-bookmark-user-id-map-multi
-   [[:published org-uuid user-id]] order start direction limit :bookmarked-at common/interaction-table-name allowed-boards
-   nil nil list-comment-properties user-id {:count count})))
+  (timbre/info "entry-res/list-all-entries-by-board(%s)" (:uuid allowed-board))
+  (time (db-common/read-resources conn table-name :board-uuid [(:uuid allowed-board)] ["uuid" "status"])))
 
 (schema/defn ^:always-validate add-bookmark! :- (schema/maybe common/Entry)
   "Add a bookmark for the give entry and user"
@@ -581,15 +510,110 @@
 (schema/defn ^:always-validate poll-reply-vote! :- (schema/maybe common/Entry)
   [conn entry-uuid :- lib-schema/UniqueID poll-uuid :- lib-schema/UniqueID
    reply-id :- lib-schema/UniqueID user-id :- lib-schema/UniqueID add?]
-  (storage-db-common/update-poll-vote conn table-name entry-uuid poll-uuid reply-id user-id add?))
+  (time (storage-db-common/update-poll-vote conn table-name entry-uuid poll-uuid reply-id user-id add?)))
+
+;; ----- Pins -----
+
+(defn- pin-for [user ts]
+  {:author (lib-schema/author-for-user user)
+   :pinned-at ts})
+
+(schema/defn ^:always-validate toggle-pin! :- common/Entry
+  [conn entry-uuid :- lib-schema/UniqueID pin-container-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+  (when-let [original-entry (get-entry conn entry-uuid)]
+    (let [ts (db-common/current-timestamp)
+          current-pins (or (:pins original-entry) {})
+          pin-container-kw (keyword pin-container-uuid)
+          remove-pin? (contains? current-pins pin-container-kw)
+          updated-pins (if remove-pin?
+                         (dissoc current-pins pin-container-kw)
+                         (assoc current-pins pin-container-kw (pin-for user ts)))
+          updated-entry (assoc original-entry :pins updated-pins)]
+      (schema/validate common/Entry updated-entry)
+      (db-common/update-resource conn table-name primary-key original-entry updated-entry ts))))
+
+;; ----- Labels -----
+
+(schema/defn ^:always-validate add-label! :- (schema/maybe common/Entry)
+  "Add a label for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         existing-label (label-res/get-label conn label-uuid)
+         existing-entry-labels-set (->> original-entry :labels (map :uuid) set)
+         label-exists-in-entry? (existing-entry-labels-set (:uuid existing-label))]
+     (if label-exists-in-entry?
+       ;; Label is already in the entry, return the original entry w/o changes
+       original-entry
+       ;; Add the user's bookmark
+       (let [fixed-label (label-res/entry-label existing-label)
+             updated-entry-labels (vec (conj (:labels original-entry) fixed-label))]
+         (label-res/label-used-by! conn (:uuid fixed-label) (:org-uuid original-entry) user)
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))))))
+
+(schema/defn ^:always-validate add-labels! :- (schema/maybe common/Entry)
+  "Add multiple labels for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuids :- [lib-schema/UniqueID] user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         existing-labels (map #(label-res/get-label conn %) label-uuids)
+         adding-labels-set (set (map :uuid existing-labels))
+         existing-entry-labels (->> original-entry :labels (map :uuid) set)
+         addable-label-uuids (clj-set/difference existing-entry-labels adding-labels-set)]
+     (if (seq addable-label-uuids)
+       ;; Add the labels
+       (let [existing-labels-to-add (filter (comp addable-label-uuids :uuid) existing-labels)
+             updated-entry-labels (concat (:labels original-entry)
+                                          (vec existing-labels-to-add))]
+         (label-res/labels-used-by! conn label-uuids (:org-uuid original-entry) user)
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
+       ;; Labels don't exists or have been already added
+       original-entry))))
+
+(schema/defn ^:always-validate remove-label! :- (schema/maybe common/Entry)
+  "Remove a label for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuid :- lib-schema/UniqueID user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         entry-label-uuids (set (mapv :uuid (:labels original-entry)))
+         label-exists-in-entry? (entry-label-uuids label-uuid)
+         existing-label (label-res/get-label conn label-uuid)]
+     (if label-exists-in-entry?
+       ;; Remove the label
+       (let [updated-entry-labels (filterv #(not= (:uuid %) label-uuid) (:labels original-entry))]
+         (when existing-label
+           (label-res/label-unused-by! conn (:uuid existing-label) (:org-uuid original-entry) user))
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
+       ;; Label is not in the entry, return the original entry w/o changes
+       original-entry))))
+
+(schema/defn ^:always-validate remove-labels! :- (schema/maybe common/Entry)
+  "Remove multiple labels for the give entry and keep track of the use by the user"
+  ([conn entry-uuid :- lib-schema/UniqueID label-uuids :- [lib-schema/UniqueID] user :- lib-schema/User]
+   {:pre [(db-common/conn? conn)]}
+   (let [original-entry (get-entry conn entry-uuid)
+         existing-labels (map #(label-res/get-label conn %) label-uuids)
+         removing-labels-set (set (map :uuid existing-labels))
+         existing-entry-labels (->> original-entry :labels (map :uuid) set)
+         removable-labels (clj-set/intersection existing-entry-labels removing-labels-set)]
+     (if (seq removable-labels)
+       ;; Remove the labels
+       (let [updated-entry-labels (filterv #(not (existing-entry-labels (:uuid %))) (:labels original-entry))]
+         (label-res/labels-unused-by! conn label-uuids (:org-uuid original-entry) user)
+         (update-entry conn (assoc original-entry :labels updated-entry-labels) original-entry (db-common/current-timestamp)))
+       ;; Labels don't exists or at least don't exists in the entry
+       original-entry))))
 
 ;; ----- Armageddon -----
 
 (defn delete-all-entries!
   "Use with caution! Failure can result in partial deletes. Returns `true` if successful."
-  [conn]
-  {:pre [(db-common/conn? conn)]}
-  ;; Delete all interactions and entries
-  (db-common/delete-all-resources! conn common/interaction-table-name)
-  (db-common/delete-all-resources! conn versions-table-name)
-  (db-common/delete-all-resources! conn table-name))
+  ([conn] (delete-all-entries! conn "Come on... you can do better than that!"))
+  ([conn confirm]
+   {:pre [(db-common/conn? conn)]}
+   (assert (= confirm "I do know what I am doing!") (ex-info "Do you know what you are doing?" {:confirmation confirm}))
+   (timbre/info "It looks like you really know what you are doing! Removing all entries, interactions and related versions...")
+   ;; Delete all interactions and entries
+   (db-common/delete-all-resources! conn common/interaction-table-name)
+   (db-common/delete-all-resources! conn versions-table-name)
+   (db-common/delete-all-resources! conn table-name)))
