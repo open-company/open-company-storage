@@ -29,5 +29,5 @@
         collapsed-reactions (vals (reduce reaction-collapse {} fixed-entry-reactions))
         check-fn #(= (:reaction %) thumb-reaction)
         thumb-reactions (some #(when (check-fn %) %) collapsed-reactions)
-        rest-reactions (filter #(not (check-fn %)) collapsed-reactions)]
+        rest-reactions (remove check-fn collapsed-reactions)]
     (or (concat [thumb-reactions] rest-reactions) [])))
