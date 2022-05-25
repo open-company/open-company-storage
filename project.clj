@@ -14,16 +14,16 @@
   ;; All profile dependencies
   :dependencies [
     ;; Lisp on the JVM http://clojure.org/documentation
-    [org.clojure/clojure "1.10.3"]
+    [org.clojure/clojure "1.11.1"]
     ;; Command-line parsing https://github.com/clojure/tools.cli
     [org.clojure/tools.cli "1.0.206"]
     ;; Web application library https://github.com/ring-clojure/ring
-    [ring/ring-devel "1.9.1"]
+    [ring/ring-devel "2.0.0-alpha-1"]
     ;; Web application library https://github.com/ring-clojure/ring
     ;; NB: clj-time pulled in by oc.lib
     ;; NB: joda-time pulled in by oc.lib via clj-time
     ;; NB: commons-codec pulled in by oc.lib
-    [ring/ring-core "1.9.1" :exclusions [clj-time joda-time]]
+    [ring/ring-core "2.0.0-alpha1" :exclusions [clj-time joda-time]]
     ;; CORS library https://github.com/jumblerg/ring.middleware.cors
     [jumblerg/ring.middleware.cors "1.0.1"]
     ;; Ring logging https://github.com/nberger/ring-logger-timbre
@@ -34,23 +34,17 @@
                                              com.taoensso/timbre
                                              org.clojure/tools.logging]]
     ;; Web routing https://github.com/weavejester/compojure
-    [compojure "1.6.1"]
+    [compojure "1.7.0"]
     ;; Utility functions https://github.com/weavejester/medley
-    [medley "1.3.0"]
+    [medley "1.4.0"]
     ;; Pretty-print clj and EDN https://github.com/kkinnear/zprint
-    [zprint "0.5.4"]
-    
+    [zprint "1.2.3"]
+
     ;; General data-binding functionality for Jackson: works on core streaming API https://github.com/FasterXML/jackson-databind
-    [com.fasterxml.jackson.core/jackson-databind "2.11.2"]
+    [com.fasterxml.jackson.core/jackson-databind "2.13.3"]
 
     ;; Library for OC projects https://github.com/open-company/open-company-lib
-    ;; ************************************************************************
-    ;; ****************** NB: don't go under 0.17.29-alpha60 ******************
-    ;; ***************** (JWT schema changes, more info here: *****************
-    ;; ******* https://github.com/open-company/open-company-lib/pull/82) ******
-    ;; ************************************************************************
-    [open-company/lib "0.19.0-alpha5" :exclusions [commons-codec]]
-    ;; ************************************************************************
+    [open-company/lib "0.20.1-alpha3" :exclusions [commons-codec]]
     ;; In addition to common functions, brings in the following common dependencies used by this project:
     ;; httpkit - HTTP client/server http://www.http-kit.org/
     ;; defun - Erlang-esque pattern matching for Clojure functions https://github.com/killme2008/defun
@@ -72,9 +66,9 @@
   ;; All profile plugins
   :plugins [
     ;; Common ring tasks https://github.com/weavejester/lein-ring
-    [lein-ring "0.12.5"]
+    [lein-ring "0.12.6"]
     ;; Get environment settings from different sources https://github.com/weavejester/environ
-    [lein-environ "1.1.0"]
+    [lein-environ "1.2.0"]
   ]
 
   :profiles {
@@ -93,7 +87,7 @@
         ;; NB: clj-time is pulled in by oc.lib
         ;; NB: joda-time is pulled in by oc.lib via clj-time
         ;; NB: commons-codec pulled in by oc.lib
-        [midje "1.9.9" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]] 
+        [midje "1.10.5" :exclusions [joda-time org.clojure/tools.macro clj-time commons-codec]]
         ;; Test Ring requests https://github.com/weavejester/ring-mock
         [ring-mock "0.1.5"]
       ]
@@ -101,7 +95,7 @@
         ;; Example-based testing https://github.com/marick/lein-midje
         [lein-midje "3.2.2"]
         ;; Linter https://github.com/jonase/eastwood
-        [jonase/eastwood "0.3.14"]
+        [jonase/eastwood "1.2.3"]
         ;; Static code search for non-idiomatic code https://github.com/jonase/kibit
         [lein-kibit "0.1.8" :exclusions [org.clojure/clojure]]
       ]
@@ -126,7 +120,7 @@
       :plugins [
         ;; Check for code smells https://github.com/dakrone/lein-bikeshed
         ;; NB: org.clojure/tools.cli is pulled in by lein-kibit
-        [lein-bikeshed "0.5.2" :exclusions [org.clojure/tools.cli]] 
+        [lein-bikeshed "0.5.2" :exclusions [org.clojure/tools.cli]]
         ;; Runs bikeshed, kibit and eastwood https://github.com/itang/lein-checkall
         [lein-checkall "0.1.1"]
         ;; pretty-print the lein project map https://github.com/technomancy/leiningen/tree/master/lein-pprint
@@ -138,10 +132,10 @@
         ;; Dead code finder https://github.com/venantius/yagni
         [venantius/yagni "0.1.7" :exclusions [org.clojure/clojure]]
         ;; Pretty-print clj and EDN https://github.com/kkinnear/lein-zprint
-        [lein-zprint "0.5.4" :exclusions [org.clojure/clojure]]
-      ]  
+        [lein-zprint "1.2.3" :exclusions [org.clojure/clojure]]
+      ]
     }]
-    
+
     :repl-config [:dev {
       :dependencies [
         ;; Network REPL https://github.com/clojure/tools.nrepl
@@ -222,7 +216,7 @@
 
   :eastwood {
     ;; Disable some linters that are enabled by default
-    ;; constant-test - just seems mostly ill-advised, logical constants are useful in something like a `->cond` 
+    ;; constant-test - just seems mostly ill-advised, logical constants are useful in something like a `->cond`
     ;; wrong-arity - unfortunate, but it's failing on 3/arity of sqs/send-message
     ;; implicit-dependencies - uhh, just seems dumb
     :exclude-linters [:constant-test :wrong-arity :implicit-dependencies]
@@ -230,14 +224,14 @@
     :add-linters [:unused-namespaces :unused-private-vars] ; :unused-locals]
 
     :config-files ["third-party-macros.clj"]
-    
+
     ;; Exclude testing namespaces
     :tests-paths ["test"]
     :exclude-namespaces [:test-paths]
   }
 
   :zprint {:old? false}
-  
+
   ;; ----- API -----
 
   :ring {
