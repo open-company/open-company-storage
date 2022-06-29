@@ -256,7 +256,8 @@
                               moving-board?        (assoc :board-uuid (:uuid new-board))
                               (not moving-board?)  (dissoc :board-uuid)
                               true                 (dissoc :publisher-board)
-                              entry-publish?       (assoc (entry-res/ignore-props) :status :published)
+                              entry-publish?       (-> (entry-res/ignore-props)
+                                                       (assoc :status :published))
                               (not entry-publish?) (entry-res/clean))
           updated-entry (-> existing-entry
                          (merge clean-entry-props)
