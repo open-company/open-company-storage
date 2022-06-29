@@ -77,13 +77,6 @@
   {:pre [(db-common/conn? conn)]}
   (into reserved-slugs (map :slug (list-orgs conn))))
 
-(defn- slug-available?
-  "Return true if the slug is not used by any org in the system."
-  [conn slug]
-  {:pre [(db-common/conn? conn)
-         (slug/valid-slug? slug)]}
-  (not (contains? (taken-slugs conn) slug)))
-
 ;; ----- Org CRUD -----
 
 (schema/defn ^:always-validate ->org :- common/Org
@@ -152,7 +145,7 @@
 
   Throws an exception if the merge of the prior org and the updated org property map doesn't conform
   to the common/Org schema.
-  
+
   NOTE: doesn't update authors, see: `add-author`, `remove-author`
   NOTE: doesn't handle case of slug change.
   "
@@ -173,7 +166,7 @@
   {:pre [(db-common/conn? conn)
          (slug/valid-slug? slug)]}
   (if-let [uuid (:uuid (get-org conn slug))]
-    
+
     (do
       ;; Delete labels
       (try
@@ -184,7 +177,7 @@
         (db-common/delete-resource conn common/interaction-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException _)) ; OK if no interactions
       ;; Delete entries
-      (try 
+      (try
         (db-common/delete-resource conn common/entry-table-name :org-uuid uuid)
         (catch java.lang.RuntimeException _)) ; OK if no entries
       ;; Delete boards
@@ -193,7 +186,7 @@
         (catch java.lang.RuntimeException _)) ; OK if no boards
       ;; Delete the org itself
       (db-common/delete-resource conn table-name slug))
-    
+
     false)) ; it's OK if there is no org to delete
 
 ;; ----- Org's set operations -----
@@ -225,7 +218,7 @@
 (defn list-orgs
   "
   Return a sequence of maps with slugs, UUIDs and names, sorted by slug.
-  
+
   NOTE: if additional-keys are supplied, they will be included in the map, and only orgs
   containing those keys will be returned.
   "
@@ -256,8 +249,8 @@
 
 (defn list-orgs-by-teams
   "
-  Given a sequence of team-id's, retrieve all matching orgs, returning `slug` and `name`. 
-  
+  Given a sequence of team-id's, retrieve all matching orgs, returning `slug` and `name`.
+
   Additional fields to return can be optionally specified.
   "
   ([conn team-ids] (list-orgs-by-teams conn team-ids []))
@@ -271,12 +264,12 @@
 
 (defn list-orgs-by-team
   "
-  Given a team-id, retrieve all matching orgs, returning `slug` and `name`. 
-  
+  Given a team-id, retrieve all matching orgs, returning `slug` and `name`.
+
   Additional fields to return can be optionally specified.
   "
   ([conn team-id] (list-orgs-by-team conn team-id []))
-  
+
   ([conn team-id additional-fields]
     {:pre [(schema/validate lib-schema/UniqueID team-id)]}
   (list-orgs-by-teams conn [team-id] additional-fields)))
