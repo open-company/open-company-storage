@@ -38,11 +38,9 @@
 
 (defun follow-parameters-map
   ([user-id org false]
-   (-> (follow-parameters-map user-id org)
-       (assoc :unfollowing true)))
+   (assoc (follow-parameters-map user-id org) :unfollowing true))
   ([user-id org true]
-   (-> (follow-parameters-map user-id org)
-       (assoc :following true)))
+   (assoc (follow-parameters-map user-id org) :following true))
   ([user-id org :guard map?]
    (follow-parameters-map user-id (:slug org)))
   ([user-id org-slug]

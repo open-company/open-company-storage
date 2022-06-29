@@ -5,7 +5,7 @@
 (defn- bool
   "Handle the fact that we may have true/false strings, when we want booleans."
   [val]
-  (boolean (Boolean/valueOf val)))
+  (boolean (Boolean/valueOf (str val))))
 
 ;; ----- System -----
 

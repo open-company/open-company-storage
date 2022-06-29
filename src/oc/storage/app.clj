@@ -4,7 +4,6 @@
   (:require
     [oc.lib.sentry.core :as sentry]
     [taoensso.timbre :as timbre]
-    [clojure.string :as clj-string]
     [clojure.java.io :as j-io]
     [ring.logger.timbre :refer (wrap-with-logger)]
     [liberator.dev :refer (wrap-trace)]
@@ -104,6 +103,6 @@
     (when c/intro? (str (slurp (j-io/resource "oc/assets/ascii_art.txt")) "\n"))
     "OpenCompany Storage Service\n"))
   (echo-config port))
-  
+
 (defn -main []
   (start c/storage-server-port))

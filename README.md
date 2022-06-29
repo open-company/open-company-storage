@@ -1,7 +1,7 @@
 # [OpenCompany](https://github.com/open-company) Storage Service
 
 [![AGPL License](http://img.shields.io/badge/license-AGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/agpl-3.0.en.html)
-[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
+[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.com/open-company/open-company-storage)
 [![Dependencies Status](https://versions.deps.co/open-company/open-company-storage/status.svg)](https://versions.deps.co/open-company/open-company-storage)
 
 ## Background
@@ -358,9 +358,9 @@ then, from the REPL, run:
 
 ## Testing
 
-Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.org/open-company/open-company-storage):
+Tests are run in continuous integration of the `master` and `mainline` branches on [Travis CI](https://travis-ci.com/open-company/open-company-storage):
 
-[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.org/open-company/open-company-storage)
+[![Build Status](http://img.shields.io/travis/open-company/open-company-storage.svg?style=flat)](https://travis-ci.com/open-company/open-company-storage)
 
 To run the tests locally:
 
@@ -378,7 +378,7 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 Distributed under the [GNU Affero General Public License Version 3](https://www.gnu.org/licenses/agpl-3.0.en.html).
 
-Copyright © 2015-2021 OpenCompany, LLC.
+Copyright © 2015-2022 Stoat Labs, Inc.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

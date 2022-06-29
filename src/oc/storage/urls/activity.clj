@@ -13,7 +13,7 @@
                          :else (str url "?"))
         url-params (select-keys parameters-dict allowed-parameter-keys)]
     (str concat-url
-         (apply str
+         (clojure.string/join
                 (for [[k v] url-params
                       :when (and v k)]
                   (str (if (keyword? k) (name k) k) "=" (if (keyword? v) (name v) v) "&"))))))
