@@ -293,7 +293,6 @@
         board-pin-link (when-not draft?
                          (pin-link "board-pin" org-slug board-slug entry-uuid board-uuid))
         entry-author? (= user-id (:user-id (first (:author entry))))
-        entry-publisher? (= user-id (-> entry :publisher :user-id))
         links (cond-> []
                ;; secure UUID access
                secure-access?
@@ -316,17 +315,15 @@
                     member?)
                (concat [home-pin-link board-pin-link])
                ;; Edit/delete can be done by:
-               ;; - admins if the post is published
-               ;; - only the author if he has still author access to the board
+               ;; - admins/contribs of the post's board if it's published
+               ;; - only the author if he's an author of the post's board if it's a draft
                ;; In case the user was removed from the board they can still see the draft and copy the content
                ;; no edit/publish/delete though
                (and (not secure-access?)
-                    (= access-level :author)
                     (or (and (not draft?)
-                             (or (= role :admin)
-                                 entry-publisher?))
-                        (and draft?
-                             entry-author?)))
+                             (= role :admin))
+                        (= access-level :author) ;; Author access is already filtered based on post state: draft only the real author, published all authors
+                        entry-author?)) ;; Entry author has always access (board access is enforced before so we don't need to check if he's got access)
                (concat [(partial-update-link org-slug board-slug entry-uuid)
                         (delete-link org-slug board-slug entry-uuid)
                         (revert-link org-slug board-slug entry-uuid)])
@@ -357,10 +354,10 @@
                     entry-author?)
                (conj (publish-link org board entry-uuid))
                ;; Labels: multiple changes
-               (and member? (not secure-access?))
+               (and member? (not secure-access?) (= access-level :author))
                (conj (label-changes-link org board entry-uuid))
                ;; Label: partial add label link
-               (and member? (not secure-access?))
+               (and member? (not secure-access?) (= access-level :author))
                (concat [(add-label-link org board entry-uuid)
                         (remove-label-link org board entry-uuid)]))]
     (-> (if secure-access?
